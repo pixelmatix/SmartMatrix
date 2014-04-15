@@ -15,7 +15,7 @@
 <layer number="19" name="Unrouted" color="6" fill="1" visible="yes" active="yes"/>
 <layer number="20" name="Dimension" color="15" fill="1" visible="yes" active="yes"/>
 <layer number="21" name="tPlace" color="7" fill="1" visible="yes" active="yes"/>
-<layer number="22" name="bPlace" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="22" name="bPlace" color="7" fill="1" visible="no" active="yes"/>
 <layer number="23" name="tOrigins" color="15" fill="1" visible="yes" active="yes"/>
 <layer number="24" name="bOrigins" color="15" fill="1" visible="yes" active="yes"/>
 <layer number="25" name="tNames" color="7" fill="1" visible="yes" active="yes"/>
@@ -41,10 +41,10 @@
 <layer number="45" name="Holes" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="46" name="Milling" color="3" fill="1" visible="no" active="yes"/>
 <layer number="47" name="Measures" color="7" fill="1" visible="no" active="yes"/>
-<layer number="48" name="Document" color="7" fill="1" visible="no" active="yes"/>
+<layer number="48" name="Document" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="49" name="Reference" color="7" fill="1" visible="no" active="yes"/>
 <layer number="50" name="dxf" color="7" fill="1" visible="no" active="no"/>
-<layer number="51" name="tDocu" color="7" fill="1" visible="no" active="yes"/>
+<layer number="51" name="tDocu" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="52" name="bDocu" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="53" name="tGND_GNDA" color="7" fill="9" visible="no" active="no"/>
 <layer number="54" name="bGND_GNDA" color="1" fill="9" visible="no" active="no"/>
@@ -201,6 +201,9 @@ smkit01</text>
 <text x="13.335" y="1.651" size="1.27" layer="22" font="vector" ratio="12" rot="MR0" align="top-center">12</text>
 <text x="14.478" y="29.21" size="1.27" layer="22" font="vector" ratio="12" rot="SMR0">GND</text>
 <text x="21.59" y="29.21" size="1.27" layer="22" font="vector" ratio="12" rot="MR0">5V</text>
+<text x="-0.254" y="-6.604" size="1.778" layer="48">Pixelmatix 2014 CC BY-SA</text>
+<text x="0" y="-3.556" size="1.778" layer="48">SmartMatrix Shield for Teensy 3</text>
+<text x="48.768" y="-3.302" size="1.778" layer="48" align="bottom-right">Rev V1</text>
 </plain>
 <libraries>
 <library name="adafruit">
