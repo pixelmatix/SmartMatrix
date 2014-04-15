@@ -1621,32 +1621,6 @@ type 0207, grid 7.5 mm</description>
 <wire x1="-5" y1="-2.2" x2="5" y2="-2.2" width="0.127" layer="21"/>
 <text x="3" y="6" size="1.27" layer="25" rot="R180">&gt;NAME</text>
 </package>
-<package name="PIXELMATIX-LOGO-300">
-<rectangle x1="0" y1="0" x2="0.762" y2="0.762" layer="21"/>
-<rectangle x1="0.9144" y1="0" x2="1.6764" y2="0.762" layer="21"/>
-<rectangle x1="1.8288" y1="0" x2="2.5908" y2="0.762" layer="21"/>
-<rectangle x1="0" y1="0.9144" x2="0.762" y2="1.6764" layer="21"/>
-<rectangle x1="1.8288" y1="0.9144" x2="2.5908" y2="1.6764" layer="21"/>
-<rectangle x1="2.7432" y1="0.9144" x2="3.5052" y2="1.6764" layer="21"/>
-<rectangle x1="2.7432" y1="1.8288" x2="3.5052" y2="2.5908" layer="21"/>
-<rectangle x1="1.8288" y1="1.8288" x2="2.5908" y2="2.5908" layer="21"/>
-<rectangle x1="3.6576" y1="1.8288" x2="4.4196" y2="2.5908" layer="21"/>
-<rectangle x1="0" y1="1.8288" x2="0.762" y2="2.5908" layer="21"/>
-<rectangle x1="0" y1="2.7432" x2="0.762" y2="3.5052" layer="21"/>
-<rectangle x1="0" y1="3.6576" x2="0.762" y2="4.4196" layer="21"/>
-<rectangle x1="1.8288" y1="3.6576" x2="2.5908" y2="4.4196" layer="21"/>
-<rectangle x1="3.6576" y1="3.6576" x2="4.4196" y2="4.4196" layer="21"/>
-<rectangle x1="3.6576" y1="2.7432" x2="4.4196" y2="3.5052" layer="21"/>
-<rectangle x1="3.6576" y1="4.572" x2="4.4196" y2="5.334" layer="21"/>
-<rectangle x1="3.6576" y1="5.4864" x2="4.4196" y2="6.2484" layer="21"/>
-<rectangle x1="2.7432" y1="5.4864" x2="3.5052" y2="6.2484" layer="21"/>
-<rectangle x1="1.8288" y1="5.4864" x2="2.5908" y2="6.2484" layer="21"/>
-<rectangle x1="0.9144" y1="5.4864" x2="1.6764" y2="6.2484" layer="21"/>
-<rectangle x1="0" y1="4.572" x2="0.762" y2="5.334" layer="21"/>
-<rectangle x1="3.6576" y1="6.4008" x2="4.4196" y2="7.1628" layer="21"/>
-<rectangle x1="2.7432" y1="6.4008" x2="3.5052" y2="7.1628" layer="21"/>
-<rectangle x1="1.8288" y1="6.4008" x2="2.5908" y2="7.1628" layer="21"/>
-</package>
 </packages>
 </library>
 </libraries>
@@ -1859,7 +1833,6 @@ design rules under a new name.</description>
 <attribute name="VALUE" x="47.752" y="6.35" size="1.27" layer="27" rot="R180"/>
 </element>
 <element name="J4" library="eclibrary" package="1X2-5.0MM" value="1X2-5.0" x="16.51" y="32.512" smashed="yes" rot="R180"/>
-<element name="U$4" library="eclibrary" package="PIXELMATIX-LOGO-300" value="" x="28.194" y="25.146"/>
 </elements>
 <signals>
 <signal name="GNDBREAK">
