@@ -31,6 +31,7 @@
 #define COLOR_CHANNELS_PER_PIXEL    3
 #define LATCHES_PER_ROW             (COLOR_DEPTH_RGB/COLOR_CHANNELS_PER_PIXEL)
 #define DMA_UPDATES_PER_CLOCK       2
+#define DMA_PRIORITY_CH1            0xFE // 0xFF = lowest priority
 
 // hardware-specific definitions
 // prescale of 0 is F_BUS
@@ -238,16 +239,16 @@ void SmartMatrix::begin()
     SIM_SCGC6 |= SIM_SCGC6_DMAMUX;
 
     // enable minor loop mapping so addresses can get reset after minor loops
-    DMA_CR = 1 << 7;
+    DMA_CR |= DMA_CR_EMLM; // 1 << 7 = DMA_CR_EMLM;
 
-    // disable DMA
-    DMA_ERQ = 0;
+    // disable DMA channels 0-3 but leave everything else enabled if all ready set
+    DMA_ERQ &= ~((1 << 0) | (1 << 1) | (1 << 2) | (1 << 3));
 
     // reset state of DMAMUX
-    DMAMUX0_CHCFG0 = 0;
-    DMAMUX0_CHCFG1 = 0;
-    DMAMUX0_CHCFG2 = 0;
-    DMAMUX0_CHCFG3 = 0;
+    DMAMUX0_CHCFG0 = DMAMUX_DISABLE;
+    DMAMUX0_CHCFG1 = DMAMUX_DISABLE;
+    DMAMUX0_CHCFG2 = DMAMUX_DISABLE;
+    DMAMUX0_CHCFG3 = DMAMUX_DISABLE;
 
     // DMA channel #0 - on latch rising edge, read address from fixed address temporary buffer, and output address on GPIO
     // using combo of writes to set+clear registers, to only modify the address pins and not other GPIO pins
@@ -340,11 +341,11 @@ void SmartMatrix::begin()
     NVIC_ENABLE_IRQ(IRQ_DMA_CH3);
 
     // enable additional dma interrupt used as software interrupt
-    NVIC_SET_PRIORITY(IRQ_DMA_CH1, 0xFF); // 0xFF = lowest priority
+    NVIC_SET_PRIORITY(IRQ_DMA_CH1, DMA_PRIORITY_CH1); // 0xFF = lowest priority
     NVIC_ENABLE_IRQ(IRQ_DMA_CH1);
 
-    // enable channels 0, 1, 2, 3
-    DMA_ERQ = (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3);
+    // enable channels 0, 1, 2, 3 but leave everything else alone
+    DMA_ERQ |= (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3);
 
     // at the end after everything is set up: enable timer from system clock, with appropriate prescale
     FTM1_SC = FTM_SC_CLKS(1) | FTM_SC_PS(LATCH_TIMER_PRESCALE);
