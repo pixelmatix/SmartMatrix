@@ -8,7 +8,8 @@
 
 SmartMatrix matrix;
 
-const int defaultBrightness = 25*(255/100);
+const int defaultBrightness = 100*(255/100);    // full brightness
+//const int defaultBrightness = 15*(255/100);    // dim: 15% brightness
 const int defaultScrollOffset = 6;
 const rgb24 defaultBackgroundColor = {0x40, 0, 0};
 
