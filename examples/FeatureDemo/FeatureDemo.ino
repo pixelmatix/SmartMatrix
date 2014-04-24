@@ -3,6 +3,7 @@
     This example code is released into the public domain
 */
 
+//#include "SmartMatrix_16x32.h"
 #include "SmartMatrix_32x32.h"
 
 SmartMatrix matrix;
@@ -855,20 +856,6 @@ void loop() {
             matrix.setScrollSpeed(/*maxScrollSpeed -*/ maxScrollSpeed * ((float)millis() - currentMillis) / transitionTime);
         }
     }
-
-    // test scrolling a vertical line across the screen at max refresh rate
-    {
-        for(j=0; j<10; j++) {
-            for(i=32-1; i>=0; i--) {
-                matrix.fillScreen(defaultBackgroundColor);
-                matrix.drawFastVLine(i, 0, matrix.getScreenHeight(), {0xff,0xff,0xff});
-                matrix.swapBuffers(true);
-            }
-        }
-
-        matrix.fillScreen(defaultBackgroundColor);
-        matrix.swapBuffers(true);
-    }
 #endif
 
     // fonts
@@ -1038,7 +1025,7 @@ void loop() {
         matrix.setScrollFont(font6x10);
         matrix.scrollText("24-bit Color, even with low brightness", 1);
 
-        const uint transitionTime = 5000;
+        const uint transitionTime = 7000;
 
         matrix.setFont(font5x7);
 
@@ -1050,40 +1037,6 @@ void loop() {
             if (fraction > 1.0)
                 fraction = 2.0 - fraction;
             int brightness = fraction * 255.0;
-            matrix.setBrightness(brightness);
-
-            char value[] = "000";
-            char percent[] = "100%";
-            value[0] = '0' + brightness / 100;
-            value[1] = '0' + (brightness % 100) / 10;
-            value[2] = '0' + brightness % 10;
-            percent[0] = '0' + (brightness * 100.0 / 255) / 100;
-            percent[1] = '0' + (int)(brightness * 100.0 / 255) % 100 / 10;
-            percent[2] = '0' + (int)(brightness * 100.0 / 255) % 10;
-
-            rgb24 *buffer = matrix.backBuffer();
-
-            extern const bitmap_font weathericon;
-
-            for (i = 0; i < 32 * matrix.getScreenHeight(); i++) {
-                buffer[i].red = weathericon.Bitmap[i * 3 + 0];
-                buffer[i].green = weathericon.Bitmap[i * 3 + 1];
-                buffer[i].blue = weathericon.Bitmap[i * 3 + 2];
-            }
-
-            matrix.drawString(12, 16, {0xff, 0, 0}, value);
-            matrix.drawString(12, 24, {0xff, 0, 0}, percent);
-            matrix.swapBuffers(true);
-        }
-
-        currentMillis = millis();
-
-        while (millis() - currentMillis < transitionTime) {
-            float fraction = ((float)millis() - currentMillis) / ((float)transitionTime / 2);
-
-            if (fraction > 1.0)
-                fraction = 2.0 - fraction;
-            int brightness = fraction * 5.0;
             matrix.setBrightness(brightness);
 
             char value[] = "000";
