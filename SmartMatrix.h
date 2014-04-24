@@ -116,6 +116,7 @@ public:
     void drawChar(int16_t x, int16_t y, rgb24 charColor, char character);
     void drawString(int16_t x, int16_t y, rgb24 charColor, const char text[]);
     void drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, rgb24 bitmapColor, uint8_t *bitmap);
+    rgb24 readPixel(int16_t x, int16_t y);
     rgb24 *backBuffer();
 
     // scroll text
@@ -154,7 +155,6 @@ private:
     void drawHardwareVLine(uint8_t x, uint8_t y0, uint8_t y1, rgb24 color);
     void bresteepline(int16_t x3, int16_t y3, int16_t x4, int16_t y4, rgb24 color);
     void fillFlatSideTriangleInt(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, rgb24 color);
-    rgb24 readPixel(int16_t x, int16_t y);
 
     // configuration helper functions
     static void calculateTimerLut(void);
