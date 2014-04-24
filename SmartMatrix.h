@@ -27,8 +27,9 @@
 #include "Arduino.h"
 #include <stdint.h>
 
-#include "MatrixHardware_KitV2_32x32.h"
-// point to one of the MatrixHardware_*.h files here:
+// include one of the MatrixHardware_*.h files here:
+#include "MatrixHardware_KitV1_32x32.h"
+//#include "MatrixHardware_KitV1_16x32.h"
 
 
 // scroll text
