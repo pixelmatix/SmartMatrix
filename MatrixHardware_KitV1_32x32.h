@@ -27,11 +27,11 @@
 #define MATRIX_HARDWARE_H
 
 // basic display size (32x32 1/16 refresh and 16x32 1/8 refresh display supported)
-#define MATRIX_HEIGHT       16
+#define MATRIX_HEIGHT       32
 #define MATRIX_WIDTH        32
 
 // an advanced user may need to tweak these values
-#define MATRIX_REFRESH_RATE         70
+#define MATRIX_REFRESH_RATE         120
 // only 24-bit color supported
 #define COLOR_DEPTH_RGB             24
 // DMA_BUFFER_NUMBER_OF_ROWS = the size of the buffer that DMA pulls from to refresh the display
@@ -44,7 +44,8 @@
 #define LATCH_TIMER_PULSE_WIDTH_NS  438
 // set this by triggering scope on latch rising edge, and with persistence enabled,
 // look for the last clock pulse after the latch.  set the min block period to be beyond this last pulse
-#define MIN_BLOCK_PERIOD_NS     5000
+// default (10us) is a generous minimum that should work with all Teensy 3.x devices at 48MHz and above
+#define MIN_BLOCK_PERIOD_NS     10000
 
 // this section describes how the microcontroller is attached to the display
 
@@ -62,7 +63,6 @@
 #define GPIO_PIN_G1_TEENSY_PIN      7
 #define GPIO_PIN_B1_TEENSY_PIN      20
 
-// only 3-bit address supported right now
 #define ADDX_PIN_0  3
 #define ADDX_PIN_1  4
 #define ADDX_PIN_2  1

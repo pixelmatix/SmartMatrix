@@ -51,8 +51,8 @@ uint16_t SmartMatrix::getScreenHeight(void) {
 
 volatile bool SmartMatrix::brightnessChange = false;
 const int SmartMatrix::dimmingMaximum = 255;
-// large factor = more dim - default is 15% bright
-int SmartMatrix::dimmingFactor = dimmingMaximum - (15 * 255)/100;
+// large factor = more dim, default is full brightness
+int SmartMatrix::dimmingFactor = dimmingMaximum - (100 * 255)/100;
 
 void SmartMatrix::setBrightness(uint8_t brightness) {
     dimmingFactor = dimmingMaximum - brightness;
