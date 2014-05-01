@@ -29,8 +29,8 @@
 
 
 // include one of the MatrixHardware_*.h files here:
-#include "MatrixHardware_KitV1_32x32.h"
-//#include "MatrixHardware_KitV1_16x32.h"
+//#include "MatrixHardware_KitV1_32x32.h"
+#include "MatrixHardware_KitV1_16x32.h"
 
 
 // scroll text
@@ -140,9 +140,9 @@ public:
     void setFont(fontChoices newFont);
 
 private:
-	// enable ISR access to private member variables
-	friend void dma_ch1_isr(void);
-	// functions called by ISR
+    // enable ISR access to private member variables
+    friend void dma_ch1_isr(void);
+    // functions called by ISR
     static void matrixCalculations(void);
 
     // functions for refreshing

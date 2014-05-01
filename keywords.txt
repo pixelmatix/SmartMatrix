@@ -1,0 +1,68 @@
+#######################################
+# Syntax Coloring Map For Time
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+ScrollMode	KEYWORD1
+fontChoices KEYWORD1
+rgb24 KEYWORD1
+colorCorrectionModes  KEYWORD1
+rotationDegrees KEYWORD1
+screen_config KEYWORD1
+SmartMatrix KEYWORD1
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+RGB24_ISEQUAL	 KEYWORD2
+# Drawing Methods
+begin KEYWORD2
+swapBuffers KEYWORD2
+drawPixel KEYWORD2
+drawLine KEYWORD2
+drawFastVLine KEYWORD2
+drawFastHLine KEYWORD2
+drawCircle KEYWORD2
+fillCircle KEYWORD2
+fillCircle KEYWORD2
+drawTriangle KEYWORD2
+fillTriangle KEYWORD2
+fillTriangle KEYWORD2
+drawRectangle KEYWORD2
+fillRectangle KEYWORD2
+fillRectangle KEYWORD2
+drawRoundRectangle KEYWORD2
+fillRoundRectangle KEYWORD2
+fillRoundRectangle KEYWORD2
+fillScreen KEYWORD2
+drawChar KEYWORD2
+drawString KEYWORD2
+drawMonoBitmap KEYWORD2
+readPixel KEYWORD2
+backBuffer KEYWORD2
+
+# Scroll text
+scrollText KEYWORD2
+setScrollMode KEYWORD2
+setScrollSpeed KEYWORD2
+setScrollFont KEYWORD2
+setScrollColor KEYWORD2
+setScrollOffsetFromEdge KEYWORD2
+stopScrollText KEYWORD2
+getScrollStatus KEYWORD2
+
+# configuration
+setRotation KEYWORD2
+getScreenWidth KEYWORD2
+getScreenHeight KEYWORD2
+setBrightness KEYWORD2
+setColorCorrection KEYWORD2
+setFont KEYWORD2
+#######################################
+# Instances (KEYWORD2)
+#######################################
+
+#######################################
+# Constants (LITERAL1)
+#######################################
