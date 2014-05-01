@@ -155,10 +155,13 @@ public:
     void setColorCorrection(colorCorrectionModes mode);
     void setFont(fontChoices newFont);
 
-    // functions called by ISR (not meant for user but can't be private)
+private:
+    // enable ISR access to private member variables
+    friend void dma_ch1_isr(void);
+
+    // functions called by ISR
     static void matrixCalculations(void);
 
-private:
     // functions for refreshing
     static void loadMatrixBuffers(unsigned char currentRow);
 #if COLOR_DEPTH_RGB >= 36
