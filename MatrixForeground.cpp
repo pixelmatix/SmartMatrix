@@ -95,6 +95,17 @@ void SmartMatrix::scrollText(const char inputtext[], int numScrolls) {
     }
 }
 
+//Updates the text that is currently scrolling to the new value
+//Useful for a clock display where the time changes.
+void SmartMatrix::updateScrollText(const char inputtext[]){
+    int length = strlen((const char *)inputtext);
+    if (length > textLayerMaxStringLength)
+        length = textLayerMaxStringLength;
+    strncpy(text, (const char *)inputtext, length);
+    textlen = length;
+    textWidth = (textlen * scrollFont->Width) - 1;
+}
+
 // TODO: recompute stuff after changing mode, font, etc
 void SmartMatrix::setScrollMode(ScrollMode mode) {
     scrollmode = mode;

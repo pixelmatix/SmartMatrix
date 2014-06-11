@@ -122,6 +122,7 @@ public:
 
     // scroll text
     void scrollText(const char inputtext[], int numScrolls);
+    void updateScrollText(const char inputtext[]);
     void setScrollMode(ScrollMode mode);
     void setScrollSpeed(unsigned char pixels_per_second);
     void setScrollFont(fontChoices newFont);
