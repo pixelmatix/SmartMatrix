@@ -121,15 +121,16 @@ public:
     rgb24 *backBuffer();
 
     // scroll text
-    void scrollText(const char inputtext[], int numScrolls);
-    void updateScrollText(const char inputtext[]);
-    void setScrollMode(ScrollMode mode);
-    void setScrollSpeed(unsigned char pixels_per_second);
-    void setScrollFont(fontChoices newFont);
-    void setScrollColor(rgb24 newColor);
-    void setScrollOffsetFromEdge(int offset);
-    void stopScrollText(void);
-    int getScrollStatus(void);
+    int initNewScrollLayer(void);
+    void scrollText(const char inputtext[], int numScrolls, int index);
+    void updateScrollText(const char inputtext[], int index);
+    void setScrollMode(ScrollMode mode, int index);
+    void setScrollSpeed(unsigned char pixels_per_second, int index);
+    void setScrollFont(fontChoices newFont, int index);
+    void setScrollColor(rgb24 newColor, int index);
+    void setScrollOffsetFromEdge(int offset, int index);
+    void stopScrollText(int index);
+    int getScrollStatus(int index);
 
     // configuration
     void setRotation(rotationDegrees rotation);
