@@ -36,8 +36,10 @@ int fontOffset = 1;
 ScrollMode scrollmode = bounceForward;
 unsigned char framesperscroll = 4;
 
-//bitmap size is 32 rows (supporting maximum dimension of screen height in all rotations), by 32 bits
-uint32_t foregroundBitmap[32][32 / 32];
+// Support the larger dimension in all rotations
+#define MAX_SIZE max(MATRIX_WIDTH, MATRIX_HEIGHT)
+// Bitmap size is MAX_SIZE rows by MAX_SIZE bits
+uint32_t foregroundBitmap[MAX_SIZE][MAX_SIZE / 32];
 
 const bitmap_font *scrollFont = &apple5x7;
 
@@ -117,7 +119,7 @@ void SmartMatrix::setScrollOffsetFromEdge(int offset) {
 }
 
 void SmartMatrix::redrawForeground(void) {
-    int j, k;
+    int j, k, l;
     int charPosition, textPosition;
     uint8_t charY0, charY1;
 
@@ -156,10 +158,14 @@ void SmartMatrix::redrawForeground(void) {
             for (k = charY0; k < charY1; k++) {
                 // read in uint8, shift it to be in MSB (font is in the top bits of the uint32)
                 tempBitmask = getBitmapFontRowAtXY(text[textPosition], k, scrollFont) << 24;
-                if (charPosition < 0)
-                    foregroundBitmap[j + k - charY0][0] |= tempBitmask << -charPosition;
-                else
-                    foregroundBitmap[j + k - charY0][0] |= tempBitmask >> charPosition;
+                for (l = 0; l < SmartMatrix::screenConfig.localWidth / 32; ++l) {
+                    // character position relative to panel l
+                    int panelPosition = charPosition - l * 32;
+                    if (panelPosition > -8 && panelPosition < 0)
+                        foregroundBitmap[j + k - charY0][l] |= tempBitmask << -panelPosition;
+                    else if (panelPosition >= 0 && panelPosition < 32)
+                        foregroundBitmap[j + k - charY0][l] |= tempBitmask >> panelPosition;
+                }
             }
 
             // get set up for next character
@@ -247,9 +253,11 @@ bool SmartMatrix::getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24
         localScreenY = hardwareX;
     }
 
-    uint32_t bitmask = 0x01 << (31 - localScreenX);
+    uint8_t panelIndex = localScreenX / 32;
+    uint8_t panelScreenX = localScreenX % 32;
+    uint32_t bitmask = 0x01 << (31 - panelScreenX);
 
-    if (foregroundBitmap[localScreenY][0] & bitmask) {
+    if (foregroundBitmap[localScreenY][panelIndex] & bitmask) {
         copyRgb24(xyPixel, &textcolor);
         return true;
     }
