@@ -28,9 +28,11 @@
 #include <stdint.h>
 
 // include one of the MatrixHardware_*.h files here:
+#if defined(MATRIX32)
 #include "MatrixHardware_KitV1_32x32.h"
-//#include "MatrixHardware_KitV1_16x32.h"
-
+#else
+#include "MatrixHardware_KitV1_16x32.h"
+#endif
 
 // scroll text
 const int textLayerMaxStringLength = 50;
