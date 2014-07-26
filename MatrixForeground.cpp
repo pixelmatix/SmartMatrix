@@ -24,6 +24,15 @@
 #include <string.h>
 #include "SmartMatrix.h"
 
+char tmp[16];
+
+#define printI(str, v) {Serial.print((str)); Serial.println((v));}
+// #define printB(str, v) {Serial.print((str)); Serial.println((long)(v), BIN);}
+// #define printB(str, v) {Serial.print((str)); Serial.print((int)(((v)&0xff00)>>16), BIN); Serial.println((int)((v)&0x00ff), BIN);}
+#define printB(str, v) {Serial.print((str)); for (unsigned int mask = 0x80000000l; mask; mask >>= 1) {Serial.print(mask&(v)?'1':'0');} Serial.println();}
+// #define printB(str, v) {Serial.print((str)); Serial.println((long)(v), HEX);}
+#define printI2(str, v1, v2) {Serial.print((str)); Serial.print((v1)); Serial.print(", "); Serial.println((v2)); }
+
 // options
 char text[textLayerMaxStringLength];
 unsigned char textlen;
@@ -36,12 +45,18 @@ int fontOffset = 1;
 ScrollMode scrollmode = bounceForward;
 unsigned char framesperscroll = 4;
 
-// Support the larger dimension in all rotations
-#define MAX_SIZE max(MATRIX_WIDTH, MATRIX_HEIGHT)
-// Bitmap size is MAX_SIZE rows by MAX_SIZE bits
-uint32_t foregroundBitmap[MAX_SIZE][MAX_SIZE / 32];
+// The foreground is only one color, so the bitmap needs only one bit per location. A 32 pixel-wide
+// panel row can therefore be represented with a 32 bit unsigned integer. We store the foreground 
+// bitmap as row of panels to match the hardware which is laid out in a single row for DMA addressing. 
+// The drawing area may be a row of panels, a column, or a 2x2 panel square. Drawing routines will 
+// translate the drawing row, column positions into the hardware row panel positions.
+// The foregroundBitmap array is MATRIX_HEIGHT 32 bit values, one array per panel. 
+uint32_t foregroundBitmap[MATRIX_HEIGHT][MATRIX_WIDTH / 32];
 
 const bitmap_font *scrollFont = &apple5x7;
+
+// TODO (gary): remove
+static long callCount = 0;
 
 // these variables describe the text bitmap: size, location on the screen, and bounds of where it moves
 unsigned int textWidth;
@@ -54,7 +69,7 @@ void SmartMatrix::stopScrollText(void) {
     // scrollcounter is next to zero
     scrollcounter = 1;
     // position text at the end of the cycle
-    scrollPosition = scrollMin;
+    scrollPosition = scrollMin;     // TODO: scrollMin may not be initialized?
 }
 
 // returns 0 if stopped
@@ -119,9 +134,12 @@ void SmartMatrix::setScrollOffsetFromEdge(int offset) {
 }
 
 void SmartMatrix::redrawForeground(void) {
-    int j, k, l;
+    int j, k;
     int charPosition, textPosition;
     uint8_t charY0, charY1;
+
+    printI("foregroundBitmap size = ", sizeof(foregroundBitmap));
+    printI("callCount = ", callCount++);
 
     // clear full bitmap
     memset(foregroundBitmap, 0x00, sizeof(foregroundBitmap));
@@ -129,10 +147,13 @@ void SmartMatrix::redrawForeground(void) {
     for (j = 0; j < SmartMatrix::screenConfig.localHeight; j++) {
 
         // skip rows without text
-        if (j < fontOffset || j >= fontOffset + scrollFont->Height)
+        if (j < fontOffset || j >= fontOffset + scrollFont->Height) {
             continue;
+        }
 
         // now in row with text
+        printI("> in a row with text: ", j);
+
         // find the position of the first char
         charPosition = scrollPosition;
         textPosition = 0;
@@ -142,8 +163,11 @@ void SmartMatrix::redrawForeground(void) {
             charPosition += scrollFont->Width;
             textPosition++;
         }
+        printI2("> onscreen: character, position = ", charPosition, textPosition);
+        Serial.print("> character = "); Serial.write(text[textPosition]); Serial.println();
 
-        // find rows within character bitmap that will be drawn (0-font->height unless text is partially off screen)
+        // find rows within character bitmap that will be drawn 
+        // (0-font->height unless text is partially off screen)
         charY0 = j - fontOffset;
 
         if (SmartMatrix::screenConfig.localHeight < fontOffset + scrollFont->Height) {
@@ -151,21 +175,46 @@ void SmartMatrix::redrawForeground(void) {
         } else {
             charY1 = scrollFont->Height;
         }
+        printI2("> charY0, charY1 = ", charY0, charY1);
 
         while (textPosition < textlen && charPosition < SmartMatrix::screenConfig.localWidth) {
             uint32_t tempBitmask;
             // draw character from top to bottom
+            // printI2(">> character, position = ", charPosition, textPosition);
+            // Serial.print("> character = "); Serial.write(text[textPosition]); Serial.println();
             for (k = charY0; k < charY1; k++) {
                 // read in uint8, shift it to be in MSB (font is in the top bits of the uint32)
                 tempBitmask = getBitmapFontRowAtXY(text[textPosition], k, scrollFont) << 24;
-                for (l = 0; l < SmartMatrix::screenConfig.localWidth / 32; ++l) {
-                    // character position relative to panel l
-                    int panelPosition = charPosition - l * 32;
-                    if (panelPosition > -8 && panelPosition < 0)
-                        foregroundBitmap[j + k - charY0][l] |= tempBitmask << -panelPosition;
-                    else if (panelPosition >= 0 && panelPosition < 32)
-                        foregroundBitmap[j + k - charY0][l] |= tempBitmask >> panelPosition;
+                // printI(">>> k = ", k);
+                // printB(">>> tempBitmask = ", tempBitmask);
+
+                int16_t drawingRow = j + k - charY0;
+                int16_t panelRow = drawingRow / PANEL_HEIGHT;
+                int16_t panelCol = charPosition / PANEL_WIDTH;
+                int16_t panel = panelRow * PANELS_PER_ROW + panelCol;
+                // int16_t colOnPanel = charPosition % PANEL_WIDTH;
+                int16_t colOnPanel = charPosition - panelCol * PANEL_WIDTH;
+                int16_t rowOnPanel = drawingRow % PANEL_HEIGHT;
+                // printI2(">>> panelRow, panelCol = ", panelRow, panelCol);
+                // printI(">>> panel = ", panel);
+                // printI2(">>> rowOnPanel, colOnPanel = ", rowOnPanel, colOnPanel);
+                // printB(">>>  pre:  foregroundBitmap[rowOnPanel][panel] = ", foregroundBitmap[rowOnPanel][panel]);
+                if (colOnPanel > -8 && colOnPanel < 0) {
+                    foregroundBitmap[rowOnPanel][panel] |= tempBitmask << -colOnPanel;
+                    // printB(">>> tempBitmask << -colOnPanel = ", tempBitmask << -colOnPanel);
                 }
+                else if (colOnPanel >= 0 && colOnPanel < PANEL_WIDTH - scrollFont->Width) {
+                    foregroundBitmap[rowOnPanel][panel] |= tempBitmask >> colOnPanel;
+                    // printB(">>> tempBitmask >> colOnPanel = ", tempBitmask >> colOnPanel);
+                } else {
+                    foregroundBitmap[rowOnPanel][panel] |= tempBitmask >> colOnPanel;
+                    // printB(">>> 0: tempBitmask >> colOnPanel = ", tempBitmask >> colOnPanel);
+                    if (panel < MATRIX_WIDTH / PANEL_WIDTH - 1) {
+                        foregroundBitmap[rowOnPanel][panel+1] |= tempBitmask << PANEL_WIDTH-colOnPanel;
+                        // printB(">>> 1: tempBitmask >> colOnPanel = ", tempBitmask << PANEL_WIDTH-colOnPanel);                        
+                    }
+                }
+                // printB(">>> post: foregroundBitmap[rowOnPanel][panel] = ", foregroundBitmap[rowOnPanel][panel]);
             }
 
             // get set up for next character
@@ -178,7 +227,7 @@ void SmartMatrix::redrawForeground(void) {
 }
 
 // called once per frame to update foreground (virtual) bitmap
-// function needs major efficiency improvments
+// function needs major efficiency improvements
 void SmartMatrix::updateForeground(void) {
     bool resetScrolls = false;
     static unsigned char currentframe = 0;
@@ -243,16 +292,19 @@ bool SmartMatrix::getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24
         localScreenX = hardwareX;
         localScreenY = hardwareY;
     } else if (SmartMatrix::screenConfig.rotation == rotation180) {
-        localScreenX = (MATRIX_WIDTH - 1) - hardwareX;
-        localScreenY = (MATRIX_HEIGHT - 1) - hardwareY;
+        localScreenX = (DRAWING_WIDTH - 1) - hardwareX;
+        localScreenY = (DRAWING_HEIGHT - 1) - hardwareY;
     } else if (SmartMatrix::screenConfig.rotation == rotation90) {
         localScreenX = hardwareY;
-        localScreenY = (MATRIX_WIDTH - 1) - hardwareX;
+        localScreenY = (DRAWING_WIDTH - 1) - hardwareX;
     } else { /* if (SmartMatrix::screenConfig.rotation == rotation270)*/
-        localScreenX = (MATRIX_HEIGHT - 1) - hardwareY;
+        localScreenX = (DRAWING_HEIGHT - 1) - hardwareY;
         localScreenY = hardwareX;
     }
 
+    // Pull the value from the right bitmap. Because we defined the foreground bit map as
+    // a row of panels, finding the right foregroundBitmap location is simpler than the 
+    // Drawing translations.
     uint8_t panelIndex = localScreenX / 32;
     uint8_t panelScreenX = localScreenX % 32;
     uint32_t bitmask = 0x01 << (31 - panelScreenX);

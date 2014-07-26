@@ -345,6 +345,15 @@ void SmartMatrix::begin()
     FTM1_SC = FTM_SC_CLKS(1) | FTM_SC_PS(LATCH_TIMER_PRESCALE);
 }
 
+// Given a point x,y in the drawing coordinates, return an x,y in the hardware coordinates.
+void SmartMatrix::convertToHardwareXY(int16_t x, int16_t y, int16_t *hwx, int16_t *hwy) {
+    int16_t panelRow = y / PANEL_HEIGHT;
+    int16_t panelCol = x / PANEL_WIDTH;
+    int16_t fullPanels = panelRow * PANELS_PER_ROW + panelCol;
+    *hwx = fullPanels * PANEL_WIDTH + x % PANEL_WIDTH;
+    *hwy = y % PANEL_HEIGHT;
+}
+
 void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
 
     int i, j;

@@ -31,6 +31,8 @@
 // multiple matrix rows are not supported
 #define MATRIX_HEIGHT       32
 #define MATRIX_WIDTH        32
+#define PANEL_HEIGHT        32
+#define PANEL_WIDTH         32
 
 // an advanced user may need to tweak these values
 #define MATRIX_REFRESH_RATE         120

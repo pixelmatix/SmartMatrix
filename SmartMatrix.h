@@ -28,7 +28,9 @@
 #include <stdint.h>
 
 // include one of the MatrixHardware_*.h files here:
-#include "MatrixHardware_KitV1_32x32.h"
+#include "MatrixHardware_KitV1_64x64.h"
+//#include "MatrixHardware_KitV1_32x128.h"
+//#include "MatrixHardware_KitV1_32x32.h"
 //#include "MatrixHardware_KitV1_16x32.h"
 
 
@@ -143,6 +145,7 @@ public:
 
 private:
     // functions for refreshing
+    static void convertToHardwareXY(int16_t x, int16_t y, int16_t *hwx, int16_t *hwy);
     static void loadMatrixBuffers(unsigned char currentRow);
     static uint8_t colorCorrection8bit(uint8_t inputcolor);
     static void getPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24 *xyPixel);
@@ -152,8 +155,8 @@ private:
     static void redrawForeground(void);
 
     // drawing functions not meant for user
-    void drawHardwareHLine(uint8_t x0, uint8_t x1, uint8_t y, rgb24 color);
-    void drawHardwareVLine(uint8_t x, uint8_t y0, uint8_t y1, rgb24 color);
+    void drawHardwareHLine(int16_t x0, int16_t x1, int16_t y, rgb24 color);
+    void drawHardwareVLine(int16_t x, int16_t y0, int16_t y1, rgb24 color);
     void bresteepline(int16_t x3, int16_t y3, int16_t x4, int16_t y4, rgb24 color);
     void fillFlatSideTriangleInt(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, rgb24 color);
 

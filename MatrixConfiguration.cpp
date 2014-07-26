@@ -25,19 +25,19 @@
 
 screen_config SmartMatrix::screenConfig = {
     .rotation = rotation0,
-    .localWidth = MATRIX_WIDTH,
-    .localHeight = MATRIX_HEIGHT,
+    .localWidth = DRAWING_WIDTH,
+    .localHeight = DRAWING_HEIGHT,
 };
 
 void SmartMatrix::setRotation(rotationDegrees rotation) {
     screenConfig.rotation = rotation;
 
     if (rotation == rotation0 || rotation == rotation180) {
-        screenConfig.localWidth = MATRIX_WIDTH;
-        screenConfig.localHeight = MATRIX_HEIGHT;
+        screenConfig.localWidth = DRAWING_WIDTH;
+        screenConfig.localHeight = DRAWING_HEIGHT;
     } else {
-        screenConfig.localWidth = MATRIX_HEIGHT;
-        screenConfig.localHeight = MATRIX_WIDTH;
+        screenConfig.localWidth = DRAWING_HEIGHT;
+        screenConfig.localHeight = DRAWING_WIDTH;
     }
 }
 
