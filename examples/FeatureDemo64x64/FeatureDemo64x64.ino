@@ -31,29 +31,29 @@ void setup() {
     matrix.setColorCorrection(cc24);
 }
 
-#define DEMO_DIMENSIONS         1
 #define DEMO_INTRO              1
-#define DEMO_DRAWING_INTRO      0
-#define DEMO_DRAWING_PIXELS     0
-#define DEMO_DRAWING_LINES      0
-#define DEMO_DRAWING_TRIANGLES  0
-#define DEMO_DRAWING_CIRCLES    0
-#define DEMO_DRAWING_RECTANGLES 0
-#define DEMO_DRAWING_ROUNDRECT  0
-#define DEMO_DRAWING_FILLED     0
-#define DEMO_FILL_SCREEN        0
-#define DEMO_DRAW_CHARACTERS    0
-#define DEMO_FONT_OPTIONS       0
-#define DEMO_MONO_BITMAP        0
+#define DEMO_DIMENSIONS         1
+#define DEMO_DRAWING_INTRO      1
+#define DEMO_DRAWING_PIXELS     1
+#define DEMO_DRAWING_LINES      1
+#define DEMO_DRAWING_TRIANGLES  1
+#define DEMO_DRAWING_CIRCLES    1
+#define DEMO_DRAWING_RECTANGLES 1
+#define DEMO_DRAWING_ROUNDRECT  1
+#define DEMO_DRAWING_FILLED     1
+#define DEMO_FILL_SCREEN        1
+#define DEMO_DRAW_CHARACTERS    1
+#define DEMO_FONT_OPTIONS       1
+#define DEMO_MONO_BITMAP        1
 #define DEMO_SCROLL_COLOR       1
 #define DEMO_SCROLL_MODES       1
 #define DEMO_SCROLL_SPEED       1
 #define DEMO_SCROLL_FONTS       1
 #define DEMO_SCROLL_POSITION    1
 #define DEMO_SCROLL_ROTATION    1
-#define DEMO_BRIGHTNESS         0
-#define DEMO_RAW_BITMAP         0
-#define DEMO_COLOR_CORRECTION   0
+#define DEMO_BRIGHTNESS         1
+#define DEMO_RAW_BITMAP         1
+#define DEMO_COLOR_CORRECTION   1
 
 
 // the loop() method runs over and over again,
@@ -66,6 +66,17 @@ void loop() {
     // clear screen
     matrix.fillScreen(defaultBackgroundColor);
     matrix.swapBuffers(true);
+
+#if (DEMO_INTRO == 1)
+    // "SmartMatrix Demo"
+    matrix.setScrollColor({0xff, 0xff, 0xff});
+    matrix.setScrollMode(wrapForward);
+    matrix.setScrollSpeed(40);
+    matrix.setScrollFont(font6x10);
+    matrix.scrollText("SmartMatrix Demo", 1);
+
+    delay(5000);
+#endif
 
 #if (DEMO_DIMENSIONS == 1)
     // The drawing origin is in the upper, left. 
@@ -107,17 +118,6 @@ void loop() {
     matrix.swapBuffers(true);
     delay(5000);
 
-#endif
-
-#if (DEMO_INTRO == 1)
-    // "SmartMatrix Demo"
-    matrix.setScrollColor({0xff, 0xff, 0xff});
-    matrix.setScrollMode(wrapForward);
-    matrix.setScrollSpeed(40);
-    matrix.setScrollFont(font6x10);
-    matrix.scrollText("SmartMatrix Demo", 1);
-
-    delay(5000);
 #endif
 
 #if (DEMO_DRAWING_INTRO == 1)

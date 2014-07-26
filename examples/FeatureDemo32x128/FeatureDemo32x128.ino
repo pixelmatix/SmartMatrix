@@ -32,8 +32,8 @@ void setup() {
     matrix.setColorCorrection(cc24);
 }
 
-#define DEMO_DIMENSIONS         1
 #define DEMO_INTRO              1
+#define DEMO_DIMENSIONS         1
 #define DEMO_DRAWING_INTRO      1
 #define DEMO_DRAWING_PIXELS     1
 #define DEMO_DRAWING_LINES      1
@@ -67,6 +67,17 @@ void loop() {
     // clear screen
     matrix.fillScreen(defaultBackgroundColor);
     matrix.swapBuffers(true);
+
+#if (DEMO_INTRO == 1)
+    // "SmartMatrix Demo"
+    matrix.setScrollColor({0xff, 0xff, 0xff});
+    matrix.setScrollMode(wrapForward);
+    matrix.setScrollSpeed(40);
+    matrix.setScrollFont(font6x10);
+    matrix.scrollText("SmartMatrix Demo", 1);
+
+    delay(5000);
+#endif
 
 #if (DEMO_DIMENSIONS == 1)
     // The drawing origin is in the upper, left. 
@@ -106,17 +117,6 @@ void loop() {
     matrix.drawString(maxX-7*6, maxY-7, whiteColor, str);
 
     matrix.swapBuffers(true);
-    delay(5000);
-#endif
-
-#if (DEMO_INTRO == 1)
-    // "SmartMatrix Demo"
-    matrix.setScrollColor({0xff, 0xff, 0xff});
-    matrix.setScrollMode(wrapForward);
-    matrix.setScrollSpeed(40);
-    matrix.setScrollFont(font6x10);
-    matrix.scrollText("SmartMatrix Demo", 1);
-
     delay(5000);
 #endif
 
