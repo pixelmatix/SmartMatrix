@@ -74,7 +74,7 @@ void loop() {
     matrix.setScrollMode(wrapForward);
     matrix.setScrollSpeed(40);
     matrix.setScrollFont(font6x10);
-    matrix.scrollText("SmartMatrix Demo", 1);
+    matrix.scrollText("SmartMatrix Demo 32x12", 1);
 
     delay(5000);
 #endif
@@ -93,27 +93,27 @@ void loop() {
     matrix.drawLine(0, 0, 3, 0, whiteColor);
     matrix.drawLine(0, 0, 0, 3, whiteColor);
     matrix.drawLine(0, 0, 5, 5, whiteColor);
-    matrix.drawString(7, 7, whiteColor, "0, 0");
+    matrix.drawString(7, 7, whiteColor, "0,0");
 
     // upper right
     matrix.drawLine(maxX-3, 0, maxX, 0, whiteColor);
     matrix.drawLine(maxX, 3, maxX, 0, whiteColor);
     matrix.drawLine(maxX-5, 5, maxX, 0, whiteColor);
-    sprintf(str, "%d, 0", maxX);
+    sprintf(str, "%d,0", maxX);
     matrix.drawString(maxX-7*6, 7, whiteColor, str);
 
     // lower left
     matrix.drawLine(0, maxY-3, 0, maxY, whiteColor);
     matrix.drawLine(0, maxY, 3, maxY, whiteColor);
     matrix.drawLine(0, maxY, 5, maxY-5, whiteColor);
-    sprintf(str, "0, %d", maxY);
+    sprintf(str, "0,%d", maxY);
     matrix.drawString(5, maxY-7, whiteColor, str);
 
     // lower right
     matrix.drawLine(maxX-3, maxY, maxX, maxY, whiteColor);
     matrix.drawLine(maxX, maxY-3, maxX, maxY, whiteColor);
-    matrix.drawLine(maxX-3, maxY-3, maxX, maxY, whiteColor);
-    sprintf(str, "%d, %d", maxX, maxY);
+    matrix.drawLine(maxX-5, maxY-5, maxX, maxY, whiteColor);
+    sprintf(str, "%d,%d", maxX, maxY);
     matrix.drawString(maxX-7*6, maxY-7, whiteColor, str);
 
     matrix.swapBuffers(true);
