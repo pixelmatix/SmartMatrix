@@ -152,6 +152,7 @@ private:
     static void handleBufferSwap(void);
     static void updateForeground(void);
     static bool getForegroundPixel(uint8_t x, uint8_t y, rgb24 *xyPixel);
+    static void charPositionToPanelRowColumn(int16_t charPosition, int16_t drawingRow, int16_t *panel, int16_t *column, int16_t *row);
     static void redrawForeground(void);
 
     // drawing functions not meant for user

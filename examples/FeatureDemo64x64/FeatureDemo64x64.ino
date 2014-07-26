@@ -18,17 +18,10 @@ const rgb24 defaultBackgroundColor = {0x40, 0, 0};
 // Teensy 3.0 has the LED on pin 13
 const int ledPin = 13;
 
-#define printI(str, v) {Serial.print((str); Serial.println((v));}
-#define printI2(str, v1, v2) {Serial.print((str)); Serial.print((v1)); Serial.print(", "); Serial.println((v2)); }
-
 // the setup() method runs once, when the sketch starts
 void setup() {
     // initialize the digital pin as an output.
     pinMode(ledPin, OUTPUT);
-
-    Serial.begin(38400);
-    while (!Serial) {}
-    printI2("Drawing dimensions (rows, cols): ", DRAWING_HEIGHT, DRAWING_WIDTH);
 
     matrix.begin();
     matrix.setBrightness(defaultBrightness);
@@ -38,7 +31,7 @@ void setup() {
     matrix.setColorCorrection(cc24);
 }
 
-#define DEMO_DIMENSIONS         0
+#define DEMO_DIMENSIONS         1
 #define DEMO_INTRO              1
 #define DEMO_DRAWING_INTRO      0
 #define DEMO_DRAWING_PIXELS     0
@@ -58,9 +51,9 @@ void setup() {
 #define DEMO_SCROLL_FONTS       1
 #define DEMO_SCROLL_POSITION    1
 #define DEMO_SCROLL_ROTATION    1
-#define DEMO_BRIGHTNESS         1
-#define DEMO_RAW_BITMAP         1
-#define DEMO_COLOR_CORRECTION   1
+#define DEMO_BRIGHTNESS         0
+#define DEMO_RAW_BITMAP         0
+#define DEMO_COLOR_CORRECTION   0
 
 
 // the loop() method runs over and over again,
@@ -88,28 +81,28 @@ void loop() {
     matrix.drawLine(0, 0, 3, 0, whiteColor);
     matrix.drawLine(0, 0, 0, 3, whiteColor);
     matrix.drawLine(0, 0, 5, 5, whiteColor);
-    matrix.drawString(7, 7, whiteColor, "0, 0");
+    matrix.drawString(7, 7, whiteColor, "0,0");
 
     // upper right
     matrix.drawLine(maxX-3, 0, maxX, 0, whiteColor);
     matrix.drawLine(maxX, 3, maxX, 0, whiteColor);
     matrix.drawLine(maxX-5, 5, maxX, 0, whiteColor);
-    sprintf(str, "%d, 0", maxX);
-    matrix.drawString(maxX-7*6, 7, whiteColor, str);
+    sprintf(str, "%2d,0", maxX);
+    matrix.drawString(maxX-5*6, 7, whiteColor, str);
 
     // lower left
     matrix.drawLine(0, maxY-3, 0, maxY, whiteColor);
     matrix.drawLine(0, maxY, 3, maxY, whiteColor);
     matrix.drawLine(0, maxY, 5, maxY-5, whiteColor);
-    sprintf(str, "0, %d", maxY);
-    matrix.drawString(5, maxY-7, whiteColor, str);
+    sprintf(str, "0,%2d", maxY);
+    matrix.drawString(2, maxY-7*2, whiteColor, str);
 
     // lower right
     matrix.drawLine(maxX-3, maxY, maxX, maxY, whiteColor);
     matrix.drawLine(maxX, maxY-3, maxX, maxY, whiteColor);
-    matrix.drawLine(maxX-3, maxY-3, maxX, maxY, whiteColor);
-    sprintf(str, "%d, %d", maxX, maxY);
-    matrix.drawString(maxX-7*6, maxY-7, whiteColor, str);
+    matrix.drawLine(maxX-5, maxY-5, maxX, maxY, whiteColor);
+    sprintf(str, "%2d,%2d", maxX, maxY);
+    matrix.drawString(maxX-5*6, maxY-7*2, whiteColor, str);
 
     matrix.swapBuffers(true);
     delay(5000);

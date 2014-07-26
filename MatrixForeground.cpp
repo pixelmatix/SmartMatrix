@@ -26,13 +26,6 @@
 
 char tmp[16];
 
-#define printI(str, v) {Serial.print((str)); Serial.println((v));}
-// #define printB(str, v) {Serial.print((str)); Serial.println((long)(v), BIN);}
-// #define printB(str, v) {Serial.print((str)); Serial.print((int)(((v)&0xff00)>>16), BIN); Serial.println((int)((v)&0x00ff), BIN);}
-#define printB(str, v) {Serial.print((str)); for (unsigned int mask = 0x80000000l; mask; mask >>= 1) {Serial.print(mask&(v)?'1':'0');} Serial.println();}
-// #define printB(str, v) {Serial.print((str)); Serial.println((long)(v), HEX);}
-#define printI2(str, v1, v2) {Serial.print((str)); Serial.print((v1)); Serial.print(", "); Serial.println((v2)); }
-
 // options
 char text[textLayerMaxStringLength];
 unsigned char textlen;
@@ -133,13 +126,21 @@ void SmartMatrix::setScrollOffsetFromEdge(int offset) {
     fontOffset = offset;
 }
 
+// Convert the character position and drawing row to the panel hardware column and row.
+void SmartMatrix::charPositionToPanelRowColumn(
+        int16_t charPosition, int16_t drawingRow, int16_t *panel, int16_t *column, int16_t *row)
+{
+    int16_t panelRow = drawingRow / PANEL_HEIGHT;  // ie, if 2x2 array of panels, then panelRow = {0, 1}
+    int16_t panelCol = charPosition / PANEL_WIDTH;
+    *panel = panelRow * PANELS_PER_ROW + panelCol;
+    *column = charPosition - panelCol * PANEL_WIDTH;
+    *row = drawingRow % PANEL_HEIGHT;
+}
+
 void SmartMatrix::redrawForeground(void) {
     int j, k;
     int charPosition, textPosition;
     uint8_t charY0, charY1;
-
-    printI("foregroundBitmap size = ", sizeof(foregroundBitmap));
-    printI("callCount = ", callCount++);
 
     // clear full bitmap
     memset(foregroundBitmap, 0x00, sizeof(foregroundBitmap));
@@ -150,9 +151,7 @@ void SmartMatrix::redrawForeground(void) {
         if (j < fontOffset || j >= fontOffset + scrollFont->Height) {
             continue;
         }
-
         // now in row with text
-        printI("> in a row with text: ", j);
 
         // find the position of the first char
         charPosition = scrollPosition;
@@ -163,8 +162,6 @@ void SmartMatrix::redrawForeground(void) {
             charPosition += scrollFont->Width;
             textPosition++;
         }
-        printI2("> onscreen: character, position = ", charPosition, textPosition);
-        Serial.print("> character = "); Serial.write(text[textPosition]); Serial.println();
 
         // find rows within character bitmap that will be drawn 
         // (0-font->height unless text is partially off screen)
@@ -175,46 +172,30 @@ void SmartMatrix::redrawForeground(void) {
         } else {
             charY1 = scrollFont->Height;
         }
-        printI2("> charY0, charY1 = ", charY0, charY1);
 
         while (textPosition < textlen && charPosition < SmartMatrix::screenConfig.localWidth) {
             uint32_t tempBitmask;
             // draw character from top to bottom
-            // printI2(">> character, position = ", charPosition, textPosition);
-            // Serial.print("> character = "); Serial.write(text[textPosition]); Serial.println();
             for (k = charY0; k < charY1; k++) {
                 // read in uint8, shift it to be in MSB (font is in the top bits of the uint32)
                 tempBitmask = getBitmapFontRowAtXY(text[textPosition], k, scrollFont) << 24;
-                // printI(">>> k = ", k);
-                // printB(">>> tempBitmask = ", tempBitmask);
 
+                int16_t colOnPanel, rowOnPanel, panel;
                 int16_t drawingRow = j + k - charY0;
-                int16_t panelRow = drawingRow / PANEL_HEIGHT;
-                int16_t panelCol = charPosition / PANEL_WIDTH;
-                int16_t panel = panelRow * PANELS_PER_ROW + panelCol;
-                // int16_t colOnPanel = charPosition % PANEL_WIDTH;
-                int16_t colOnPanel = charPosition - panelCol * PANEL_WIDTH;
-                int16_t rowOnPanel = drawingRow % PANEL_HEIGHT;
-                // printI2(">>> panelRow, panelCol = ", panelRow, panelCol);
-                // printI(">>> panel = ", panel);
-                // printI2(">>> rowOnPanel, colOnPanel = ", rowOnPanel, colOnPanel);
-                // printB(">>>  pre:  foregroundBitmap[rowOnPanel][panel] = ", foregroundBitmap[rowOnPanel][panel]);
-                if (colOnPanel > -8 && colOnPanel < 0) {
+                charPositionToPanelRowColumn(charPosition, drawingRow, &panel, &colOnPanel, &rowOnPanel);
+                if (colOnPanel > -8 && colOnPanel < 0) { // partially off left side of panel
                     foregroundBitmap[rowOnPanel][panel] |= tempBitmask << -colOnPanel;
-                    // printB(">>> tempBitmask << -colOnPanel = ", tempBitmask << -colOnPanel);
-                }
-                else if (colOnPanel >= 0 && colOnPanel < PANEL_WIDTH - scrollFont->Width) {
-                    foregroundBitmap[rowOnPanel][panel] |= tempBitmask >> colOnPanel;
-                    // printB(">>> tempBitmask >> colOnPanel = ", tempBitmask >> colOnPanel);
                 } else {
-                    foregroundBitmap[rowOnPanel][panel] |= tempBitmask >> colOnPanel;
-                    // printB(">>> 0: tempBitmask >> colOnPanel = ", tempBitmask >> colOnPanel);
-                    if (panel < MATRIX_WIDTH / PANEL_WIDTH - 1) {
-                        foregroundBitmap[rowOnPanel][panel+1] |= tempBitmask << PANEL_WIDTH-colOnPanel;
-                        // printB(">>> 1: tempBitmask >> colOnPanel = ", tempBitmask << PANEL_WIDTH-colOnPanel);                        
+                    if (colOnPanel >= 0 && colOnPanel < PANEL_WIDTH - scrollFont->Width) {
+                        // character fully on-screen
+                        foregroundBitmap[rowOnPanel][panel] |= tempBitmask >> colOnPanel;
+                    } else { // partially off right side of panel, so draw on both panels
+                        foregroundBitmap[rowOnPanel][panel] |= tempBitmask >> colOnPanel;
+                        if (panel < PANELS_PER_ROW - 1) {
+                            foregroundBitmap[rowOnPanel][panel+1] |= tempBitmask << PANEL_WIDTH-colOnPanel;
+                        }
                     }
                 }
-                // printB(">>> post: foregroundBitmap[rowOnPanel][panel] = ", foregroundBitmap[rowOnPanel][panel]);
             }
 
             // get set up for next character
