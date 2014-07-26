@@ -28,11 +28,13 @@
 
 // basic display size (32x32 1/16 refresh and 16x32 1/8 refresh display supported)
 // to use multiple matrices in a row, set MATRIX_WIDTH to the total width
-// multiple matrix rows are not supported
 #define MATRIX_HEIGHT       32
 #define MATRIX_WIDTH        32
 #define PANEL_HEIGHT        32
 #define PANEL_WIDTH         32
+#define DRAWING_HEIGHT      32
+#define DRAWING_WIDTH       32
+#define PANELS_PER_ROW      MATRIX_WIDTH / PANEL_WIDTH
 
 // an advanced user may need to tweak these values
 #define MATRIX_REFRESH_RATE         120

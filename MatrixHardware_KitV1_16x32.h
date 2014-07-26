@@ -33,6 +33,9 @@
 #define MATRIX_WIDTH        32
 #define PANEL_HEIGHT        16
 #define PANEL_WIDTH         32
+#define DRAWING_HEIGHT      16
+#define DRAWING_WIDTH       32
+#define PANELS_PER_ROW      MATRIX_WIDTH / PANEL_WIDTH
 
 // an advanced user may need to tweak these values
 #define MATRIX_REFRESH_RATE         120

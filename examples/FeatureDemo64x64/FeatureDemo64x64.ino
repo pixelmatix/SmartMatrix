@@ -5,7 +5,6 @@
 
 //#include "SmartMatrix_16x32.h"
 //#include "SmartMatrix_32x32.h"
-//#include "SmartMatrix_32x128.h"
 #include "SmartMatrix_64x64.h"
 
 SmartMatrix matrix;
@@ -22,6 +21,8 @@ const int ledPin = 13;
 void setup() {
     // initialize the digital pin as an output.
     pinMode(ledPin, OUTPUT);
+
+    Serial.begin(38400);
 
     matrix.begin();
     matrix.setBrightness(defaultBrightness);
@@ -117,7 +118,6 @@ void loop() {
 
     matrix.swapBuffers(true);
     delay(5000);
-
 #endif
 
 #if (DEMO_DRAWING_INTRO == 1)
