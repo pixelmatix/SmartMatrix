@@ -74,7 +74,7 @@ void loop() {
     matrix.setScrollMode(wrapForward);
     matrix.setScrollSpeed(40);
     matrix.setScrollFont(font6x10);
-    matrix.scrollText("SmartMatrix Demo 32x12", 1);
+    matrix.scrollText("SmartMatrix Demo 32x128", 1);
 
     delay(5000);
 #endif
