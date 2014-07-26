@@ -39,11 +39,11 @@ ScrollMode scrollmode = bounceForward;
 unsigned char framesperscroll = 4;
 
 // The foreground is only one color, so the bitmap needs only one bit per location. A 32 pixel-wide
-// panel row can therefore be represented with a 32 bit unsigned integer. We store the foreground 
-// bitmap as row of panels to match the hardware which is laid out in a single row for DMA addressing. 
-// The drawing area may be a row of panels, a column, or a 2x2 panel square. Drawing routines will 
+// panel row can therefore be represented with a 32 bit unsigned integer. We store the foreground
+// bitmap as row of panels to match the hardware which is laid out in a single row for DMA addressing.
+// The drawing area may be a row of panels, a column, or a 2x2 panel square. Drawing routines will
 // translate the drawing row, column positions into the hardware row panel positions.
-// The foregroundBitmap array is MATRIX_HEIGHT 32 bit values, one array per panel. 
+// The foregroundBitmap array is MATRIX_HEIGHT 32 bit values, one array per panel.
 uint32_t foregroundBitmap[MATRIX_HEIGHT][MATRIX_WIDTH / 32];
 
 const bitmap_font *scrollFont = &apple5x7;
