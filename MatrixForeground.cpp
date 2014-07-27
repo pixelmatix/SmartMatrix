@@ -24,8 +24,6 @@
 #include <string.h>
 #include "SmartMatrix.h"
 
-char tmp[16];
-
 // options
 char text[textLayerMaxStringLength];
 unsigned char textlen;
