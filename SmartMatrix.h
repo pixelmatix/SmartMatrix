@@ -30,8 +30,8 @@
 // include one of the MatrixHardware_*.h files here:
 //#include "MatrixHardware_KitV1_32x32.h"
 //#include "MatrixHardware_KitV1_16x32.h"
-//#include "MatrixHardware_KitV1_32x128.h"
-#include "MatrixHardware_KitV1_64x64.h"
+#include "MatrixHardware_KitV1_32x128.h"
+//#include "MatrixHardware_KitV1_64x64.h"
 
 
 // scroll text

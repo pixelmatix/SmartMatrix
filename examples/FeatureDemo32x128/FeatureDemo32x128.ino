@@ -1095,10 +1095,11 @@ void loop() {
 
             extern const bitmap_font weathericon;
 
-            for (i = 0; i < 32 * matrix.getScreenHeight(); i++) {
-                buffer[i].red = weathericon.Bitmap[i * 3 + 0];
-                buffer[i].green = weathericon.Bitmap[i * 3 + 1];
-                buffer[i].blue = weathericon.Bitmap[i * 3 + 2];
+            for (i = 0; i < weathericon.Height * weathericon.Width; i++) {
+                uint16_t loc = (i / PANEL_WIDTH) * MATRIX_WIDTH + (i % PANEL_WIDTH);
+                buffer[loc].red = weathericon.Bitmap[i * 3 + 0];
+                buffer[loc].green = weathericon.Bitmap[i * 3 + 1];
+                buffer[loc].blue = weathericon.Bitmap[i * 3 + 2];
             }
 
             matrix.drawString(12, 16, {0xff, 0, 0}, value);
@@ -1130,10 +1131,11 @@ void loop() {
 
             extern const bitmap_font weathericon;
 
-            for (i = 0; i < 32 * matrix.getScreenHeight(); i++) {
-                buffer[i].red = weathericon.Bitmap[i * 3 + 0];
-                buffer[i].green = weathericon.Bitmap[i * 3 + 1];
-                buffer[i].blue = weathericon.Bitmap[i * 3 + 2];
+            for (i = 0; i < weathericon.Height * weathericon.Width; i++) {
+                uint16_t loc = (i / PANEL_WIDTH) * MATRIX_WIDTH + (i % PANEL_WIDTH);
+                buffer[loc].red = weathericon.Bitmap[i * 3 + 0];
+                buffer[loc].green = weathericon.Bitmap[i * 3 + 1];
+                buffer[loc].blue = weathericon.Bitmap[i * 3 + 2];
             }
 
             if (j%2) {
