@@ -22,8 +22,6 @@ void setup() {
     // initialize the digital pin as an output.
     pinMode(ledPin, OUTPUT);
 
-    Serial.begin(38400);
-
     matrix.begin();
     matrix.setBrightness(defaultBrightness);
 
