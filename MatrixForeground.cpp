@@ -48,9 +48,6 @@ uint32_t foregroundBitmap[MATRIX_HEIGHT][MATRIX_WIDTH / 32];
 
 const bitmap_font *scrollFont = &apple5x7;
 
-// TODO (gary): remove
-static long callCount = 0;
-
 // these variables describe the text bitmap: size, location on the screen, and bounds of where it moves
 unsigned int textWidth;
 int scrollMin, scrollMax;
