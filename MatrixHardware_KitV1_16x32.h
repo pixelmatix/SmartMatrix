@@ -27,8 +27,15 @@
 #define MATRIX_HARDWARE_H
 
 // basic display size (32x32 1/16 refresh and 16x32 1/8 refresh display supported)
+// to use multiple matrices in a row, set MATRIX_WIDTH to the total width
+// multiple matrix rows are not supported
 #define MATRIX_HEIGHT       16
 #define MATRIX_WIDTH        32
+#define PANEL_HEIGHT        16
+#define PANEL_WIDTH         32
+#define DRAWING_HEIGHT      16
+#define DRAWING_WIDTH       32
+#define PANELS_PER_ROW      MATRIX_WIDTH / PANEL_WIDTH
 
 // an advanced user may need to tweak these values
 #define MATRIX_REFRESH_RATE         120
@@ -53,7 +60,7 @@
 #define GPIO_WORD_ORDER p0r1:1, p0clk:1, p0g2:1, p0pad:1, p0b1:1, p0b2:1, p0r2:1, p0g1:1, \
     p1r1:1, p1clk:1, p1g2:1, p1pad:1, p1b1:1, p1b2:1, p1r2:1, p1g1:1, \
     p2r1:1, p2clk:1, p2g2:1, p2pad:1, p2b1:1, p2b2:1, p2r2:1, p2g1:1, \
-    p3r1:1, p3clk:1, p3g2:1, p3pad:1, p3b1:1, p3b2:1, p3r2:1, p3g1:1,
+    p3r1:1, p3clk:1, p3g2:1, p3pad:1, p3b1:1, p3b2:1, p3r2:1, p3g1:1
 
 #define GPIO_PIN_CLK_TEENSY_PIN     14
 #define GPIO_PIN_B0_TEENSY_PIN      6

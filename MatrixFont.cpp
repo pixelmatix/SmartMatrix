@@ -25,7 +25,7 @@
 
 // depends on letters in font->Index table being arranged in ascending order
 // save location of last lookup to speed up repeated lookups of the same letter
-// TODO: use successive approximation to located index faster
+// TODO: use successive approximation to locate index faster
 int getBitmapFontLocation(unsigned char letter, const bitmap_font *font) {
     static int location = 0;
 

@@ -36,8 +36,13 @@ int fontOffset = 1;
 ScrollMode scrollmode = bounceForward;
 unsigned char framesperscroll = 4;
 
-//bitmap size is 32 rows (supporting maximum dimension of screen height in all rotations), by 32 bits
-uint32_t foregroundBitmap[32][32 / 32];
+// The foreground is only one color, so the bitmap needs only one bit per location. A 32 pixel-wide
+// panel row can therefore be represented with a 32 bit unsigned integer. We store the foreground
+// bitmap as row of panels to match the hardware which is laid out in a single row for DMA addressing.
+// The drawing area may be a row of panels, a column, or a 2x2 panel square. Drawing routines will
+// translate the drawing row, column positions into the hardware row panel positions.
+// The foregroundBitmap array is MATRIX_HEIGHT 32 bit values, one array per panel.
+uint32_t foregroundBitmap[MATRIX_HEIGHT][MATRIX_WIDTH / 32];
 
 const bitmap_font *scrollFont = &apple5x7;
 
@@ -52,7 +57,7 @@ void SmartMatrix::stopScrollText(void) {
     // scrollcounter is next to zero
     scrollcounter = 1;
     // position text at the end of the cycle
-    scrollPosition = scrollMin;
+    scrollPosition = scrollMin;     // TODO: scrollMin may not be initialized?
 }
 
 // returns 0 if stopped
@@ -116,6 +121,17 @@ void SmartMatrix::setScrollOffsetFromEdge(int offset) {
     fontOffset = offset;
 }
 
+// Convert the character position and drawing row to the panel hardware column and row.
+void SmartMatrix::charPositionToPanelRowColumn(
+        int16_t charPosition, int16_t drawingRow, int16_t *panel, int16_t *column, int16_t *row)
+{
+    int16_t panelRow = drawingRow / PANEL_HEIGHT;  // ie, if 2x2 array of panels, then panelRow = {0, 1}
+    int16_t panelCol = charPosition / PANEL_WIDTH;
+    *panel = panelRow * PANELS_PER_ROW + panelCol;
+    *column = charPosition - panelCol * PANEL_WIDTH;
+    *row = drawingRow % PANEL_HEIGHT;
+}
+
 void SmartMatrix::redrawForeground(void) {
     int j, k;
     int charPosition, textPosition;
@@ -127,10 +143,11 @@ void SmartMatrix::redrawForeground(void) {
     for (j = 0; j < SmartMatrix::screenConfig.localHeight; j++) {
 
         // skip rows without text
-        if (j < fontOffset || j >= fontOffset + scrollFont->Height)
+        if (j < fontOffset || j >= fontOffset + scrollFont->Height) {
             continue;
-
+        }
         // now in row with text
+
         // find the position of the first char
         charPosition = scrollPosition;
         textPosition = 0;
@@ -141,7 +158,8 @@ void SmartMatrix::redrawForeground(void) {
             textPosition++;
         }
 
-        // find rows within character bitmap that will be drawn (0-font->height unless text is partially off screen)
+        // find rows within character bitmap that will be drawn 
+        // (0-font->height unless text is partially off screen)
         charY0 = j - fontOffset;
 
         if (SmartMatrix::screenConfig.localHeight < fontOffset + scrollFont->Height) {
@@ -156,10 +174,23 @@ void SmartMatrix::redrawForeground(void) {
             for (k = charY0; k < charY1; k++) {
                 // read in uint8, shift it to be in MSB (font is in the top bits of the uint32)
                 tempBitmask = getBitmapFontRowAtXY(text[textPosition], k, scrollFont) << 24;
-                if (charPosition < 0)
-                    foregroundBitmap[j + k - charY0][0] |= tempBitmask << -charPosition;
-                else
-                    foregroundBitmap[j + k - charY0][0] |= tempBitmask >> charPosition;
+
+                int16_t colOnPanel, rowOnPanel, panel;
+                int16_t drawingRow = j + k - charY0;
+                charPositionToPanelRowColumn(charPosition, drawingRow, &panel, &colOnPanel, &rowOnPanel);
+                if (colOnPanel > -8 && colOnPanel < 0) { // partially off left side of panel
+                    foregroundBitmap[rowOnPanel][panel] |= tempBitmask << -colOnPanel;
+                } else {
+                    if (colOnPanel >= 0 && colOnPanel < PANEL_WIDTH - scrollFont->Width) {
+                        // character fully on-screen
+                        foregroundBitmap[rowOnPanel][panel] |= tempBitmask >> colOnPanel;
+                    } else { // partially off right side of panel, so draw on both panels
+                        foregroundBitmap[rowOnPanel][panel] |= tempBitmask >> colOnPanel;
+                        if (panel < PANELS_PER_ROW - 1) {
+                            foregroundBitmap[rowOnPanel][panel+1] |= tempBitmask << PANEL_WIDTH-colOnPanel;
+                        }
+                    }
+                }
             }
 
             // get set up for next character
@@ -172,7 +203,7 @@ void SmartMatrix::redrawForeground(void) {
 }
 
 // called once per frame to update foreground (virtual) bitmap
-// function needs major efficiency improvments
+// function needs major efficiency improvements
 void SmartMatrix::updateForeground(void) {
     bool resetScrolls = false;
     static unsigned char currentframe = 0;
@@ -237,19 +268,24 @@ bool SmartMatrix::getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24
         localScreenX = hardwareX;
         localScreenY = hardwareY;
     } else if (SmartMatrix::screenConfig.rotation == rotation180) {
-        localScreenX = (MATRIX_WIDTH - 1) - hardwareX;
-        localScreenY = (MATRIX_HEIGHT - 1) - hardwareY;
+        localScreenX = (DRAWING_WIDTH - 1) - hardwareX;
+        localScreenY = (DRAWING_HEIGHT - 1) - hardwareY;
     } else if (SmartMatrix::screenConfig.rotation == rotation90) {
         localScreenX = hardwareY;
-        localScreenY = (MATRIX_WIDTH - 1) - hardwareX;
+        localScreenY = (DRAWING_WIDTH - 1) - hardwareX;
     } else { /* if (SmartMatrix::screenConfig.rotation == rotation270)*/
-        localScreenX = (MATRIX_HEIGHT - 1) - hardwareY;
+        localScreenX = (DRAWING_HEIGHT - 1) - hardwareY;
         localScreenY = hardwareX;
     }
 
-    uint32_t bitmask = 0x01 << (31 - localScreenX);
+    // Pull the value from the right bitmap. Because we defined the foreground bit map as
+    // a row of panels, finding the right foregroundBitmap location is simpler than the 
+    // Drawing translations.
+    uint8_t panelIndex = localScreenX / 32;
+    uint8_t panelScreenX = localScreenX % 32;
+    uint32_t bitmask = 0x01 << (31 - panelScreenX);
 
-    if (foregroundBitmap[localScreenY][0] & bitmask) {
+    if (foregroundBitmap[localScreenY][panelIndex] & bitmask) {
         copyRgb24(xyPixel, &textcolor);
         return true;
     }

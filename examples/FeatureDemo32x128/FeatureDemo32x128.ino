@@ -4,7 +4,8 @@
 */
 
 //#include "SmartMatrix_16x32.h"
-#include "SmartMatrix_32x32.h"
+//#include "SmartMatrix_32x32.h"
+#include "SmartMatrix_32x128.h"
 
 SmartMatrix matrix;
 
@@ -30,6 +31,7 @@ void setup() {
 }
 
 #define DEMO_INTRO              1
+#define DEMO_DIMENSIONS         1
 #define DEMO_DRAWING_INTRO      1
 #define DEMO_DRAWING_PIXELS     1
 #define DEMO_DRAWING_LINES      1
@@ -58,6 +60,7 @@ void setup() {
 void loop() {
     int i, j;
     unsigned long currentMillis;
+    char str[5];
 
     // clear screen
     matrix.fillScreen(defaultBackgroundColor);
@@ -69,8 +72,49 @@ void loop() {
     matrix.setScrollMode(wrapForward);
     matrix.setScrollSpeed(40);
     matrix.setScrollFont(font6x10);
-    matrix.scrollText("SmartMatrix Demo", 1);
+    matrix.scrollText("SmartMatrix Demo 32x128", 1);
 
+    delay(5000);
+#endif
+
+#if (DEMO_DIMENSIONS == 1)
+    // The drawing origin is in the upper, left. 
+    // The X dimension increases to the right.
+    // The Y dimension increases down.
+
+    rgb24 whiteColor = {0xff, 0xff, 0xff};
+    int maxX = matrix.getScreenWidth()-1;
+    int maxY = matrix.getScreenHeight()-1;
+    matrix.setFont(font5x7);
+
+    // upper left
+    matrix.drawLine(0, 0, 3, 0, whiteColor);
+    matrix.drawLine(0, 0, 0, 3, whiteColor);
+    matrix.drawLine(0, 0, 5, 5, whiteColor);
+    matrix.drawString(7, 7, whiteColor, "0,0");
+
+    // upper right
+    matrix.drawLine(maxX-3, 0, maxX, 0, whiteColor);
+    matrix.drawLine(maxX, 3, maxX, 0, whiteColor);
+    matrix.drawLine(maxX-5, 5, maxX, 0, whiteColor);
+    sprintf(str, "%d,0", maxX);
+    matrix.drawString(maxX-5*7, 7, whiteColor, str);
+
+    // lower left
+    matrix.drawLine(0, maxY-3, 0, maxY, whiteColor);
+    matrix.drawLine(0, maxY, 3, maxY, whiteColor);
+    matrix.drawLine(0, maxY, 5, maxY-5, whiteColor);
+    sprintf(str, "0,%d", maxY);
+    matrix.drawString(7, maxY-12, whiteColor, str);
+
+    // lower right
+    matrix.drawLine(maxX-3, maxY, maxX, maxY, whiteColor);
+    matrix.drawLine(maxX, maxY-3, maxX, maxY, whiteColor);
+    matrix.drawLine(maxX-5, maxY-5, maxX, maxY, whiteColor);
+    sprintf(str, "%d,%d", maxX, maxY);
+    matrix.drawString(maxX-5*7, maxY-12, whiteColor, str);
+
+    matrix.swapBuffers(true);
     delay(5000);
 #endif
 
@@ -1051,10 +1095,11 @@ void loop() {
 
             extern const bitmap_font weathericon;
 
-            for (i = 0; i < 32 * matrix.getScreenHeight(); i++) {
-                buffer[i].red = weathericon.Bitmap[i * 3 + 0];
-                buffer[i].green = weathericon.Bitmap[i * 3 + 1];
-                buffer[i].blue = weathericon.Bitmap[i * 3 + 2];
+            for (i = 0; i < weathericon.Height * weathericon.Width; i++) {
+                uint16_t loc = (i / PANEL_WIDTH) * MATRIX_WIDTH + (i % PANEL_WIDTH);
+                buffer[loc].red = weathericon.Bitmap[i * 3 + 0];
+                buffer[loc].green = weathericon.Bitmap[i * 3 + 1];
+                buffer[loc].blue = weathericon.Bitmap[i * 3 + 2];
             }
 
             matrix.drawString(12, 16, {0xff, 0, 0}, value);
@@ -1086,10 +1131,11 @@ void loop() {
 
             extern const bitmap_font weathericon;
 
-            for (i = 0; i < 32 * matrix.getScreenHeight(); i++) {
-                buffer[i].red = weathericon.Bitmap[i * 3 + 0];
-                buffer[i].green = weathericon.Bitmap[i * 3 + 1];
-                buffer[i].blue = weathericon.Bitmap[i * 3 + 2];
+            for (i = 0; i < weathericon.Height * weathericon.Width; i++) {
+                uint16_t loc = (i / PANEL_WIDTH) * MATRIX_WIDTH + (i % PANEL_WIDTH);
+                buffer[loc].red = weathericon.Bitmap[i * 3 + 0];
+                buffer[loc].green = weathericon.Bitmap[i * 3 + 1];
+                buffer[loc].blue = weathericon.Bitmap[i * 3 + 2];
             }
 
             if (j%2) {
