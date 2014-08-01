@@ -78,6 +78,7 @@ void SmartMatrix::scrollText(const char inputtext[], int numScrolls) {
     case wrapForward:
     case bounceForward:
     case bounceReverse:
+    case wrapForwardFromLeft:
         scrollMin = -textWidth;
         scrollMax = SmartMatrix::screenConfig.localWidth;
 
@@ -85,6 +86,8 @@ void SmartMatrix::scrollText(const char inputtext[], int numScrolls) {
 
         if (scrollmode == bounceReverse)
             scrollPosition = scrollMin;
+        else if(scrollmode == wrapForwardFromLeft)
+            scrollPosition = 0;
 
         // TODO: handle special case - put content in fixed location if wider than window
 
@@ -188,6 +191,7 @@ void SmartMatrix::updateForeground(void) {
 
     switch (scrollmode) {
     case wrapForward:
+    case wrapForwardFromLeft:
         scrollPosition--;
         if (scrollPosition <= scrollMin) {
             scrollPosition = scrollMax;
