@@ -125,7 +125,7 @@ public:
     void setScrollMode(ScrollMode mode);
     void setScrollSpeed(unsigned char pixels_per_second);
     void setScrollFont(fontChoices newFont);
-    void setScrollColor(rgb24 newColor);
+    void setScrollColor(const rgb24 & newColor);
     void setScrollOffsetFromEdge(int offset);
     void stopScrollText(void);
     int getScrollStatus(void);
@@ -161,8 +161,7 @@ private:
     static void calculateTimerLut(void);
 
     // color functions (replace with class and copy constructor?)
-    static void copyRgb24(rgb24 *dst, rgb24 *src);
-    static void copyRgb24(rgb24 *dst, rgb24 src);
+    static void copyRgb24(rgb24 & dst, const rgb24 & src);
 
     // configuration
     static colorCorrectionModes _ccmode;

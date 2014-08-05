@@ -23,16 +23,10 @@
 
 #include "SmartMatrix.h"
 
-void SmartMatrix::copyRgb24(rgb24 *dst, rgb24 *src) {
-    dst->green = src->green;
-    dst->red = src->red;
-    dst->blue = src->blue;
-}
-
-void SmartMatrix::copyRgb24(rgb24 *dst, rgb24 src) {
-    dst->green = src.green;
-    dst->red = src.red;
-    dst->blue = src.blue;
+void SmartMatrix::copyRgb24(rgb24 & dst, const rgb24 &src) {
+    dst.red = src.red;
+    dst.green = src.green;
+    dst.blue = src.blue;
 }
 
 colorCorrectionModes SmartMatrix::_ccmode = cc24;
