@@ -32,6 +32,8 @@ int scrollcounter = 0;
 rgb24 textcolor = {0xff, 0xff, 0xff};
 int fontOffset = 1;
 
+bool hasForeground = false;
+
 // Scrolling
 ScrollMode scrollmode = bounceForward;
 unsigned char framesperscroll = 4;
@@ -108,8 +110,8 @@ void SmartMatrix::setScrollFont(fontChoices newFont) {
     scrollFont = fontLookup(newFont);
 }
 
-void SmartMatrix::setScrollColor(rgb24 newColor) {
-    copyRgb24(&textcolor, &newColor);
+void SmartMatrix::setScrollColor(const rgb24 & newColor) {
+    copyRgb24(textcolor, newColor);
 }
 
 void SmartMatrix::setScrollOffsetFromEdge(int offset) {
@@ -121,6 +123,8 @@ void SmartMatrix::redrawForeground(void) {
     int charPosition, textPosition;
     uint8_t charY0, charY1;
 
+    hasForeground = false;
+
     // clear full bitmap
     memset(foregroundBitmap, 0x00, sizeof(foregroundBitmap));
 
@@ -129,6 +133,8 @@ void SmartMatrix::redrawForeground(void) {
         // skip rows without text
         if (j < fontOffset || j >= fontOffset + scrollFont->Height)
             continue;
+
+	hasForeground = true;
 
         // now in row with text
         // find the position of the first char
@@ -230,6 +236,8 @@ void SmartMatrix::updateForeground(void) {
 
 // returns true and copies color to xyPixel if pixel is opaque, returns false if not
 bool SmartMatrix::getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24 *xyPixel) {
+    if(!hasForeground) { return false; } 
+
     uint8_t localScreenX, localScreenY;
 
     // convert hardware x/y to the pixel in the local screen
@@ -250,7 +258,7 @@ bool SmartMatrix::getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24
     uint32_t bitmask = 0x01 << (31 - localScreenX);
 
     if (foregroundBitmap[localScreenY][0] & bitmask) {
-        copyRgb24(xyPixel, &textcolor);
+        copyRgb24(*xyPixel, textcolor);
         return true;
     }
 
