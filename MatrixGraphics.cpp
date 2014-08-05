@@ -230,8 +230,10 @@ void SmartMatrix::drawCircle(int16_t x0, int16_t y0, uint16_t radius, rgb24 colo
     int a = radius, b = 0;
     int radiusError = 1 - a;
 
-    if (radius == 0)
+    if (radius == 0) {
+        drawPixel(x0, y0, color);
         return;
+    }
 
     while (a >= b)
     {
