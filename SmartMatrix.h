@@ -119,7 +119,6 @@ public:
     void drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, rgb24 bitmapColor, uint8_t *bitmap);
     rgb24 readPixel(int16_t x, int16_t y);
     rgb24 *backBuffer();
-
     void setBackBuffer(rgb24 *newBuffer);
     rgb24 *getRealBackBuffer();
 
@@ -149,6 +148,7 @@ private:
     static void loadMatrixBuffers(unsigned char currentRow);
     static uint8_t colorCorrection8bit(uint8_t inputcolor);
     static void getPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24 *xyPixel);
+    static rgb24 *getRefreshRow(uint8_t y);
     static void handleBufferSwap(void);
     static void updateForeground(void);
     static bool getForegroundPixel(uint8_t x, uint8_t y, rgb24 *xyPixel);
