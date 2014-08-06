@@ -344,6 +344,7 @@ void SmartMatrix::begin()
     FTM1_SC = FTM_SC_CLKS(1) | FTM_SC_PS(LATCH_TIMER_PRESCALE);
 }
 
+extern bool hasForeground;
 void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
 
     int i, j;
@@ -368,18 +369,45 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
     rgb24 tempPixel0;
     rgb24 tempPixel1;
 
-    for (i = 0; i < MATRIX_WIDTH; i++) {
-        if (!getForegroundPixel(i, currentRow, &tempPixel0))
-            SmartMatrix::getPixel(i, currentRow, &tempPixel0);
-        if (!getForegroundPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, &tempPixel1))
-            SmartMatrix::getPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, &tempPixel1);
+    bool bHasForeground = hasForeground;
+    bool bHasCC = SmartMatrix::_ccmode != ccNone;
+    rgb24 *pRow = SmartMatrix::getRefreshRow(currentRow);
+    rgb24 *pRow2 = SmartMatrix::getRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET);
 
-        uint8_t temp0red = colorCorrection8bit(tempPixel0.red);
-        uint8_t temp0green = colorCorrection8bit(tempPixel0.green);
-        uint8_t temp0blue = colorCorrection8bit(tempPixel0.blue);
-        uint8_t temp1red = colorCorrection8bit(tempPixel1.red);
-        uint8_t temp1green = colorCorrection8bit(tempPixel1.green);
-        uint8_t temp1blue = colorCorrection8bit(tempPixel1.blue);
+    for (i = 0; i < MATRIX_WIDTH; i++) {
+
+        uint8_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;
+
+        if(bHasForeground) {
+          if (!getForegroundPixel(i, currentRow, &tempPixel0))
+              copyRgb24(tempPixel0, pRow[i]);
+          if (!getForegroundPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, &tempPixel1))
+              copyRgb24(tempPixel1, pRow2[i]);
+
+          temp0red = (tempPixel0.red);
+          temp0green = (tempPixel0.green);
+          temp0blue = (tempPixel0.blue);
+          temp1red = (tempPixel1.red);
+          temp1green = (tempPixel1.green);
+          temp1blue = (tempPixel1.blue);
+        } else {
+          temp0red = pRow[i].red;
+          temp0green = pRow[i].green;
+          temp0blue = pRow[i].blue;
+          temp1red = pRow2[i].red;
+          temp1green = pRow2[i].green;
+          temp1blue = pRow[i].blue;
+        }
+
+
+        if(bHasCC) {
+          temp0red = colorCorrection8bit(temp0red);
+          temp0green = colorCorrection8bit(temp0green);
+          temp0blue = colorCorrection8bit(temp0blue);
+          temp1red = colorCorrection8bit(temp1red);
+          temp1green = colorCorrection8bit(temp1green);
+          temp1blue = colorCorrection8bit(temp1blue);
+        }
 
         // this technique is from Fadecandy
         union {
@@ -390,10 +418,12 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
             };
         } o0, o1, clkset;
 
+
+        o0.word = 0;
         // set bits starting from LSB brightness moving to MSB brightness with each byte across the word
         // each word contains four brightness levels for single set of pixels above
-        o0.p0clk = 0;
-        o0.p0pad = 0;
+        // o0.p0clk = 0;
+        // o0.p0pad = 0;
         o0.p0b1 = temp0blue    >> 0;
         o0.p0r1 = temp0red     >> 0;
         o0.p0r2 = temp1red     >> 0;
@@ -401,8 +431,8 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
         o0.p0g2 = temp1green   >> 0;
         o0.p0b2 = temp1blue    >> 0;
 
-        o0.p1clk = 0;
-        o0.p1pad = 0;
+        // o0.p1clk = 0;
+        // o0.p1pad = 0;
         o0.p1b1 = temp0blue    >> 1;
         o0.p1r1 = temp0red     >> 1;
         o0.p1r2 = temp1red     >> 1;
@@ -410,8 +440,8 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
         o0.p1g2 = temp1green   >> 1;
         o0.p1b2 = temp1blue    >> 1;
 
-        o0.p2clk = 0;
-        o0.p2pad = 0;
+        // o0.p2clk = 0;
+        // o0.p2pad = 0;
         o0.p2b1 = temp0blue    >> 2;
         o0.p2r1 = temp0red     >> 2;
         o0.p2r2 = temp1red     >> 2;
@@ -419,8 +449,8 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
         o0.p2g2 = temp1green   >> 2;
         o0.p2b2 = temp1blue    >> 2;
 
-        o0.p3clk = 0;
-        o0.p3pad = 0;
+        // o0.p3clk = 0;
+        // o0.p3pad = 0;
         o0.p3b1 = temp0blue    >> 3;
         o0.p3r1 = temp0red     >> 3;
         o0.p3r2 = temp1red     >> 3;
@@ -430,8 +460,9 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
 
 
         // continue moving from LSB to MSB brightness with the next word
-        o1.p0clk = 0;
-        o1.p0pad = 0;
+        o1.word = 0;
+        // o1.p0clk = 0;
+        // o1.p0pad = 0;
         o1.p0b1 = temp0blue    >> (0 + 1 * sizeof(uint32_t));
         o1.p0r1 = temp0red     >> (0 + 1 * sizeof(uint32_t));
         o1.p0r2 = temp1red     >> (0 + 1 * sizeof(uint32_t));
@@ -439,8 +470,8 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
         o1.p0g2 = temp1green   >> (0 + 1 * sizeof(uint32_t));
         o1.p0b2 = temp1blue    >> (0 + 1 * sizeof(uint32_t));
 
-        o1.p1clk = 0;
-        o1.p1pad = 0;
+        // o1.p1clk = 0;
+        // o1.p1pad = 0;
         o1.p1b1 = temp0blue    >> (1 + 1 * sizeof(uint32_t));
         o1.p1r1 = temp0red     >> (1 + 1 * sizeof(uint32_t));
         o1.p1r2 = temp1red     >> (1 + 1 * sizeof(uint32_t));
@@ -448,8 +479,8 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
         o1.p1g2 = temp1green   >> (1 + 1 * sizeof(uint32_t));
         o1.p1b2 = temp1blue    >> (1 + 1 * sizeof(uint32_t));
 
-        o1.p2clk = 0;
-        o1.p2pad = 0;
+        // o1.p2clk = 0;
+        // o1.p2pad = 0;
         o1.p2b1 = temp0blue    >> (2 + 1 * sizeof(uint32_t));
         o1.p2r1 = temp0red     >> (2 + 1 * sizeof(uint32_t));
         o1.p2r2 = temp1red     >> (2 + 1 * sizeof(uint32_t));
@@ -457,8 +488,8 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
         o1.p2g2 = temp1green   >> (2 + 1 * sizeof(uint32_t));
         o1.p2b2 = temp1blue    >> (2 + 1 * sizeof(uint32_t));
 
-        o1.p3clk = 0;
-        o1.p3pad = 0;
+        // o1.p3clk = 0;
+        // o1.p3pad = 0;
         o1.p3b1 = temp0blue    >> (3 + 1 * sizeof(uint32_t));
         o1.p3r1 = temp0red     >> (3 + 1 * sizeof(uint32_t));
         o1.p3r2 = temp1red     >> (3 + 1 * sizeof(uint32_t));

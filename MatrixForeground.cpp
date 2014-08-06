@@ -123,8 +123,6 @@ void SmartMatrix::redrawForeground(void) {
     int charPosition, textPosition;
     uint8_t charY0, charY1;
 
-    hasForeground = false;
-
     // clear full bitmap
     memset(foregroundBitmap, 0x00, sizeof(foregroundBitmap));
 
@@ -134,8 +132,7 @@ void SmartMatrix::redrawForeground(void) {
         if (j < fontOffset || j >= fontOffset + scrollFont->Height)
             continue;
 
-	hasForeground = true;
-
+        hasForeground = true;
         // now in row with text
         // find the position of the first char
         charPosition = scrollPosition;
@@ -236,8 +233,6 @@ void SmartMatrix::updateForeground(void) {
 
 // returns true and copies color to xyPixel if pixel is opaque, returns false if not
 bool SmartMatrix::getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24 *xyPixel) {
-    if(!hasForeground) { return false; } 
-
     uint8_t localScreenX, localScreenY;
 
     // convert hardware x/y to the pixel in the local screen

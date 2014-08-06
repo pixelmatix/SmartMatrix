@@ -38,6 +38,10 @@ void SmartMatrix::getPixel(uint8_t x, uint8_t y, rgb24 *xyPixel) {
     copyRgb24(*xyPixel, currentRefreshBufferPtr[y][x]);
 }
 
+rgb24 *SmartMatrix::getRefreshRow(uint8_t y) {
+  return currentRefreshBufferPtr[y];
+}
+
 // reads pixel from drawing buffer, not refresh buffer
 rgb24 SmartMatrix::readPixel(int16_t x, int16_t y) {
     int hwx, hwy;
@@ -61,7 +65,7 @@ rgb24 SmartMatrix::readPixel(int16_t x, int16_t y) {
         hwy = (MATRIX_HEIGHT - 1) - x;
     }
 
-    return currentDrawBufferPtr[hwy][hwx]; 
+    return currentDrawBufferPtr[hwy][hwx];
 }
 
 void SmartMatrix::drawPixel(int16_t x, int16_t y, rgb24 color) {
@@ -730,4 +734,3 @@ void SmartMatrix::setBackBuffer(rgb24 *newBuffer) {
 rgb24 *SmartMatrix::getRealBackBuffer() {
   return &backgroundBuffer[currentDrawBuffer][0][0];
 }
-
