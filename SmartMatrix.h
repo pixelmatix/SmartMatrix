@@ -89,6 +89,7 @@ typedef struct screen_config {
     uint16_t localHeight;
 } screen_config;
 
+#define SMART_MATRIX_CAN_TRIPLE_BUFFER 1
 
 class SmartMatrix {
 public:
