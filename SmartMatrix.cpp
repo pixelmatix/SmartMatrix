@@ -369,9 +369,9 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
     rgb24 tempPixel1;
 
     for (i = 0; i < MATRIX_WIDTH; i++) {
-        //if (!getForegroundPixel(i, currentRow, &tempPixel0))
+        if (!getForegroundPixel(i, currentRow, &tempPixel0))
             SmartMatrix::getPixel(i, currentRow, &tempPixel0);
-        ///if (!getForegroundPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, &tempPixel1))
+        if (!getForegroundPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, &tempPixel1))
             SmartMatrix::getPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, &tempPixel1);
 
         uint8_t temp0red = colorCorrection8bit(tempPixel0.red);
