@@ -120,6 +120,9 @@ public:
     rgb24 readPixel(int16_t x, int16_t y);
     rgb24 *backBuffer();
 
+    void setBackBuffer(rgb24 *newBuffer);
+    rgb24 *getRealBackBuffer();
+
     // scroll text
     void scrollText(const char inputtext[], int numScrolls);
     void setScrollMode(ScrollMode mode);

@@ -31,14 +31,14 @@
 #define MATRIX_WIDTH        32
 
 // an advanced user may need to tweak these values
-#define MATRIX_REFRESH_RATE         120
+#define MATRIX_REFRESH_RATE         240
 // only 24-bit color supported
 #define COLOR_DEPTH_RGB             24
 // DMA_BUFFER_NUMBER_OF_ROWS = the size of the buffer that DMA pulls from to refresh the display
 // must be minimum 2 rows so one can be updated while the otehr is refreshed
 // increase beyond two to give more time for the update routine to complete
 // (increase this number if non-DMA interrupts are causing display problems)
-#define DMA_BUFFER_NUMBER_OF_ROWS   4
+#define DMA_BUFFER_NUMBER_OF_ROWS   16
 // size of latch pulse - all address updates must fit inside high portion of latch pulse
 // increase this value if DMA use is causing address updates to take longer
 #define LATCH_TIMER_PULSE_WIDTH_NS  438

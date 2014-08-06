@@ -723,3 +723,11 @@ rgb24 *SmartMatrix::backBuffer() {
     return currentDrawBufferPtr[0];
 }
 
+void SmartMatrix::setBackBuffer(rgb24 *newBuffer) {
+  currentDrawBufferPtr = (rgb24 (*)[MATRIX_WIDTH])newBuffer;
+}
+
+rgb24 *SmartMatrix::getRealBackBuffer() {
+  return &backgroundBuffer[currentDrawBuffer][0][0];
+}
+
