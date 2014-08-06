@@ -38,7 +38,7 @@
 // must be minimum 2 rows so one can be updated while the otehr is refreshed
 // increase beyond two to give more time for the update routine to complete
 // (increase this number if non-DMA interrupts are causing display problems)
-#define DMA_BUFFER_NUMBER_OF_ROWS   16
+#define DMA_BUFFER_NUMBER_OF_ROWS   4
 // size of latch pulse - all address updates must fit inside high portion of latch pulse
 // increase this value if DMA use is causing address updates to take longer
 #define LATCH_TIMER_PULSE_WIDTH_NS  438
