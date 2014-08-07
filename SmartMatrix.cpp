@@ -396,7 +396,7 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
           temp0blue = pRow[i].blue;
           temp1red = pRow2[i].red;
           temp1green = pRow2[i].green;
-          temp1blue = pRow[i].blue;
+          temp1blue = pRow2[i].blue;
         }
 
 
