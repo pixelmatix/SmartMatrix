@@ -26,6 +26,7 @@
 
 #include "Arduino.h"
 #include <stdint.h>
+#include <FastLED.h>
 
 // include one of the MatrixHardware_*.h files here:
 #include "MatrixHardware_KitV1_32x32.h"
@@ -58,13 +59,16 @@ typedef enum fontChoices {
     font8x13,
 } fontChoices;
 
-
+#if 0
 // color
 typedef struct rgb24 {
     uint8_t red;
     uint8_t green;
     uint8_t blue;
 } rgb24;
+#else
+#define rgb24 CRGB
+#endif
 
 typedef enum colorCorrectionModes {
     ccNone,
@@ -99,6 +103,7 @@ public:
 
     // drawing functions
     void swapBuffers(bool copy = true);
+    void swapBuffersWithInterpolation(int framesToInterpolate);
     void drawPixel(int16_t x, int16_t y, rgb24 color);
     void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, rgb24 color);
     void drawFastVLine(int16_t x, int16_t y0, int16_t y1, rgb24 color);
@@ -151,7 +156,9 @@ private:
     static uint16_t colorCorrection8to16bit(uint8_t inputcolor);
     static uint8_t colorCorrection8bit(uint8_t inputcolor);
     static void getPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24 *xyPixel);
-    static rgb24 *getRefreshRow(uint8_t y);
+    static rgb24 *getCurrentRefreshRow(uint8_t y);
+    static rgb24 *getPreviousRefreshRow(uint8_t y);
+    static uint32_t calculateFcInterpCoefficient();
     static void handleBufferSwap(void);
     static void updateForeground(void);
     static bool getForegroundPixel(uint8_t x, uint8_t y, rgb24 *xyPixel);

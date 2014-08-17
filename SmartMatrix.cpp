@@ -21,6 +21,10 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <math.h>
+#include <algorithm>
+#include "arm_math.h"
+
 #include "SmartMatrix.h"
 #include "CircularBuffer.h"
 
@@ -344,6 +348,98 @@ void SmartMatrix::begin()
     FTM1_SC = FTM_SC_CLKS(1) | FTM_SC_PS(LATCH_TIMER_PRESCALE);
 }
 
+static const uint16_t lightPowerMap16bit2[] = {
+    0x00, 0x00, 0x00, 0x01, 0x02, 0x04, 0x06, 0x08,
+    0x0b, 0x0f, 0x14, 0x19, 0x1f, 0x26, 0x2e, 0x37,
+    0x41, 0x4b, 0x57, 0x63, 0x71, 0x80, 0x8f, 0xa0,
+    0xb2, 0xc5, 0xda, 0xef, 0x106, 0x11e, 0x137, 0x152,
+    0x16e, 0x18b, 0x1a9, 0x1c9, 0x1eb, 0x20e, 0x232, 0x257,
+    0x27f, 0x2a7, 0x2d2, 0x2fd, 0x32b, 0x359, 0x38a, 0x3bc,
+    0x3ef, 0x425, 0x45c, 0x494, 0x4cf, 0x50b, 0x548, 0x588,
+    0x5c9, 0x60c, 0x651, 0x698, 0x6e0, 0x72a, 0x776, 0x7c4,
+    0x814, 0x866, 0x8b9, 0x90f, 0x967, 0x9c0, 0xa1b, 0xa79,
+    0xad8, 0xb3a, 0xb9d, 0xc03, 0xc6a, 0xcd4, 0xd3f, 0xdad,
+    0xe1d, 0xe8f, 0xf03, 0xf79, 0xff2, 0x106c, 0x10e9, 0x1168,
+    0x11e9, 0x126c, 0x12f2, 0x137a, 0x1404, 0x1490, 0x151f, 0x15b0,
+    0x1643, 0x16d9, 0x1771, 0x180b, 0x18a7, 0x1946, 0x19e8, 0x1a8b,
+    0x1b32, 0x1bda, 0x1c85, 0x1d33, 0x1de2, 0x1e95, 0x1f49, 0x2001,
+    0x20bb, 0x2177, 0x2236, 0x22f7, 0x23bb, 0x2481, 0x254a, 0x2616,
+    0x26e4, 0x27b5, 0x2888, 0x295e, 0x2a36, 0x2b11, 0x2bef, 0x2cd0,
+    0x2db3, 0x2e99, 0x2f81, 0x306d, 0x315a, 0x324b, 0x333f, 0x3435,
+    0x352e, 0x3629, 0x3728, 0x3829, 0x392d, 0x3a33, 0x3b3d, 0x3c49,
+    0x3d59, 0x3e6b, 0x3f80, 0x4097, 0x41b2, 0x42d0, 0x43f0, 0x4513,
+    0x463a, 0x4763, 0x488f, 0x49be, 0x4af0, 0x4c25, 0x4d5d, 0x4e97,
+    0x4fd5, 0x5116, 0x525a, 0x53a1, 0x54eb, 0x5638, 0x5787, 0x58da,
+    0x5a31, 0x5b8a, 0x5ce6, 0x5e45, 0x5fa7, 0x610d, 0x6276, 0x63e1,
+    0x6550, 0x66c2, 0x6837, 0x69af, 0x6b2b, 0x6caa, 0x6e2b, 0x6fb0,
+    0x7139, 0x72c4, 0x7453, 0x75e5, 0x777a, 0x7912, 0x7aae, 0x7c4c,
+    0x7def, 0x7f94, 0x813d, 0x82e9, 0x8498, 0x864b, 0x8801, 0x89ba,
+    0x8b76, 0x8d36, 0x8efa, 0x90c0, 0x928a, 0x9458, 0x9629, 0x97fd,
+    0x99d4, 0x9bb0, 0x9d8e, 0x9f70, 0xa155, 0xa33e, 0xa52a, 0xa71a,
+    0xa90d, 0xab04, 0xacfe, 0xaefb, 0xb0fc, 0xb301, 0xb509, 0xb715,
+    0xb924, 0xbb37, 0xbd4d, 0xbf67, 0xc184, 0xc3a5, 0xc5ca, 0xc7f2,
+    0xca1e, 0xcc4d, 0xce80, 0xd0b7, 0xd2f1, 0xd52f, 0xd771, 0xd9b6,
+    0xdbfe, 0xde4b, 0xe09b, 0xe2ef, 0xe547, 0xe7a2, 0xea01, 0xec63,
+    0xeeca, 0xf134, 0xf3a2, 0xf613, 0xf888, 0xfb02, 0xfd7e, 0xffff,
+    0xffff
+};
+
+//ALWAYS_INLINE
+static inline
+uint32_t lutInterpolate(const uint16_t *lut, uint32_t arg)
+{
+    /*
+     * Using our color LUT for the indicated channel, convert the
+     * 16-bit intensity "arg" in our input colorspace to a corresponding
+     * 16-bit intensity in the device colorspace.
+     *
+     * Remember that our LUT is 257 entries long. The final entry corresponds to an
+     * input of 0x10000, which can't quite be reached.
+     *
+     * 'arg' is in the range [0, 0xFFFF]
+     *
+     * This operation is equivalent to the following:
+     *
+     *      unsigned index = arg >> 8;          // Range [0, 0xFF]
+     *      unsigned alpha = arg & 0xFF;        // Range [0, 0xFF]
+     *      unsigned invAlpha = 0x100 - alpha;  // Range [1, 0x100]
+     *
+     *      // Result in range [0, 0xFFFF]
+     *      return (lut[index] * invAlpha + lut[index + 1] * alpha) >> 8;
+     *
+     * This is easy to understand, but it turns out to be a serious bottleneck
+     * in terms of speed and memory bandwidth, as well as register pressure that
+     * affects the compilation of updatePixel().
+     *
+     * To speed this up, we try and do the lut[index] and lut[index+1] portions
+     * in parallel using the SMUAD instruction. This is a pair of 16x16 multiplies,
+     * and the results are added together. We can combine this with an unaligned load
+     * to grab two adjacent entries from the LUT. The remaining complications are:
+     *
+     *   1. We wanted unsigned, not signed
+     *   2. We still need to generate the input values efficiently.
+     *
+     * (1) is easy to solve if we're okay with 15-bit precision for the LUT instead
+     * of 16-bit, which is fine. During LUT preparation, we right-shift each entry
+     * by 1, keeping them within the positive range of a signed 16-bit int.
+     *
+     * For (2), we need to quickly put 'alpha' in the high halfword and invAlpha in
+     * the low halfword, or vice versa. One fast way to do this is (0x01000000 + x - (x << 16).
+     */
+
+    uint32_t index = arg >> 8;          // Range [0, 0xFF]
+
+    // Load lut[index] into low halfword, lut[index+1] into high halfword.
+    uint32_t pair = *(const uint32_t*)(lut + index);
+
+    unsigned alpha = arg & 0xFF;        // Range [0, 0xFF]
+
+    // Reversed halfword order
+    uint32_t pairAlpha = (0x01000000 + alpha - (alpha << 16));
+
+    return __SMUADX(pairAlpha, pair) >> 7;
+}
+
 extern bool hasForeground;
 void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
 
@@ -371,8 +467,17 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
 
     bool bHasForeground = hasForeground;
     bool bHasCC = SmartMatrix::_ccmode != ccNone;
-    rgb24 *pRow = SmartMatrix::getRefreshRow(currentRow);
-    rgb24 *pRow2 = SmartMatrix::getRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET);
+    rgb24 *pRow = SmartMatrix::getCurrentRefreshRow(currentRow);
+    rgb24 *pRow2 = SmartMatrix::getCurrentRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET);
+    rgb24 *pPrevRow = SmartMatrix::getPreviousRefreshRow(currentRow);
+    rgb24 *pPrevRow2 = SmartMatrix::getPreviousRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET);
+
+    uint32_t fcCoefficient;
+    uint32_t icPrev;
+    uint32_t icNext;
+    fcCoefficient = calculateFcInterpCoefficient();
+    icPrev = 257 * (0x10000 - fcCoefficient);
+    icNext = 257 * fcCoefficient;
 
     for (i = 0; i < MATRIX_WIDTH; i++) {
 
@@ -395,23 +500,25 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
           temp1green = (tempPixel1.green);
           temp1blue = (tempPixel1.blue);
         } else {
-          temp0red = pRow[i].red;
-          temp0green = pRow[i].green;
-          temp0blue = pRow[i].blue;
-          temp1red = pRow2[i].red;
-          temp1green = pRow2[i].green;
-          temp1blue = pRow2[i].blue;
+          temp0red = lutInterpolate(lightPowerMap16bit2, ((pPrevRow[i].red * icPrev + pRow[i].red * icNext) >> 16));
+          temp0green = lutInterpolate(lightPowerMap16bit2, ((pPrevRow[i].green * icPrev + pRow[i].green * icNext) >> 16));
+          temp0blue = lutInterpolate(lightPowerMap16bit2, ((pPrevRow[i].blue * icPrev + pRow[i].blue * icNext) >> 16));
+          temp1red = lutInterpolate(lightPowerMap16bit2, ((pPrevRow2[i].red * icPrev + pRow2[i].red * icNext) >> 16));
+          temp1green = lutInterpolate(lightPowerMap16bit2, ((pPrevRow2[i].green * icPrev + pRow2[i].green * icNext) >> 16));
+          temp1blue = lutInterpolate(lightPowerMap16bit2, ((pPrevRow2[i].blue * icPrev + pRow2[i].blue * icNext) >> 16));
         }
 
 
         if(bHasCC) {
 #if LATCHES_PER_ROW >= 12
+#if 0
             temp0red = colorCorrection8to16bit(temp0red);
             temp0green = colorCorrection8to16bit(temp0green);
             temp0blue = colorCorrection8to16bit(temp0blue);
             temp1red = colorCorrection8to16bit(temp1red);
             temp1green = colorCorrection8to16bit(temp1green);
             temp1blue = colorCorrection8to16bit(temp1blue);
+#endif
 #else
             temp0red = colorCorrection8bit(temp0red);
             temp0green = colorCorrection8bit(temp0green);
