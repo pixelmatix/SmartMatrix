@@ -205,7 +205,7 @@ void SmartMatrix::drawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, rgb24
     // function Math.abs(y) defines absolute value y
     if (abs(y2 - y1) > abs(x2 - x1)) {
         // line and y axis angle is less then 45 degrees
-        // that swhy go on the next procedure
+        // thats why go on the next procedure
         bresteepline(y1, x1, y2, x2, color); return;
     }
     // line and x axis angle is less then 45 degrees, so x is guiding
@@ -629,6 +629,15 @@ void SmartMatrix::drawRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, 
 
 void SmartMatrix::fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, rgb24 color) {
     int i;
+// Loop only works if y1 > y0
+    if (y0 > y1) {
+        SWAPint(y0, y1);
+    };
+// Putting the x coordinates in order saves multiple swaps in drawFastHLine
+    if (x0 > x1) {
+        SWAPint(x0, x1);
+    };
+
     for (i = y0; i <= y1; i++) {
         drawFastHLine(x0, x1, i, color);
     }
