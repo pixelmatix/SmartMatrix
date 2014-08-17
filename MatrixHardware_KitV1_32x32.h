@@ -33,7 +33,7 @@
 // an advanced user may need to tweak these values
 #define MATRIX_REFRESH_RATE         120
 // only 24-bit color supported
-#define COLOR_DEPTH_RGB             48
+#define COLOR_DEPTH_RGB             36
 // DMA_BUFFER_NUMBER_OF_ROWS = the size of the buffer that DMA pulls from to refresh the display
 // must be minimum 2 rows so one can be updated while the otehr is refreshed
 // increase beyond two to give more time for the update routine to complete
