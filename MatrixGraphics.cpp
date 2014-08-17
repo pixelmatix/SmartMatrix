@@ -763,7 +763,7 @@ void SmartMatrix::swapBuffers(bool copy) {
 }
 
 // waits until previous swap and previous interpolation span is complete
-void SmartMatrix::swapBuffersWithInterpolation_fps(int framesToInterpolate, bool copy) {
+void SmartMatrix::swapBuffersWithInterpolation_frames(int framesToInterpolate, bool copy) {
     while (swapPending);
     while (framesInterpolated < totalFramesToInterpolate);
 
