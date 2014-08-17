@@ -810,6 +810,18 @@ void SmartMatrix::swapBuffersWithInterpolation(int framesToInterpolate) {
     swapPending = true;
 }
 
+// waits until previous swap is complete
+void SmartMatrix::swapBuffersWithCopyAndInterpolation(int framesToInterpolate) {
+    while (swapPending);
+
+    newFramesToInterpolate = framesToInterpolate;
+
+    swapPending = true;
+    while (swapPending);
+    memcpy(drawBufferPtr, currentRefreshBufferPtr, sizeof(backgroundBuffer[0]));
+}
+
+
 // return pointer to start of drawBuffer, so application can do efficient loading of bitmaps
 rgb24 *SmartMatrix::backBuffer() {
     return drawBufferPtr[0];
