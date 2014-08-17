@@ -103,8 +103,8 @@ public:
 
     // drawing functions
     void swapBuffers(bool copy = true);
-    void swapBuffersWithInterpolation(int framesToInterpolate);
-    void swapBuffersWithCopyAndInterpolation(int framesToInterpolate);
+    void swapBuffersWithInterpolation_fps(int framesToInterpolate, bool copy = false);
+    void swapBuffersWithInterpolation_ms(int interpolationSpan_ms, bool copy = false);
     void drawPixel(int16_t x, int16_t y, rgb24 color);
     void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, rgb24 color);
     void drawFastVLine(int16_t x, int16_t y0, int16_t y1, rgb24 color);

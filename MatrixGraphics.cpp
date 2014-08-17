@@ -762,24 +762,32 @@ void SmartMatrix::swapBuffers(bool copy) {
     }
 }
 
-// waits until previous swap is complete
-void SmartMatrix::swapBuffersWithInterpolation(int framesToInterpolate) {
+// waits until previous swap and previous interpolation span is complete
+void SmartMatrix::swapBuffersWithInterpolation_fps(int framesToInterpolate, bool copy) {
     while (swapPending);
+    while (framesInterpolated < totalFramesToInterpolate);
 
     newFramesToInterpolate = framesToInterpolate;
 
     swapPending = true;
+    if (copy) {
+        while (swapPending);
+        memcpy(drawBufferPtr, currentRefreshBufferPtr, sizeof(backgroundBuffer[0]));
+    }
 }
 
-// waits until previous swap is complete
-void SmartMatrix::swapBuffersWithCopyAndInterpolation(int framesToInterpolate) {
+// waits until previous swap and previous interpolation span is complete
+void SmartMatrix::swapBuffersWithInterpolation_ms(int interpolationSpan_ms, bool copy) {
     while (swapPending);
+    while (framesInterpolated < totalFramesToInterpolate);
 
-    newFramesToInterpolate = framesToInterpolate;
+    newFramesToInterpolate = interpolationSpan_ms * MATRIX_REFRESH_RATE / 1000;
 
     swapPending = true;
-    while (swapPending);
-    memcpy(drawBufferPtr, currentRefreshBufferPtr, sizeof(backgroundBuffer[0]));
+    if (copy) {
+        while (swapPending);
+        memcpy(drawBufferPtr, currentRefreshBufferPtr, sizeof(backgroundBuffer[0]));
+    }
 }
 
 // return pointer to start of drawBuffer, so application can do efficient loading of bitmaps
