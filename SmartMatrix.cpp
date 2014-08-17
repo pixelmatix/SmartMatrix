@@ -376,7 +376,7 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
 
     for (i = 0; i < MATRIX_WIDTH; i++) {
 
-#if LATCHES_PER_ROW == 16
+#if LATCHES_PER_ROW >= 12
         uint16_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;
 #else
         uint8_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;
@@ -405,7 +405,7 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
 
 
         if(bHasCC) {
-#if LATCHES_PER_ROW == 16
+#if LATCHES_PER_ROW >= 12
             temp0red = colorCorrection8to16bit(temp0red);
             temp0green = colorCorrection8to16bit(temp0green);
             temp0blue = colorCorrection8to16bit(temp0blue);
@@ -431,6 +431,15 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
 #endif
         }
 
+#if LATCHES_PER_ROW == 12
+            temp0red >>= 4;
+            temp0green >>= 4;
+            temp0blue >>= 4;
+
+            temp1red >>= 4;
+            temp1green >>= 4;
+            temp1blue >>= 4;
+#endif
         // this technique is from Fadecandy
         union {
             uint32_t word;
@@ -519,14 +528,14 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
         o1.p3g2 = temp1green   >> (3 + 1 * sizeof(uint32_t));
         o1.p3b2 = temp1blue    >> (3 + 1 * sizeof(uint32_t));
 
-#if LATCHES_PER_ROW == 16
+#if LATCHES_PER_ROW >= 12
         union {
             uint32_t word;
             struct {
                 // order of bits in word matches how GPIO connects to the display
                 uint32_t GPIO_WORD_ORDER;
             };
-        } o2, o3;
+        } o2;
 
         o2.word = 0;
         //o2.p0clk = 0;
@@ -565,7 +574,16 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
         o2.p3g1 = temp0green   >> (3 + 2 * sizeof(uint32_t));
         o2.p3g2 = temp1green   >> (3 + 2 * sizeof(uint32_t));
         o2.p3b2 = temp1blue    >> (3 + 2 * sizeof(uint32_t));
+#endif
 
+#if LATCHES_PER_ROW == 16
+        union {
+            uint32_t word;
+            struct {
+                // order of bits in word matches how GPIO connects to the display
+                uint32_t GPIO_WORD_ORDER;
+            };
+        } o3;
 
         o3.word = 0;
         //o3.p0clk = 0;
@@ -620,11 +638,12 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
         matrixUpdateData[freeRowBuffer][i][LATCHES_PER_ROW / sizeof(uint32_t) + 0] = o0.word | clkset.word;
         matrixUpdateData[freeRowBuffer][i][LATCHES_PER_ROW / sizeof(uint32_t) + 1] = o1.word | clkset.word;
 
-#if LATCHES_PER_ROW == 16
+#if LATCHES_PER_ROW >= 12
         matrixUpdateData[freeRowBuffer][i][2] = o2.word;
-        matrixUpdateData[freeRowBuffer][i][3] = o3.word;
-
         matrixUpdateData[freeRowBuffer][i][LATCHES_PER_ROW / sizeof(uint32_t) + 2] = o2.word | clkset.word;
+#endif
+#if LATCHES_PER_ROW == 16
+        matrixUpdateData[freeRowBuffer][i][3] = o3.word;
         matrixUpdateData[freeRowBuffer][i][LATCHES_PER_ROW / sizeof(uint32_t) + 3] = o3.word | clkset.word;
 #endif
     }
