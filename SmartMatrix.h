@@ -69,7 +69,8 @@ typedef struct rgb24 {
 typedef enum colorCorrectionModes {
     ccNone,
     cc24,
-    cc12
+    cc12,
+    cc48
 } colorCorrectionModes;
 
 #define RGB24_ISEQUAL(a, b)     ((a.red == b.red) && (a.green == b.green) && (a.blue == b.blue))
@@ -147,6 +148,7 @@ public:
 private:
     // functions for refreshing
     static void loadMatrixBuffers(unsigned char currentRow);
+    static uint16_t colorCorrection8to16bit(uint8_t inputcolor);
     static uint8_t colorCorrection8bit(uint8_t inputcolor);
     static void getPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24 *xyPixel);
     static rgb24 *getRefreshRow(uint8_t y);

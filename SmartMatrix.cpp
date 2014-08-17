@@ -376,7 +376,11 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
 
     for (i = 0; i < MATRIX_WIDTH; i++) {
 
+#if LATCHES_PER_ROW == 16
+        uint16_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;
+#else
         uint8_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;
+#endif
 
         if(bHasForeground) {
           if (!getForegroundPixel(i, currentRow, &tempPixel0))
@@ -401,12 +405,30 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
 
 
         if(bHasCC) {
-          temp0red = colorCorrection8bit(temp0red);
-          temp0green = colorCorrection8bit(temp0green);
-          temp0blue = colorCorrection8bit(temp0blue);
-          temp1red = colorCorrection8bit(temp1red);
-          temp1green = colorCorrection8bit(temp1green);
-          temp1blue = colorCorrection8bit(temp1blue);
+#if LATCHES_PER_ROW == 16
+            temp0red = colorCorrection8to16bit(temp0red);
+            temp0green = colorCorrection8to16bit(temp0green);
+            temp0blue = colorCorrection8to16bit(temp0blue);
+            temp1red = colorCorrection8to16bit(temp1red);
+            temp1green = colorCorrection8to16bit(temp1green);
+            temp1blue = colorCorrection8to16bit(temp1blue);
+#else
+            temp0red = colorCorrection8bit(temp0red);
+            temp0green = colorCorrection8bit(temp0green);
+            temp0blue = colorCorrection8bit(temp0blue);
+            temp1red = colorCorrection8bit(temp1red);
+            temp1green = colorCorrection8bit(temp1green);
+            temp1blue = colorCorrection8bit(temp1blue);
+#endif
+        } else {
+#if LATCHES_PER_ROW == 16
+            temp0red = temp0red << 8;
+            temp0green = temp0green << 8;
+            temp0blue = temp0blue << 8;
+            temp1red = temp1red << 8;
+            temp1green = temp1green << 8;
+            temp1blue = temp1blue << 8;
+#endif
         }
 
         // this technique is from Fadecandy
@@ -497,6 +519,93 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
         o1.p3g2 = temp1green   >> (3 + 1 * sizeof(uint32_t));
         o1.p3b2 = temp1blue    >> (3 + 1 * sizeof(uint32_t));
 
+#if LATCHES_PER_ROW == 16
+        union {
+            uint32_t word;
+            struct {
+                // order of bits in word matches how GPIO connects to the display
+                uint32_t GPIO_WORD_ORDER;
+            };
+        } o2, o3;
+
+        o2.word = 0;
+        //o2.p0clk = 0;
+        //o2.p0pad = 0;
+        o2.p0b1 = temp0blue    >> (0 + 2 * sizeof(uint32_t));
+        o2.p0r1 = temp0red     >> (0 + 2 * sizeof(uint32_t));
+        o2.p0r2 = temp1red     >> (0 + 2 * sizeof(uint32_t));
+        o2.p0g1 = temp0green   >> (0 + 2 * sizeof(uint32_t));
+        o2.p0g2 = temp1green   >> (0 + 2 * sizeof(uint32_t));
+        o2.p0b2 = temp1blue    >> (0 + 2 * sizeof(uint32_t));
+
+        //o2.p1clk = 0;
+        //o2.p1pad = 0;
+        o2.p1b1 = temp0blue    >> (1 + 2 * sizeof(uint32_t));
+        o2.p1r1 = temp0red     >> (1 + 2 * sizeof(uint32_t));
+        o2.p1r2 = temp1red     >> (1 + 2 * sizeof(uint32_t));
+        o2.p1g1 = temp0green   >> (1 + 2 * sizeof(uint32_t));
+        o2.p1g2 = temp1green   >> (1 + 2 * sizeof(uint32_t));
+        o2.p1b2 = temp1blue    >> (1 + 2 * sizeof(uint32_t));
+
+        //o2.p2clk = 0;
+        //o2.p2pad = 0;
+        o2.p2b1 = temp0blue    >> (2 + 2 * sizeof(uint32_t));
+        o2.p2r1 = temp0red     >> (2 + 2 * sizeof(uint32_t));
+        o2.p2r2 = temp1red     >> (2 + 2 * sizeof(uint32_t));
+        o2.p2g1 = temp0green   >> (2 + 2 * sizeof(uint32_t));
+        o2.p2g2 = temp1green   >> (2 + 2 * sizeof(uint32_t));
+        o2.p2b2 = temp1blue    >> (2 + 2 * sizeof(uint32_t));
+
+
+        //o2.p3clk = 0;
+        //o2.p3pad = 0;
+        o2.p3b1 = temp0blue    >> (3 + 2 * sizeof(uint32_t));
+        o2.p3r1 = temp0red     >> (3 + 2 * sizeof(uint32_t));
+        o2.p3r2 = temp1red     >> (3 + 2 * sizeof(uint32_t));
+        o2.p3g1 = temp0green   >> (3 + 2 * sizeof(uint32_t));
+        o2.p3g2 = temp1green   >> (3 + 2 * sizeof(uint32_t));
+        o2.p3b2 = temp1blue    >> (3 + 2 * sizeof(uint32_t));
+
+
+        o3.word = 0;
+        //o3.p0clk = 0;
+        //o3.p0pad = 0;
+        o3.p0b1 = temp0blue    >> (0 + 3 * sizeof(uint32_t));
+        o3.p0r1 = temp0red     >> (0 + 3 * sizeof(uint32_t));
+        o3.p0r2 = temp1red     >> (0 + 3 * sizeof(uint32_t));
+        o3.p0g1 = temp0green   >> (0 + 3 * sizeof(uint32_t));
+        o3.p0g2 = temp1green   >> (0 + 3 * sizeof(uint32_t));
+        o3.p0b2 = temp1blue    >> (0 + 3 * sizeof(uint32_t));
+
+        //o3.p1clk = 0;
+        //o3.p1pad = 0;
+        o3.p1b1 = temp0blue    >> (1 + 3 * sizeof(uint32_t));
+        o3.p1r1 = temp0red     >> (1 + 3 * sizeof(uint32_t));
+        o3.p1r2 = temp1red     >> (1 + 3 * sizeof(uint32_t));
+        o3.p1g1 = temp0green   >> (1 + 3 * sizeof(uint32_t));
+        o3.p1g2 = temp1green   >> (1 + 3 * sizeof(uint32_t));
+        o3.p1b2 = temp1blue    >> (1 + 3 * sizeof(uint32_t));
+
+        //o3.p2clk = 0;
+        //o3.p2pad = 0;
+        o3.p2b1 = temp0blue    >> (2 + 3 * sizeof(uint32_t));
+        o3.p2r1 = temp0red     >> (2 + 3 * sizeof(uint32_t));
+        o3.p2r2 = temp1red     >> (2 + 3 * sizeof(uint32_t));
+        o3.p2g1 = temp0green   >> (2 + 3 * sizeof(uint32_t));
+        o3.p2g2 = temp1green   >> (2 + 3 * sizeof(uint32_t));
+        o3.p2b2 = temp1blue    >> (2 + 3 * sizeof(uint32_t));
+
+
+        //o3.p3clk = 0;
+        //o3.p3pad = 0;
+        o3.p3b1 = temp0blue    >> (3 + 3 * sizeof(uint32_t));
+        o3.p3r1 = temp0red     >> (3 + 3 * sizeof(uint32_t));
+        o3.p3r2 = temp1red     >> (3 + 3 * sizeof(uint32_t));
+        o3.p3g1 = temp0green   >> (3 + 3 * sizeof(uint32_t));
+        o3.p3g2 = temp1green   >> (3 + 3 * sizeof(uint32_t));
+        o3.p3b2 = temp1blue    >> (3 + 3 * sizeof(uint32_t));
+#endif
+
         clkset.word = 0x00;
         clkset.p0clk = 1;
         clkset.p1clk = 1;
@@ -510,6 +619,14 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
         // copy the next set of words with the same data, but clock set high
         matrixUpdateData[freeRowBuffer][i][LATCHES_PER_ROW / sizeof(uint32_t) + 0] = o0.word | clkset.word;
         matrixUpdateData[freeRowBuffer][i][LATCHES_PER_ROW / sizeof(uint32_t) + 1] = o1.word | clkset.word;
+
+#if LATCHES_PER_ROW == 16
+        matrixUpdateData[freeRowBuffer][i][2] = o2.word;
+        matrixUpdateData[freeRowBuffer][i][3] = o3.word;
+
+        matrixUpdateData[freeRowBuffer][i][LATCHES_PER_ROW / sizeof(uint32_t) + 2] = o2.word | clkset.word;
+        matrixUpdateData[freeRowBuffer][i][LATCHES_PER_ROW / sizeof(uint32_t) + 3] = o3.word | clkset.word;
+#endif
     }
 
 }
