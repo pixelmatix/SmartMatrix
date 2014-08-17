@@ -36,8 +36,8 @@ int fontOffset = 1;
 ScrollMode scrollmode = bounceForward;
 unsigned char framesperscroll = 4;
 
-//bitmap size is 32 rows (supporting maximum dimension of screen height in all rotations), by 32 bits
-uint32_t foregroundBitmap[32][32 / 32];
+//bitmap size is 32 rows (supporting maximum dimension of screen in all rotations), by 32 bits
+uint32_t foregroundBitmap[MATRIX_WIDTH][MATRIX_WIDTH / 32];
 
 const bitmap_font *scrollFont = &apple5x7;
 
