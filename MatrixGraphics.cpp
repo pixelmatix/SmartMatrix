@@ -714,12 +714,14 @@ void SmartMatrix::handleBufferSwap(void) {
 
 // waits until swap is complete before returning
 void SmartMatrix::swapBuffers(bool copy) {
-    swapPending = true;
-
     while (swapPending);
 
-    if (copy)
+    swapPending = true;
+
+    if (copy) {
+        while (swapPending);
         memcpy(currentDrawBufferPtr, currentRefreshBufferPtr, sizeof(backgroundBuffer[0]));
+    }
 }
 
 // return pointer to start of currentDrawBuffer, so application can do efficient loading of bitmaps
