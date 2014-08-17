@@ -24,12 +24,14 @@
 #include <stdlib.h>
 #include "SmartMatrix.h"
 
-rgb24 backgroundBuffer[2][MATRIX_HEIGHT][MATRIX_WIDTH];
+rgb24 backgroundBuffer[3][MATRIX_HEIGHT][MATRIX_WIDTH];
 
-rgb24 (*currentDrawBufferPtr)[MATRIX_WIDTH] = backgroundBuffer[0];
+rgb24 (*drawBufferPtr)[MATRIX_WIDTH] = backgroundBuffer[0];
 rgb24 (*currentRefreshBufferPtr)[MATRIX_WIDTH] = backgroundBuffer[1];
-unsigned char SmartMatrix::currentDrawBuffer = 0;
+rgb24 (*previousRefreshBufferPtr)[MATRIX_WIDTH] = backgroundBuffer[2];
+unsigned char SmartMatrix::drawBuffer = 0;
 unsigned char SmartMatrix::currentRefreshBuffer = 1;
+unsigned char SmartMatrix::previousRefreshBuffer = 2;
 volatile bool SmartMatrix::swapPending = false;
 bitmap_font *font = (bitmap_font *) &apple3x5;
 
@@ -65,7 +67,7 @@ rgb24 SmartMatrix::readPixel(int16_t x, int16_t y) {
         hwy = (MATRIX_HEIGHT - 1) - x;
     }
 
-    return currentDrawBufferPtr[hwy][hwx];
+    return drawBufferPtr[hwy][hwx];
 }
 
 void SmartMatrix::drawPixel(int16_t x, int16_t y, rgb24 color) {
@@ -90,7 +92,7 @@ void SmartMatrix::drawPixel(int16_t x, int16_t y, rgb24 color) {
         hwy = (MATRIX_HEIGHT - 1) - x;
     }
 
-    copyRgb24(currentDrawBufferPtr[hwy][hwx], color);
+    copyRgb24(drawBufferPtr[hwy][hwx], color);
 }
 
 #define SWAPint(X,Y) { \
@@ -104,7 +106,7 @@ void SmartMatrix::drawHardwareHLine(uint8_t x0, uint8_t x1, uint8_t y, rgb24 col
     int i;
 
     for (i = x0; i <= x1; i++) {
-        copyRgb24(currentDrawBufferPtr[y][i], color);
+        copyRgb24(drawBufferPtr[y][i], color);
     }
 }
 
@@ -113,7 +115,7 @@ void SmartMatrix::drawHardwareVLine(uint8_t x, uint8_t y0, uint8_t y1, rgb24 col
     int i;
 
     for (i = y0; i <= y1; i++) {
-        copyRgb24(currentDrawBufferPtr[i][x], color);
+        copyRgb24(drawBufferPtr[i][x], color);
     }
 }
 
@@ -701,13 +703,14 @@ void SmartMatrix::handleBufferSwap(void) {
     if (!swapPending)
         return;
 
-    unsigned char newDrawBuffer = currentRefreshBuffer;
+    unsigned char newDrawBuffer = previousRefreshBuffer;
 
-    currentRefreshBuffer = currentDrawBuffer;
-    currentDrawBuffer = newDrawBuffer;
+    previousRefreshBuffer = currentRefreshBuffer;
+    currentRefreshBuffer = drawBuffer;
+    drawBuffer = newDrawBuffer;
 
     currentRefreshBufferPtr = backgroundBuffer[currentRefreshBuffer];
-    currentDrawBufferPtr = backgroundBuffer[currentDrawBuffer];
+    drawBufferPtr = backgroundBuffer[drawBuffer];
 
     swapPending = false;
 }
@@ -720,19 +723,19 @@ void SmartMatrix::swapBuffers(bool copy) {
 
     if (copy) {
         while (swapPending);
-        memcpy(currentDrawBufferPtr, currentRefreshBufferPtr, sizeof(backgroundBuffer[0]));
+        memcpy(drawBufferPtr, currentRefreshBufferPtr, sizeof(backgroundBuffer[0]));
     }
 }
 
-// return pointer to start of currentDrawBuffer, so application can do efficient loading of bitmaps
+// return pointer to start of drawBuffer, so application can do efficient loading of bitmaps
 rgb24 *SmartMatrix::backBuffer() {
-    return currentDrawBufferPtr[0];
+    return drawBufferPtr[0];
 }
 
 void SmartMatrix::setBackBuffer(rgb24 *newBuffer) {
-  currentDrawBufferPtr = (rgb24 (*)[MATRIX_WIDTH])newBuffer;
+  drawBufferPtr = (rgb24 (*)[MATRIX_WIDTH])newBuffer;
 }
 
 rgb24 *SmartMatrix::getRealBackBuffer() {
-  return &backgroundBuffer[currentDrawBuffer][0][0];
+  return &backgroundBuffer[drawBuffer][0][0];
 }

@@ -177,8 +177,9 @@ private:
     static const int dimmingMaximum;
 
     // keeping track of drawing buffer
-    static unsigned char currentDrawBuffer;
+    static unsigned char drawBuffer;
     static unsigned char currentRefreshBuffer;
+    static unsigned char previousRefreshBuffer;
     static volatile bool swapPending;
     static bool swapWithCopy;
 
