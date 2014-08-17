@@ -77,7 +77,7 @@ void SmartMatrix::scrollText(const char inputtext[], int numScrolls) {
     case bounceForward:
     case bounceReverse:
         scrollMin = -textWidth;
-        scrollMax = SmartMatrix::screenConfig.localWidth;
+        scrollMax = getScreenWidth();
 
         scrollPosition = scrollMax;
 
@@ -124,7 +124,7 @@ void SmartMatrix::redrawForeground(void) {
     // clear full bitmap
     memset(foregroundBitmap, 0x00, sizeof(foregroundBitmap));
 
-    for (j = 0; j < SmartMatrix::screenConfig.localHeight; j++) {
+    for (j = 0; j < getScreenHeight(); j++) {
 
         // skip rows without text
         if (j < fontOffset || j >= fontOffset + scrollFont->Height)
@@ -144,13 +144,13 @@ void SmartMatrix::redrawForeground(void) {
         // find rows within character bitmap that will be drawn (0-font->height unless text is partially off screen)
         charY0 = j - fontOffset;
 
-        if (SmartMatrix::screenConfig.localHeight < fontOffset + scrollFont->Height) {
-            charY1 = SmartMatrix::screenConfig.localHeight - fontOffset;
+        if (getScreenHeight() < fontOffset + scrollFont->Height) {
+            charY1 = getScreenHeight() - fontOffset;
         } else {
             charY1 = scrollFont->Height;
         }
 
-        while (textPosition < textlen && charPosition < SmartMatrix::screenConfig.localWidth) {
+        while (textPosition < textlen && charPosition < getScreenWidth()) {
             uint32_t tempBitmask;
             // draw character from top to bottom
             for (k = charY0; k < charY1; k++) {
@@ -233,18 +233,25 @@ bool SmartMatrix::getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24
     uint8_t localScreenX, localScreenY;
 
     // convert hardware x/y to the pixel in the local screen
-    if (SmartMatrix::screenConfig.rotation == rotation0) {
+    switch( SmartMatrix::screenConfig.rotation ) {
+      case rotation0 :
         localScreenX = hardwareX;
         localScreenY = hardwareY;
-    } else if (SmartMatrix::screenConfig.rotation == rotation180) {
+        break;
+      case rotation180 :
         localScreenX = (MATRIX_WIDTH - 1) - hardwareX;
         localScreenY = (MATRIX_HEIGHT - 1) - hardwareY;
-    } else if (SmartMatrix::screenConfig.rotation == rotation90) {
+        break;
+      case  rotation90 :
         localScreenX = hardwareY;
         localScreenY = (MATRIX_WIDTH - 1) - hardwareX;
-    } else { /* if (SmartMatrix::screenConfig.rotation == rotation270)*/
+        break;
+      case  rotation270 :
         localScreenX = (MATRIX_HEIGHT - 1) - hardwareY;
         localScreenY = hardwareX;
+        break;
+      default:
+        // TODO: Should throw an error
     }
 
     uint32_t bitmask = 0x01 << (31 - localScreenX);
