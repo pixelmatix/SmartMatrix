@@ -427,6 +427,7 @@ uint32_t lutInterpolate(const uint16_t *lut, uint32_t arg)
      * the low halfword, or vice versa. One fast way to do this is (0x01000000 + x - (x << 16).
      */
 
+#if (ENABLE_FADECANDY_GAMMA_CORRECTION == 1)
     uint32_t index = arg >> 8;          // Range [0, 0xFF]
 
     // Load lut[index] into low halfword, lut[index+1] into high halfword.
@@ -438,6 +439,9 @@ uint32_t lutInterpolate(const uint16_t *lut, uint32_t arg)
     uint32_t pairAlpha = (0x01000000 + alpha - (alpha << 16));
 
     return __SMUADX(pairAlpha, pair) >> 7;
+#endif
+
+    return arg;
 }
 
 extern bool hasForeground;
@@ -488,29 +492,36 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
 #endif
 
         if(bHasForeground) {
-          if (!getForegroundPixel(i, currentRow, &tempPixel0))
-              copyRgb24(tempPixel0, pRow[i]);
-          if (!getForegroundPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, &tempPixel1))
-              copyRgb24(tempPixel1, pRow2[i]);
-
-          temp0red = (tempPixel0.red);
-          temp0green = (tempPixel0.green);
-          temp0blue = (tempPixel0.blue);
-          temp1red = (tempPixel1.red);
-          temp1green = (tempPixel1.green);
-          temp1blue = (tempPixel1.blue);
+            if (!getForegroundPixel(i, currentRow, &tempPixel0)) {
+                temp0red = lutInterpolate(lightPowerMap16bit2, ((pPrevRow[i].red * icPrev + pRow[i].red * icNext) >> 16));
+                temp0green = lutInterpolate(lightPowerMap16bit2, ((pPrevRow[i].green * icPrev + pRow[i].green * icNext) >> 16));
+                temp0blue = lutInterpolate(lightPowerMap16bit2, ((pPrevRow[i].blue * icPrev + pRow[i].blue * icNext) >> 16));
+            } else {
+                temp0red = lutInterpolate(lightPowerMap16bit2, tempPixel0.red << 8);
+                temp0green = lutInterpolate(lightPowerMap16bit2, tempPixel0.green << 8);
+                temp0blue = lutInterpolate(lightPowerMap16bit2, tempPixel0.blue << 8);
+            }
+            if (!getForegroundPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, &tempPixel1)) {
+                temp1red = lutInterpolate(lightPowerMap16bit2, ((pPrevRow2[i].red * icPrev + pRow2[i].red * icNext) >> 16));
+                temp1green = lutInterpolate(lightPowerMap16bit2, ((pPrevRow2[i].green * icPrev + pRow2[i].green * icNext) >> 16));
+                temp1blue = lutInterpolate(lightPowerMap16bit2, ((pPrevRow2[i].blue * icPrev + pRow2[i].blue * icNext) >> 16));
+            } else {
+                temp1red = lutInterpolate(lightPowerMap16bit2, tempPixel1.red << 8);
+                temp1green = lutInterpolate(lightPowerMap16bit2, tempPixel1.green << 8);
+                temp1blue = lutInterpolate(lightPowerMap16bit2, tempPixel1.blue << 8);
+            }
         } else {
-          temp0red = lutInterpolate(lightPowerMap16bit2, ((pPrevRow[i].red * icPrev + pRow[i].red * icNext) >> 16));
-          temp0green = lutInterpolate(lightPowerMap16bit2, ((pPrevRow[i].green * icPrev + pRow[i].green * icNext) >> 16));
-          temp0blue = lutInterpolate(lightPowerMap16bit2, ((pPrevRow[i].blue * icPrev + pRow[i].blue * icNext) >> 16));
-          temp1red = lutInterpolate(lightPowerMap16bit2, ((pPrevRow2[i].red * icPrev + pRow2[i].red * icNext) >> 16));
-          temp1green = lutInterpolate(lightPowerMap16bit2, ((pPrevRow2[i].green * icPrev + pRow2[i].green * icNext) >> 16));
-          temp1blue = lutInterpolate(lightPowerMap16bit2, ((pPrevRow2[i].blue * icPrev + pRow2[i].blue * icNext) >> 16));
+            temp0red = lutInterpolate(lightPowerMap16bit2, ((pPrevRow[i].red * icPrev + pRow[i].red * icNext) >> 16));
+            temp0green = lutInterpolate(lightPowerMap16bit2, ((pPrevRow[i].green * icPrev + pRow[i].green * icNext) >> 16));
+            temp0blue = lutInterpolate(lightPowerMap16bit2, ((pPrevRow[i].blue * icPrev + pRow[i].blue * icNext) >> 16));
+            temp1red = lutInterpolate(lightPowerMap16bit2, ((pPrevRow2[i].red * icPrev + pRow2[i].red * icNext) >> 16));
+            temp1green = lutInterpolate(lightPowerMap16bit2, ((pPrevRow2[i].green * icPrev + pRow2[i].green * icNext) >> 16));
+            temp1blue = lutInterpolate(lightPowerMap16bit2, ((pPrevRow2[i].blue * icPrev + pRow2[i].blue * icNext) >> 16));
         }
-
 
         if(bHasCC) {
 #if LATCHES_PER_ROW >= 12
+            // disabled to use above fadecandy gamma correction
 #if 0
             temp0red = colorCorrection8to16bit(temp0red);
             temp0green = colorCorrection8to16bit(temp0green);

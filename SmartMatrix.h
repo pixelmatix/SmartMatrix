@@ -32,6 +32,7 @@
 #include "MatrixHardware_KitV1_32x32.h"
 //#include "MatrixHardware_KitV1_16x32.h"
 
+#define ENABLE_FADECANDY_GAMMA_CORRECTION               1
 
 // scroll text
 const int textLayerMaxStringLength = 50;
