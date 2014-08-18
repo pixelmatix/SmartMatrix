@@ -85,7 +85,7 @@ typedef struct gpiopair {
 static gpiopair gpiosync;
 
 
-SmartMatrix::SmartMatrix() {
+SmartMatrix::SmartMatrix(void) {
 
 }
 
@@ -152,7 +152,7 @@ INLINE void SmartMatrix::calculateTimerLut(void) {
     }
 }
 
-void SmartMatrix::begin()
+void SmartMatrix::begin(void)
 {
     int i;
     cbInit(&dmaBuffer, DMA_BUFFER_NUMBER_OF_ROWS);
