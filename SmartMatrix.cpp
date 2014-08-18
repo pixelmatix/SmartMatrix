@@ -471,9 +471,6 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
     rgb24 *pRow2 = SmartMatrix::getCurrentRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET);
     rgb24 *pPrevRow = SmartMatrix::getPreviousRefreshRow(currentRow);
     rgb24 *pPrevRow2 = SmartMatrix::getPreviousRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET);
-    rgb24 fgPixel;
-    rgb24 fgPixel2;
-    uint8_t fgAlpha;
 
     uint32_t fcCoefficient;
     uint32_t icPrev;
@@ -484,43 +481,31 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
 
     for (i = 0; i < MATRIX_WIDTH; i++) {
 
+#if LATCHES_PER_ROW >= 12
         uint16_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;
+#else
+        uint8_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;
+#endif
 
         if(bHasForeground) {
-            fgAlpha = 0x20;
-            if(!getForegroundPixel(i, currentRow, &fgPixel))
-                fgAlpha = 0;
+          if (!getForegroundPixel(i, currentRow, &tempPixel0))
+              copyRgb24(tempPixel0, pRow[i]);
+          if (!getForegroundPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, &tempPixel1))
+              copyRgb24(tempPixel1, pRow2[i]);
 
-            if (!getForegroundPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, &tempPixel1))
-                copyRgb24(tempPixel1, pRow2[i]);
-
-            uint32_t alphaCoefficient = (0x10000 * fgAlpha) / 255;
-
-            uint32_t acForeground = 256 * (alphaCoefficient);
-            uint32_t acBackground = 256 * (0x10000 - alphaCoefficient);
-
-            temp0red = ((pPrevRow[i].red * icPrev + pRow[i].red * icNext) >> 16);
-            temp0green = ((pPrevRow[i].green * icPrev + pRow[i].green * icNext) >> 16);
-            temp0blue = ((pPrevRow[i].blue * icPrev + pRow[i].blue * icNext) >> 16);
-            if(fgAlpha) {
-                temp0red = (((temp0red * acBackground ) /256 + fgPixel.red * acForeground) >> 16);
-                temp0green = (((temp0green * acBackground ) /256 + fgPixel.green * acForeground) >> 16);
-                temp0blue = (((temp0blue * acBackground ) /256 + fgPixel.blue * acForeground) >> 16);
-            }
-            temp0red = lutInterpolate(lightPowerMap16bit2, temp0red);
-            temp0green = lutInterpolate(lightPowerMap16bit2, temp0green);
-            temp0blue = lutInterpolate(lightPowerMap16bit2, temp0blue);
-
-            temp1red = lutInterpolate(lightPowerMap16bit2, ((pPrevRow2[i].red * icPrev + pRow2[i].red * icNext) >> 16));
-            temp1green = lutInterpolate(lightPowerMap16bit2, ((pPrevRow2[i].green * icPrev + pRow2[i].green * icNext) >> 16));
-            temp1blue = lutInterpolate(lightPowerMap16bit2, ((pPrevRow2[i].blue * icPrev + pRow2[i].blue * icNext) >> 16));
+          temp0red = (tempPixel0.red);
+          temp0green = (tempPixel0.green);
+          temp0blue = (tempPixel0.blue);
+          temp1red = (tempPixel1.red);
+          temp1green = (tempPixel1.green);
+          temp1blue = (tempPixel1.blue);
         } else {
-            temp0red = lutInterpolate(lightPowerMap16bit2, ((pPrevRow[i].red * icPrev + pRow[i].red * icNext) >> 16));
-            temp0green = lutInterpolate(lightPowerMap16bit2, ((pPrevRow[i].green * icPrev + pRow[i].green * icNext) >> 16));
-            temp0blue = lutInterpolate(lightPowerMap16bit2, ((pPrevRow[i].blue * icPrev + pRow[i].blue * icNext) >> 16));
-            temp1red = lutInterpolate(lightPowerMap16bit2, ((pPrevRow2[i].red * icPrev + pRow2[i].red * icNext) >> 16));
-            temp1green = lutInterpolate(lightPowerMap16bit2, ((pPrevRow2[i].green * icPrev + pRow2[i].green * icNext) >> 16));
-            temp1blue = lutInterpolate(lightPowerMap16bit2, ((pPrevRow2[i].blue * icPrev + pRow2[i].blue * icNext) >> 16));
+          temp0red = lutInterpolate(lightPowerMap16bit2, ((pPrevRow[i].red * icPrev + pRow[i].red * icNext) >> 16));
+          temp0green = lutInterpolate(lightPowerMap16bit2, ((pPrevRow[i].green * icPrev + pRow[i].green * icNext) >> 16));
+          temp0blue = lutInterpolate(lightPowerMap16bit2, ((pPrevRow[i].blue * icPrev + pRow[i].blue * icNext) >> 16));
+          temp1red = lutInterpolate(lightPowerMap16bit2, ((pPrevRow2[i].red * icPrev + pRow2[i].red * icNext) >> 16));
+          temp1green = lutInterpolate(lightPowerMap16bit2, ((pPrevRow2[i].green * icPrev + pRow2[i].green * icNext) >> 16));
+          temp1blue = lutInterpolate(lightPowerMap16bit2, ((pPrevRow2[i].blue * icPrev + pRow2[i].blue * icNext) >> 16));
         }
 
 
