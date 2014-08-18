@@ -24,14 +24,14 @@
 #include <stdlib.h>
 #include "SmartMatrix.h"
 
-rgb24 backgroundBuffer[2][MATRIX_HEIGHT][MATRIX_WIDTH];
+static rgb24 backgroundBuffer[2][MATRIX_HEIGHT][MATRIX_WIDTH];
 
-rgb24 (*currentDrawBufferPtr)[MATRIX_WIDTH] = backgroundBuffer[0];
-rgb24 (*currentRefreshBufferPtr)[MATRIX_WIDTH] = backgroundBuffer[1];
+static rgb24 (*currentDrawBufferPtr)[MATRIX_WIDTH] = backgroundBuffer[0];
+static rgb24 (*currentRefreshBufferPtr)[MATRIX_WIDTH] = backgroundBuffer[1];
 unsigned char SmartMatrix::currentDrawBuffer = 0;
 unsigned char SmartMatrix::currentRefreshBuffer = 1;
 volatile bool SmartMatrix::swapPending = false;
-bitmap_font *font = (bitmap_font *) &apple3x5;
+static bitmap_font *font = (bitmap_font *) &apple3x5;
 
 // coordinates based on screen position, which is between 0-localWidth/localHeight
 void SmartMatrix::getPixel(uint8_t x, uint8_t y, rgb24 *xyPixel) {
