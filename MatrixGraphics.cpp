@@ -43,7 +43,7 @@ rgb24 *SmartMatrix::getRefreshRow(uint8_t y) {
 }
 
 // reads pixel from drawing buffer, not refresh buffer
-rgb24 SmartMatrix::readPixel(int16_t x, int16_t y) {
+rgb24 SmartMatrix::readPixel(int16_t x, int16_t y) const {
     int hwx, hwy;
 
     // check for out of bounds coordinates
@@ -736,7 +736,7 @@ void SmartMatrix::swapBuffers(bool copy) {
 }
 
 // return pointer to start of currentDrawBuffer, so application can do efficient loading of bitmaps
-rgb24 *SmartMatrix::backBuffer() {
+rgb24 *SmartMatrix::backBuffer(void) {
     return currentDrawBufferPtr[0];
 }
 

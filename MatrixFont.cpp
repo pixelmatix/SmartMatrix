@@ -90,6 +90,6 @@ static const bitmap_font *fontArray[] = {
     &gohufont6x11b,
 };
 
-const bitmap_font *SmartMatrix::fontLookup(fontChoices font) {
+const bitmap_font *SmartMatrix::fontLookup(fontChoices font) const {
     return fontArray[font];
 }

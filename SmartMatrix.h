@@ -99,8 +99,8 @@ typedef struct screen_config {
 
 class SmartMatrix {
 public:
-    SmartMatrix();
-    void begin();
+    SmartMatrix(void);
+    void begin(void);
 
     // drawing functions
     void swapBuffers(bool copy = true);
@@ -124,10 +124,10 @@ public:
     void drawChar(int16_t x, int16_t y, rgb24 charColor, char character);
     void drawString(int16_t x, int16_t y, rgb24 charColor, const char text[]);
     void drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, rgb24 bitmapColor, uint8_t *bitmap);
-    rgb24 readPixel(int16_t x, int16_t y);
-    rgb24 *backBuffer();
+    rgb24 readPixel(int16_t x, int16_t y) const;
+    rgb24 *backBuffer(void);
     void setBackBuffer(rgb24 *newBuffer);
-    rgb24 *getRealBackBuffer();
+    rgb24 *getRealBackBuffer(void);
 
     // scroll text
     void scrollText(const char inputtext[], int numScrolls);
@@ -139,7 +139,7 @@ public:
     void setScrollOffsetFromTop(int offset);
     void setScrollStartOffsetFromLeft(int offset);
     void stopScrollText(void);
-    int getScrollStatus(void);
+    int getScrollStatus(void) const;
 
     // foreground drawing
     void clearForeground(void);
@@ -150,8 +150,8 @@ public:
 
     // configuration
     void setRotation(rotationDegrees rotation);
-    uint16_t getScreenWidth(void);
-    uint16_t getScreenHeight(void);
+    uint16_t getScreenWidth(void) const;
+    uint16_t getScreenHeight(void) const;
     void setBrightness(uint8_t brightness);
     void setBackgroundBrightness(uint8_t brightness);
     void setColorCorrection(colorCorrectionModes mode);
@@ -211,7 +211,7 @@ private:
 
     // font
     static bool getBitmapFontPixelAtXY(unsigned char letter, unsigned char x, unsigned char y, const bitmap_font *font);
-    const bitmap_font *fontLookup(fontChoices font);
+    const bitmap_font *fontLookup(fontChoices font) const;
     static uint16_t getBitmapFontRowAtXY(unsigned char letter, unsigned char y, const bitmap_font *font);
 };
 

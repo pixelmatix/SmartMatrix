@@ -127,7 +127,7 @@ void SmartMatrix::drawForegroundChar(int16_t x, int16_t y, char character, bool 
 // returns 0 if stopped
 // returns positive number indicating number of loops left if running
 // returns -1 if continuously scrolling
-int SmartMatrix::getScrollStatus(void) {
+int SmartMatrix::getScrollStatus(void) const {
     return scrollcounter;
 }
 
