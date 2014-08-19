@@ -3,4 +3,6 @@
     to be included in the Arduino Sketch, so this particular library
     can be found during linking
 */
+
+#define MATRIX32
 #include "SmartMatrix.h"
