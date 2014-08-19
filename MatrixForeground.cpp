@@ -77,7 +77,7 @@ void SmartMatrix::scrollText(const char inputtext[], int numScrolls) {
     case bounceForward:
     case bounceReverse:
         scrollMin = -textWidth;
-        scrollMax = getScreenWidth();
+        scrollMax = screenConfig.localWidth;
 
         scrollPosition = scrollMax;
 
@@ -124,7 +124,7 @@ void SmartMatrix::redrawForeground(void) {
     // clear full bitmap
     memset(foregroundBitmap, 0x00, sizeof(foregroundBitmap));
 
-    for (j = 0; j < getScreenHeight(); j++) {
+    for (j = 0; j < screenConfig.localHeight; j++) {
 
         // skip rows without text
         if (j < fontOffset || j >= fontOffset + scrollFont->Height)
@@ -144,13 +144,13 @@ void SmartMatrix::redrawForeground(void) {
         // find rows within character bitmap that will be drawn (0-font->height unless text is partially off screen)
         charY0 = j - fontOffset;
 
-        if (getScreenHeight() < fontOffset + scrollFont->Height) {
-            charY1 = getScreenHeight() - fontOffset;
+        if (screenConfig.localHeight < fontOffset + scrollFont->Height) {
+            charY1 = screenConfig.localHeight - fontOffset;
         } else {
             charY1 = scrollFont->Height;
         }
 
-        while (textPosition < textlen && charPosition < getScreenWidth()) {
+        while (textPosition < textlen && charPosition < screenConfig.localWidth) {
             uint32_t tempBitmask;
             // draw character from top to bottom
             for (k = charY0; k < charY1; k++) {
@@ -252,7 +252,8 @@ bool SmartMatrix::getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24
         break;
       default:
         // TODO: Should throw an error
-    }
+        break;
+    };
 
     uint32_t bitmask = 0x01 << (31 - localScreenX);
 
