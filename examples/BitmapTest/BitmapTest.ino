@@ -14,12 +14,13 @@ void loop() {
     rgb24 *buffer;
 
     buffer = matrix.backBuffer();
-
-    for (i = 0; i < 32 * matrix.getScreenHeight(); i++) {
-        buffer[i].red = pixelmatixlogo.pixel_data[i * 3 + 0];
-        buffer[i].green = pixelmatixlogo.pixel_data[i * 3 + 1];
-        buffer[i].blue = pixelmatixlogo.pixel_data[i * 3 + 2];
-    }
+    if ((pixelmatixlogo.width <= matrix.getScreenWidth()) && 
+      (pixelmatixlogo.height <= matrix.getScreenHeight())) 
+        for (i = 0; i < matrix.getScreenWidth() * matrix.getScreenHeight(); i++) {
+            buffer[i].red = pixelmatixlogo.pixel_data[i * 3 + 0];
+            buffer[i].green = pixelmatixlogo.pixel_data[i * 3 + 1];
+            buffer[i].blue = pixelmatixlogo.pixel_data[i * 3 + 2];
+        }
 
     matrix.swapBuffers(true);
 
@@ -27,11 +28,13 @@ void loop() {
 
     buffer = matrix.backBuffer();
 
-    for (i = 0; i < 32 * matrix.getScreenHeight(); i++) {
-        buffer[i].red = colorwheel.pixel_data[i * 3 + 0];
-        buffer[i].green = colorwheel.pixel_data[i * 3 + 1];
-        buffer[i].blue = colorwheel.pixel_data[i * 3 + 2];
-    }
+    if ((colorwheel.width <= matrix.getScreenWidth()) && 
+      (colorwheel.height <= matrix.getScreenHeight())) 
+        for (i = 0; i < matrix.getScreenWidth() * matrix.getScreenHeight(); i++) {
+            buffer[i].red = colorwheel.pixel_data[i * 3 + 0];
+            buffer[i].green = colorwheel.pixel_data[i * 3 + 1];
+            buffer[i].blue = colorwheel.pixel_data[i * 3 + 2];
+        }
 
     matrix.swapBuffers(true);
 
