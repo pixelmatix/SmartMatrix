@@ -24,6 +24,8 @@
 #include "SmartMatrix.h"
 #include "CircularBuffer.h"
 
+#define INLINE __attribute__( ( always_inline ) ) inline
+
 // these definitions may change if switching major display type
 #define MATRIX_ROW_PAIR_OFFSET      (MATRIX_HEIGHT/2)
 #define MATRIX_ROWS_PER_FRAME       (MATRIX_HEIGHT/2)
@@ -86,7 +88,7 @@ SmartMatrix::SmartMatrix() {
 
 }
 
-void SmartMatrix::matrixCalculations(void) {
+INLINE void SmartMatrix::matrixCalculations(void) {
     static unsigned char currentRow = 0;
 
     // only run the loop if there is free space, and fill the entire buffer before returning
@@ -121,7 +123,7 @@ void SmartMatrix::matrixCalculations(void) {
     }
 }
 
-void SmartMatrix::calculateTimerLut(void) {
+INLINE void SmartMatrix::calculateTimerLut(void) {
     int i;
 
     for (i = 0; i < LATCHES_PER_ROW; i++) {
@@ -344,7 +346,7 @@ void SmartMatrix::begin()
     FTM1_SC = FTM_SC_CLKS(1) | FTM_SC_PS(LATCH_TIMER_PRESCALE);
 }
 
-void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
+INLINE void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
 
     int i, j;
 
