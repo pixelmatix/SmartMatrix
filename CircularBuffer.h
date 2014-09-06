@@ -1,6 +1,8 @@
 #ifndef _CIRCULARBUFFER_H_
 #define _CIRCULARBUFFER_H_
 
+// TODO: Consider INLINE for several functions - many small, only used in one place, in frequently used code
+
 /* Circular buffer object */
 typedef struct {
     int         size;   /* maximum number of elements           */

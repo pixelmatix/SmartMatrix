@@ -24,6 +24,8 @@
 #include "SmartMatrix.h"
 #include "CircularBuffer.h"
 
+#define INLINE __attribute__( ( always_inline ) ) inline
+
 // these definitions may change if switching major display type
 #define MATRIX_ROW_PAIR_OFFSET      (MATRIX_HEIGHT/2)
 #define MATRIX_ROWS_PER_FRAME       (MATRIX_HEIGHT/2)
@@ -86,7 +88,7 @@ SmartMatrix::SmartMatrix() {
 
 }
 
-void SmartMatrix::matrixCalculations(void) {
+INLINE void SmartMatrix::matrixCalculations(void) {
     static unsigned char currentRow = 0;
 
     // only run the loop if there is free space, and fill the entire buffer before returning
@@ -121,7 +123,7 @@ void SmartMatrix::matrixCalculations(void) {
     }
 }
 
-void SmartMatrix::calculateTimerLut(void) {
+INLINE void SmartMatrix::calculateTimerLut(void) {
     int i;
 
     for (i = 0; i < LATCHES_PER_ROW; i++) {
@@ -344,7 +346,7 @@ void SmartMatrix::begin()
     FTM1_SC = FTM_SC_CLKS(1) | FTM_SC_PS(LATCH_TIMER_PRESCALE);
 }
 
-void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
+INLINE void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
 
     int i, j;
 
@@ -392,8 +394,9 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
 
         // set bits starting from LSB brightness moving to MSB brightness with each byte across the word
         // each word contains four brightness levels for single set of pixels above
-        o0.p0clk = 0;
-        o0.p0pad = 0;
+        o0.word = 0;  // Clear clk and pad bits in parallel (8 BFC instructions -> 1 MOVS instruction)
+//        o0.p0clk = 0;
+//        o0.p0pad = 0;
         o0.p0b1 = temp0blue    >> 0;
         o0.p0r1 = temp0red     >> 0;
         o0.p0r2 = temp1red     >> 0;
@@ -401,8 +404,8 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
         o0.p0g2 = temp1green   >> 0;
         o0.p0b2 = temp1blue    >> 0;
 
-        o0.p1clk = 0;
-        o0.p1pad = 0;
+//        o0.p1clk = 0;
+//        o0.p1pad = 0;
         o0.p1b1 = temp0blue    >> 1;
         o0.p1r1 = temp0red     >> 1;
         o0.p1r2 = temp1red     >> 1;
@@ -410,8 +413,8 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
         o0.p1g2 = temp1green   >> 1;
         o0.p1b2 = temp1blue    >> 1;
 
-        o0.p2clk = 0;
-        o0.p2pad = 0;
+//        o0.p2clk = 0;
+//        o0.p2pad = 0;
         o0.p2b1 = temp0blue    >> 2;
         o0.p2r1 = temp0red     >> 2;
         o0.p2r2 = temp1red     >> 2;
@@ -419,8 +422,8 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
         o0.p2g2 = temp1green   >> 2;
         o0.p2b2 = temp1blue    >> 2;
 
-        o0.p3clk = 0;
-        o0.p3pad = 0;
+//        o0.p3clk = 0;
+//        o0.p3pad = 0;
         o0.p3b1 = temp0blue    >> 3;
         o0.p3r1 = temp0red     >> 3;
         o0.p3r2 = temp1red     >> 3;
@@ -430,8 +433,9 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
 
 
         // continue moving from LSB to MSB brightness with the next word
-        o1.p0clk = 0;
-        o1.p0pad = 0;
+        o1.word = 0;  // Clear clk and pad bits in parallel
+//        o1.p0clk = 0;
+//        o1.p0pad = 0;
         o1.p0b1 = temp0blue    >> (0 + 1 * sizeof(uint32_t));
         o1.p0r1 = temp0red     >> (0 + 1 * sizeof(uint32_t));
         o1.p0r2 = temp1red     >> (0 + 1 * sizeof(uint32_t));
@@ -439,8 +443,8 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
         o1.p0g2 = temp1green   >> (0 + 1 * sizeof(uint32_t));
         o1.p0b2 = temp1blue    >> (0 + 1 * sizeof(uint32_t));
 
-        o1.p1clk = 0;
-        o1.p1pad = 0;
+//        o1.p1clk = 0;
+//        o1.p1pad = 0;
         o1.p1b1 = temp0blue    >> (1 + 1 * sizeof(uint32_t));
         o1.p1r1 = temp0red     >> (1 + 1 * sizeof(uint32_t));
         o1.p1r2 = temp1red     >> (1 + 1 * sizeof(uint32_t));
@@ -448,8 +452,8 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
         o1.p1g2 = temp1green   >> (1 + 1 * sizeof(uint32_t));
         o1.p1b2 = temp1blue    >> (1 + 1 * sizeof(uint32_t));
 
-        o1.p2clk = 0;
-        o1.p2pad = 0;
+//        o1.p2clk = 0;
+//        o1.p2pad = 0;
         o1.p2b1 = temp0blue    >> (2 + 1 * sizeof(uint32_t));
         o1.p2r1 = temp0red     >> (2 + 1 * sizeof(uint32_t));
         o1.p2r2 = temp1red     >> (2 + 1 * sizeof(uint32_t));
@@ -457,8 +461,8 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
         o1.p2g2 = temp1green   >> (2 + 1 * sizeof(uint32_t));
         o1.p2b2 = temp1blue    >> (2 + 1 * sizeof(uint32_t));
 
-        o1.p3clk = 0;
-        o1.p3pad = 0;
+//        o1.p3clk = 0;
+//        o1.p3pad = 0;
         o1.p3b1 = temp0blue    >> (3 + 1 * sizeof(uint32_t));
         o1.p3r1 = temp0red     >> (3 + 1 * sizeof(uint32_t));
         o1.p3r2 = temp1red     >> (3 + 1 * sizeof(uint32_t));
@@ -466,6 +470,7 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
         o1.p3g2 = temp1green   >> (3 + 1 * sizeof(uint32_t));
         o1.p3b2 = temp1blue    >> (3 + 1 * sizeof(uint32_t));
 
+// Compiler handles clkset as a single constant
         clkset.word = 0x00;
         clkset.p0clk = 1;
         clkset.p1clk = 1;
