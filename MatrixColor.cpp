@@ -128,7 +128,19 @@ static uint8_t lightPowerMap4bit[256] = {
     0x0e, 0x0e, 0x0e, 0x0e, 0x0f, 0x0f, 0x0f, 0x0f
 };
 
-uint16_t SmartMatrix::colorCorrection8to16bit(uint8_t inputcolor) {
+
+
+#if COLOR_DEPTH_RGB >= 36
+static uint16_t backgroundColorCorrectionLUT[256];
+
+void SmartMatrix::calculateBackgroundLUT() {
+    // update background table
+    for(int i=0; i<256; i++) {
+        backgroundColorCorrectionLUT[i] = (lightPowerMap16bit[i] * backgroundBrightness) / 256;
+    }
+}
+
+uint16_t SmartMatrix::colorCorrection(uint8_t inputcolor) {
     switch (SmartMatrix::_ccmode) {
     case cc24:
         return lightPowerMap8bit[inputcolor] << 8;
@@ -146,7 +158,15 @@ uint16_t SmartMatrix::colorCorrection8to16bit(uint8_t inputcolor) {
     }
 }
 
-uint8_t SmartMatrix::colorCorrection8bit(uint8_t inputcolor) {
+uint16_t SmartMatrix::backgroundColorCorrection(uint8_t inputcolor) {
+    return backgroundColorCorrectionLUT[inputcolor];
+}
+
+#else
+
+static uint8_t backgroundColorCorrectionLUT[256];
+
+uint8_t SmartMatrix::colorCorrection(uint8_t inputcolor) {
     switch (SmartMatrix::_ccmode) {
     case cc24:
         return lightPowerMap8bit[inputcolor];
@@ -161,3 +181,16 @@ uint8_t SmartMatrix::colorCorrection8bit(uint8_t inputcolor) {
 
     return 0;
 }
+
+void SmartMatrix::calculateBackgroundLUT() {
+    // update background table
+    for(int i=0; i<256; i++) {
+        backgroundColorCorrectionLUT[i] = (lightPowerMap8bit[i] * backgroundBrightness) / 256;
+    }
+}
+
+uint8_t SmartMatrix::backgroundColorCorrection(uint8_t inputcolor) {
+    return backgroundColorCorrectionLUT[inputcolor];
+}
+#endif
+

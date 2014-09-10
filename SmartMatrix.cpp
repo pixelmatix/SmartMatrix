@@ -95,6 +95,8 @@ void SmartMatrix::matrixCalculations(void) {
         if (!currentRow) {
             handleBufferSwap();
 
+            calculateBackgroundLUT();
+
 #ifdef DEBUG_PINS_ENABLED
     digitalWriteFast(DEBUG_PIN_3, HIGH); // oscilloscope trigger
 #endif
@@ -176,6 +178,9 @@ void SmartMatrix::begin()
 
     // fill buffer with data before enabling DMA
     matrixCalculations();
+
+    // load color correction table
+    calculateBackgroundLUT();
 
     // setup debug output
 #ifdef DEBUG_PINS_ENABLED
@@ -382,54 +387,68 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
         uint8_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;
 #endif
 
-        if(bHasForeground) {
-          if (!getForegroundPixel(i, currentRow, &tempPixel0))
-              copyRgb24(tempPixel0, pRow[i]);
-          if (!getForegroundPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, &tempPixel1))
-              copyRgb24(tempPixel1, pRow2[i]);
-
-          temp0red = (tempPixel0.red);
-          temp0green = (tempPixel0.green);
-          temp0blue = (tempPixel0.blue);
-          temp1red = (tempPixel1.red);
-          temp1green = (tempPixel1.green);
-          temp1blue = (tempPixel1.blue);
+        if (bHasForeground && getForegroundPixel(i, currentRow, &tempPixel0)) {
+            if(bHasCC) {
+                // load foreground pixel with color correction
+                temp0red = colorCorrection(tempPixel0.red);
+                temp0green = colorCorrection(tempPixel0.green);
+                temp0blue = colorCorrection(tempPixel0.blue);
+            } else {
+                // load foreground pixel without color correction
+                temp0red = tempPixel0.red;
+                temp0green = tempPixel0.green;
+                temp0blue = tempPixel0.blue;
+            }
         } else {
-          temp0red = pRow[i].red;
-          temp0green = pRow[i].green;
-          temp0blue = pRow[i].blue;
-          temp1red = pRow2[i].red;
-          temp1green = pRow2[i].green;
-          temp1blue = pRow2[i].blue;
+            if(bHasCC) {
+                // load background pixel with color correction
+                temp0red = backgroundColorCorrection(pRow[i].red);
+                temp0green = backgroundColorCorrection(pRow[i].green);
+                temp0blue = backgroundColorCorrection(pRow[i].blue);
+            } else {
+                // load background pixel without color correction
+                temp0red = pRow[i].red;
+                temp0green = pRow[i].green;
+                temp0blue = pRow[i].blue;
+            }
         }
 
-
-        if(bHasCC) {
-#if LATCHES_PER_ROW >= 12
-            temp0red = colorCorrection8to16bit(temp0red);
-            temp0green = colorCorrection8to16bit(temp0green);
-            temp0blue = colorCorrection8to16bit(temp0blue);
-            temp1red = colorCorrection8to16bit(temp1red);
-            temp1green = colorCorrection8to16bit(temp1green);
-            temp1blue = colorCorrection8to16bit(temp1blue);
-#else
-            temp0red = colorCorrection8bit(temp0red);
-            temp0green = colorCorrection8bit(temp0green);
-            temp0blue = colorCorrection8bit(temp0blue);
-            temp1red = colorCorrection8bit(temp1red);
-            temp1green = colorCorrection8bit(temp1green);
-            temp1blue = colorCorrection8bit(temp1blue);
-#endif
+        if (bHasForeground && getForegroundPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, &tempPixel1)) {
+            if(bHasCC) {
+                // load foreground pixel with color correction
+                temp1red = colorCorrection(tempPixel1.red);
+                temp1green = colorCorrection(tempPixel1.green);
+                temp1blue = colorCorrection(tempPixel1.blue);
+            } else {
+                // load foreground pixel without color correction
+                temp1red = tempPixel1.red;
+                temp1green = tempPixel1.green;
+                temp1blue = tempPixel1.blue;
+            }
         } else {
-#if LATCHES_PER_ROW == 16
+            if(bHasCC) {
+                // load background pixel with color correction
+                temp1red = backgroundColorCorrection(pRow2[i].red);
+                temp1green = backgroundColorCorrection(pRow2[i].green);
+                temp1blue = backgroundColorCorrection(pRow2[i].blue);
+            } else {
+                // load background pixel without color correction
+                temp1red = pRow2[i].red;
+                temp1green = pRow2[i].green;
+                temp1blue = pRow2[i].blue;
+            }
+        }
+
+#if LATCHES_PER_ROW >= 12
+        if(!bHasCC) {
             temp0red = temp0red << 8;
             temp0green = temp0green << 8;
             temp0blue = temp0blue << 8;
             temp1red = temp1red << 8;
             temp1green = temp1green << 8;
             temp1blue = temp1blue << 8;
-#endif
         }
+#endif
 
 #if LATCHES_PER_ROW == 12
             temp0red >>= 4;

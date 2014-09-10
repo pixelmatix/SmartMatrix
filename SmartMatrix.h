@@ -144,6 +144,7 @@ public:
     uint16_t getScreenWidth(void);
     uint16_t getScreenHeight(void);
     void setBrightness(uint8_t brightness);
+    void setBackgroundBrightness(uint8_t brightness);
     void setColorCorrection(colorCorrectionModes mode);
     void setFont(fontChoices newFont);
 
@@ -153,8 +154,13 @@ public:
 private:
     // functions for refreshing
     static void loadMatrixBuffers(unsigned char currentRow);
-    static uint16_t colorCorrection8to16bit(uint8_t inputcolor);
-    static uint8_t colorCorrection8bit(uint8_t inputcolor);
+#if COLOR_DEPTH_RGB >= 36
+    static uint16_t colorCorrection(uint8_t inputcolor);
+    static uint16_t backgroundColorCorrection(uint8_t inputcolor);
+#else
+    static uint8_t colorCorrection(uint8_t inputcolor);
+    static uint8_t backgroundColorCorrection(uint8_t inputcolor);
+#endif
     static void getPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24 *xyPixel);
     static rgb24 *getRefreshRow(uint8_t y);
     static void handleBufferSwap(void);
@@ -170,6 +176,7 @@ private:
 
     // configuration helper functions
     static void calculateTimerLut(void);
+    static void calculateBackgroundLUT(void);
 
     // color functions (replace with class and copy constructor?)
     static void copyRgb24(rgb24 & dst, const rgb24 & src);
@@ -179,6 +186,7 @@ private:
     static screen_config screenConfig;
     static volatile bool brightnessChange;
     static int dimmingFactor;
+    static uint8_t backgroundBrightness;
     static const int dimmingMaximum;
 
     // keeping track of drawing buffer
