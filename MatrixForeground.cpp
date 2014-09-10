@@ -57,6 +57,47 @@ void SmartMatrix::stopScrollText(void) {
     scrollPosition = scrollMin;
 }
 
+void SmartMatrix::clearForeground(void) {
+    memset(foregroundBitmap, 0x00, sizeof(foregroundBitmap));
+}
+
+void SmartMatrix::drawForegroundPixel(int16_t x, int16_t y, bool opaque) {
+    uint32_t tempBitmask;
+
+    if(opaque) {
+        tempBitmask = 0x80000000 >> x;
+        foregroundBitmap[y][0] |= tempBitmask;
+    } else {
+        tempBitmask = ~(0x80000000 >> x);
+        foregroundBitmap[y][0] &= tempBitmask;
+    }
+}
+
+bitmap_font *foregroundfont = (bitmap_font *) &apple3x5;
+
+
+void SmartMatrix::setForegroundFont(fontChoices newFont) {
+    foregroundfont = (bitmap_font *)fontLookup(newFont);
+}
+
+void SmartMatrix::drawForegroundChar(int16_t x, int16_t y, char character, bool opaque) {
+    uint32_t tempBitmask;
+    int k;
+
+    for (k = y; k < y+foregroundfont->Height; k++) {
+        // ignore rows that are not on the screen
+        if(k < 0) continue;
+        if (k > SmartMatrix::screenConfig.localHeight) return;
+
+        // read in uint8, shift it to be in MSB (font is in the top bits of the uint32)
+        tempBitmask = getBitmapFontRowAtXY(character, k - y, foregroundfont) << 24;
+        if (x < 0)
+            foregroundBitmap[k][0] |= tempBitmask << -x;
+        else
+            foregroundBitmap[k][0] |= tempBitmask >> x;
+    }
+}
+
 // returns 0 if stopped
 // returns positive number indicating number of loops left if running
 // returns -1 if continuously scrolling
@@ -126,8 +167,6 @@ void SmartMatrix::redrawForeground(void) {
     int charPosition, textPosition;
     uint8_t charY0, charY1;
 
-    // clear full bitmap
-    memset(foregroundBitmap, 0x00, sizeof(foregroundBitmap));
 
     for (j = 0; j < SmartMatrix::screenConfig.localHeight; j++) {
 
@@ -155,6 +194,10 @@ void SmartMatrix::redrawForeground(void) {
         } else {
             charY1 = scrollFont->Height;
         }
+
+        // clear rows first
+        for (k = charY0; k < charY1; k++)
+            foregroundBitmap[j + k - charY0][0] = 0x00;
 
         while (textPosition < textlen && charPosition < SmartMatrix::screenConfig.localWidth) {
             uint32_t tempBitmask;

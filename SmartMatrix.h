@@ -142,6 +142,12 @@ public:
     void stopScrollText(void);
     int getScrollStatus(void);
 
+    // foreground drawing
+    void clearForeground(void);
+    void setForegroundFont(fontChoices newFont);
+    void drawForegroundPixel(int16_t x, int16_t y, bool opaque = true);
+    void drawForegroundChar(int16_t x, int16_t y, char character, bool opaque = true);
+
     // configuration
     void setRotation(rotationDegrees rotation);
     uint16_t getScreenWidth(void);
