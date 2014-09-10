@@ -147,6 +147,7 @@ public:
     uint16_t getScreenWidth(void);
     uint16_t getScreenHeight(void);
     void setBrightness(uint8_t brightness);
+    void setBackgroundBrightness(uint8_t brightness);
     void setColorCorrection(colorCorrectionModes mode);
     void setFont(fontChoices newFont);
 
@@ -175,6 +176,7 @@ private:
 
     // configuration helper functions
     static void calculateTimerLut(void);
+    static void calculateBackgroundLUT(void);
 
     // color functions (replace with class and copy constructor?)
     static void copyRgb24(rgb24 & dst, const rgb24 & src);
@@ -184,6 +186,7 @@ private:
     static screen_config screenConfig;
     static volatile bool brightnessChange;
     static int dimmingFactor;
+    static uint8_t backgroundBrightness;
     static const int dimmingMaximum;
 
     // keeping track of drawing buffer
