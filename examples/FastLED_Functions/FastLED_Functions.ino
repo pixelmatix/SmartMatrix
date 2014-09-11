@@ -1,36 +1,17 @@
+// Modified example copied from FastLED 2.1 Branch - originally written by Daniel Garcia
+// This example shows how to use some of FastLEDs functions with the SmartMatrix Library
+// using the SmartMatrix buffers directly instead of FastLED's buffers.
+// FastLED's dithering and color balance features can't be used this way, but SmartMatrix can draw in
+// 36-bit color and so dithering may not provide much advantage.  There's no one 'right' way to use these two
+// libraries together, try this example and FastLED_Controller and figure out what is 'right' for you
+
 #include<SmartMatrix.h>
 #include<FastLED.h>
 
 #define kMatrixWidth  32
 #define kMatrixHeight 32
-const bool    kMatrixSerpentineLayout = false;
 
-#define NUM_LEDS (kMatrixWidth * kMatrixHeight)
-
-CRGB leds[kMatrixWidth * kMatrixHeight];
-
-
-uint16_t XY( uint8_t x, uint8_t y)
-{
-  uint16_t i;
-
-  if( kMatrixSerpentineLayout == false) {
-    i = (y * kMatrixWidth) + x;
-  }
-
-  if( kMatrixSerpentineLayout == true) {
-    if( y & 0x01) {
-      // Odd rows run backwards
-      uint8_t reverseX = (kMatrixWidth - 1) - x;
-      i = (y * kMatrixWidth) + reverseX;
-    } else {
-      // Even rows run forwards
-      i = (y * kMatrixWidth) + x;
-    }
-  }
-
-  return i;
-}
+SmartMatrix matrix;
 
 // The 32bit version of our coordinates
 static uint16_t x;
@@ -63,8 +44,10 @@ void setup() {
   // Serial.begin(38400);
   // Serial.println("resetting!");
   delay(3000);
-  LEDS.addLeds<SMART_MATRIX>(leds,NUM_LEDS);
-  LEDS.setBrightness(96);
+
+  matrix.begin();
+
+  matrix.setBackgroundBrightness(96);
 
   // Initialize our coordinates to some random values
   x = random16();
@@ -72,12 +55,12 @@ void setup() {
   z = random16();
 
   // Show off smart matrix scrolling text
-  pSmartMatrix->setScrollMode(wrapForward);
-  pSmartMatrix->setScrollColor({0xff, 0xff, 0xff});
-  pSmartMatrix->setScrollSpeed(15);
-  pSmartMatrix->setScrollFont(font6x10);
-  pSmartMatrix->scrollText("Smart Matrix & FastLED", -1);
-  pSmartMatrix->setScrollOffsetFromEdge(10);
+  matrix.setScrollMode(wrapForward);
+  matrix.setScrollColor({0xff, 0xff, 0xff});
+  matrix.setScrollSpeed(15);
+  matrix.setScrollFont(font6x10);
+  matrix.scrollText("Smart Matrix & FastLED", -1);
+  matrix.setScrollOffsetFromEdge(10);
 }
 
 // Fill the x/y array of 8-bit noise values using the inoise8 function.
@@ -97,6 +80,9 @@ void loop() {
   static uint8_t circlex = 0;
   static uint8_t circley = 0;
 
+
+  rgb24 *buffer = matrix.backBuffer();  
+  
   static uint8_t ihue=0;
   fillnoise8();
   for(int i = 0; i < kMatrixWidth; i++) {
@@ -104,19 +90,18 @@ void loop() {
       // We use the value at the (i,j) coordinate in the noise
       // array for our brightness, and the flipped value from (j,i)
       // for our pixel's hue.
-      leds[XY(i,j)] = CHSV(noise[j][i],255,noise[i][j]);
+      buffer[kMatrixHeight*j + i] = CRGB(CHSV(noise[j][i],255,noise[i][j]));
 
       // You can also explore other ways to constrain the hue used, like below
-      // leds[XY(i,j)] = CHSV(ihue + (noise[j][i]>>2),255,noise[i][j]);
+      // buffer[kMatrixHeight*j + i] = CRGB(CHSV(ihue + (noise[j][i]>>2),255,noise[i][j]));
     }
   }
   ihue+=1;
 
-  // N.B. this requires SmartMatrix modified w/triple buffering support
-  pSmartMatrix->fillCircle(circlex % 32,circley % 32,6,CRGB(CHSV(ihue+128,255,255)));
+  matrix.fillCircle(circlex % 32,circley % 32,6,CRGB(CHSV(ihue+128,255,255)));
   circlex += random16(2);
   circley += random16(2);
-  LEDS.show();
+  matrix.swapBuffers(false);
   LEDS.countFPS();
   // delay(10);
 }
