@@ -6,6 +6,7 @@ SmartMatrix matrix;
 
 void setup() {
     matrix.begin();
+    matrix.setBrightness(128);
 }
 
 void loop() {
