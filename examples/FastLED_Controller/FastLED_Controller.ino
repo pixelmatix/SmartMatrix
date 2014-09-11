@@ -1,3 +1,11 @@
+// Example copied from FastLED 2.1 Branch - written by Daniel Garcia
+// This example shows how to draw to the SmartMatrix using FastLED's "SMART_MATRIX" controller
+// instead of using the SmartMatrix library directly
+// This has the advantage of working directly with a CRGB drawing buffer, and is more familiar
+// if you are used to using FastLED.  You can take advantage of FastLED's dithering and color
+// balance which happens in the background when calling LEDS.show().  There's no one 'right' way to use these two
+// libraries together, try this example and FastLED_Functions and figure out what is 'right' for you
+
 #include<SmartMatrix.h>
 #include<FastLED.h>
 
@@ -78,6 +86,9 @@ void setup() {
   pSmartMatrix->setScrollFont(font6x10);
   pSmartMatrix->scrollText("Smart Matrix & FastLED", -1);
   pSmartMatrix->setScrollOffsetFromEdge(10);
+
+  // FastLED disables SmartMatrix's gamma correction by default, turn it on if you like
+  //pSmartMatrix->setColorCorrection(cc48);
 }
 
 // Fill the x/y array of 8-bit noise values using the inoise8 function.
