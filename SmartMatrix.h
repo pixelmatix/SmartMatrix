@@ -26,7 +26,6 @@
 
 #include "Arduino.h"
 #include <stdint.h>
-#include <FastLED.h>
 
 // include one of the MatrixHardware_*.h files here:
 #include "MatrixHardware_KitV1_32x32.h"
@@ -65,16 +64,12 @@ typedef enum fontChoices {
     gohufont11b,
 } fontChoices;
 
-#if 0
 // color
 typedef struct rgb24 {
     uint8_t red;
     uint8_t green;
     uint8_t blue;
 } rgb24;
-#else
-#define rgb24 CRGB
-#endif
 
 typedef enum colorCorrectionModes {
     ccNone,
