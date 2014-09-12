@@ -1,0 +1,3 @@
+[submodule "examples/AnimatedGIFs"]
+	path = examples/AnimatedGIFs
+	url = https://github.com/pixelmatix/AnimatedGIFs.git
