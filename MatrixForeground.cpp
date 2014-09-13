@@ -41,11 +41,9 @@ unsigned char framesperscroll = 4;
 //bitmap size is 32 rows (supporting maximum dimension of screen height in all rotations), by 32 bits
 // double buffered to prevent flicker while drawing
 uint32_t foregroundBitmap[2][32][32 / 32];
-uint32_t (*currentForegroundDrawBufferPtr)[1] = foregroundBitmap[0];
-uint32_t (*currentForegroundRefreshBufferPtr)[1] = foregroundBitmap[1];
-unsigned char SmartMatrix::currentForegroundDrawBuffer = 0;
-unsigned char SmartMatrix::currentForegroundRefreshBuffer = 1;
-volatile bool SmartMatrix::foregroundSwapPending = false;
+const unsigned char foregroundDrawBuffer = 0;
+const unsigned char foregroundRefreshBuffer = 1;
+volatile bool SmartMatrix::foregroundCopyPending = false;
 
 const bitmap_font *scrollFont = &apple5x7;
 
@@ -64,50 +62,35 @@ void SmartMatrix::stopScrollText(void) {
 }
 
 void SmartMatrix::clearForeground(void) {
-    memset(foregroundBitmap[currentForegroundDrawBuffer], 0x00, sizeof(foregroundBitmap[0]));
+    memset(foregroundBitmap[foregroundDrawBuffer], 0x00, sizeof(foregroundBitmap[0]));
 }
 
-void SmartMatrix::swapForegroundBuffers(bool copy) {
-    while (foregroundSwapPending);
+void SmartMatrix::displayForegroundDrawing(bool waitUntilComplete) {
+    while (foregroundCopyPending);
 
-    foregroundSwapPending = true;
+    foregroundCopyPending = true;
 
-    if (copy) {
-        while (foregroundSwapPending);
-        //memcpy(currentForegroundDrawBufferPtr, currentForegroundRefreshBufferPtr, sizeof(foregroundBitmap[0]));
-    }
+    while (waitUntilComplete && foregroundCopyPending);
 }
 
-void SmartMatrix::handleForegroundBufferSwap(void) {
-    if (!foregroundSwapPending)
+void SmartMatrix::handleForegroundDrawingCopy(void) {
+    if (!foregroundCopyPending)
         return;
 
-    memcpy(currentForegroundRefreshBufferPtr, currentForegroundDrawBufferPtr, sizeof(foregroundBitmap[0]));
+    memcpy(foregroundBitmap[foregroundRefreshBuffer], foregroundBitmap[foregroundDrawBuffer], sizeof(foregroundBitmap[0]));
     redrawForeground();
-#if 0
-    unsigned char newDrawBuffer = currentForegroundRefreshBuffer;
-
-    currentForegroundRefreshBuffer = currentForegroundDrawBuffer;
-    currentForegroundDrawBuffer = newDrawBuffer;
-    currentForegroundRefreshBufferPtr = foregroundBitmap[currentForegroundRefreshBuffer];
-    currentForegroundDrawBufferPtr = foregroundBitmap[currentForegroundDrawBuffer];
-#endif
-
-    foregroundSwapPending = false;
+    foregroundCopyPending = false;
 }
-
-
-
 
 void SmartMatrix::drawForegroundPixel(int16_t x, int16_t y, bool opaque) {
     uint32_t tempBitmask;
 
     if(opaque) {
         tempBitmask = 0x80000000 >> x;
-        foregroundBitmap[currentForegroundDrawBuffer][y][0] |= tempBitmask;
+        foregroundBitmap[foregroundDrawBuffer][y][0] |= tempBitmask;
     } else {
         tempBitmask = ~(0x80000000 >> x);
-        foregroundBitmap[currentForegroundDrawBuffer][y][0] &= tempBitmask;
+        foregroundBitmap[foregroundDrawBuffer][y][0] &= tempBitmask;
     }
 }
 
@@ -130,9 +113,9 @@ void SmartMatrix::drawForegroundChar(int16_t x, int16_t y, char character, bool 
         // read in uint8, shift it to be in MSB (font is in the top bits of the uint32)
         tempBitmask = getBitmapFontRowAtXY(character, k - y, foregroundfont) << 24;
         if (x < 0)
-            foregroundBitmap[currentForegroundDrawBuffer][k][0] |= tempBitmask << -x;
+            foregroundBitmap[foregroundDrawBuffer][k][0] |= tempBitmask << -x;
         else
-            foregroundBitmap[currentForegroundDrawBuffer][k][0] |= tempBitmask >> x;
+            foregroundBitmap[foregroundDrawBuffer][k][0] |= tempBitmask >> x;
     }
 }
 
@@ -235,7 +218,7 @@ void SmartMatrix::redrawForeground(void) {
 
         // clear rows first
         for (k = charY0; k < charY1; k++)
-            foregroundBitmap[currentForegroundRefreshBuffer][j + k - charY0][0] = 0x00;
+            foregroundBitmap[foregroundRefreshBuffer][j + k - charY0][0] = 0x00;
 
         while (textPosition < textlen && charPosition < SmartMatrix::screenConfig.localWidth) {
             uint32_t tempBitmask;
@@ -244,9 +227,9 @@ void SmartMatrix::redrawForeground(void) {
                 // read in uint8, shift it to be in MSB (font is in the top bits of the uint32)
                 tempBitmask = getBitmapFontRowAtXY(text[textPosition], k, scrollFont) << 24;
                 if (charPosition < 0)
-                    foregroundBitmap[currentForegroundRefreshBuffer][j + k - charY0][0] |= tempBitmask << -charPosition;
+                    foregroundBitmap[foregroundRefreshBuffer][j + k - charY0][0] |= tempBitmask << -charPosition;
                 else
-                    foregroundBitmap[currentForegroundRefreshBuffer][j + k - charY0][0] |= tempBitmask >> charPosition;
+                    foregroundBitmap[foregroundRefreshBuffer][j + k - charY0][0] |= tempBitmask >> charPosition;
             }
 
             // get set up for next character
@@ -337,7 +320,7 @@ bool SmartMatrix::getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24
 
     uint32_t bitmask = 0x01 << (31 - localScreenX);
 
-    if (foregroundBitmap[currentForegroundRefreshBuffer][localScreenY][0] & bitmask) {
+    if (foregroundBitmap[foregroundRefreshBuffer][localScreenY][0] & bitmask) {
         copyRgb24(*xyPixel, textcolor);
         return true;
     }

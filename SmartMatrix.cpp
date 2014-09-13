@@ -94,7 +94,7 @@ void SmartMatrix::matrixCalculations(void) {
         // do once-per-frame updates
         if (!currentRow) {
             handleBufferSwap();
-            handleForegroundBufferSwap();
+            handleForegroundDrawingCopy();
 
             calculateBackgroundLUT();
 
