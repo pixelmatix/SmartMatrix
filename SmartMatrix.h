@@ -144,6 +144,7 @@ public:
     void setForegroundFont(fontChoices newFont);
     void drawForegroundPixel(int16_t x, int16_t y, bool opaque = true);
     void drawForegroundChar(int16_t x, int16_t y, char character, bool opaque = true);
+    void swapForegroundBuffers(bool copy = true);
 
     // configuration
     void setRotation(rotationDegrees rotation);
@@ -170,6 +171,7 @@ private:
     static void getPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24 *xyPixel);
     static rgb24 *getRefreshRow(uint8_t y);
     static void handleBufferSwap(void);
+    static void handleForegroundBufferSwap(void);
     static void updateForeground(void);
     static bool getForegroundPixel(uint8_t x, uint8_t y, rgb24 *xyPixel);
     static void redrawForeground(void);
@@ -195,10 +197,13 @@ private:
     static uint8_t backgroundBrightness;
     static const int dimmingMaximum;
 
-    // keeping track of drawing buffer
+    // keeping track of drawing buffers
     static unsigned char currentDrawBuffer;
     static unsigned char currentRefreshBuffer;
+    static unsigned char currentForegroundDrawBuffer;
+    static unsigned char currentForegroundRefreshBuffer;
     static volatile bool swapPending;
+    static volatile bool foregroundSwapPending;
     static bool swapWithCopy;
 
     // font
