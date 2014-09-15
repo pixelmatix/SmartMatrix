@@ -41,6 +41,8 @@ drawString KEYWORD2
 drawMonoBitmap KEYWORD2
 readPixel KEYWORD2
 backBuffer KEYWORD2
+setBackBuffer KEYWORD2
+getRealBackBuffer KEYWORD2
 
 # Scroll text
 scrollText KEYWORD2
@@ -49,14 +51,24 @@ setScrollSpeed KEYWORD2
 setScrollFont KEYWORD2
 setScrollColor KEYWORD2
 setScrollOffsetFromEdge KEYWORD2
+setScrollOffsetFromTop KEYWORD2
+setScrollStartOffsetFromLeft KEYWORD2
 stopScrollText KEYWORD2
 getScrollStatus KEYWORD2
+
+# Foreground Drawing
+clearForeground KEYWORD2
+setForegroundFont KEYWORD2
+drawForegroundPixel KEYWORD2
+drawForegroundChar KEYWORD2
+displayForegroundDrawing KEYWORD2
 
 # configuration
 setRotation KEYWORD2
 getScreenWidth KEYWORD2
 getScreenHeight KEYWORD2
 setBrightness KEYWORD2
+setBackgroundBrightness KEYWORD2
 setColorCorrection KEYWORD2
 setFont KEYWORD2
 #######################################
