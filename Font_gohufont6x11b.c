@@ -3,6 +3,8 @@
 
 // Original .bdf source for this font: http://font.gohu.org/
 
+// Slight tweaks made to colon position and hash in zero for better aesthetics on a clock display
+
 #include "MatrixFontCommon.h"
 
 	/// character bitmap for each encoding
@@ -222,7 +224,7 @@ static const unsigned char __gohufont6x11b_bitmap__[] = {
 	_XXX____,
 	XX_XX___,
 	XX_XX___,
-	XXXXX___,
+	XX_XX___,
 	XX_XX___,
 	XX_XX___,
 	_XXX____,
@@ -351,11 +353,11 @@ static const unsigned char __gohufont6x11b_bitmap__[] = {
 	________,
 	________,
 	________,
-	__XXX___,
-	__XXX___,
+	_XXX____,
+	_XXX____,
 	________,
-	__XXX___,
-	__XXX___,
+	_XXX____,
+	_XXX____,
 	________,
 	________,
 //  59 $3b 'SEMICOLON'

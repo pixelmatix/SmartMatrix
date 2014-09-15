@@ -3,6 +3,8 @@
 
 // Original .bdf source for this font: http://font.gohu.org/
 
+// Slight tweaks made to remove hash in zero
+
 #include "MatrixFontCommon.h"
 
 	/// character bitmap for each encoding
@@ -221,9 +223,9 @@ static const unsigned char __gohufont6x11_bitmap__[] = {
 	________,
 	_XXX____,
 	X___X___,
-	X__XX___,
-	X_X_X___,
-	XX__X___,
+	X___X___,
+	X___X___,
+	X___X___,
 	X___X___,
 	_XXX____,
 	________,
