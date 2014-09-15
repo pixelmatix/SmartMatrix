@@ -30,7 +30,9 @@ unsigned char textlen;
 int scrollcounter = 0;
 
 rgb24 textcolor = {0xff, 0xff, 0xff};
-int fontOffset = 1;
+int fontTopOffset = 1;
+int fontLeftOffset = 1;
+
 
 bool hasForeground = false;
 
@@ -149,7 +151,7 @@ void SmartMatrix::scrollText(const char inputtext[], int numScrolls) {
         if (scrollmode == bounceReverse)
             scrollPosition = scrollMin;
         else if(scrollmode == wrapForwardFromLeft)
-            scrollPosition = 0;
+            scrollPosition = fontLeftOffset;
 
         // TODO: handle special case - put content in fixed location if wider than window
 
@@ -179,8 +181,12 @@ void SmartMatrix::setScrollColor(const rgb24 & newColor) {
     copyRgb24(textcolor, newColor);
 }
 
-void SmartMatrix::setScrollOffsetFromEdge(int offset) {
-    fontOffset = offset;
+void SmartMatrix::setScrollOffsetFromTop(int offset) {
+    fontTopOffset = offset;
+}
+
+void SmartMatrix::setScrollStartOffsetFromLeft(int offset) {
+    fontLeftOffset = offset;
 }
 
 void SmartMatrix::redrawForeground(void) {
@@ -192,7 +198,7 @@ void SmartMatrix::redrawForeground(void) {
     for (j = 0; j < screenConfig.localHeight; j++) {
 
         // skip rows without text
-        if (j < fontOffset || j >= fontOffset + scrollFont->Height)
+        if (j < fontTopOffset || j >= fontTopOffset + scrollFont->Height)
             continue;
 
         hasForeground = true;
@@ -208,10 +214,10 @@ void SmartMatrix::redrawForeground(void) {
         }
 
         // find rows within character bitmap that will be drawn (0-font->height unless text is partially off screen)
-        charY0 = j - fontOffset;
+        charY0 = j - fontTopOffset;
 
-        if (screenConfig.localHeight < fontOffset + scrollFont->Height) {
-            charY1 = screenConfig.localHeight - fontOffset;
+        if (screenConfig.localHeight < fontTopOffset + scrollFont->Height) {
+            charY1 = screenConfig.localHeight - fontTopOffset;
         } else {
             charY1 = scrollFont->Height;
         }
@@ -281,7 +287,7 @@ void SmartMatrix::updateForeground(void) {
 
     default:
     case stopped:
-        scrollPosition = 0;
+        scrollPosition = fontLeftOffset;
         resetScrolls = true;
         break;
     }

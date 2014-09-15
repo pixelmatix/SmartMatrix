@@ -135,7 +135,9 @@ public:
     void setScrollSpeed(unsigned char pixels_per_second);
     void setScrollFont(fontChoices newFont);
     void setScrollColor(const rgb24 & newColor);
-    void setScrollOffsetFromEdge(int offset);
+#define setScrollOffsetFromEdge setScrollOffsetFromTop // backwards compatibility
+    void setScrollOffsetFromTop(int offset);
+    void setScrollStartOffsetFromLeft(int offset);
     void stopScrollText(void);
     int getScrollStatus(void);
 
