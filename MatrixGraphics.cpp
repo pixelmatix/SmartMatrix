@@ -533,7 +533,7 @@ void SmartMatrix::fillFlatSideTriangleInt(int16_t x1, int16_t y1, int16_t x2, in
     {
         drawFastHLine(t1x, t2x, t1y, color);
 
-        while (e1 >= 0)
+        while (dx1 > 0 && e1 >= 0)
         {
             if (changed1)
                 t1x += signx1;
@@ -554,7 +554,7 @@ void SmartMatrix::fillFlatSideTriangleInt(int16_t x1, int16_t y1, int16_t x2, in
          */
         while (t2y != t1y)
         {
-            while (e2 >= 0)
+            while (dx2 > 0 && e2 >= 0)
             {
                 if (changed2)
                     t2x += signx2;
