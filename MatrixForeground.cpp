@@ -32,6 +32,7 @@ int scrollcounter = 0;
 rgb24 textcolor = {0xff, 0xff, 0xff};
 int fontTopOffset = 1;
 int fontLeftOffset = 1;
+bool majorScrollFontChange = false;
 
 
 bool hasForeground = false;
@@ -101,6 +102,7 @@ bitmap_font *foregroundfont = (bitmap_font *) &apple3x5;
 
 void SmartMatrix::setForegroundFont(fontChoices newFont) {
     foregroundfont = (bitmap_font *)fontLookup(newFont);
+    majorScrollFontChange = true;
 }
 
 void SmartMatrix::drawForegroundChar(int16_t x, int16_t y, char character, bool opaque) {
@@ -183,12 +185,15 @@ void SmartMatrix::setScrollColor(const rgb24 & newColor) {
 
 void SmartMatrix::setScrollOffsetFromTop(int offset) {
     fontTopOffset = offset;
+    majorScrollFontChange = true;
 }
 
 void SmartMatrix::setScrollStartOffsetFromLeft(int offset) {
     fontLeftOffset = offset;
 }
 
+
+// if font size or position changed since the last call, redraw the whole frame
 void SmartMatrix::redrawForeground(void) {
     int j, k;
     int charPosition, textPosition;
@@ -222,9 +227,19 @@ void SmartMatrix::redrawForeground(void) {
             charY1 = scrollFont->Height;
         }
 
-        // clear rows first
-        for (k = charY0; k < charY1; k++)
-            foregroundBitmap[foregroundRefreshBuffer][j + k - charY0][0] = 0x00;
+        /* TODO: some edge cases could end up with unwanted drawing to the screen, e.g. foregrounddrawing call,
+         * then scrolling text change before displayForegroundDrawing() call would show drawing before intended
+         */
+        if(majorScrollFontChange) {
+            // clear full refresh buffer and copy background over
+            memset(foregroundBitmap[foregroundRefreshBuffer], 0x00, sizeof(foregroundBitmap[0]));
+            memcpy(foregroundBitmap[foregroundRefreshBuffer], foregroundBitmap[foregroundDrawBuffer], sizeof(foregroundBitmap[0]));
+            majorScrollFontChange = false;
+        }
+
+        // clear rows used by font before drawing on top
+        for (k = 0; k < charY1 - charY0; k++)
+            foregroundBitmap[foregroundRefreshBuffer][j + k][0] = 0x00;
 
         while (textPosition < textlen && charPosition < screenConfig.localWidth) {
             uint32_t tempBitmask;
