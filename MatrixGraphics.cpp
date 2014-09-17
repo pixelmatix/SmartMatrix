@@ -48,7 +48,7 @@ const rgb24 SmartMatrix::readPixel(int16_t x, int16_t y) const {
 
     // check for out of bounds coordinates
     if (x < 0 || y < 0 || x >= screenConfig.localWidth || y >= screenConfig.localHeight)
-        return {0, 0, 0};
+        return (rgb24){0, 0, 0};
 
     // map pixel into hardware buffer before writing
     if (screenConfig.rotation == rotation0) {
