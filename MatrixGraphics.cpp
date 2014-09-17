@@ -24,14 +24,14 @@
 #include <stdlib.h>
 #include "SmartMatrix.h"
 
-rgb24 backgroundBuffer[2][MATRIX_HEIGHT][MATRIX_WIDTH];
+static rgb24 backgroundBuffer[2][MATRIX_HEIGHT][MATRIX_WIDTH];
 
-rgb24 (*currentDrawBufferPtr)[MATRIX_WIDTH] = backgroundBuffer[0];
-rgb24 (*currentRefreshBufferPtr)[MATRIX_WIDTH] = backgroundBuffer[1];
+static rgb24 (*currentDrawBufferPtr)[MATRIX_WIDTH] = backgroundBuffer[0];
+static rgb24 (*currentRefreshBufferPtr)[MATRIX_WIDTH] = backgroundBuffer[1];
 unsigned char SmartMatrix::currentDrawBuffer = 0;
 unsigned char SmartMatrix::currentRefreshBuffer = 1;
 volatile bool SmartMatrix::swapPending = false;
-bitmap_font *font = (bitmap_font *) &apple3x5;
+static bitmap_font *font = (bitmap_font *) &apple3x5;
 
 // coordinates based on screen position, which is between 0-localWidth/localHeight
 void SmartMatrix::getPixel(uint8_t x, uint8_t y, rgb24 *xyPixel) {
@@ -43,12 +43,12 @@ rgb24 *SmartMatrix::getRefreshRow(uint8_t y) {
 }
 
 // reads pixel from drawing buffer, not refresh buffer
-rgb24 SmartMatrix::readPixel(int16_t x, int16_t y) {
+const rgb24 SmartMatrix::readPixel(int16_t x, int16_t y) const {
     int hwx, hwy;
 
     // check for out of bounds coordinates
     if (x < 0 || y < 0 || x >= screenConfig.localWidth || y >= screenConfig.localHeight)
-        return {0, 0, 0};
+        return (rgb24){0, 0, 0};
 
     // map pixel into hardware buffer before writing
     if (screenConfig.rotation == rotation0) {
@@ -68,7 +68,7 @@ rgb24 SmartMatrix::readPixel(int16_t x, int16_t y) {
     return currentDrawBufferPtr[hwy][hwx];
 }
 
-void SmartMatrix::drawPixel(int16_t x, int16_t y, rgb24 color) {
+void SmartMatrix::drawPixel(int16_t x, int16_t y, const rgb24& color) {
     int hwx, hwy;
 
     // check for out of bounds coordinates
@@ -100,7 +100,7 @@ void SmartMatrix::drawPixel(int16_t x, int16_t y, rgb24 color) {
     }
 
 // x0, x1, and y must be in bounds (0-localWidth/Height), x1 > x0
-void SmartMatrix::drawHardwareHLine(uint8_t x0, uint8_t x1, uint8_t y, rgb24 color) {
+void SmartMatrix::drawHardwareHLine(uint8_t x0, uint8_t x1, uint8_t y, const rgb24& color) {
     int i;
 
     for (i = x0; i <= x1; i++) {
@@ -109,7 +109,7 @@ void SmartMatrix::drawHardwareHLine(uint8_t x0, uint8_t x1, uint8_t y, rgb24 col
 }
 
 // x, y0, and y1 must be in bounds (0-localWidth/Height), y1 > y0
-void SmartMatrix::drawHardwareVLine(uint8_t x, uint8_t y0, uint8_t y1, rgb24 color) {
+void SmartMatrix::drawHardwareVLine(uint8_t x, uint8_t y0, uint8_t y1, const rgb24& color) {
     int i;
 
     for (i = y0; i <= y1; i++) {
@@ -117,7 +117,7 @@ void SmartMatrix::drawHardwareVLine(uint8_t x, uint8_t y0, uint8_t y1, rgb24 col
     }
 }
 
-void SmartMatrix::drawFastHLine(int16_t x0, int16_t x1, int16_t y, rgb24 color) {
+void SmartMatrix::drawFastHLine(int16_t x0, int16_t x1, int16_t y, const rgb24& color) {
     // make sure line goes from x0 to x1
     if (x1 < x0)
         SWAPint(x1, x0);
@@ -145,7 +145,7 @@ void SmartMatrix::drawFastHLine(int16_t x0, int16_t x1, int16_t y, rgb24 color) 
     }
 }
 
-void SmartMatrix::drawFastVLine(int16_t x, int16_t y0, int16_t y1, rgb24 color) {
+void SmartMatrix::drawFastVLine(int16_t x, int16_t y0, int16_t y1, const rgb24& color) {
     // make sure line goes from y0 to y1
     if (y1 < y0)
         SWAPint(y1, y0);
@@ -173,7 +173,7 @@ void SmartMatrix::drawFastVLine(int16_t x, int16_t y0, int16_t y1, rgb24 color) 
     }
 }
 
-void SmartMatrix::bresteepline(int16_t x3, int16_t y3, int16_t x4, int16_t y4, rgb24 color) {
+void SmartMatrix::bresteepline(int16_t x3, int16_t y3, int16_t x4, int16_t y4, const rgb24& color) {
     // if point x3, y3 is on the right side of point x4, y4, change them
     if ((x3 - x4) > 0) {
         bresteepline(x4, y4, x3, y3, color);
@@ -195,7 +195,7 @@ void SmartMatrix::bresteepline(int16_t x3, int16_t y3, int16_t x4, int16_t y4, r
 }
 
 // algorithm from http://www.netgraphics.sk/bresenham-algorithm-for-a-line
-void SmartMatrix::drawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, rgb24 color) {
+void SmartMatrix::drawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, const rgb24& color) {
     // if point x1, y1 is on the right side of point x2, y2, change them
     if ((x1 - x2) > 0) {
         drawLine(x2, y2, x1, y1, color);
@@ -225,7 +225,7 @@ void SmartMatrix::drawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, rgb24
 }
 
 // algorithm from http://en.wikipedia.org/wiki/Midpoint_circle_algorithm
-void SmartMatrix::drawCircle(int16_t x0, int16_t y0, uint16_t radius, rgb24 color)
+void SmartMatrix::drawCircle(int16_t x0, int16_t y0, uint16_t radius, const rgb24& color)
 {
     int a = radius, b = 0;
     int radiusError = 1 - a;
@@ -257,8 +257,8 @@ void SmartMatrix::drawCircle(int16_t x0, int16_t y0, uint16_t radius, rgb24 colo
     }
 }
 
-// algorithm from drawCircle rearranged with hlines drawn between points on the raidus
-void SmartMatrix::fillCircle(int16_t x0, int16_t y0, uint16_t radius, rgb24 outlineColor, rgb24 fillColor)
+// algorithm from drawCircle rearranged with hlines drawn between points on the radius
+void SmartMatrix::fillCircle(int16_t x0, int16_t y0, uint16_t radius, const rgb24& outlineColor, const rgb24& fillColor)
 {
     int a = radius, b = 0;
     int radiusError = 1 - a;
@@ -309,7 +309,7 @@ void SmartMatrix::fillCircle(int16_t x0, int16_t y0, uint16_t radius, rgb24 outl
 
 
 // algorithm from drawCircle rearranged with hlines drawn between points on the raidus
-void SmartMatrix::fillCircle(int16_t x0, int16_t y0, uint16_t radius, rgb24 fillColor)
+void SmartMatrix::fillCircle(int16_t x0, int16_t y0, uint16_t radius, const rgb24& fillColor)
 {
     int a = radius, b = 0;
     int radiusError = 1 - a;
@@ -345,12 +345,14 @@ void SmartMatrix::fillCircle(int16_t x0, int16_t y0, uint16_t radius, rgb24 fill
     }
 }
 
-void SmartMatrix::fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t radius, rgb24 fillColor) {
+void SmartMatrix::fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, 
+  uint16_t radius, const rgb24& fillColor) {
     fillRoundRectangle(x0, y0, x1, y1, radius, fillColor, fillColor);
 }
 
 
-void SmartMatrix::fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t radius, rgb24 outlineColor, rgb24 fillColor) {
+void SmartMatrix::fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, 
+  uint16_t radius, const rgb24& outlineColor, const rgb24& fillColor) {
     if (x1 < x0)
         SWAPint(x1, x0);
 
@@ -431,7 +433,8 @@ void SmartMatrix::fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t
     fillRectangle(x0 - a, y0 - a, x1 + a, y1 + a, fillColor);
 }
 
-void SmartMatrix::drawRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t radius, rgb24 outlineColor) {
+void SmartMatrix::drawRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, 
+  uint16_t radius, const rgb24& outlineColor) {
     if (x1 < x0)
         SWAPint(x1, x0);
 
@@ -489,7 +492,8 @@ void SmartMatrix::drawRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t
 
 
 // Code from http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html
-void SmartMatrix::fillFlatSideTriangleInt(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, rgb24 color) {
+void SmartMatrix::fillFlatSideTriangleInt(int16_t x1, int16_t y1, int16_t x2, int16_t y2, 
+  int16_t x3, int16_t y3, const rgb24& color) {
     int16_t t1x, t2x, t1y, t2y;
     bool changed1 = false;
     bool changed2 = false;
@@ -574,7 +578,7 @@ void SmartMatrix::fillFlatSideTriangleInt(int16_t x1, int16_t y1, int16_t x2, in
 }
 
 // Code from http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html
-void SmartMatrix::fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, rgb24 fillColor) {
+void SmartMatrix::fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const rgb24& fillColor) {
     // Sort vertices
     if (y1 > y2) {
         SWAPint(y1, y2);
@@ -609,25 +613,26 @@ void SmartMatrix::fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, i
     }
 }
 
-void SmartMatrix::fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, rgb24 outlineColor, rgb24 fillColor) {
+void SmartMatrix::fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, 
+  const rgb24& outlineColor, const rgb24& fillColor) {
     fillTriangle(x1, y1, x2, y2, x3, y3, fillColor);
     drawTriangle(x1, y1, x2, y2, x3, y3, outlineColor);
 }
 
-void SmartMatrix::drawTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, rgb24 color) {
+void SmartMatrix::drawTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const rgb24& color) {
     drawLine(x1, y1, x2, y2, color);
     drawLine(x2, y2, x3, y3, color);
     drawLine(x1, y1, x3, y3, color);
 }
 
-void SmartMatrix::drawRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, rgb24 color) {
+void SmartMatrix::drawRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const rgb24& color) {
     drawFastHLine(x0, x1, y0, color);
     drawFastHLine(x0, x1, y1, color);
     drawFastVLine(x0, y0, y1, color);
     drawFastVLine(x1, y0, y1, color);
 }
 
-void SmartMatrix::fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, rgb24 color) {
+void SmartMatrix::fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const rgb24& color) {
     int i;
 // Loop only works if y1 > y0
     if (y0 > y1) {
@@ -643,16 +648,16 @@ void SmartMatrix::fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, 
     }
 }
 
-void SmartMatrix::fillScreen(rgb24 color) {
+void SmartMatrix::fillScreen(const rgb24& color) {
     fillRectangle(0, 0, screenConfig.localWidth, screenConfig.localHeight, color);
 }
 
-void SmartMatrix::fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, rgb24 outlineColor, rgb24 fillColor) {
+void SmartMatrix::fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const rgb24& outlineColor, const rgb24& fillColor) {
     fillRectangle(x0, y0, x1, y1, fillColor);
     drawRectangle(x0, y0, x1, y1, outlineColor);
 }
 
-bool getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t *bitmap) {
+bool getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap) {
     int cell = (y * ((width / 8) + 1)) + (x / 8);
 
     uint8_t mask = 0x80 >> (x % 8);
@@ -663,7 +668,7 @@ void SmartMatrix::setFont(fontChoices newFont) {
     font = (bitmap_font *)fontLookup(newFont);
 }
 
-void SmartMatrix::drawChar(int16_t x, int16_t y, rgb24 charColor, char character) {
+void SmartMatrix::drawChar(int16_t x, int16_t y, const rgb24& charColor, char character) {
     int xcnt, ycnt;
 
     for (ycnt = 0; ycnt < font->Height; ycnt++) {
@@ -675,7 +680,7 @@ void SmartMatrix::drawChar(int16_t x, int16_t y, rgb24 charColor, char character
     }
 }
 
-void SmartMatrix::drawString(int16_t x, int16_t y, rgb24 charColor, const char text[]) {
+void SmartMatrix::drawString(int16_t x, int16_t y, const rgb24& charColor, const char text[]) {
     int xcnt, ycnt, i = 0, offset = 0;
     char character;
 
@@ -696,7 +701,8 @@ void SmartMatrix::drawString(int16_t x, int16_t y, rgb24 charColor, const char t
     }
 }
 
-void SmartMatrix::drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, rgb24 bitmapColor, uint8_t *bitmap) {
+void SmartMatrix::drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, 
+  const rgb24& bitmapColor, const uint8_t *bitmap) {
     int xcnt, ycnt;
 
     for (ycnt = 0; ycnt < height; ycnt++) {
@@ -707,6 +713,7 @@ void SmartMatrix::drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t he
         }
     }
 }
+
 
 void SmartMatrix::handleBufferSwap(void) {
     if (!swapPending)
@@ -736,7 +743,7 @@ void SmartMatrix::swapBuffers(bool copy) {
 }
 
 // return pointer to start of currentDrawBuffer, so application can do efficient loading of bitmaps
-rgb24 *SmartMatrix::backBuffer() {
+rgb24 *SmartMatrix::backBuffer(void) {
     return currentDrawBufferPtr[0];
 }
 

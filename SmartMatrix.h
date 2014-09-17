@@ -71,6 +71,13 @@ typedef struct rgb24 {
     uint8_t blue;
 } rgb24;
 
+
+#if COLOR_DEPTH_RGB > 24
+#define color_chan_t uint16_t
+#else
+#define color_chan_t uint8_t
+#endif
+
 typedef enum colorCorrectionModes {
     ccNone,
     cc24,
@@ -99,35 +106,37 @@ typedef struct screen_config {
 
 class SmartMatrix {
 public:
-    SmartMatrix();
-    void begin();
+    SmartMatrix(void);
+    void begin(void);
 
     // drawing functions
     void swapBuffers(bool copy = true);
-    void drawPixel(int16_t x, int16_t y, rgb24 color);
-    void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, rgb24 color);
-    void drawFastVLine(int16_t x, int16_t y0, int16_t y1, rgb24 color);
-    void drawFastHLine(int16_t x0, int16_t x1, int16_t y, rgb24 color);
-    void drawCircle(int16_t x0, int16_t y0, uint16_t radius, rgb24 color);
-    void fillCircle(int16_t x0, int16_t y0, uint16_t radius, rgb24 outlineColor, rgb24 fillColor);
-    void fillCircle(int16_t x0, int16_t y0, uint16_t radius, rgb24 color);
-    void drawTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, rgb24 color);
-    void fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, rgb24 fillColor);
-    void fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, rgb24 outlineColor, rgb24 fillColor);
-    void drawRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, rgb24 color);
-    void fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, rgb24 color);
-    void fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, rgb24 outlineColor, rgb24 fillColor);
-    void drawRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t radius, rgb24 outlineColor);
-    void fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t radius, rgb24 fillColor);
-    void fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t radius, rgb24 outlineColor, rgb24 fillColor);
-    void fillScreen(rgb24 color);
-    void drawChar(int16_t x, int16_t y, rgb24 charColor, char character);
-    void drawString(int16_t x, int16_t y, rgb24 charColor, const char text[]);
-    void drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, rgb24 bitmapColor, uint8_t *bitmap);
-    rgb24 readPixel(int16_t x, int16_t y);
-    rgb24 *backBuffer();
+    void drawPixel(int16_t x, int16_t y, const rgb24& color);
+    void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const rgb24& color);
+    void drawFastVLine(int16_t x, int16_t y0, int16_t y1, const rgb24& color);
+    void drawFastHLine(int16_t x0, int16_t x1, int16_t y, const rgb24& color);
+    void drawCircle(int16_t x0, int16_t y0, uint16_t radius, const rgb24& color);
+    void fillCircle(int16_t x0, int16_t y0, uint16_t radius, const rgb24& outlineColor, const rgb24& fillColor);
+    void fillCircle(int16_t x0, int16_t y0, uint16_t radius, const rgb24& color);
+    void drawTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const rgb24& color);
+    void fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const rgb24& fillColor);
+    void fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, 
+      const rgb24& outlineColor, const rgb24& fillColor);
+    void drawRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const rgb24& color);
+    void fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const rgb24& color);
+    void fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const rgb24& outlineColor, const rgb24& fillColor);
+    void drawRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t radius, const rgb24& outlineColor);
+    void fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t radius, const rgb24& fillColor);
+    void fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t radius, 
+      const rgb24& outlineColor, const rgb24& fillColor);
+    void fillScreen(const rgb24& color);
+    void drawChar(int16_t x, int16_t y, const rgb24& charColor, char character);
+    void drawString(int16_t x, int16_t y, const rgb24& charColor, const char text[]);
+    void drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, const rgb24& bitmapColor, const uint8_t *bitmap);
+    const rgb24 readPixel(int16_t x, int16_t y) const;
+    rgb24 *backBuffer(void);
     void setBackBuffer(rgb24 *newBuffer);
-    rgb24 *getRealBackBuffer();
+    rgb24 *getRealBackBuffer(void);
 
     // scroll text
     void scrollText(const char inputtext[], int numScrolls);
@@ -139,7 +148,7 @@ public:
     void setScrollOffsetFromTop(int offset);
     void setScrollStartOffsetFromLeft(int offset);
     void stopScrollText(void);
-    int getScrollStatus(void);
+    int getScrollStatus(void) const;
 
     // foreground drawing
     void clearForeground(void);
@@ -150,8 +159,8 @@ public:
 
     // configuration
     void setRotation(rotationDegrees rotation);
-    uint16_t getScreenWidth(void);
-    uint16_t getScreenHeight(void);
+    uint16_t getScreenWidth(void) const;
+    uint16_t getScreenHeight(void) const;
     void setBrightness(uint8_t brightness);
     void setBackgroundBrightness(uint8_t brightness);
     void setColorCorrection(colorCorrectionModes mode);
@@ -166,13 +175,10 @@ private:
 
     // functions for refreshing
     static void loadMatrixBuffers(unsigned char currentRow);
-#if COLOR_DEPTH_RGB >= 36
-    static uint16_t colorCorrection(uint8_t inputcolor);
-    static uint16_t backgroundColorCorrection(uint8_t inputcolor);
-#else
-    static uint8_t colorCorrection(uint8_t inputcolor);
-    static uint8_t backgroundColorCorrection(uint8_t inputcolor);
-#endif
+
+    static color_chan_t colorCorrection(uint8_t inputcolor);
+    static color_chan_t backgroundColorCorrection(uint8_t inputcolor);
+
     static void getPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24 *xyPixel);
     static rgb24 *getRefreshRow(uint8_t y);
     static void handleBufferSwap(void);
@@ -182,10 +188,10 @@ private:
     static void redrawForeground(void);
 
     // drawing functions not meant for user
-    void drawHardwareHLine(uint8_t x0, uint8_t x1, uint8_t y, rgb24 color);
-    void drawHardwareVLine(uint8_t x, uint8_t y0, uint8_t y1, rgb24 color);
-    void bresteepline(int16_t x3, int16_t y3, int16_t x4, int16_t y4, rgb24 color);
-    void fillFlatSideTriangleInt(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, rgb24 color);
+    void drawHardwareHLine(uint8_t x0, uint8_t x1, uint8_t y, const rgb24& color);
+    void drawHardwareVLine(uint8_t x, uint8_t y0, uint8_t y1, const rgb24& color);
+    void bresteepline(int16_t x3, int16_t y3, int16_t x4, int16_t y4, const rgb24& color);
+    void fillFlatSideTriangleInt(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const rgb24& color);
 
     // configuration helper functions
     static void calculateTimerLut(void);
@@ -211,7 +217,7 @@ private:
 
     // font
     static bool getBitmapFontPixelAtXY(unsigned char letter, unsigned char x, unsigned char y, const bitmap_font *font);
-    const bitmap_font *fontLookup(fontChoices font);
+    const bitmap_font *fontLookup(fontChoices font) const;
     static uint16_t getBitmapFontRowAtXY(unsigned char letter, unsigned char y, const bitmap_font *font);
 };
 

@@ -81,7 +81,7 @@ uint16_t SmartMatrix::getBitmapFontRowAtXY(unsigned char letter, unsigned char y
 }
 
 // order needs to match fontChoices enum
-const bitmap_font *fontArray[] = {
+static const bitmap_font *fontArray[] = {
     &apple3x5,
     &apple5x7,
     &apple6x10,
@@ -90,6 +90,6 @@ const bitmap_font *fontArray[] = {
     &gohufont6x11b,
 };
 
-const bitmap_font *SmartMatrix::fontLookup(fontChoices font) {
+const bitmap_font *SmartMatrix::fontLookup(fontChoices font) const {
     return fontArray[font];
 }
