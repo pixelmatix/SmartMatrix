@@ -71,6 +71,13 @@ typedef struct rgb24 {
     uint8_t blue;
 } rgb24;
 
+
+#if COLOR_DEPTH_RGB > 24
+#define color_chan_t uint16_t
+#else
+#define color_chan_t uint8_t
+#endif
+
 typedef enum colorCorrectionModes {
     ccNone,
     cc24,
@@ -168,13 +175,10 @@ private:
 
     // functions for refreshing
     static void loadMatrixBuffers(unsigned char currentRow);
-#if COLOR_DEPTH_RGB >= 36
-    static uint16_t colorCorrection(uint8_t inputcolor);
-    static uint16_t backgroundColorCorrection(uint8_t inputcolor);
-#else
-    static uint8_t colorCorrection(uint8_t inputcolor);
-    static uint8_t backgroundColorCorrection(uint8_t inputcolor);
-#endif
+
+    static color_chan_t colorCorrection(uint8_t inputcolor);
+    static color_chan_t backgroundColorCorrection(uint8_t inputcolor);
+
     static void getPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24 *xyPixel);
     static rgb24 *getRefreshRow(uint8_t y);
     static void handleBufferSwap(void);
