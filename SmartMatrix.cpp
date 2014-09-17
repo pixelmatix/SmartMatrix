@@ -72,9 +72,9 @@ static DMAMEM matrixUpdateBlock matrixUpdateBlocks[DMA_BUFFER_NUMBER_OF_ROWS][LA
  */
 static DMAMEM uint32_t matrixUpdateData[DMA_BUFFER_NUMBER_OF_ROWS][MATRIX_WIDTH][(LATCHES_PER_ROW / sizeof(uint32_t)) * DMA_UPDATES_PER_CLOCK];
 
-addresspair addressLUT[MATRIX_ROWS_PER_FRAME];
+static addresspair addressLUT[MATRIX_ROWS_PER_FRAME];
 
-timerpair timerLUT[LATCHES_PER_ROW];
+static timerpair timerLUT[LATCHES_PER_ROW];
 
 // 2x uint32_t to match size and spacing of values it is updating: GPIOx_PSOR and GPIOx_PCOR are 32-bit and adjacent to each other
 typedef struct gpiopair {
@@ -82,10 +82,10 @@ typedef struct gpiopair {
     uint32_t  gpio_pcor;
 } gpiopair;
 
-gpiopair gpiosync;
+static gpiopair gpiosync;
 
 
-SmartMatrix::SmartMatrix() {
+SmartMatrix::SmartMatrix(void) {
 
 }
 
@@ -152,7 +152,7 @@ INLINE void SmartMatrix::calculateTimerLut(void) {
     }
 }
 
-void SmartMatrix::begin()
+void SmartMatrix::begin(void)
 {
     int i;
     cbInit(&dmaBuffer, DMA_BUFFER_NUMBER_OF_ROWS);

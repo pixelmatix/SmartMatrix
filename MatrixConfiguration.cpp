@@ -41,11 +41,11 @@ void SmartMatrix::setRotation(rotationDegrees rotation) {
     }
 }
 
-uint16_t SmartMatrix::getScreenWidth(void) {
+uint16_t SmartMatrix::getScreenWidth(void) const {
     return screenConfig.localWidth;
 }
 
-uint16_t SmartMatrix::getScreenHeight(void) {
+uint16_t SmartMatrix::getScreenHeight(void) const {
     return screenConfig.localHeight;
 }
 
