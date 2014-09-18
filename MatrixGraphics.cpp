@@ -701,27 +701,6 @@ void SmartMatrix::drawString(int16_t x, int16_t y, const rgb24& charColor, const
     }
 }
 
-// clears rectangle covered by the text string
-void SmartMatrix::clearString(int16_t x, int16_t y, const rgb24& color, const char text[]) {
-    int xcnt, ycnt, i = 0, offset = 0;
-    char character;
-
-    // limit text to 10 chars, why?
-    for (i = 0; i < 10; i++) {
-        character = text[offset++];
-        if (character == '\0')
-            return;
-
-        for (ycnt = 0; ycnt < font->Height; ycnt++) {
-            for (xcnt = 0; xcnt < font->Width; xcnt++) {
-                drawPixel(x + xcnt, y + ycnt, color);
-            }
-        }
-        x += font->Width;
-    }
-}
-
-
 // draw string while clearing background
 void SmartMatrix::drawString(int16_t x, int16_t y, const rgb24& charColor, const rgb24& backColor, const char text[]) {
     int xcnt, ycnt, i = 0, offset = 0;
