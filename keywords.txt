@@ -61,6 +61,8 @@ clearForeground KEYWORD2
 setForegroundFont KEYWORD2
 drawForegroundPixel KEYWORD2
 drawForegroundChar KEYWORD2
+drawForegroundString KEYWORD2
+drawForegroundMonoBitmap KEYWORD2
 displayForegroundDrawing KEYWORD2
 
 # configuration
