@@ -657,7 +657,7 @@ void SmartMatrix::fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, 
     drawRectangle(x0, y0, x1, y1, outlineColor);
 }
 
-bool getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap) {
+bool SmartMatrix::getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap) {
     int cell = (y * ((width / 8) + 1)) + (x / 8);
 
     uint8_t mask = 0x80 >> (x % 8);

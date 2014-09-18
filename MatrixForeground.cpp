@@ -135,8 +135,6 @@ void SmartMatrix::drawForegroundString(int16_t x, int16_t y, const char text [],
     }
 }
 
-extern bool getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t *bitmap);
-
 void SmartMatrix::drawForegroundMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, uint8_t *bitmap, bool opaque) {
     int xcnt, ycnt;
 
