@@ -345,13 +345,13 @@ void SmartMatrix::fillCircle(int16_t x0, int16_t y0, uint16_t radius, const rgb2
     }
 }
 
-void SmartMatrix::fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, 
+void SmartMatrix::fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
   uint16_t radius, const rgb24& fillColor) {
     fillRoundRectangle(x0, y0, x1, y1, radius, fillColor, fillColor);
 }
 
 
-void SmartMatrix::fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, 
+void SmartMatrix::fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
   uint16_t radius, const rgb24& outlineColor, const rgb24& fillColor) {
     if (x1 < x0)
         SWAPint(x1, x0);
@@ -433,7 +433,7 @@ void SmartMatrix::fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t
     fillRectangle(x0 - a, y0 - a, x1 + a, y1 + a, fillColor);
 }
 
-void SmartMatrix::drawRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, 
+void SmartMatrix::drawRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
   uint16_t radius, const rgb24& outlineColor) {
     if (x1 < x0)
         SWAPint(x1, x0);
@@ -492,7 +492,7 @@ void SmartMatrix::drawRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t
 
 
 // Code from http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html
-void SmartMatrix::fillFlatSideTriangleInt(int16_t x1, int16_t y1, int16_t x2, int16_t y2, 
+void SmartMatrix::fillFlatSideTriangleInt(int16_t x1, int16_t y1, int16_t x2, int16_t y2,
   int16_t x3, int16_t y3, const rgb24& color) {
     int16_t t1x, t2x, t1y, t2y;
     bool changed1 = false;
@@ -613,7 +613,7 @@ void SmartMatrix::fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, i
     }
 }
 
-void SmartMatrix::fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, 
+void SmartMatrix::fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3,
   const rgb24& outlineColor, const rgb24& fillColor) {
     fillTriangle(x1, y1, x2, y2, x3, y3, fillColor);
     drawTriangle(x1, y1, x2, y2, x3, y3, outlineColor);
@@ -701,7 +701,52 @@ void SmartMatrix::drawString(int16_t x, int16_t y, const rgb24& charColor, const
     }
 }
 
-void SmartMatrix::drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, 
+// clears rectangle covered by the text string
+void SmartMatrix::clearString(int16_t x, int16_t y, const rgb24& color, const char text[]) {
+    int xcnt, ycnt, i = 0, offset = 0;
+    char character;
+
+    // limit text to 10 chars, why?
+    for (i = 0; i < 10; i++) {
+        character = text[offset++];
+        if (character == '\0')
+            return;
+
+        for (ycnt = 0; ycnt < font->Height; ycnt++) {
+            for (xcnt = 0; xcnt < font->Width; xcnt++) {
+                drawPixel(x + xcnt, y + ycnt, color);
+            }
+        }
+        x += font->Width;
+    }
+}
+
+
+// draw string while clearing background
+void SmartMatrix::drawString(int16_t x, int16_t y, const rgb24& charColor, const rgb24& backColor, const char text[]) {
+    int xcnt, ycnt, i = 0, offset = 0;
+    char character;
+
+    // limit text to 10 chars, why?
+    for (i = 0; i < 10; i++) {
+        character = text[offset++];
+        if (character == '\0')
+            return;
+
+        for (ycnt = 0; ycnt < font->Height; ycnt++) {
+            for (xcnt = 0; xcnt < font->Width; xcnt++) {
+                if (getBitmapFontPixelAtXY(character, xcnt, ycnt, font)) {
+                    drawPixel(x + xcnt, y + ycnt, charColor);
+                } else {
+                    drawPixel(x + xcnt, y + ycnt, backColor);
+                }
+            }
+        }
+        x += font->Width;
+    }
+}
+
+void SmartMatrix::drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height,
   const rgb24& bitmapColor, const uint8_t *bitmap) {
     int xcnt, ycnt;
 
