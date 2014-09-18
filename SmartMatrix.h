@@ -156,6 +156,8 @@ public:
     void setForegroundFont(fontChoices newFont);
     void drawForegroundPixel(int16_t x, int16_t y, bool opaque = true);
     void drawForegroundChar(int16_t x, int16_t y, char character, bool opaque = true);
+    void drawForegroundString(int16_t x, int16_t y, const char text [], bool opaque = true);
+    void drawForegroundMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, uint8_t *bitmap, bool opaque = true);
     void displayForegroundDrawing(bool waitUntilComplete = true);
 
     // configuration

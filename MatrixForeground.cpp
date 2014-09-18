@@ -124,6 +124,31 @@ void SmartMatrix::drawForegroundChar(int16_t x, int16_t y, char character, bool 
     }
 }
 
+void SmartMatrix::drawForegroundString(int16_t x, int16_t y, const char text [], bool opaque) {
+    // limit text to 10 chars, why?
+    for (int i = 0; i < 10; i++) {
+        char character = text[i];
+        if (character == '\0')
+            return;
+
+        drawForegroundChar(i * foregroundfont->Width + x, y, character, opaque);
+    }
+}
+
+extern bool getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t *bitmap);
+
+void SmartMatrix::drawForegroundMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, uint8_t *bitmap, bool opaque) {
+    int xcnt, ycnt;
+
+    for (ycnt = 0; ycnt < height; ycnt++) {
+        for (xcnt = 0; xcnt < width; xcnt++) {
+            if (getBitmapPixelAtXY(xcnt, ycnt, width, height, bitmap)) {
+                drawForegroundPixel(x + xcnt, y + ycnt, opaque);
+            }
+        }
+    }
+}
+
 // returns 0 if stopped
 // returns positive number indicating number of loops left if running
 // returns -1 if continuously scrolling
