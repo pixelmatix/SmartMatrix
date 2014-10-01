@@ -171,7 +171,8 @@ public:
 
 private:
     // enable ISR access to private member variables
-    friend void dma_ch1_isr(void);
+    friend void rowCalculationISR(void);
+    friend void rowShiftCompleteISR(void);
 
     // functions called by ISR
     static void matrixCalculations(void);
