@@ -28,12 +28,12 @@
 #define INLINE __attribute__( ( always_inline ) ) inline
 
 // these definitions may change if switching major display type
-#define MATRIX_ROW_PAIR_OFFSET      (MATRIX_HEIGHT/2)
-#define MATRIX_ROWS_PER_FRAME       (MATRIX_HEIGHT/2)
-#define PIXELS_UPDATED_PER_CLOCK    2
-#define COLOR_CHANNELS_PER_PIXEL    3
-#define LATCHES_PER_ROW             (COLOR_DEPTH_RGB/COLOR_CHANNELS_PER_PIXEL)
-#define DMA_UPDATES_PER_CLOCK       2
+#define MATRIX_ROW_PAIR_OFFSET          (MATRIX_HEIGHT/2)
+#define MATRIX_ROWS_PER_FRAME           (MATRIX_HEIGHT/2)
+#define PIXELS_UPDATED_PER_CLOCK        2
+#define COLOR_CHANNELS_PER_PIXEL        3
+#define LATCHES_PER_ROW                 (COLOR_DEPTH_RGB/COLOR_CHANNELS_PER_PIXEL)
+#define DMA_UPDATES_PER_CLOCK           2
 #define ROW_CALCULATION_ISR_PRIORITY   0xFE // 0xFF = lowest priority
 
 // hardware-specific definitions
@@ -45,10 +45,10 @@
 #define MSB_BLOCK_TICKS     (TICKS_PER_ROW/2)
 #define MIN_BLOCK_PERIOD_TICKS  NS_TO_TICKS(MIN_BLOCK_PERIOD_NS)
 
-DMAChannel dma0(false);
-DMAChannel dma1(false);
-DMAChannel dma2(false);
-DMAChannel dma3(false);
+DMAChannel dmaOutputAddress(false);
+DMAChannel dmaUpdateAddress(false);
+DMAChannel dmaUpdateTimer(false);
+DMAChannel dmaClockOutData(false);
 
 void rowShiftCompleteISR(void);
 void rowCalculationISR(void);
@@ -253,110 +253,108 @@ void SmartMatrix::begin(void)
     DMA_CR |= DMA_CR_EMLM;
 
     // allocate all DMA channels up front so channels can link to each other
-    dma0.begin(false);
-    dma1.begin(false);
-    dma2.begin(false);
-    dma3.begin(false);
+    dmaOutputAddress.begin(false);
+    dmaUpdateAddress.begin(false);
+    dmaUpdateTimer.begin(false);
+    dmaClockOutData.begin(false);
 
-    // DMA channel #0 - on latch rising edge, read address from fixed address temporary buffer, and output address on GPIO
+    // dmaOutputAddress - on latch rising edge, read address from fixed address temporary buffer, and output address on GPIO
     // using combo of writes to set+clear registers, to only modify the address pins and not other GPIO pins
-    // address temporary buffer is refreshed before each DMA trigger (by DMA channel #2)
+    // address temporary buffer is refreshed before each DMA trigger (by DMA channel dmaUpdateAddress)
     // only use single major loop, never disable channel
-    dma0.source(gpiosync.gpio_pcor);
-    dma0.TCD->SOFF = (int)&gpiosync.gpio_psor - (int)&gpiosync.gpio_pcor;
-    dma0.TCD->SLAST = (ADDRESS_ARRAY_REGISTERS_TO_UPDATE * ((int)&ADDX_GPIO_CLEAR_REGISTER - (int)&ADDX_GPIO_SET_REGISTER));
-    dma0.TCD->ATTR = DMA_TCD_ATTR_SSIZE(2) | DMA_TCD_ATTR_DSIZE(2);
+    dmaOutputAddress.source(gpiosync.gpio_pcor);
+    dmaOutputAddress.TCD->SOFF = (int)&gpiosync.gpio_psor - (int)&gpiosync.gpio_pcor;
+    dmaOutputAddress.TCD->SLAST = (ADDRESS_ARRAY_REGISTERS_TO_UPDATE * ((int)&ADDX_GPIO_CLEAR_REGISTER - (int)&ADDX_GPIO_SET_REGISTER));
+    dmaOutputAddress.TCD->ATTR = DMA_TCD_ATTR_SSIZE(2) | DMA_TCD_ATTR_DSIZE(2);
     // Destination Minor Loop Offset Enabled - transfer appropriate number of bytes per minor loop, and put DADDR back to original value when minor loop is complete
     // Source Minor Loop Offset Enabled - source buffer is same size and offset as destination so values reset after each minor loop
-    dma0.TCD->NBYTES_MLOFFYES = DMA_TCD_NBYTES_SMLOE | DMA_TCD_NBYTES_DMLOE |
+    dmaOutputAddress.TCD->NBYTES_MLOFFYES = DMA_TCD_NBYTES_SMLOE | DMA_TCD_NBYTES_DMLOE |
                                ((ADDRESS_ARRAY_REGISTERS_TO_UPDATE * ((int)&ADDX_GPIO_CLEAR_REGISTER - (int)&ADDX_GPIO_SET_REGISTER)) << 10) |
                                (ADDRESS_ARRAY_REGISTERS_TO_UPDATE * sizeof(gpiosync.gpio_psor));
     // start on higher value of two registers, and make offset decrement to avoid negative number in NBYTES_MLOFFYES (TODO: can switch order by masking negative offset)
-    dma0.TCD->DADDR = &ADDX_GPIO_CLEAR_REGISTER;
+    dmaOutputAddress.TCD->DADDR = &ADDX_GPIO_CLEAR_REGISTER;
     // update destination address so the second update per minor loop is ADDX_GPIO_SET_REGISTER
-    dma0.TCD->DOFF = (int)&ADDX_GPIO_SET_REGISTER - (int)&ADDX_GPIO_CLEAR_REGISTER;
-    dma0.TCD->DLASTSGA = (ADDRESS_ARRAY_REGISTERS_TO_UPDATE * ((int)&ADDX_GPIO_CLEAR_REGISTER - (int)&ADDX_GPIO_SET_REGISTER));
+    dmaOutputAddress.TCD->DOFF = (int)&ADDX_GPIO_SET_REGISTER - (int)&ADDX_GPIO_CLEAR_REGISTER;
+    dmaOutputAddress.TCD->DLASTSGA = (ADDRESS_ARRAY_REGISTERS_TO_UPDATE * ((int)&ADDX_GPIO_CLEAR_REGISTER - (int)&ADDX_GPIO_SET_REGISTER));
     // single major loop
-    dma0.TCD->CITER_ELINKNO = 1;
-    dma0.TCD->BITER_ELINKNO = 1;
-    // link channel 1, enable major channel-to-channel linking, don't clear enable on major loop complete
-    dma0.TCD->CSR = (dma1.channel << 8) | (1 << 5);
-    dma0.triggerAtHardwareEvent(DMAMUX_SOURCE_LATCH_RISING_EDGE);
+    dmaOutputAddress.TCD->CITER_ELINKNO = 1;
+    dmaOutputAddress.TCD->BITER_ELINKNO = 1;
+    // link channel dmaUpdateAddress, enable major channel-to-channel linking, don't clear enable on major loop complete
+    dmaOutputAddress.TCD->CSR = (dmaUpdateAddress.channel << 8) | (1 << 5);
+    dmaOutputAddress.triggerAtHardwareEvent(DMAMUX_SOURCE_LATCH_RISING_EDGE);
 
-    // DMA channel #1 - copy address values from current position in array to buffer to temporarily hold row values for the next timer cycle
+    // dmaUpdateAddress - copy address values from current position in array to buffer to temporarily hold row values for the next timer cycle
     // only use single major loop, never disable channel
-    dma1.TCD->SADDR = &matrixUpdateBlocks[0][0].addressValues;
-    dma1.TCD->SOFF = sizeof(uint16_t);
-    dma1.TCD->SLAST = sizeof(matrixUpdateBlock) - (ADDRESS_ARRAY_REGISTERS_TO_UPDATE * sizeof(uint16_t));
-    dma1.TCD->ATTR = DMA_TCD_ATTR_SSIZE(1) | DMA_TCD_ATTR_DSIZE(1);
+    dmaUpdateAddress.TCD->SADDR = &matrixUpdateBlocks[0][0].addressValues;
+    dmaUpdateAddress.TCD->SOFF = sizeof(uint16_t);
+    dmaUpdateAddress.TCD->SLAST = sizeof(matrixUpdateBlock) - (ADDRESS_ARRAY_REGISTERS_TO_UPDATE * sizeof(uint16_t));
+    dmaUpdateAddress.TCD->ATTR = DMA_TCD_ATTR_SSIZE(1) | DMA_TCD_ATTR_DSIZE(1);
     // 16-bit = 2 bytes transferred
     // transfer two 16-bit values, reset destination address back after each minor loop
-    dma1.TCD->NBYTES_MLOFFNO = (ADDRESS_ARRAY_REGISTERS_TO_UPDATE * sizeof(uint16_t));
+    dmaUpdateAddress.TCD->NBYTES_MLOFFNO = (ADDRESS_ARRAY_REGISTERS_TO_UPDATE * sizeof(uint16_t));
     // start with the register that's the highest location in memory and make offset decrement to avoid negative number in NBYTES_MLOFFYES register (TODO: can switch order by masking negative offset)
-    dma1.TCD->DADDR = &gpiosync.gpio_pcor;
-    dma1.TCD->DOFF = (int)&gpiosync.gpio_psor - (int)&gpiosync.gpio_pcor;
-    dma1.TCD->DLASTSGA = (ADDRESS_ARRAY_REGISTERS_TO_UPDATE * ((int)&gpiosync.gpio_pcor - (int)&gpiosync.gpio_psor));
+    dmaUpdateAddress.TCD->DADDR = &gpiosync.gpio_pcor;
+    dmaUpdateAddress.TCD->DOFF = (int)&gpiosync.gpio_psor - (int)&gpiosync.gpio_pcor;
+    dmaUpdateAddress.TCD->DLASTSGA = (ADDRESS_ARRAY_REGISTERS_TO_UPDATE * ((int)&gpiosync.gpio_pcor - (int)&gpiosync.gpio_psor));
     // no minor loop linking, single major loop, single minor loop, don't clear enable after major loop complete
-    dma1.TCD->CITER_ELINKNO = 1;
-    dma1.TCD->BITER_ELINKNO = 1;
-    dma1.TCD->CSR = 0;
+    dmaUpdateAddress.TCD->CITER_ELINKNO = 1;
+    dmaUpdateAddress.TCD->BITER_ELINKNO = 1;
+    dmaUpdateAddress.TCD->CSR = 0;
 
-    // DMA channel #2 - on latch falling edge, load FTM1_CV1 and FTM1_MOD with with next values from current block
+    // dmaUpdateTimer - on latch falling edge, load FTM1_CV1 and FTM1_MOD with with next values from current block
     // only use single major loop, never disable channel
-    // link to channel 3 when complete
+    // link to dmaClockOutData channel when complete
 #define TIMER_REGISTERS_TO_UPDATE   2
-    dma2.source(matrixUpdateBlocks[0][0].timerValues.timer_oe);
-    dma2.TCD->SOFF = sizeof(uint16_t);
-    dma2.TCD->SLAST = sizeof(matrixUpdateBlock) - (TIMER_REGISTERS_TO_UPDATE * sizeof(uint16_t));
-    dma2.TCD->ATTR = DMA_TCD_ATTR_SSIZE(1) | DMA_TCD_ATTR_DSIZE(1);
+    dmaUpdateTimer.source(matrixUpdateBlocks[0][0].timerValues.timer_oe);
+    dmaUpdateTimer.TCD->SOFF = sizeof(uint16_t);
+    dmaUpdateTimer.TCD->SLAST = sizeof(matrixUpdateBlock) - (TIMER_REGISTERS_TO_UPDATE * sizeof(uint16_t));
+    dmaUpdateTimer.TCD->ATTR = DMA_TCD_ATTR_SSIZE(1) | DMA_TCD_ATTR_DSIZE(1);
     // 16-bit = 2 bytes transferred
-    dma2.TCD->NBYTES_MLOFFNO = TIMER_REGISTERS_TO_UPDATE * sizeof(uint16_t);
-    dma2.TCD->DADDR = &FTM1_C1V;
-    dma2.TCD->DOFF = (int)&FTM1_MOD - (int)&FTM1_C1V;
-    dma2.TCD->DLASTSGA = TIMER_REGISTERS_TO_UPDATE * ((int)&FTM1_C1V - (int)&FTM1_MOD);
+    dmaUpdateTimer.TCD->NBYTES_MLOFFNO = TIMER_REGISTERS_TO_UPDATE * sizeof(uint16_t);
+    dmaUpdateTimer.TCD->DADDR = &FTM1_C1V;
+    dmaUpdateTimer.TCD->DOFF = (int)&FTM1_MOD - (int)&FTM1_C1V;
+    dmaUpdateTimer.TCD->DLASTSGA = TIMER_REGISTERS_TO_UPDATE * ((int)&FTM1_C1V - (int)&FTM1_MOD);
     // no minor loop linking, single major loop
-    dma2.TCD->CITER_ELINKNO = 1;
-    dma2.TCD->BITER_ELINKNO = 1;
-    // link channel 3, enable major channel-to-channel linking, don't clear enable after major loop complete
-    dma2.TCD->CSR = (dma3.channel << 8) | (1 << 5);
-    dma2.triggerAtHardwareEvent(DMAMUX_SOURCE_LATCH_FALLING_EDGE);
+    dmaUpdateTimer.TCD->CITER_ELINKNO = 1;
+    dmaUpdateTimer.TCD->BITER_ELINKNO = 1;
+    // link dmaClockOutData channel, enable major channel-to-channel linking, don't clear enable after major loop complete
+    dmaUpdateTimer.TCD->CSR = (dmaClockOutData.channel << 8) | (1 << 5);
+    dmaUpdateTimer.triggerAtHardwareEvent(DMAMUX_SOURCE_LATCH_FALLING_EDGE);
 
 #define DMA_TCD_MLOFF_MASK  (0x3FFFFC00)
 
-    // DMA channel #3 - repeatedly load gpio_array into GPIOD_PDOR, stop and int on major loop complete
-    dma3.TCD->SADDR = matrixUpdateData[0][0];
-    dma3.TCD->SOFF = sizeof(matrixUpdateData[0][0]) / 2;
+    // dmaClockOutData - repeatedly load gpio_array into GPIOD_PDOR, stop and int on major loop complete
+    dmaClockOutData.TCD->SADDR = matrixUpdateData[0][0];
+    dmaClockOutData.TCD->SOFF = sizeof(matrixUpdateData[0][0]) / 2;
     // SADDR will get updated by ISR, no need to set SLAST
-    dma3.TCD->SLAST = 0;
-    dma3.TCD->ATTR = DMA_TCD_ATTR_SSIZE(0) | DMA_TCD_ATTR_DSIZE(0);
+    dmaClockOutData.TCD->SLAST = 0;
+    dmaClockOutData.TCD->ATTR = DMA_TCD_ATTR_SSIZE(0) | DMA_TCD_ATTR_DSIZE(0);
     // after each minor loop, set source to point back to the beginning of this set of data,
     // but advance by 1 byte to get the next significant bits data
-    dma3.TCD->NBYTES_MLOFFYES = DMA_TCD_NBYTES_SMLOE |
+    dmaClockOutData.TCD->NBYTES_MLOFFYES = DMA_TCD_NBYTES_SMLOE |
                                (((1 - sizeof(matrixUpdateData[0])) << 10) & DMA_TCD_MLOFF_MASK) |
                                (MATRIX_WIDTH * DMA_UPDATES_PER_CLOCK);
-    dma3.TCD->DADDR = &GPIOD_PDOR;
-    dma3.TCD->DOFF = 0;
-    dma3.TCD->DLASTSGA = 0;
-    dma3.TCD->CITER_ELINKNO = LATCHES_PER_ROW;
-    dma3.TCD->BITER_ELINKNO = LATCHES_PER_ROW;
+    dmaClockOutData.TCD->DADDR = &GPIOD_PDOR;
+    dmaClockOutData.TCD->DOFF = 0;
+    dmaClockOutData.TCD->DLASTSGA = 0;
+    dmaClockOutData.TCD->CITER_ELINKNO = LATCHES_PER_ROW;
+    dmaClockOutData.TCD->BITER_ELINKNO = LATCHES_PER_ROW;
     // int after major loop is complete
-    dma3.TCD->CSR = DMA_TCD_CSR_INTMAJOR;
+    dmaClockOutData.TCD->CSR = DMA_TCD_CSR_INTMAJOR;
     // for debugging - enable bandwidth control (space out GPIO updates so they can be seen easier on a low-bandwidth logic analyzer)
-    //dma3.TCD->CSR |= (0x02 << 14);
+    //dmaClockOutData.TCD->CSR |= (0x02 << 14);
 
     // enable a done interrupt when all DMA operations are complete
-    dma3.attachInterrupt(rowShiftCompleteISR);
+    dmaClockOutData.attachInterrupt(rowShiftCompleteISR);
 
     // enable additional dma interrupt used as software interrupt
-    NVIC_SET_PRIORITY(IRQ_DMA_CH0 + dma1.channel, ROW_CALCULATION_ISR_PRIORITY);
-    dma1.attachInterrupt(rowCalculationISR);
+    NVIC_SET_PRIORITY(IRQ_DMA_CH0 + dmaUpdateAddress.channel, ROW_CALCULATION_ISR_PRIORITY);
+    dmaUpdateAddress.attachInterrupt(rowCalculationISR);
 
-    // enable channels 0, 1, 2, 3 but leave everything else alone
-    //DMA_ERQ |= (1 << 0) | (1 << 1) | (1 << 2) | (1 << 3);
-    dma0.enable();
-    dma1.enable();
-    dma2.enable();
-    dma3.enable();
+    dmaOutputAddress.enable();
+    dmaUpdateAddress.enable();
+    dmaUpdateTimer.enable();
+    dmaClockOutData.enable();
 
     // at the end after everything is set up: enable timer from system clock, with appropriate prescale
     FTM1_SC = FTM_SC_CLKS(1) | FTM_SC_PS(LATCH_TIMER_PRESCALE);
@@ -704,18 +702,18 @@ void rowShiftCompleteISR(void) {
 
     // get next row to draw to display and update DMA pointers
     int currentRow = cbGetNextRead(&dmaBuffer);
-    dma1.TCD->SADDR = &matrixUpdateBlocks[currentRow][0].addressValues;
-    dma2.TCD->SADDR = &matrixUpdateBlocks[currentRow][0].timerValues.timer_oe;
-    dma3.TCD->SADDR = matrixUpdateData[currentRow][0];
+    dmaUpdateAddress.TCD->SADDR = &matrixUpdateBlocks[currentRow][0].addressValues;
+    dmaUpdateTimer.TCD->SADDR = &matrixUpdateBlocks[currentRow][0].timerValues.timer_oe;
+    dmaClockOutData.TCD->SADDR = matrixUpdateData[currentRow][0];
 
     // clear pending GPIO int for PORTA before enabling DMA again
     CORE_PIN3_CONFIG |= (1 << 24);
 
-    // trigger software interrupt (DMA channel used instead of actual softint)
-    NVIC_SET_PENDING(IRQ_DMA_CH0 + dma1.channel);
+    // trigger software interrupt (DMA channel interrupt used instead of actual softint)
+    NVIC_SET_PENDING(IRQ_DMA_CH0 + dmaUpdateAddress.channel);
 
     // clear pending int
-    dma3.clearInterrupt();
+    dmaClockOutData.clearInterrupt();
 
 #ifdef DEBUG_PINS_ENABLED
     digitalWriteFast(DEBUG_PIN_1, LOW); // oscilloscope trigger
