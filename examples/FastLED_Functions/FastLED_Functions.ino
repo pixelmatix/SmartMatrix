@@ -1,9 +1,15 @@
-// Modified example copied from FastLED 2.1 Branch - originally written by Daniel Garcia
-// This example shows how to use some of FastLEDs functions with the SmartMatrix Library
-// using the SmartMatrix buffers directly instead of FastLED's buffers.
-// FastLED's dithering and color balance features can't be used this way, but SmartMatrix can draw in
-// 36-bit color and so dithering may not provide much advantage.  There's no one 'right' way to use these two
-// libraries together, try this example and FastLED_Controller and figure out what is 'right' for you
+/*
+ * Modified example copied from FastLED 2.1 Branch - originally written by Daniel Garcia
+ * This example shows how to use some of FastLEDs functions with the SmartMatrix Library
+ * using the SmartMatrix buffers directly instead of FastLED's buffers.
+ * FastLED's dithering and color balance features can't be used this way, but SmartMatrix can draw in
+ * 36-bit color and so dithering may not provide much advantage.  There's no one 'right' way to use these two
+ * libraries together, try this example and FastLED_Controller and figure out what is 'right' for you
+ *
+ * This example requires FastLED 2.1.  If you are having trouble compiling, see
+ * the troubleshooting instructions here:
+ * http://docs.pixelmatix.com/SmartMatrix/#external-libraries
+ */
 
 #include<SmartMatrix.h>
 #include<FastLED.h>
@@ -59,7 +65,7 @@ void setup() {
   matrix.setScrollColor({0xff, 0xff, 0xff});
   matrix.setScrollSpeed(15);
   matrix.setScrollFont(font6x10);
-  matrix.scrollText("Smart Matrix & FastLED", -1);
+  matrix.scrollText("SmartMatrix & FastLED", -1);
   matrix.setScrollOffsetFromEdge(10);
 }
 
@@ -81,8 +87,8 @@ void loop() {
   static uint8_t circley = 0;
 
 
-  rgb24 *buffer = matrix.backBuffer();  
-  
+  rgb24 *buffer = matrix.backBuffer();
+
   static uint8_t ihue=0;
   fillnoise8();
   for(int i = 0; i < kMatrixWidth; i++) {

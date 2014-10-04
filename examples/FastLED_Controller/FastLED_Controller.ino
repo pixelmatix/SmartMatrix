@@ -1,10 +1,16 @@
-// Example copied from FastLED 2.1 Branch - written by Daniel Garcia
-// This example shows how to draw to the SmartMatrix using FastLED's "SMART_MATRIX" controller
-// instead of using the SmartMatrix library directly
-// This has the advantage of working directly with a CRGB drawing buffer, and is more familiar
-// if you are used to using FastLED.  You can take advantage of FastLED's dithering and color
-// balance which happens in the background when calling LEDS.show().  There's no one 'right' way to use these two
-// libraries together, try this example and FastLED_Functions and figure out what is 'right' for you
+/*
+ * Example copied from FastLED 2.1 Branch - written by Daniel Garcia
+ * This example shows how to draw to the SmartMatrix using FastLED's "SMART_MATRIX" controller
+ * instead of using the SmartMatrix library directly
+ * This has the advantage of working directly with a CRGB drawing buffer, and is more familiar
+ * if you are used to using FastLED.  You can take advantage of FastLED's dithering and color
+ * balance which happens in the background when calling LEDS.show().  There's no one 'right' way to use these two
+ * libraries together, try this example and FastLED_Functions and figure out what is 'right' for you
+ *
+ * This example requires FastLED 2.1.  If you are having trouble compiling, see
+ * the troubleshooting instructions here:
+ * http://docs.pixelmatix.com/SmartMatrix/#external-libraries
+ */
 
 #include<SmartMatrix.h>
 #include<FastLED.h>
@@ -89,8 +95,8 @@ void setup() {
 
   // FastLED disables SmartMatrix's gamma correction by default, turn it on if you like
   //pSmartMatrix->setColorCorrection(cc48);
-  
-  // With gamma correction on, the 24 bit color gets stretched out over 36-bits, now 
+
+  // With gamma correction on, the 24 bit color gets stretched out over 36-bits, now
   // try enabling/disabling FastLED's dithering and see the effect
   //FastLED.setDither( 0 );
 
