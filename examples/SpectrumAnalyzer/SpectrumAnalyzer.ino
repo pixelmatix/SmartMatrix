@@ -1,3 +1,14 @@
+/*
+ * Based on SpectrumAnalyzerBasic by Paul Stoffregen included in the Teensy Audio Library
+ * Modified by Jason Coon for the SmartMatrix Library
+ * Requires Teensyduino 1.20 and the Teensy Audio Library
+ * Also requires FastLED 2.1
+ * If you are having trouble compiling, see
+ * the troubleshooting instructions here:
+ * http://docs.pixelmatix.com/SmartMatrix/#external-libraries
+ */
+
+// all these libraries are required for the Teensy Audio Library
 #include <Audio.h>
 #include <Wire.h>
 #include <SPI.h>
@@ -24,17 +35,14 @@ float level[16];
 // looks more pleasing to corresponds to human sound perception.
 int   shown[16];
 
-rgb24 black = CRGB(0, 0, 0);
-rgb24 red = CRGB(255, 0, 0);
+const rgb24 black = CRGB(0, 0, 0);
+const rgb24 red = CRGB(255, 0, 0);
 
 byte status = 0;
 
 void setup()
 {
     Serial.begin(9600);
-    //delay(1000);
-
-    //Serial.println(F("Starting..."));
 
     // Initialize 32x32 LED Matrix
     matrix.begin();
@@ -42,8 +50,6 @@ void setup()
 
     // Audio requires memory to work.
     AudioMemory(12);
-
-    //Serial.println(F("Started"));
 }
 
 void loop()
@@ -75,10 +81,8 @@ void loop()
         matrix.fillScreen(black);
 
         for (int i = 0; i < 16; i++) {
-            // Serial.print(level[i]);
-
             // TODO: conversion from FFT data to display bars should be
-            // exponentially scaled.  But how keep it a simple example?
+            // exponentially scaled.  But how to keep it a simple example?
             int val = level[i] * scale;
 
             // trim the bars vertically to fill the matrix height
@@ -91,12 +95,6 @@ void loop()
                 if (shown[i] > 0) shown[i] = shown[i] - 1;
                 val = shown[i];
             }
-
-            //Serial.print(shown[i]);
-            //Serial.print(" ");
-
-            // color based on level
-            // rgb24 color = CRGB(CHSV(val * 8, 255, 255));
 
             // color based on band
             rgb24 color = CRGB(CHSV(i * 15, 255, 255));
@@ -111,14 +109,6 @@ void loop()
         }
 
         matrix.swapBuffers();
-
-        //Serial.println();
-
-        //Serial.print(F(" cpu:"));
-        //Serial.println(AudioProcessorUsageMax());
-
-        //Serial.print(F(" free ram:"));
-        //Serial.println(FreeRam());
 
         FastLED.countFPS();
     }
