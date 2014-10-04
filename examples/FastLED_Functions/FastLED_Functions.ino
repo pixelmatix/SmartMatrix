@@ -14,8 +14,8 @@
 #include <SmartMatrix_32x32.h>
 #include <FastLED.h>
 
-#define kMatrixWidth  32
-#define kMatrixHeight 32
+#define kMatrixWidth  MATRIX_WIDTH
+#define kMatrixHeight MATRIX_HEIGHT
 
 SmartMatrix matrix;
 
@@ -66,7 +66,7 @@ void setup() {
   matrix.setScrollSpeed(15);
   matrix.setScrollFont(font6x10);
   matrix.scrollText("SmartMatrix & FastLED", -1);
-  matrix.setScrollOffsetFromEdge(10);
+  matrix.setScrollOffsetFromEdge((kMatrixHeight - 10)/2);
 }
 
 // Fill the x/y array of 8-bit noise values using the inoise8 function.
@@ -86,7 +86,6 @@ void loop() {
   static uint8_t circlex = 0;
   static uint8_t circley = 0;
 
-
   rgb24 *buffer = matrix.backBuffer();
 
   static uint8_t ihue=0;
@@ -96,7 +95,7 @@ void loop() {
       // We use the value at the (i,j) coordinate in the noise
       // array for our brightness, and the flipped value from (j,i)
       // for our pixel's hue.
-      buffer[kMatrixHeight*j + i] = CRGB(CHSV(noise[j][i],255,noise[i][j]));
+      buffer[kMatrixWidth*j + i] = CRGB(CHSV(noise[j][i],255,noise[i][j]));
 
       // You can also explore other ways to constrain the hue used, like below
       // buffer[kMatrixHeight*j + i] = CRGB(CHSV(ihue + (noise[j][i]>>2),255,noise[i][j]));
