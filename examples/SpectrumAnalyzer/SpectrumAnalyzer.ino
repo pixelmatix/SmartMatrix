@@ -14,7 +14,7 @@
 #include <SPI.h>
 #include <SD.h>
 
-#include <SmartMatrix.h>
+#include <SmartMatrix_32x32.h>
 #include <FastLED.h>
 
 SmartMatrix matrix;
