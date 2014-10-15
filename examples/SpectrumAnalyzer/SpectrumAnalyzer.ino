@@ -6,6 +6,11 @@
  * If you are having trouble compiling, see
  * the troubleshooting instructions here:
  * http://docs.pixelmatix.com/SmartMatrix/#external-libraries
+ *
+ * You can change the pin used for ADC with the ADC_INPUT_PIN definition below.
+ * There are no dedicated ADC pins brought out on the SmartMatrix Shield,
+ * but even if you've used all the pins on the SmartMatrix expansion header,
+ * you can use solder pins directly to the Teensy to use A14/DAC, A11, or A10
  */
 
 // all these libraries are required for the Teensy Audio Library
@@ -19,13 +24,15 @@
 
 SmartMatrix matrix;
 
-AudioInputAnalog         input;
+#define ADC_INPUT_PIN   A2
+
+AudioInputAnalog         input(ADC_INPUT_PIN);
 AudioAnalyzeFFT256       fft;
 AudioConnection          audioConnection(input, 0, fft, 0);
 
 // The scale sets how much sound is needed in each frequency range to
 // show all 32 bars.  Higher numbers are more sensitive.
-float scale = 160.0;
+float scale = 256.0;
 
 // An array to hold the 16 frequency bands
 float level[16];
@@ -33,10 +40,9 @@ float level[16];
 // This array holds the on-screen levels.  When the signal drops quickly,
 // these are used to lower the on-screen level 1 bar per update, which
 // looks more pleasing to corresponds to human sound perception.
-int   shown[16];
+int shown[16];
 
 const rgb24 black = CRGB(0, 0, 0);
-const rgb24 red = CRGB(255, 0, 0);
 
 byte status = 0;
 
@@ -61,6 +67,8 @@ void loop()
         // many FFT bins together.
 
         // I'm skipping the first two bins, as they seem to be unusable
+        // they start out at zero, but then climb and don't come back down
+        // even after sound input stops
         level[0] = fft.read(2);
         level[1] = fft.read(3);
         level[2] = fft.read(4);
@@ -96,7 +104,7 @@ void loop()
                 val = shown[i];
             }
 
-            // color based on band
+            // color hue based on band
             rgb24 color = CRGB(CHSV(i * 15, 255, 255));
 
             // draw the levels on the matrix
