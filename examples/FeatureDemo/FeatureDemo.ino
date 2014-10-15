@@ -3,7 +3,7 @@
     This example code is released into the public domain
 */
 
-#include "SmartMatrix_32x32.h"
+#include <SmartMatrix_32x32.h>
 
 SmartMatrix matrix;
 
