@@ -355,15 +355,15 @@ bool SmartMatrix::getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24
         localScreenY = hardwareY;
         break;
       case rotation180 :
-        localScreenX = (MATRIX_WIDTH - 1) - hardwareX;
-        localScreenY = (MATRIX_HEIGHT - 1) - hardwareY;
+        localScreenX = (DRAWING_WIDTH - 1) - hardwareX;
+        localScreenY = (DRAWING_HEIGHT - 1) - hardwareY;
         break;
       case  rotation90 :
         localScreenX = hardwareY;
-        localScreenY = (MATRIX_WIDTH - 1) - hardwareX;
+        localScreenY = (DRAWING_WIDTH - 1) - hardwareX;
         break;
       case  rotation270 :
-        localScreenX = (MATRIX_HEIGHT - 1) - hardwareY;
+        localScreenX = (DRAWING_HEIGHT - 1) - hardwareY;
         localScreenY = hardwareX;
         break;
       default:

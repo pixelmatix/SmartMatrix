@@ -28,8 +28,9 @@
 #include <stdint.h>
 
 // include one of the MatrixHardware_*.h files here:
-#include "MatrixHardware_KitV1_32x32.h"
+//#include "MatrixHardware_KitV1_32x32.h"
 //#include "MatrixHardware_KitV1_16x32.h"
+#include "MatrixHardware_KitV1_generic.h"
 
 
 // scroll text
@@ -178,6 +179,7 @@ private:
     static void matrixCalculations(void);
 
     // functions for refreshing
+    static void convertToHardwareXY(int16_t x, int16_t y, int16_t *hwx, int16_t *hwy);
     static void loadMatrixBuffers(unsigned char currentRow);
 
     static color_chan_t colorCorrection(uint8_t inputcolor);

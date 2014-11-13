@@ -55,21 +55,21 @@ const rgb24 SmartMatrix::readPixel(int16_t x, int16_t y) const {
         hwx = x;
         hwy = y;
     } else if (screenConfig.rotation == rotation180) {
-        hwx = (MATRIX_WIDTH - 1) - x;
-        hwy = (MATRIX_HEIGHT - 1) - y;
+        hwx = (DRAWING_WIDTH - 1) - x;
+        hwy = (DRAWING_HEIGHT - 1) - y;
     } else if (screenConfig.rotation == rotation90) {
-        hwx = (MATRIX_WIDTH - 1) - y;
+        hwx = (DRAWING_WIDTH - 1) - y;
         hwy = x;
     } else { /* if (screenConfig.rotation == rotation270)*/
         hwx = y;
-        hwy = (MATRIX_HEIGHT - 1) - x;
+        hwy = (DRAWING_HEIGHT - 1) - x;
     }
 
     return currentDrawBufferPtr[hwy][hwx];
 }
 
 void SmartMatrix::drawPixel(int16_t x, int16_t y, const rgb24& color) {
-    int hwx, hwy;
+    int16_t hwx, hwy;
 
     // check for out of bounds coordinates
     if (x < 0 || y < 0 || x >= screenConfig.localWidth || y >= screenConfig.localHeight)
@@ -80,16 +80,17 @@ void SmartMatrix::drawPixel(int16_t x, int16_t y, const rgb24& color) {
         hwx = x;
         hwy = y;
     } else if (screenConfig.rotation == rotation180) {
-        hwx = (MATRIX_WIDTH - 1) - x;
-        hwy = (MATRIX_HEIGHT - 1) - y;
+        hwx = (DRAWING_WIDTH - 1) - x;
+        hwy = (DRAWING_HEIGHT - 1) - y;
     } else if (screenConfig.rotation == rotation90) {
-        hwx = (MATRIX_WIDTH - 1) - y;
+        hwx = (DRAWING_WIDTH - 1) - y;
         hwy = x;
     } else { /* if (screenConfig.rotation == rotation270)*/
         hwx = y;
-        hwy = (MATRIX_HEIGHT - 1) - x;
+        hwy = (DRAWING_HEIGHT - 1) - x;
     }
 
+    convertToHardwareXY(hwx, hwy, &hwx, &hwy);
     copyRgb24(currentDrawBufferPtr[hwy][hwx], color);
 }
 
@@ -101,19 +102,21 @@ void SmartMatrix::drawPixel(int16_t x, int16_t y, const rgb24& color) {
 
 // x0, x1, and y must be in bounds (0-localWidth/Height), x1 > x0
 void SmartMatrix::drawHardwareHLine(uint8_t x0, uint8_t x1, uint8_t y, const rgb24& color) {
-    int i;
+    int16_t i, hwx, hwy;
 
     for (i = x0; i <= x1; i++) {
-        copyRgb24(currentDrawBufferPtr[y][i], color);
+        convertToHardwareXY(i, y, &hwx, &hwy);
+        copyRgb24(currentDrawBufferPtr[hwy][hwx], color);
     }
 }
 
 // x, y0, and y1 must be in bounds (0-localWidth/Height), y1 > y0
 void SmartMatrix::drawHardwareVLine(uint8_t x, uint8_t y0, uint8_t y1, const rgb24& color) {
-    int i;
+    int16_t i, hwx, hwy;
 
     for (i = y0; i <= y1; i++) {
-        copyRgb24(currentDrawBufferPtr[i][x], color);
+        convertToHardwareXY(x, i, &hwx, &hwy);
+        copyRgb24(currentDrawBufferPtr[hwy][hwx], color);
     }
 }
 
@@ -137,11 +140,11 @@ void SmartMatrix::drawFastHLine(int16_t x0, int16_t x1, int16_t y, const rgb24& 
     if (screenConfig.rotation == rotation0) {
         drawHardwareHLine(x0, x1, y, color);
     } else if (screenConfig.rotation == rotation180) {
-        drawHardwareHLine((MATRIX_WIDTH - 1) - x1, (MATRIX_WIDTH - 1) - x0, (MATRIX_HEIGHT - 1) - y, color);
+        drawHardwareHLine((DRAWING_WIDTH - 1) - x1, (DRAWING_WIDTH - 1) - x0, (DRAWING_HEIGHT - 1) - y, color);
     } else if (screenConfig.rotation == rotation90) {
-        drawHardwareVLine((MATRIX_WIDTH - 1) - y, x0, x1, color);
+        drawHardwareVLine((DRAWING_WIDTH - 1) - y, x0, x1, color);
     } else { /* if (screenConfig.rotation == rotation270)*/
-        drawHardwareVLine(y, (MATRIX_HEIGHT - 1) - x1, (MATRIX_HEIGHT - 1) - x0, color);
+        drawHardwareVLine(y, (DRAWING_HEIGHT - 1) - x1, (DRAWING_HEIGHT - 1) - x0, color);
     }
 }
 
@@ -165,11 +168,11 @@ void SmartMatrix::drawFastVLine(int16_t x, int16_t y0, int16_t y1, const rgb24& 
     if (screenConfig.rotation == rotation0) {
         drawHardwareVLine(x, y0, y1, color);
     } else if (screenConfig.rotation == rotation180) {
-        drawHardwareVLine((MATRIX_WIDTH - 1) - x, (MATRIX_HEIGHT - 1) - y1, (MATRIX_HEIGHT - 1) - y0, color);
+        drawHardwareVLine((DRAWING_WIDTH - 1) - x, (DRAWING_HEIGHT - 1) - y1, (DRAWING_HEIGHT - 1) - y0, color);
     } else if (screenConfig.rotation == rotation90) {
-        drawHardwareHLine((MATRIX_WIDTH - 1) - y1, (MATRIX_WIDTH - 1) - y0, x, color);
+        drawHardwareHLine((DRAWING_WIDTH - 1) - y1, (DRAWING_WIDTH - 1) - y0, x, color);
     } else { /* if (screenConfig.rotation == rotation270)*/
-        drawHardwareHLine(y0, y1, (MATRIX_HEIGHT - 1) - x, color);
+        drawHardwareHLine(y0, y1, (DRAWING_HEIGHT - 1) - x, color);
     }
 }
 
@@ -777,4 +780,14 @@ void SmartMatrix::setBackBuffer(rgb24 *newBuffer) {
 
 rgb24 *SmartMatrix::getRealBackBuffer() {
   return &backgroundBuffer[currentDrawBuffer][0][0];
+}
+
+
+// Given a point x,y in the drawing coordinates, return an x,y in the hardware coordinates.
+void SmartMatrix::convertToHardwareXY(int16_t x, int16_t y, int16_t *hwx, int16_t *hwy) {
+    int16_t panelRow = y / PANEL_HEIGHT;
+    int16_t panelCol = x / PANEL_WIDTH;
+    int16_t fullPanels = panelRow * PANELS_PER_ROW + panelCol;
+    *hwx = fullPanels * PANEL_WIDTH + x % PANEL_WIDTH;
+    *hwy = y % PANEL_HEIGHT;
 }
