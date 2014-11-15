@@ -34,8 +34,54 @@
 #define PANEL_HEIGHT        32
 #define PANEL_WIDTH         32
 
+
 // refresh rate. if not defined here it will be calculated later on
 //#define MATRIX_REFRESH_RATE         120
+
+
+// default order for panel chaining: zig zag-shape (eg: 96x64 display):
+//     _______       _______       _______
+//    |       |     |       |     |       |
+// .->| i p o |---->| i p o |---->| i p o |
+// |  |       |     |       |     |       |
+// |  |   4   |     |   5   |     |   6   |
+// |  |_______|     |_______|     |_______|
+// |
+// `-----------------------------------------.
+//     _______       _______       _______   |
+//    |       |     |       |     |       |  |
+// -->| i p o |---->| i p o |---->| i p o |--'
+//    |       |     |       |     |       |
+//    |   1   |     |   2   |     |   3   |
+//    |_______|     |_______|     |_______|
+//
+//
+// legend:
+//  i .. location of input connector (seen from the backside of the panel)
+//  p .. power connector
+//  o .. output connector
+//
+//
+// if CHAININIG_C_SHAPE is defined, the order is:
+// (panels 4, 5, and 6 are rotated)
+//     _______       _______       _______
+//    |       |     |       |     |       |
+//    |   6   |     |   5   |     |   4   |
+//    |       |     |       |     |       |
+//    | o p i |<----| o p i |<----| o p i |<-.
+//    |_______|     |_______|     |_______|  |
+//                                           |
+//                                           |
+//     _______       _______       _______   |
+//    |       |     |       |     |       |  |
+// -->| i p o |---->| i p o |---->| i p o |--'
+//    |       |     |       |     |       |
+//    |   1   |     |   2   |     |   3   |
+//    |_______|     |_______|     |_______|
+//
+//
+
+//#define CHAINING_C_SHAPE
 
 
 //

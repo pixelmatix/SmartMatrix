@@ -788,6 +788,17 @@ void SmartMatrix::convertToHardwareXY(int16_t x, int16_t y, int16_t *hwx, int16_
     int16_t panelRow = y / PANEL_HEIGHT;
     int16_t panelCol = x / PANEL_WIDTH;
     int16_t fullPanels = panelRow * PANELS_PER_ROW + panelCol;
-    *hwx = fullPanels * PANEL_WIDTH + x % PANEL_WIDTH;
-    *hwy = y % PANEL_HEIGHT;
+
+#ifdef CHAINING_C_SHAPE
+    if ((panelRow % 2) == 0) {  // even row: adapt x/y coordinates
+      fullPanels = panelRow * PANELS_PER_ROW + ((PANELS_PER_ROW-1) - panelCol);
+      *hwx = fullPanels * PANEL_WIDTH + ((PANEL_WIDTH-1) - (x % PANEL_WIDTH));
+      *hwy = (PANEL_HEIGHT-1) - (y % PANEL_HEIGHT);
+    } else {
+#endif
+      *hwx = fullPanels * PANEL_WIDTH + x % PANEL_WIDTH;
+      *hwy = y % PANEL_HEIGHT;
+#ifdef CHAINING_C_SHAPE
+    }
+#endif
 }
