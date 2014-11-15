@@ -20,10 +20,12 @@ All necessary configuration for supporting 144 Mhz and 120 Mhz is already includ
 
 You simply have to uncomment these two lines:
 
+```
 teensy31.menu.speed.144.name=144 MHz (overclock)
 teensy31.menu.speed.120.name=120 MHz (overclock)
+```
 
 - After restarting your arduino IDE you should be able to change cpu speed to 144 MHz.
 
 
-If you don't want to set cpu speed to 144 MHz you might have to set MATRIX_REFRESH_RATE to a value lower than 120.
+If you don't want to set cpu speed to 144 MHz you might have to set MATRIX_REFRESH_RATE to a value lower than 80.
