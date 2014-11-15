@@ -26,31 +26,31 @@
 #ifndef MATRIX_HARDWARE_H
 #define MATRIX_HARDWARE_H
 
-// basic display size (32x32 1/16 refresh and 16x32 1/8 refresh display supported)
-// to use multiple matrices in a row, set MATRIX_WIDTH to the total width
-// multiple matrix rows are not supported
-
+// basic display size
 #define DRAWING_WIDTH       96
 #define DRAWING_HEIGHT      64
-//#define DRAWING_WIDTH       64
-//#define DRAWING_HEIGHT      32
-//#define DRAWING_HEIGHT      64
 
+// resoluation of a single matrix panel
 #define PANEL_HEIGHT        32
 #define PANEL_WIDTH         32
 
-//#define MATRIX_HEIGHT       32
-//#define MATRIX_WIDTH        64
-//#define MATRIX_HEIGHT       32
-//#define MATRIX_WIDTH        128
+// refresh rate. if not defined here it will be calculated later on
+//#define MATRIX_REFRESH_RATE         120
 
+
+//
+// calculate other values
+//
+// calculate MATRIX_WIDTH and MATRIX_HEIGHT
 #define MATRIX_HEIGHT       PANEL_HEIGHT
 #define MATRIX_WIDTH        (DRAWING_WIDTH * (DRAWING_HEIGHT / PANEL_HEIGHT)) 
 
+// calculate amount of panels per row
 #define PANELS_PER_ROW      DRAWING_WIDTH / PANEL_WIDTH
 
-// an advanced user may need to tweak these values
-//
+
+// refresh rate not set explicitly: do some calculations according to amount of panels used
+// if using more than 4 panels: use a Teensy 3.1 with cpu speed set to 144 MHz
 #ifndef MAXTRIX_REFRESH_RATE
  #define MATRIX_TOTPANELS ((DRAWING_WIDTH / PANEL_WIDTH) * (DRAWING_HEIGHT / PANEL_HEIGHT))
  #if MATRIX_TOTPANELS >= 6
@@ -65,6 +65,7 @@
 
 // only 24-bit color supported
 #define COLOR_DEPTH_RGB             24
+//#define COLOR_DEPTH_RGB             36
 // DMA_BUFFER_NUMBER_OF_ROWS = the size of the buffer that DMA pulls from to refresh the display
 // must be minimum 2 rows so one can be updated while the otehr is refreshed
 // increase beyond two to give more time for the update routine to complete
