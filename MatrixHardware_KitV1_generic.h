@@ -30,7 +30,7 @@
 #define DRAWING_WIDTH       96
 #define DRAWING_HEIGHT      64
 
-// resoluation of a single matrix panel
+// resolution of a single matrix panel
 #define PANEL_HEIGHT        32
 #define PANEL_WIDTH         32
 
@@ -62,7 +62,7 @@
 //  o .. output connector
 //
 //
-// if CHAININIG_C_SHAPE is defined, the order is:
+// if CHAININIG_C_SHAPE is defined, the order will be:
 // (panels 4, 5, and 6 are rotated)
 //     _______       _______       _______
 //    |       |     |       |     |       |
