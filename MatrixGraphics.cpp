@@ -345,6 +345,68 @@ void SmartMatrix::fillCircle(int16_t x0, int16_t y0, uint16_t radius, const rgb2
     }
 }
 
+// from https://web.archive.org/web/20120225095359/http://homepage.smc.edu/kennedy_john/belipse.pdf
+void SmartMatrix::drawEllipse(int16_t x0, int16_t y0, uint16_t radiusX, uint16_t radiusY, const rgb24& color) {
+    int16_t twoASquare = 2 * radiusX * radiusX;
+    int16_t twoBSquare = 2 * radiusY * radiusY;
+    
+    int16_t x = radiusX;
+    int16_t y = 0;
+    int16_t changeX = radiusY * radiusY * (1 - (2 * radiusX));
+    int16_t changeY = radiusX * radiusX;
+    int16_t ellipseError = 0;
+    int16_t stoppingX = twoBSquare * radiusX;
+    int16_t stoppingY = 0;
+    
+    while (stoppingX >= stoppingY) {    // first set of points, y' > -1
+        drawPixel(x0 + x, y0 + y, color);
+        drawPixel(x0 - x, y0 + y, color);
+        drawPixel(x0 - x, y0 - y, color);
+        drawPixel(x0 + x, y0 - y, color);
+        
+        y++;
+        stoppingY += twoASquare;
+        ellipseError += changeY;
+        changeY += twoASquare;
+        
+        if (((2 * ellipseError) + changeX) > 0) {
+            x--;
+            stoppingX -= twoBSquare;
+            ellipseError += changeX;
+            changeX += twoBSquare;
+        }
+    }
+    
+    // first point set is done, start the second set of points
+    
+    x = 0;
+    y = radiusY;
+    changeX = radiusY * radiusY;
+    changeY = radiusX * radiusX * (1 - 2 * radiusY);
+    ellipseError = 0;
+    stoppingX = 0;
+    stoppingY = twoASquare * radiusY;
+    
+    while (stoppingX <= stoppingY) {    // second set of points, y' < -1
+        drawPixel(x0 + x, y0 + y, color);
+        drawPixel(x0 - x, y0 + y, color);
+        drawPixel(x0 - x, y0 - y, color);
+        drawPixel(x0 + x, y0 - y, color);
+        
+        x++;
+        stoppingX += twoBSquare;
+        ellipseError += changeX;
+        changeX += twoBSquare;
+        
+        if (((2 * ellipseError) + changeY) > 0) {
+            y--;
+            stoppingY -= twoASquare;
+            ellipseError += changeY;
+            changeY += twoASquare;
+        }
+    }
+}
+
 void SmartMatrix::fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
   uint16_t radius, const rgb24& fillColor) {
     fillRoundRectangle(x0, y0, x1, y1, radius, fillColor, fillColor);
