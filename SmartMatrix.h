@@ -138,6 +138,7 @@ public:
     rgb24 *backBuffer(void);
     void setBackBuffer(rgb24 *newBuffer);
     rgb24 *getRealBackBuffer(void);
+    void setRefreshRate(uint8_t refreshRate);
 
     // scroll text
     void scrollText(const char inputtext[], int numScrolls);

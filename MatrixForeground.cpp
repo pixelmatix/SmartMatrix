@@ -195,6 +195,8 @@ void SmartMatrix::setScrollMode(ScrollMode mode) {
     scrollmode = mode;
 }
 
+extern unsigned char MATRIX_REFRESH_RATE;
+
 void SmartMatrix::setScrollSpeed(unsigned char pixels_per_second) {
     framesperscroll = (MATRIX_REFRESH_RATE * 1.0) / pixels_per_second;
 }

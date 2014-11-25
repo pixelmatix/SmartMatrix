@@ -49,6 +49,13 @@ uint16_t SmartMatrix::getScreenHeight(void) const {
     return screenConfig.localHeight;
 }
 
+extern unsigned char MATRIX_REFRESH_RATE;
+
+void SmartMatrix::setRefreshRate(uint8_t refreshRate) {
+    MATRIX_REFRESH_RATE = refreshRate;
+    calculateTimerLut();
+}
+
 volatile bool SmartMatrix::brightnessChange = false;
 const int SmartMatrix::dimmingMaximum = 255;
 // large factor = more dim, default is full brightness

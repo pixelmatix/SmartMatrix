@@ -36,6 +36,8 @@
 #define DMA_UPDATES_PER_CLOCK           2
 #define ROW_CALCULATION_ISR_PRIORITY   0xFE // 0xFF = lowest priority
 
+unsigned char MATRIX_REFRESH_RATE = 135;
+
 // hardware-specific definitions
 // prescale of 0 is F_BUS
 #define LATCH_TIMER_PRESCALE  0x00
@@ -136,7 +138,7 @@ INLINE void SmartMatrix::matrixCalculations(void) {
     }
 }
 
-INLINE void SmartMatrix::calculateTimerLut(void) {
+void SmartMatrix::calculateTimerLut(void) {
     int i;
 
     for (i = 0; i < LATCHES_PER_ROW; i++) {
