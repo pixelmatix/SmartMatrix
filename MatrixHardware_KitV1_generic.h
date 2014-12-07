@@ -39,7 +39,7 @@
 //#define MATRIX_REFRESH_RATE         120
 
 // if defined, disable all foreground-drawing functions (scrolling) to save memory
-#define DISABLE_FOREGROUND_FUNCTIONS
+// #define DISABLE_FOREGROUND_FUNCTIONS
 
 // default order for panel chaining: zig zag-shape (eg: 96x64 display):
 //     _______       _______       _______
