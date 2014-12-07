@@ -38,6 +38,8 @@
 // refresh rate. if not defined here it will be calculated later on
 //#define MATRIX_REFRESH_RATE         120
 
+// if defined, disable all foreground-drawing functions (scrolling) to save memory
+#define DISABLE_FOREGROUND_FUNCTIONS
 
 // default order for panel chaining: zig zag-shape (eg: 96x64 display):
 //     _______       _______       _______
@@ -94,14 +96,15 @@
 // calculate amount of panels per row
 #define PANELS_PER_ROW      DRAWING_WIDTH / PANEL_WIDTH
 
+// calculate total amonut of panels used
+#define MATRIX_TOTAL_PANELS ((DRAWING_WIDTH / PANEL_WIDTH) * (DRAWING_HEIGHT / PANEL_HEIGHT))
 
 // refresh rate not set explicitly: do some calculations according to amount of panels used
 // if using more than 4 panels: use a Teensy 3.1 with cpu speed set to 144 MHz
 #ifndef MAXTRIX_REFRESH_RATE
- #define MATRIX_TOTPANELS ((DRAWING_WIDTH / PANEL_WIDTH) * (DRAWING_HEIGHT / PANEL_HEIGHT))
- #if MATRIX_TOTPANELS >= 6
+ #if MATRIX_TOTAL_PANELS >= 6
   #define MATRIX_REFRESH_RATE         80
- #elif MATRIX_TOTPANELS >= 4
+ #elif MATRIX_TOTAL_PANELS >= 4
   #define MATRIX_REFRESH_RATE         100
  #else
   #define MATRIX_REFRESH_RATE         120

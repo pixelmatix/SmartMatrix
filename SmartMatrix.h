@@ -33,6 +33,7 @@
 #include "MatrixHardware_KitV1_generic.h"
 
 
+#ifndef DISABLE_FOREGROUND_FUNCTIONS
 // scroll text
 const int textLayerMaxStringLength = 50;
 
@@ -44,6 +45,7 @@ typedef enum ScrollMode {
     off,
     wrapForwardFromLeft,
 } ScrollMode;
+#endif
 
 
 // font
@@ -140,6 +142,7 @@ public:
     void setBackBuffer(rgb24 *newBuffer);
     rgb24 *getRealBackBuffer(void);
 
+#ifndef DISABLE_FOREGROUND_FUNCTIONS
     // scroll text
     void scrollText(const char inputtext[], int numScrolls);
     void setScrollMode(ScrollMode mode);
@@ -160,6 +163,7 @@ public:
     void drawForegroundString(int16_t x, int16_t y, const char text [], bool opaque = true);
     void drawForegroundMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, uint8_t *bitmap, bool opaque = true);
     void displayForegroundDrawing(bool waitUntilComplete = true);
+#endif
 
     // configuration
     void setRotation(rotationDegrees rotation);
@@ -188,10 +192,12 @@ private:
     static void getPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24 *xyPixel);
     static rgb24 *getRefreshRow(uint8_t y);
     static void handleBufferSwap(void);
+#ifndef DISABLE_FOREGROUND_FUNCTIONS
     static void handleForegroundDrawingCopy(void);
     static void updateForeground(void);
     static bool getForegroundPixel(uint8_t x, uint8_t y, rgb24 *xyPixel);
     static void redrawForeground(void);
+#endif
 
     // drawing functions not meant for user
     void drawHardwareHLine(uint8_t x0, uint8_t x1, uint8_t y, const rgb24& color);

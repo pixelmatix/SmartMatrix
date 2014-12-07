@@ -24,6 +24,8 @@
 #include <string.h>
 #include "SmartMatrix.h"
 
+#ifndef DISABLE_FOREGROUND_FUNCTIONS
+
 // FIXME: Most of these variable should be in smartmatrix class (i.e. one per instance of smart matrix, rather than being global)
 // options
 static char text[textLayerMaxStringLength];
@@ -380,3 +382,5 @@ bool SmartMatrix::getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24
 
     return false;
 }
+
+#endif // DISABLE_FOREGROUND_FUNCTIONS

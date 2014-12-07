@@ -107,14 +107,17 @@ INLINE void SmartMatrix::matrixCalculations(void) {
         // do once-per-frame updates
         if (!currentRow) {
             handleBufferSwap();
+#ifndef DISABLE_FOREGROUND_FUNCTIONS
             handleForegroundDrawingCopy();
-
+#endif
             calculateBackgroundLUT();
 
 #ifdef DEBUG_PINS_ENABLED
     digitalWriteFast(DEBUG_PIN_3, HIGH); // oscilloscope trigger
 #endif
+#ifndef DISABLE_FOREGROUND_FUNCTIONS
             updateForeground();
+#endif
 #ifdef DEBUG_PINS_ENABLED
     digitalWriteFast(DEBUG_PIN_3, LOW);
 #endif
@@ -398,6 +401,7 @@ INLINE void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
         uint8_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;
 #endif
 
+#ifndef DISABLE_FOREGROUND_FUNCTIONS
         if (bHasForeground && getForegroundPixel(i, currentRow, &tempPixel0)) {
             if(bHasCC) {
                 // load foreground pixel with color correction
@@ -411,6 +415,7 @@ INLINE void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
                 temp0blue = tempPixel0.blue;
             }
         } else {
+#endif
             if(bHasCC) {
                 // load background pixel with color correction
                 temp0red = backgroundColorCorrection(pRow[i].red);
@@ -422,8 +427,11 @@ INLINE void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
                 temp0green = pRow[i].green;
                 temp0blue = pRow[i].blue;
             }
+#ifndef DISABLE_FOREGROUND_FUNCTIONS
         }
+#endif
 
+#ifndef DISABLE_FOREGROUND_FUNCTIONS
         if (bHasForeground && getForegroundPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, &tempPixel1)) {
             if(bHasCC) {
                 // load foreground pixel with color correction
@@ -437,6 +445,7 @@ INLINE void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
                 temp1blue = tempPixel1.blue;
             }
         } else {
+#endif
             if(bHasCC) {
                 // load background pixel with color correction
                 temp1red = backgroundColorCorrection(pRow2[i].red);
@@ -448,7 +457,9 @@ INLINE void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
                 temp1green = pRow2[i].green;
                 temp1blue = pRow2[i].blue;
             }
+#ifndef DISABLE_FOREGROUND_FUNCTIONS
         }
+#endif
 
 #if LATCHES_PER_ROW >= 12
         if(!bHasCC) {
