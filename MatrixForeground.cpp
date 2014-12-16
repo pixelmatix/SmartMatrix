@@ -70,6 +70,8 @@ void SmartMatrix::clearForeground(void) {
 }
 
 void SmartMatrix::displayForegroundDrawing(bool waitUntilComplete) {
+    hasForeground = true;
+
     while (foregroundCopyPending);
 
     foregroundCopyPending = true;
