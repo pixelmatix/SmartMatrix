@@ -4,9 +4,13 @@
 
 SmartMatrix matrix;
 
+int led = 13;
+
 void setup() {
     matrix.begin();
     matrix.setBrightness(128);
+
+    pinMode(led, OUTPUT);     
 }
 
 void loop() {
@@ -21,10 +25,13 @@ void loop() {
             buffer[i].green = pixelmatixlogo.pixel_data[i * 3 + 1];
             buffer[i].blue = pixelmatixlogo.pixel_data[i * 3 + 2];
         }
-
+    
     matrix.swapBuffers(true);
 
-    delay(2000);
+    digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
+    delay(1000);
+    digitalWrite(led, LOW);    // turn the LED off by making the voltage LOW
+    delay(1000);
 
     buffer = matrix.backBuffer();
 
@@ -38,6 +45,8 @@ void loop() {
 
     matrix.swapBuffers(true);
 
-
-    delay(2000);
+    digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
+    delay(1000);
+    digitalWrite(led, LOW);    // turn the LED off by making the voltage LOW
+    delay(1000);
 }
