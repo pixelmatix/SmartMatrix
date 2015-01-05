@@ -27,8 +27,8 @@
 #define MATRIX_HARDWARE_H
 
 // basic display size
-#define DRAWING_WIDTH       96
-#define DRAWING_HEIGHT      64
+#define DRAWING_WIDTH       64
+#define DRAWING_HEIGHT      32
 
 // resolution of a single matrix panel
 #define PANEL_HEIGHT        32

@@ -46,8 +46,7 @@ static unsigned char framesperscroll = 4;
 
 //bitmap size is 32 rows (supporting maximum dimension of screen height in all rotations), by 32 bits
 // double buffered to prevent flicker while drawing
-#define MAX_SIZE max(MATRIX_WIDTH, MATRIX_HEIGHT)
-static uint32_t foregroundBitmap[2][MAX_SIZE][MAX_SIZE / 32];
+static uint32_t foregroundBitmap[2][MATRIX_HEIGHT][MATRIX_WIDTH / 32];
 const unsigned char foregroundDrawBuffer = 0;
 const unsigned char foregroundRefreshBuffer = 1;
 volatile bool SmartMatrix::foregroundCopyPending = false;
