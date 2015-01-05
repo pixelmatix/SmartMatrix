@@ -46,7 +46,8 @@ static unsigned char framesperscroll = 4;
 
 //bitmap size is 32 rows (supporting maximum dimension of screen height in all rotations), by 32 bits
 // double buffered to prevent flicker while drawing
-static uint32_t foregroundBitmap[2][MATRIX_WIDTH][MATRIX_WIDTH / 32];
+#define MAX_SIZE max(MATRIX_WIDTH, MATRIX_HEIGHT)
+static uint32_t foregroundBitmap[2][MAX_SIZE][MAX_SIZE / 32];
 const unsigned char foregroundDrawBuffer = 0;
 const unsigned char foregroundRefreshBuffer = 1;
 volatile bool SmartMatrix::foregroundCopyPending = false;
@@ -223,10 +224,9 @@ void SmartMatrix::setScrollStartOffsetFromLeft(int offset) {
 
 // if font size or position changed since the last call, redraw the whole frame
 void SmartMatrix::redrawForeground(void) {
-    int j, k;
+    int j, k, l;
     int charPosition, textPosition;
     uint8_t charY0, charY1;
-
 
     for (j = 0; j < screenConfig.localHeight; j++) {
 
@@ -267,7 +267,9 @@ void SmartMatrix::redrawForeground(void) {
 
         // clear rows used by font before drawing on top
         for (k = 0; k < charY1 - charY0; k++)
-            foregroundBitmap[foregroundRefreshBuffer][j + k][0] = 0x00;
+            for (l = 0; l < SmartMatrix::screenConfig.localWidth / 32; ++l) {
+                foregroundBitmap[foregroundRefreshBuffer][j + k][l] = 0x00;
+            }
 
         while (textPosition < textlen && charPosition < screenConfig.localWidth) {
             uint32_t tempBitmask;
@@ -275,10 +277,15 @@ void SmartMatrix::redrawForeground(void) {
             for (k = charY0; k < charY1; k++) {
                 // read in uint8, shift it to be in MSB (font is in the top bits of the uint32)
                 tempBitmask = getBitmapFontRowAtXY(text[textPosition], k, scrollFont) << 24;
-                if (charPosition < 0)
-                    foregroundBitmap[foregroundRefreshBuffer][j + k - charY0][0] |= tempBitmask << -charPosition;
-                else
-                    foregroundBitmap[foregroundRefreshBuffer][j + k - charY0][0] |= tempBitmask >> charPosition;
+
+                for (l = 0; l < SmartMatrix::screenConfig.localWidth / 32; ++l) {
+                    // character position relative to panel l
+                    int panelPosition = charPosition - l * 32;
+                    if (panelPosition > -8 && panelPosition < 0)
+                        foregroundBitmap[foregroundRefreshBuffer][j + k - charY0][l] |= tempBitmask << -panelPosition;
+                    else if (panelPosition >= 0 && panelPosition < 32)
+                        foregroundBitmap[foregroundRefreshBuffer][j + k - charY0][l] |= tempBitmask >> panelPosition;
+                }
             }
 
             // get set up for next character
@@ -375,9 +382,11 @@ bool SmartMatrix::getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24
         break;
     };
 
-    uint32_t bitmask = 0x01 << (31 - localScreenX);
+    uint8_t panelIndex = localScreenX / 32;
+    uint8_t panelScreenX = localScreenX % 32;
+    uint32_t bitmask = 0x01 << (31 - panelScreenX);
 
-    if (foregroundBitmap[foregroundRefreshBuffer][localScreenY][0] & bitmask) {
+    if (foregroundBitmap[foregroundRefreshBuffer][localScreenY][panelIndex] & bitmask) {
         copyRgb24(*xyPixel, textcolor);
         return true;
     }
