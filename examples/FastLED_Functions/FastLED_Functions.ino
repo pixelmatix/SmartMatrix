@@ -66,7 +66,7 @@ void setup() {
   matrix.setScrollSpeed(15);
   matrix.setScrollFont(font6x10);
   matrix.scrollText("SmartMatrix & FastLED", -1);
-  matrix.setScrollOffsetFromEdge((kMatrixHeight - 10)/2);
+  matrix.setScrollOffsetFromEdge((kMatrixHeight/2) - 5);
 }
 
 // Fill the x/y array of 8-bit noise values using the inoise8 function.

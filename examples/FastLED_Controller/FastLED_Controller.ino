@@ -15,8 +15,8 @@
 #include <SmartMatrix_32x32.h>
 #include <FastLED.h>
 
-#define kMatrixWidth  32
-#define kMatrixHeight 32
+#define kMatrixWidth  MATRIX_WIDTH
+#define kMatrixHeight MATRIX_HEIGHT
 const bool    kMatrixSerpentineLayout = false;
 
 #define NUM_LEDS (kMatrixWidth * kMatrixHeight)
@@ -91,7 +91,7 @@ void setup() {
   pSmartMatrix->setScrollSpeed(15);
   pSmartMatrix->setScrollFont(font6x10);
   pSmartMatrix->scrollText("Smart Matrix & FastLED", -1);
-  pSmartMatrix->setScrollOffsetFromEdge(10);
+  pSmartMatrix->setScrollOffsetFromEdge(kMatrixHeight/2 - 5);
 
   // FastLED disables SmartMatrix's gamma correction by default, turn it on if you like
   //pSmartMatrix->setColorCorrection(cc48);
