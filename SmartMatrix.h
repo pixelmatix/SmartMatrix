@@ -149,6 +149,7 @@ public:
 #define setScrollOffsetFromEdge setScrollOffsetFromTop // backwards compatibility
     void setScrollOffsetFromTop(int offset);
     void setScrollStartOffsetFromLeft(int offset);
+    void updateScrollText(const char inputtext[]);
     void stopScrollText(void);
     int getScrollStatus(void) const;
 
