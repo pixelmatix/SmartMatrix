@@ -1,6 +1,8 @@
 // Created from bdf2c Version 4, (c) 2009, 2010 by Lutz Sammer
 //	License AGPLv3: GNU Affero General Public License version 3
 
+// Source: http://robey.lag.net/2010/01/23/tiny-monospace-font.html
+
 #include "MatrixFontCommon.h"
 
 	/// character bitmap for each encoding
