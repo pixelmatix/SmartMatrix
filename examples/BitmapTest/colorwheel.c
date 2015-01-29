@@ -1,11 +1,12 @@
 /* GIMP RGB C-Source image dump (colorwheel.c) */
+/* Manually modified, replacing the default struct definition output by GIMP
+ * with "static const gimp32x32bitmap" and adding #include "gimpbitmap.h"
+ * Compare with pixelmatix.c to see modification
+ */
 
-static const struct {
-  unsigned int 	 width;
-  unsigned int 	 height;
-  unsigned int 	 bytes_per_pixel; /* 2:RGB16, 3:RGB, 4:RGBA */ 
-  unsigned char	 pixel_data[32 * 32 * 3 + 1];
-} colorwheel = {
+#include "gimpbitmap.h"
+
+static const gimp32x32bitmap colorwheel = {
   32, 32, 3,
   "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\5\11\0""1\\"
   "\0Z\255\0o\326\0n\325\0i\326\0\334\315\2\325\316\0\325\315\0\254\246\0\\"
