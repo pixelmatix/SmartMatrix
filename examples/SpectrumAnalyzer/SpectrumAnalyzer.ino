@@ -2,10 +2,17 @@
  * Based on SpectrumAnalyzerBasic by Paul Stoffregen included in the Teensy Audio Library
  * Modified by Jason Coon for the SmartMatrix Library
  * Requires Teensyduino 1.20 and the Teensy Audio Library
- * Also requires FastLED 2.1
+ * Also requires FastLED 3.0 or higher
  * If you are having trouble compiling, see
  * the troubleshooting instructions here:
  * http://docs.pixelmatix.com/SmartMatrix/#external-libraries
+ *
+ * Requires the following libraries:
+ * Teensy Audio Library: https://github.com/PaulStoffregen/Audio
+ * Smartmatrix Library for Teensy 3: https://github.com/pixelmatix/smartmatrix/releases
+ * FastLED v3.0 or higher: https://github.com/FastLED/FastLED/releases
+ *
+ * Uses line in on pin A2.  For more information, and a recommended analog input circuit, see: http://www.pjrc.com/teensy/gui/?info=AudioInputAnalog
  *
  * You can change the pin used for ADC with the ADC_INPUT_PIN definition below.
  * There are no dedicated ADC pins brought out on the SmartMatrix Shield,
