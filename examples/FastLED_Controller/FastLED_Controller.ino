@@ -1,5 +1,5 @@
 /*
- * Example copied from FastLED 2.1 Branch - written by Daniel Garcia
+ * Example copied from FastLED 3.0 Branch - written by Daniel Garcia
  * This example shows how to draw to the SmartMatrix using FastLED's "SMART_MATRIX" controller
  * instead of using the SmartMatrix library directly
  * This has the advantage of working directly with a CRGB drawing buffer, and is more familiar
@@ -7,7 +7,7 @@
  * balance which happens in the background when calling LEDS.show().  There's no one 'right' way to use these two
  * libraries together, try this example and FastLED_Functions and figure out what is 'right' for you
  *
- * This example requires FastLED 2.1.  If you are having trouble compiling, see
+ * This example requires FastLED 3.0 or higher.  If you are having trouble compiling, see
  * the troubleshooting instructions here:
  * http://docs.pixelmatix.com/SmartMatrix/#external-libraries
  */

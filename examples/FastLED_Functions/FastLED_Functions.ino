@@ -1,12 +1,12 @@
 /*
- * Modified example copied from FastLED 2.1 Branch - originally written by Daniel Garcia
+ * Modified example copied from FastLED 3.0 Branch - originally written by Daniel Garcia
  * This example shows how to use some of FastLEDs functions with the SmartMatrix Library
  * using the SmartMatrix buffers directly instead of FastLED's buffers.
  * FastLED's dithering and color balance features can't be used this way, but SmartMatrix can draw in
  * 36-bit color and so dithering may not provide much advantage.  There's no one 'right' way to use these two
  * libraries together, try this example and FastLED_Controller and figure out what is 'right' for you
  *
- * This example requires FastLED 2.1.  If you are having trouble compiling, see
+ * This example requires FastLED 3.0 or higher.  If you are having trouble compiling, see
  * the troubleshooting instructions here:
  * http://docs.pixelmatix.com/SmartMatrix/#external-libraries
  */
