@@ -53,6 +53,7 @@ extern const bitmap_font apple6x10;
 extern const bitmap_font apple8x13;
 extern const bitmap_font gohufont6x11;
 extern const bitmap_font gohufont6x11b;
+extern const bitmap_font tomthumb;
 
 typedef enum fontChoices {
     font3x5,
@@ -61,6 +62,7 @@ typedef enum fontChoices {
     font8x13,
     gohufont11,
     gohufont11b,
+    fonttomthumb,
 } fontChoices;
 
 
