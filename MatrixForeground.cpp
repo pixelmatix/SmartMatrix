@@ -156,17 +156,8 @@ int SmartMatrix::getScrollStatus(void) const {
     return scrollcounter;
 }
 
-void SmartMatrix::scrollText(const char inputtext[], int numScrolls) {
-    int length = strlen((const char *)inputtext);
-    if (length > textLayerMaxStringLength)
-        length = textLayerMaxStringLength;
-    strncpy(text, (const char *)inputtext, length);
-    textlen = length;
-    scrollcounter = numScrolls;
-
-    textWidth = (textlen * scrollFont->Width) - 1;
-
-    switch (scrollmode) {
+void SmartMatrix::setScrollMinMax(void) {
+   switch (scrollmode) {
     case wrapForward:
     case bounceForward:
     case bounceReverse:
@@ -190,7 +181,21 @@ void SmartMatrix::scrollText(const char inputtext[], int numScrolls) {
         scrollMin = scrollMax = scrollPosition = 0;
         break;
     }
+
 }
+
+void SmartMatrix::scrollText(const char inputtext[], int numScrolls) {
+    int length = strlen((const char *)inputtext);
+    if (length > textLayerMaxStringLength)
+        length = textLayerMaxStringLength;
+    strncpy(text, (const char *)inputtext, length);
+    textlen = length;
+    scrollcounter = numScrolls;
+
+    textWidth = (textlen * scrollFont->Width) - 1;
+
+    setScrollMinMax();
+ }
 
 //Updates the text that is currently scrolling to the new value
 //Useful for a clock display where the time changes.
@@ -201,6 +206,8 @@ void SmartMatrix::updateScrollText(const char inputtext[]){
     strncpy(text, (const char *)inputtext, length);
     textlen = length;
     textWidth = (textlen * scrollFont->Width) - 1;
+
+    setScrollMinMax();
 }
 
 // TODO: recompute stuff after changing mode, font, etc

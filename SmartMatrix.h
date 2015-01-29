@@ -192,6 +192,7 @@ private:
     static void updateForeground(void);
     static bool getForegroundPixel(uint8_t x, uint8_t y, rgb24 *xyPixel);
     static void redrawForeground(void);
+    static void setScrollMinMax(void);
 
     // drawing functions not meant for user
     void drawHardwareHLine(uint8_t x0, uint8_t x1, uint8_t y, const rgb24& color);
