@@ -15,6 +15,9 @@
 // colorwheel.c has been modified to use the gimp32x32bitmap struct
 #include "colorwheel.c"
 
+// chrome16 is a 16x16 pixel bitmap, exported from GIMP without modification
+#include "chrome16.c"
+
 SmartMatrix matrix;
 
 int led = 13;
@@ -42,9 +45,10 @@ void loop() {
   int i;
   rgb24 *buffer;
 
+  matrix.fillScreen({0,0,0});
   // to use drawBitmap, must cast the pointer to pixelmatixlogo as (const gimp32x32bitmap*)
   drawBitmap(0,0,(const gimp32x32bitmap*)&pixelmatixlogo);
-  matrix.swapBuffers(true);
+  matrix.swapBuffers();
 
   digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
   delay(1000);
@@ -53,9 +57,23 @@ void loop() {
 
   buffer = matrix.backBuffer();
 
+  matrix.fillScreen({0,0,0});
   // can pass &colorwheel in directly as the bitmap source is already gimp32x32bitmap
   drawBitmap(0,0,&colorwheel);
-  matrix.swapBuffers(true);
+  matrix.swapBuffers();
+
+  digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
+  delay(1000);
+  digitalWrite(led, LOW);    // turn the LED off by making the voltage LOW
+  delay(1000);
+
+
+  matrix.fillScreen({0,0,0});
+  // draw this smaller bitmap centered
+  int x = (MATRIX_WIDTH / 2) - (chrome16.width/2);
+  int y = (MATRIX_HEIGHT / 2) - (chrome16.height/2);
+  drawBitmap(x, y, (const gimp32x32bitmap*)&chrome16);
+  matrix.swapBuffers();
 
   digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
   delay(1000);
