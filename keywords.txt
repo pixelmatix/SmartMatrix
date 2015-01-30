@@ -1,78 +1,81 @@
 #######################################
-# Syntax Coloring Map For Time
+# Syntax Coloring Map For SmartMatrix
 #######################################
 
 #######################################
 # Datatypes (KEYWORD1)
 #######################################
 ScrollMode	KEYWORD1
-fontChoices KEYWORD1
-rgb24 KEYWORD1
-colorCorrectionModes  KEYWORD1
-rotationDegrees KEYWORD1
-screen_config KEYWORD1
-SmartMatrix KEYWORD1
+fontChoices	KEYWORD1
+rgb24	KEYWORD1
+colorCorrectionModes	KEYWORD1
+rotationDegrees	KEYWORD1
+screen_config	KEYWORD1
+SmartMatrix	KEYWORD1
+SmartMatrix_32x32	KEYWORD1
+SmartMatrix_16x32	KEYWORD1
+
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
-RGB24_ISEQUAL	 KEYWORD2
-# Drawing Methods
-begin KEYWORD2
-swapBuffers KEYWORD2
-drawPixel KEYWORD2
-drawLine KEYWORD2
-drawFastVLine KEYWORD2
-drawFastHLine KEYWORD2
-drawCircle KEYWORD2
-fillCircle KEYWORD2
-fillCircle KEYWORD2
-drawTriangle KEYWORD2
-fillTriangle KEYWORD2
-fillTriangle KEYWORD2
-drawRectangle KEYWORD2
-fillRectangle KEYWORD2
-fillRectangle KEYWORD2
-drawRoundRectangle KEYWORD2
-fillRoundRectangle KEYWORD2
-fillRoundRectangle KEYWORD2
-fillScreen KEYWORD2
-drawChar KEYWORD2
-drawString KEYWORD2
-drawMonoBitmap KEYWORD2
-readPixel KEYWORD2
-backBuffer KEYWORD2
-setBackBuffer KEYWORD2
-getRealBackBuffer KEYWORD2
+RGB24_ISEQUAL		KEYWORD2
+#	Drawing	Methods
+begin	KEYWORD2
+swapBuffers	KEYWORD2
+drawPixel	KEYWORD2
+drawLine	KEYWORD2
+drawFastVLine	KEYWORD2
+drawFastHLine	KEYWORD2
+drawCircle	KEYWORD2
+fillCircle	KEYWORD2
+fillCircle	KEYWORD2
+drawTriangle	KEYWORD2
+fillTriangle	KEYWORD2
+fillTriangle	KEYWORD2
+drawRectangle	KEYWORD2
+fillRectangle	KEYWORD2
+fillRectangle	KEYWORD2
+drawRoundRectangle	KEYWORD2
+fillRoundRectangle	KEYWORD2
+fillRoundRectangle	KEYWORD2
+fillScreen	KEYWORD2
+drawChar	KEYWORD2
+drawString	KEYWORD2
+drawMonoBitmap	KEYWORD2
+readPixel	KEYWORD2
+backBuffer	KEYWORD2
+setBackBuffer	KEYWORD2
+getRealBackBuffer	KEYWORD2
 
 # Scroll text
-scrollText KEYWORD2
-setScrollMode KEYWORD2
-setScrollSpeed KEYWORD2
-setScrollFont KEYWORD2
-setScrollColor KEYWORD2
-setScrollOffsetFromEdge KEYWORD2
-setScrollOffsetFromTop KEYWORD2
-setScrollStartOffsetFromLeft KEYWORD2
-stopScrollText KEYWORD2
-getScrollStatus KEYWORD2
+scrollText	KEYWORD2
+setScrollMode	KEYWORD2
+setScrollSpeed	KEYWORD2
+setScrollFont	KEYWORD2
+setScrollColor	KEYWORD2
+setScrollOffsetFromEdge	KEYWORD2
+setScrollOffsetFromTop	KEYWORD2
+setScrollStartOffsetFromLeft	KEYWORD2
+stopScrollText	KEYWORD2
+getScrollStatus	KEYWORD2
 
 # Foreground Drawing
-clearForeground KEYWORD2
-setForegroundFont KEYWORD2
-drawForegroundPixel KEYWORD2
-drawForegroundChar KEYWORD2
-drawForegroundString KEYWORD2
-drawForegroundMonoBitmap KEYWORD2
-displayForegroundDrawing KEYWORD2
+clearForeground	KEYWORD2
+setForegroundFont	KEYWORD2
+drawForegroundPixel	KEYWORD2
+drawForegroundChar	KEYWORD2
+drawForegroundString	KEYWORD2
+drawForegroundMonoBitmap	KEYWORD2
+displayForegroundDrawing	KEYWORD2
 
 # configuration
-setRotation KEYWORD2
-getScreenWidth KEYWORD2
-getScreenHeight KEYWORD2
-setBrightness KEYWORD2
-setBackgroundBrightness KEYWORD2
-setColorCorrection KEYWORD2
-setFont KEYWORD2
+setRotation	KEYWORD2
+getScreenWidth	KEYWORD2
+getScreenHeight	KEYWORD2
+setBrightness	KEYWORD2
+setBackgroundBrightness	KEYWORD2
+setColorCorrection	KEYWORD2
+setFont	KEYWORD2
 #######################################
 # Instances (KEYWORD2)
 #######################################
