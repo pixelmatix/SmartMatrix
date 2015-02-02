@@ -13,7 +13,6 @@ rotationDegrees	KEYWORD1
 screen_config	KEYWORD1
 SmartMatrix	KEYWORD1
 SmartMatrix_32x32	KEYWORD1
-SmartMatrix_16x32	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
