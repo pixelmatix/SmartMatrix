@@ -60,7 +60,7 @@ typedef enum fontChoices {
     font6x10,
     font8x13,
     gohufont11,
-    gohufont11b,
+    gohufont11b
 } fontChoices;
 
 
