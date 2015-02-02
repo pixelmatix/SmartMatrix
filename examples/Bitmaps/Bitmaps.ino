@@ -23,8 +23,8 @@ SmartMatrix matrix;
 int led = 13;
 
 void drawBitmap(int16_t x, int16_t y, const gimp32x32bitmap* bitmap) {
-  for(int i=0; i<bitmap->height; i++) {
-    for(int j=0; j<bitmap->width; j++) {
+  for(unsigned int i=0; i < bitmap->height; i++) {
+    for(unsigned int j=0; j < bitmap->width; j++) {
       rgb24 pixel = { bitmap->pixel_data[(i*bitmap->width + j)*3 + 0],
                       bitmap->pixel_data[(i*bitmap->width + j)*3 + 1],
                       bitmap->pixel_data[(i*bitmap->width + j)*3 + 2] };
@@ -42,9 +42,6 @@ void setup() {
 }
 
 void loop() {
-  int i;
-  rgb24 *buffer;
-
   matrix.fillScreen({0,0,0});
   // to use drawBitmap, must cast the pointer to pixelmatixlogo as (const gimp32x32bitmap*)
   drawBitmap(0,0,(const gimp32x32bitmap*)&pixelmatixlogo);
@@ -54,8 +51,6 @@ void loop() {
   delay(1000);
   digitalWrite(led, LOW);    // turn the LED off by making the voltage LOW
   delay(1000);
-
-  buffer = matrix.backBuffer();
 
   matrix.fillScreen({0,0,0});
   // can pass &colorwheel in directly as the bitmap source is already gimp32x32bitmap
