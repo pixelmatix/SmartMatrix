@@ -34,10 +34,7 @@ void setup() {
 
   // setup matrix
   matrix.begin();
-  //matrix.setScrollFont(fonttomthumb);
   matrix.setScrollFont(font3x5);
-  //matrix.scrollText("ABCDEFGHIJKLMNOPQRSTUVWXYZ", -1);
-  matrix.scrollText("Hello World", -1);
 }
 
 void loop() {
@@ -64,7 +61,7 @@ void loop() {
     uint8_t hour = tm.Hour;
     if (hour > 12)
         hour -= 12;
-    sprintf(timeBuffer, "%d:%02d", hour, tm.Minute, tm.Second);
+    sprintf(timeBuffer, "%d:%02d", hour, tm.Minute);
     if (hour < 10)
         x = 4;
     matrix.setFont(gohufont11b);
@@ -77,7 +74,7 @@ void loop() {
       Serial.println();
 
       /* Draw Error Message to SmartMatrix */
-      matrix.setFont(fonttomthumb);
+      matrix.setFont(font3x5);
       sprintf(timeBuffer, "Stopped");
       matrix.drawString(x, MATRIX_HEIGHT/2, clockColor, "Stopped");
       matrix.swapBuffers();
@@ -86,7 +83,7 @@ void loop() {
       Serial.println();
 
       /* Draw Error Message to SmartMatrix */
-      matrix.setFont(fonttomthumb);
+      matrix.setFont(font3x5);
       matrix.drawString(x, MATRIX_HEIGHT/2, clockColor, "No Clock");
       matrix.swapBuffers();
     }
