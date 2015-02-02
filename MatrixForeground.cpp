@@ -388,7 +388,7 @@ bool SmartMatrix::getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24
         break;
       default:
         // TODO: Should throw an error
-        break;
+        return false;
     };
 
     uint32_t bitmask = 0x01 << (31 - localScreenX);
