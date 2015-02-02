@@ -42,6 +42,9 @@ void loop() {
     int x=1;
     char timeBuffer[9];
 
+  // clear screen before writing new text
+  matrix.fillScreen({0,0,0});
+
   if (RTC.read(tm)) {
     Serial.print("Ok, Time = ");
     print2digits(tm.Hour);
@@ -65,7 +68,7 @@ void loop() {
     if (hour < 10)
         x = 4;
     matrix.setFont(gohufont11b);
-    matrix.drawString(x, MATRIX_HEIGHT/2, clockColor, timeBuffer);
+    matrix.drawString(x, MATRIX_HEIGHT/2 - 6, clockColor, timeBuffer);
     matrix.swapBuffers();
   } else {
     if (RTC.chipPresent()) {
@@ -76,17 +79,16 @@ void loop() {
       /* Draw Error Message to SmartMatrix */
       matrix.setFont(font3x5);
       sprintf(timeBuffer, "Stopped");
-      matrix.drawString(x, MATRIX_HEIGHT/2, clockColor, "Stopped");
-      matrix.swapBuffers();
+      matrix.drawString(x, MATRIX_HEIGHT/2 - 3, clockColor, "Stopped");
     } else {
       Serial.println("DS1307 read error!  Please check the circuitry.");
       Serial.println();
 
       /* Draw Error Message to SmartMatrix */
       matrix.setFont(font3x5);
-      matrix.drawString(x, MATRIX_HEIGHT/2, clockColor, "No Clock");
-      matrix.swapBuffers();
+      matrix.drawString(x, MATRIX_HEIGHT/2 - 3, clockColor, "No Clock");
     }
+    matrix.swapBuffers();
     delay(9000);
   }
   delay(1000);
