@@ -33,7 +33,7 @@
 
 
 // scroll text
-const int textLayerMaxStringLength = 50;
+const int textLayerMaxStringLength = 100;
 
 typedef enum ScrollMode {
     wrapForward,
