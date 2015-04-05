@@ -1,5 +1,5 @@
 /*
- * Example copied from FastLED 2.1 Branch - written by Daniel Garcia
+ * Example copied from FastLED 3.0 Branch - written by Daniel Garcia
  * This example shows how to draw to the SmartMatrix using FastLED's "SMART_MATRIX" controller
  * instead of using the SmartMatrix library directly
  * This has the advantage of working directly with a CRGB drawing buffer, and is more familiar
@@ -7,16 +7,16 @@
  * balance which happens in the background when calling LEDS.show().  There's no one 'right' way to use these two
  * libraries together, try this example and FastLED_Functions and figure out what is 'right' for you
  *
- * This example requires FastLED 2.1.  If you are having trouble compiling, see
+ * This example requires FastLED 3.0 or higher.  If you are having trouble compiling, see
  * the troubleshooting instructions here:
  * http://docs.pixelmatix.com/SmartMatrix/#external-libraries
  */
 
-#include <SmartMatrix_32x32.h>
+#include <SmartMatrix.h>
 #include <FastLED.h>
 
-#define kMatrixWidth  32
-#define kMatrixHeight 32
+#define kMatrixWidth  DRAWING_WIDTH
+#define kMatrixHeight DRAWING_HEIGHT
 const bool    kMatrixSerpentineLayout = false;
 
 #define NUM_LEDS (kMatrixWidth * kMatrixHeight)
@@ -91,7 +91,7 @@ void setup() {
   pSmartMatrix->setScrollSpeed(15);
   pSmartMatrix->setScrollFont(font6x10);
   pSmartMatrix->scrollText("Smart Matrix & FastLED", -1);
-  pSmartMatrix->setScrollOffsetFromEdge(10);
+  pSmartMatrix->setScrollOffsetFromEdge(kMatrixHeight/2 - 5);
 
   // FastLED disables SmartMatrix's gamma correction by default, turn it on if you like
   //pSmartMatrix->setColorCorrection(cc48);

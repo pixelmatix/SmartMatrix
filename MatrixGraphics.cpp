@@ -750,7 +750,7 @@ void SmartMatrix::drawString(int16_t x, int16_t y, const rgb24& charColor, const
     char character;
 
     // limit text to 10 chars, why?
-    for (i = 0; i < 10; i++) {
+    for (i = 0; i < 30; i++) {
         character = text[offset++];
         if (character == '\0')
             return;
@@ -772,7 +772,7 @@ void SmartMatrix::drawString(int16_t x, int16_t y, const rgb24& charColor, const
     char character;
 
     // limit text to 10 chars, why?
-    for (i = 0; i < 10; i++) {
+    for (i = 0; i < 30; i++) {
         character = text[offset++];
         if (character == '\0')
             return;

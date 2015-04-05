@@ -392,6 +392,8 @@ INLINE void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
     bool bHasCC = SmartMatrix::_ccmode != ccNone;
     rgb24 *pRow = SmartMatrix::getRefreshRow(currentRow);
     rgb24 *pRow2 = SmartMatrix::getRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET);
+    
+    uint8_t rowShift = 0;
 
     for (i = 0; i < MATRIX_WIDTH; i++) {
 
@@ -402,7 +404,10 @@ INLINE void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
 #endif
 
 #ifndef DISABLE_FOREGROUND_FUNCTIONS
-        if (bHasForeground && getForegroundPixel(i, currentRow, &tempPixel0)) {
+        // shift for nth panel row
+        rowShift = (i / DRAWING_WIDTH) * PANEL_HEIGHT;
+
+        if (bHasForeground && getForegroundPixel(i % DRAWING_WIDTH, currentRow + rowShift, &tempPixel0)) {
             if(bHasCC) {
                 // load foreground pixel with color correction
                 temp0red = colorCorrection(tempPixel0.red);
@@ -432,7 +437,7 @@ INLINE void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
 #endif
 
 #ifndef DISABLE_FOREGROUND_FUNCTIONS
-        if (bHasForeground && getForegroundPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, &tempPixel1)) {
+        if (bHasForeground && getForegroundPixel(i % DRAWING_WIDTH, currentRow + rowShift + MATRIX_ROW_PAIR_OFFSET, &tempPixel1)) {
             if(bHasCC) {
                 // load foreground pixel with color correction
                 temp1red = colorCorrection(tempPixel1.red);

@@ -3,7 +3,7 @@
     This example code is released into the public domain
 */
 
-#include <SmartMatrix_32x32.h>
+#include <SmartMatrix.h>
 
 SmartMatrix matrix;
 
@@ -810,19 +810,19 @@ void loop() {
         matrix.setScrollMode(wrapForward);
         matrix.setScrollSpeed(40);
 
-        matrix.scrollText("Wrap Forward", 2);
+        matrix.scrollText("Wrap Forward - Wrap Forward - Wrap Forward", 2);
         matrix.setFont(font3x5);
         matrix.drawString(0, matrix.getScreenHeight() / 2, {0xff, 0xff, 0xff}, "Modes");
         matrix.swapBuffers(true);
 
-        uint transitionTime = 6000;
+        uint transitionTime = 6000 * 2;
         currentMillis = millis();
         while (millis() - currentMillis < transitionTime);
 
         matrix.setScrollMode(bounceForward);
-        matrix.scrollText("Bounce", 2);
+        matrix.scrollText("Bounce - Bounce - Bounce - Bounce", 2);
 
-        transitionTime = 4500;
+        transitionTime = 4500 * 4;
         currentMillis = millis();
         while (millis() - currentMillis < transitionTime);
 

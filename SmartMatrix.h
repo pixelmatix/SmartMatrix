@@ -33,9 +33,18 @@
 #include "MatrixHardware_KitV1_generic.h"
 
 
+// fallbacks for DRAWING_WIDTH and DRAWING_HEIGHT
+#ifndef DRAWING_WIDTH
+  #define DRAWING_WIDTH  MATRIX_WIDTH
+#endif
+
+#ifndef DRAWING_HEIGHT
+  #define DRAWING_HEIGHT MATRIX_HEIGHT
+#endif
+
 #ifndef DISABLE_FOREGROUND_FUNCTIONS
 // scroll text
-const int textLayerMaxStringLength = 50;
+const int textLayerMaxStringLength = 100;
 
 typedef enum ScrollMode {
     wrapForward,
@@ -63,7 +72,7 @@ typedef enum fontChoices {
     font6x10,
     font8x13,
     gohufont11,
-    gohufont11b,
+    gohufont11b
 } fontChoices;
 
 
@@ -153,6 +162,7 @@ public:
 #define setScrollOffsetFromEdge setScrollOffsetFromTop // backwards compatibility
     void setScrollOffsetFromTop(int offset);
     void setScrollStartOffsetFromLeft(int offset);
+    void updateScrollText(const char inputtext[]);
     void stopScrollText(void);
     int getScrollStatus(void) const;
 
@@ -198,6 +208,7 @@ private:
     static void updateForeground(void);
     static bool getForegroundPixel(uint8_t x, uint8_t y, rgb24 *xyPixel);
     static void redrawForeground(void);
+    static void setScrollMinMax(void);
 #endif
 
     // drawing functions not meant for user

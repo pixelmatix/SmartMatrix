@@ -1636,41 +1636,6 @@ type 0207, grid 7.5 mm</description>
 <hole x="0" y="0" drill="3.2"/>
 <circle x="0" y="0" radius="3" width="0.127" layer="39"/>
 </package>
-<package name="PIXELMATIX-LOGO-235X135">
-<rectangle x1="0" y1="0" x2="0.635" y2="0.635" layer="21"/>
-<rectangle x1="0" y1="0.762" x2="0.635" y2="1.397" layer="21"/>
-<rectangle x1="0.762" y1="0" x2="1.397" y2="0.635" layer="21"/>
-<rectangle x1="0" y1="1.524" x2="0.635" y2="2.159" layer="21"/>
-<rectangle x1="0" y1="1.524" x2="0.635" y2="2.159" layer="21"/>
-<rectangle x1="0" y1="2.286" x2="0.635" y2="2.921" layer="21"/>
-<rectangle x1="0" y1="2.286" x2="0.635" y2="2.921" layer="21"/>
-<rectangle x1="0" y1="3.048" x2="0.635" y2="3.683" layer="21"/>
-<rectangle x1="0" y1="3.81" x2="0.635" y2="4.445" layer="21"/>
-<rectangle x1="0.762" y1="4.572" x2="1.397" y2="5.207" layer="21"/>
-<rectangle x1="1.524" y1="0" x2="2.159" y2="0.635" layer="21"/>
-<rectangle x1="1.524" y1="0.762" x2="2.159" y2="1.397" layer="21"/>
-<rectangle x1="2.286" y1="0.762" x2="2.921" y2="1.397" layer="21"/>
-<rectangle x1="2.286" y1="1.524" x2="2.921" y2="2.159" layer="21"/>
-<rectangle x1="1.524" y1="1.524" x2="2.159" y2="2.159" layer="21"/>
-<rectangle x1="1.524" y1="1.524" x2="2.159" y2="2.159" layer="21"/>
-<rectangle x1="1.524" y1="3.048" x2="2.159" y2="3.683" layer="21"/>
-<rectangle x1="2.286" y1="4.572" x2="2.921" y2="5.207" layer="21"/>
-<rectangle x1="1.524" y1="4.572" x2="2.159" y2="5.207" layer="21"/>
-<rectangle x1="1.524" y1="4.572" x2="2.159" y2="5.207" layer="21"/>
-<rectangle x1="2.286" y1="5.334" x2="2.921" y2="5.969" layer="21"/>
-<rectangle x1="1.524" y1="5.334" x2="2.159" y2="5.969" layer="21"/>
-<rectangle x1="1.524" y1="5.334" x2="2.159" y2="5.969" layer="21"/>
-<rectangle x1="3.048" y1="1.524" x2="3.683" y2="2.159" layer="21"/>
-<rectangle x1="3.048" y1="1.524" x2="3.683" y2="2.159" layer="21"/>
-<rectangle x1="3.048" y1="2.286" x2="3.683" y2="2.921" layer="21"/>
-<rectangle x1="3.048" y1="2.286" x2="3.683" y2="2.921" layer="21"/>
-<rectangle x1="3.048" y1="3.048" x2="3.683" y2="3.683" layer="21"/>
-<rectangle x1="3.048" y1="3.81" x2="3.683" y2="4.445" layer="21"/>
-<rectangle x1="3.048" y1="4.572" x2="3.683" y2="5.207" layer="21"/>
-<rectangle x1="3.048" y1="4.572" x2="3.683" y2="5.207" layer="21"/>
-<rectangle x1="3.048" y1="5.334" x2="3.683" y2="5.969" layer="21"/>
-<rectangle x1="3.048" y1="5.334" x2="3.683" y2="5.969" layer="21"/>
-</package>
 <package name="TEENSY_3.0_ALLPINS-VUSB-A11-A10-AREF">
 <pad name="GND" x="-7.62" y="16.51" drill="0.9652"/>
 <pad name="0" x="-7.62" y="13.97" drill="0.9652"/>
@@ -2029,7 +1994,6 @@ design rules under a new name.</description>
 <element name="MISC" library="pinhead-2" package="1X03-S" value="" x="11.176" y="30.734" smashed="yes" rot="R180">
 <attribute name="VALUE" x="14.986" y="33.909" size="1.27" layer="27" rot="R180"/>
 </element>
-<element name="U$5" library="eclibrary" package="PIXELMATIX-LOGO-235X135" value="" x="47.244" y="11.811" rot="MR0"/>
 <element name="U$3" library="eclibrary" package="TEENSY_3.0_ALLPINS-VUSB-A11-A10-AREF" value="TEENSY_3.0_ALL-VUSB-A10-A11-AREF" x="30.48" y="15.24" smashed="yes" rot="R270"/>
 </elements>
 <signals>

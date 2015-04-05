@@ -29,3 +29,28 @@ teensy31.menu.speed.120.name=120 MHz (overclock)
 
 
 If you don't want to set cpu speed to 144 MHz you might have to set MATRIX_REFRESH_RATE to a suitable value.
+
+
+Changes to pixelmatix' branch
+------------------------------
+
+* Support for bigger resolutions (= chained panels)
+* Removed includes of SmartMatrix_32x32.h, using SmartMatrix.h instead
+* Use generic getScreenWidth() and getScreenHeight() where possible
+* SpectrumAnalyzer: added different modes, now scales to bigger resolutions
+* Foreground functions can be disabled to save memory  (#define DISABLE_FOREGROUND_FUNCTIONS)
+* Generic MatrixHardware_KitV1_generic.h may be used instead of MatrixHardware_KitV1_32x32.h or _16x32.h
+
+
+Added example
+-------------
+
+* MatrixClock3: Uses the internal RTC of Teensy 3.0 or Teensy 3.1,
+  mimics 7-segment displays and shows time and date.
+
+
+Bugs in this branch
+-------------------
+
+* Foreground (scrolling and drawing) functions only work for rotation = 0
+
