@@ -1,5 +1,5 @@
 /*
- * This clock example uses the RTC from a Teensy3 (Teensy 3.0 or 3.1).
+ * This clock example uses the RTC of a Teensy3 (Teensy 3.0 or 3.1).
  *
  * RTC clock is set in response to serial port time message 
  * A Processing example sketch to set the time is included in the download
@@ -21,31 +21,55 @@
 
 //#define DEBUG_SERIAL
 
-rgb24 bgCol        = {0x00, 0x00, 0x00};  // background colour
+rgb24   bgCol       = {0x00, 0x00, 0x00};  // background colour
 
-rgb24 timeCol      = {0x2f, 0x2f, 0xff};  // time: segment colour
-rgb24 timeColFx    = {0x00, 0x00, 0x1f};  // time: colour of 'non active segment' effect
-rgb24 dateCol      = {0x00, 0x00, 0x9f};  // date: segment colour
-rgb24 dateColFx    = {0x00, 0x00, 0x15};  // date: colour of 'non active segment' effect
+rgb24   timeCol     = {0x98, 0x40, 0xa4};  // time: segment colour
+rgb24   dateCol     = {0x00, 0x00, 0x9f};  // date: segment colour
+//rgb24   timeCol     = {0x2f, 0x2f, 0xff};  // time: segment colour
+//rgb24   dateCol     = {0x00, 0x00, 0x9f};  // date: segment colour
 
-// values for a 96x64 display; need to be adjusted for other resolutions
-int timeSegT       = 4;  // time: thickness of a segment (in pixel)
-int timeSegW       = 17; // time: length of a single segment (in pixel)
-int dateSegT       = 2;  // date: thickness of a segment
-int dateSegW       = 7;  // date: length of a single segment
-
-const int showSecs = 2;  // display seconds: 0: no, 1: yes, 2: no seconds, but blinking dots
-const int showYear = 0;  // show year: 0 no, 1: yes
+uint8_t showSecs    = 2;                   // display seconds: 0: no, 1: yes, 2: no seconds, but blinking dots
+uint8_t showYear    = 0;                   // show year: 0 no, 1: yes
 
 
 
+uint8_t timeColPerc = 10;                  // time: brightness of 'passive segment' effect in percent
+uint8_t dateColPerc = 10;                  // date: brightness of 'passive segment' effect in percent
+
+
+uint8_t timeSegT    = 4;                   // time: thickness of a segment (in pixel), reduce for smaller displays
+uint8_t dateSegT    = 3;                   // date: thickness of a segment (in pixel), reduce for smaller displays
+
+uint8_t timeStartX  = 0xFF;                // x start position of time segments, 0xFF: auto center time
+uint8_t timeStartY  = timeSegT;            // y start position of time segments
+uint8_t timeMaxH    = 30;                  // maximal height of time segments, reduce for smaller displays
+
+uint8_t dateStartX  = 0xFF;                // x start position of date segments, 0xFF: auto center date segments horizontally
+uint8_t dateStartY  = 0xFF;                // y start position of date segments, 0xFF: auto center date segments vertically
+uint8_t dateMaxH    = 20;                  // maximal height of date segments, reduce for smaller displays
+
+
+
+// values not to be changed
 SmartMatrix matrix;
 
-const int timeSegH = timeSegW * 2 - timeSegT;
-const int dateSegH = dateSegW * 2 - dateSegT;
+byte    currSec    = 60;
 
-byte currSec = 60;
+uint8_t w          = 0;
+uint8_t h          = 0;
+uint8_t timeSegW   = 0;
+uint8_t dateSegW   = 0;
 
+uint8_t timeSegH   = 0;
+uint8_t dateSegH   = 0;
+
+uint8_t timeW      = 0;
+uint8_t dateW      = 0;
+
+uint8_t colonPos   = 0;
+
+rgb24 timeColFx;  // time: calculated colour of 'non active segment' effect
+rgb24 dateColFx;  // date: calculated colour of 'non active segment' effect
 
 void setup() {
   // set the Time library to use Teensy 3.x's RTC to keep time
@@ -61,6 +85,45 @@ void setup() {
 
   // setup matrix
   matrix.begin();
+
+  w = matrix.getScreenWidth();
+  h = matrix.getScreenHeight();
+
+  // out-of-bound checks
+  if (timeColPerc > 100) timeColPerc = 100;
+  if (dateColPerc > 100) dateColPerc = 100;
+  if (showSecs > 2) showSecs = 2;
+  if (showYear > 1) showYear = 1;
+
+  // calculate passive segment colours
+  timeColFx.red   = (uint8_t)((uint16_t)timeCol.red   * timeColPerc / 100);
+  timeColFx.green = (uint8_t)((uint16_t)timeCol.green * timeColPerc / 100);
+  timeColFx.blue  = (uint8_t)((uint16_t)timeCol.blue  * timeColPerc / 100);
+  dateColFx.red   = (uint8_t)((uint16_t)dateCol.red   * dateColPerc / 100);
+  dateColFx.green = (uint8_t)((uint16_t)dateCol.green * dateColPerc / 100);
+  dateColFx.blue  = (uint8_t)((uint16_t)dateCol.blue  * dateColPerc / 100);
+
+
+  // calculate width and height of segments
+  if (timeMaxH == 0 && timeStartX == 0xFF) { // auto width and auto center
+    timeSegW = ( w - ((showSecs == 1) ? 9 : 5) * timeSegT ) / ((showSecs == 1) ? 6 : 4);
+  } else {
+    timeSegW = (timeMaxH + timeSegT) / 2;    
+  }
+  timeW    = timeSegW * ((showSecs == 1) ? 6 : 4) + timeSegT * ( (showSecs == 1) ? 9 : 5);                              
+  timeSegH = timeSegW * 2 - timeSegT;
+
+  if (dateMaxH == 0 && dateStartX == 0xFF) { // auto width and auto center
+    dateSegW = ( w - ((showYear == 1) ? 9 : 4) * dateSegT ) / ((showYear == 1) ? 10 : 5);
+  } else {
+    dateSegW = (dateMaxH + dateSegT) / 2;
+  }
+
+  dateW = dateSegW * ((showYear == 1) ? 10 : 5) + dateSegT * ( (showYear == 1) ? 9 : 4);                              
+  dateSegH = dateSegW * 2 - dateSegT;
+
+  // y-offset of 2 colon points
+  colonPos = (timeSegH - 2* timeSegT ) / 3;
 }
 
 void loop() {
@@ -70,11 +133,8 @@ void loop() {
     setTime(t);
   }
   
-  int x;
-  int y;
-  
-  int timeW = timeSegW * ((showSecs == 1) ? 6 : 4) + timeSegT * ( (showSecs == 1) ? 9 : 5); // calc. width of time output
-  int dateW = (dateSegW + dateSegT) * ((showYear) ? 10 : 5) + dateSegT; // calc. width of date output
+  uint8_t x;
+  uint8_t y;
   
   int tSec = second();
   int tMin = minute();
@@ -106,34 +166,47 @@ void loop() {
     Serial.println();
 #endif
 
-    // center time
-    x = ( matrix.getScreenWidth() - timeW ) / 2;
-    y = timeSegT;
+    // start position of time segments
+    if (timeStartX == 0xFF) { // auto center
+      x = ( w - timeW ) / 2;
+    } else {
+      x = timeStartX;
+    }
+
+    y = timeStartY;
     
     x += drawNumber(x, y, tHour, timeSegW, timeSegT, 2, timeCol, timeColFx);
     x += timeSegT;
     if (showSecs != 2 || (tSec % 2) ) {
-      drawBar(x, y + (timeSegT * 2) - 1, timeSegT, timeSegT, 0, timeCol);
-      drawBar(x, y + (timeSegH - (timeSegT * 2)) - 1, timeSegT, timeSegT, 0, timeCol);
+      drawBar(x, y + colonPos, timeSegT, timeSegT, 0, timeCol);
+      drawBar(x, y + timeSegH - timeSegT - colonPos, timeSegT, timeSegT, 0, timeCol);
     } else {
-      drawBar(x, y + (timeSegT * 2) - 1, timeSegT, timeSegT, 0, timeColFx);
-      drawBar(x, y + (timeSegH - (timeSegT * 2)) - 1, timeSegT, timeSegT, 0, timeColFx);
+      drawBar(x, y + colonPos, timeSegT, timeSegT, 0, timeColFx);
+      drawBar(x, y + timeSegH - timeSegT - colonPos, timeSegT, timeSegT, 0, timeColFx);
     }
     x += timeSegT * 2;
     x += drawNumber(x, y, tMin, timeSegW, timeSegT, 2, timeCol, timeColFx);
     if (showSecs == 1) {
       x += timeSegT;
-      drawBar(x, y + (timeSegT * 2) - 1, timeSegT, timeSegT, 0, timeCol);
-      drawBar(x, y + (timeSegH - (timeSegT * 2)) - 1, timeSegT, timeSegT, 0, timeCol);
+      drawBar(x, y + colonPos, timeSegT, timeSegT, 0, timeCol);
+      drawBar(x, y + timeSegH - timeSegT - colonPos, timeSegT, timeSegT, 0, timeCol);
       x += timeSegT * 2;
       x += drawNumber(x, y, tSec, timeSegW, timeSegT, 2, timeCol, timeColFx);
     }
-    y += timeSegH + timeSegT;
+    y += timeSegH;
+    
+    // start position of time segments
+    if (dateStartX == 0xFF) { // auto center
+      x = ( w - dateW ) / 2;
+    } else {
+      x = dateStartX;
+    }
 
-
-    // center date
-    x = (matrix.getScreenWidth() - dateW) / 2;
-    y += (matrix.getScreenHeight() - y - dateSegH) / 2;
+    if (dateStartY == 0xFF) { // auto place
+      y += (h - y - dateSegH) / 2;
+    } else {
+      y = dateStartY;
+    }
 
     if (showYear) {    
       x += drawNumber(x, y, tYear, dateSegW, dateSegT, 4, dateCol, dateColFx);
