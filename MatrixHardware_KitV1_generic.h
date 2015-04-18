@@ -38,8 +38,56 @@
 // refresh rate. if not defined here it will be calculated later on
 //#define MATRIX_REFRESH_RATE         120
 
+
 // if defined, disable all foreground-drawing functions (scrolling) to save memory
 // #define DISABLE_FOREGROUND_FUNCTIONS
+
+
+// different colour spaces to save memory:
+// default (no SMARTMATRIX_COLSPACE_* defined): 3 bytes per pixel (default colour space: RGB888)
+// SMARTMATRIX_COLSPACE_RGB565: 2 bytes per pixel (colour space: RGB565)
+// SMARTMATRIX_COLSPACE_RGB332: 1 byte per pixel (colour space:, RGB332)
+//
+// define one of these to save memory
+//
+// most of the colour space conversions are done implicitly (using operator overloading with structs),
+// but direct accessing of colour members can not be converted automatically.
+//
+// eg:  when defining SMARTMATRIX_COLSPACE_RGB565 or SMARTMATRIX_COLSPACE_RGB332:
+//
+//      rgb24 col = {255, 255, 255};   is internally converted to
+//      col.red = 31; col.green = 63; col.blue = 31;
+//
+//      but
+//
+//      rgb24 col;
+//      col.red = 255; col.green = 255; col.blue = 255;    will lead to clipped / unwanted colour values
+//
+//
+//      how to set calculated colour values in a colour space 'agnostic' way:
+//
+//      rgb24 col;
+//      float f; // f in [0.0 ,. 1.0]
+//
+//      // wrong way (no implicit conversion can be done):
+//      col.red = 255 - 255.0 * f;
+//      col.green = 255.0 * ( f - 1.0 );
+//      col.blue = 0;
+//
+//      // right way (implicit conversion is done because of operator overloading):
+//      col = {
+//        (uint8_t)( 255 - 255.0 * f ),
+//        (uint8_t)( 255.0 * ( f - 1.0 ) ),
+//        0
+//      };
+//
+//      (uint8_t)-typecasts are used to avoid compiler warnings (float to uint8_t)
+//
+
+// #define SMARTMATRIX_COLSPACE_RGB565
+// #define SMARTMATRIX_COLSPACE_RGB332
+
+
 
 // default order for panel chaining: zig zag-shape (eg: 96x64 display):
 //     _______       _______       _______

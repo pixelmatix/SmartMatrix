@@ -393,6 +393,9 @@ INLINE void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
     rgb24 *pRow = SmartMatrix::getRefreshRow(currentRow);
     rgb24 *pRow2 = SmartMatrix::getRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET);
     
+    rgb888 row1Col;
+    rgb888 row2Col;
+
     uint8_t rowShift = 0;
 
     for (i = 0; i < MATRIX_WIDTH; i++) {
@@ -408,29 +411,31 @@ INLINE void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
         rowShift = (i / DRAWING_WIDTH) * PANEL_HEIGHT;
 
         if (bHasForeground && getForegroundPixel(i % DRAWING_WIDTH, currentRow + rowShift, &tempPixel0)) {
+            row1Col = tempPixel0; // implicit conversion from rgb24 to rgb888 (if needed)
             if(bHasCC) {
                 // load foreground pixel with color correction
-                temp0red = colorCorrection(tempPixel0.red);
-                temp0green = colorCorrection(tempPixel0.green);
-                temp0blue = colorCorrection(tempPixel0.blue);
+                temp0red = colorCorrection(row1Col.red);
+                temp0green = colorCorrection(row1Col.green);
+                temp0blue = colorCorrection(row1Col.blue);
             } else {
                 // load foreground pixel without color correction
-                temp0red = tempPixel0.red;
-                temp0green = tempPixel0.green;
-                temp0blue = tempPixel0.blue;
+                temp0red = row1Col.red;
+                temp0green = row1Col.green;
+                temp0blue = row1Col.blue;
             }
         } else {
 #endif
+            row1Col = pRow[i]; // implicit conversion from rgb24 to rgb888 (if needed)
             if(bHasCC) {
                 // load background pixel with color correction
-                temp0red = backgroundColorCorrection(pRow[i].red);
-                temp0green = backgroundColorCorrection(pRow[i].green);
-                temp0blue = backgroundColorCorrection(pRow[i].blue);
+                temp0red = backgroundColorCorrection(row1Col.red);
+                temp0green = backgroundColorCorrection(row1Col.green);
+                temp0blue = backgroundColorCorrection(row1Col.blue);
             } else {
                 // load background pixel without color correction
-                temp0red = pRow[i].red;
-                temp0green = pRow[i].green;
-                temp0blue = pRow[i].blue;
+                temp0red = row1Col.red;
+                temp0green = row1Col.green;
+                temp0blue = row1Col.blue;
             }
 #ifndef DISABLE_FOREGROUND_FUNCTIONS
         }
@@ -438,29 +443,31 @@ INLINE void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
 
 #ifndef DISABLE_FOREGROUND_FUNCTIONS
         if (bHasForeground && getForegroundPixel(i % DRAWING_WIDTH, currentRow + rowShift + MATRIX_ROW_PAIR_OFFSET, &tempPixel1)) {
+            row2Col = tempPixel1; // implicit conversion from rgb24 to rgb888 (if needed)
             if(bHasCC) {
                 // load foreground pixel with color correction
-                temp1red = colorCorrection(tempPixel1.red);
-                temp1green = colorCorrection(tempPixel1.green);
-                temp1blue = colorCorrection(tempPixel1.blue);
+                temp1red = colorCorrection(row2Col.red);
+                temp1green = colorCorrection(row2Col.green);
+                temp1blue = colorCorrection(row2Col.blue);
             } else {
                 // load foreground pixel without color correction
-                temp1red = tempPixel1.red;
-                temp1green = tempPixel1.green;
-                temp1blue = tempPixel1.blue;
+                temp1red = row2Col.red;
+                temp1green = row2Col.green;
+                temp1blue = row2Col.blue;
             }
         } else {
 #endif
+            row2Col = pRow2[i]; // implicit conversion from rgb24 to rgb888 (if needed)
             if(bHasCC) {
                 // load background pixel with color correction
-                temp1red = backgroundColorCorrection(pRow2[i].red);
-                temp1green = backgroundColorCorrection(pRow2[i].green);
-                temp1blue = backgroundColorCorrection(pRow2[i].blue);
+                temp1red = backgroundColorCorrection(row2Col.red);
+                temp1green = backgroundColorCorrection(row2Col.green);
+                temp1blue = backgroundColorCorrection(row2Col.blue);
             } else {
                 // load background pixel without color correction
-                temp1red = pRow2[i].red;
-                temp1green = pRow2[i].green;
-                temp1blue = pRow2[i].blue;
+                temp1red = row2Col.red;
+                temp1green = row2Col.green;
+                temp1blue = row2Col.blue;
             }
 #ifndef DISABLE_FOREGROUND_FUNCTIONS
         }

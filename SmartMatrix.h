@@ -76,12 +76,119 @@ typedef enum fontChoices {
 } fontChoices;
 
 
+#if defined(SMARTMATRIX_COLSPACE_RGB565)
+struct rgb24 {
+    uint16_t red   :5;
+    uint16_t green :6;
+    uint16_t blue  :5;
+
+    inline rgb24() __attribute__((always_inline)) {
+    }
+
+    inline rgb24( uint8_t r, uint8_t g, uint8_t b)  __attribute__((always_inline))
+      : red(r >> 3), green(g >> 2), blue(b >> 3)
+    {
+    }
+
+    inline rgb24& operator= (const uint8_t raw[3])  __attribute__((always_inline)) {
+      red = raw[0] >> 3;
+      green = raw[1] >> 2;
+      blue = raw[2] >> 3;
+      return *this;
+    }
+};
+
+// for (i = 0 ; i < bits; i++) { arr[i] = int(i * 255 / ( ( 1 << bits ) - 1 )); }
+const uint8_t colspace_scale6[] =
+  { 0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72, 76, 80,
+    85, 89, 93, 97, 101, 105, 109, 113, 117, 121, 125, 129, 133, 137, 141, 145, 149,
+    153, 157, 161, 165, 170, 174, 178, 182, 186, 190, 194, 198, 202, 206, 210, 214,
+    218, 222, 226, 230, 234, 238, 242, 246, 250, 255
+  };
+const uint8_t colspace_scale5[] =
+  { 0, 8, 16, 24, 32, 41, 49, 57, 65, 74, 82, 90, 98, 106, 115, 123, 131, 139, 148,
+    156, 164, 172, 180, 189, 197, 205, 213, 222, 230, 238, 246, 255
+  };
+
 // color
+struct rgb888 {
+    uint8_t red;
+    uint8_t green;
+    uint8_t blue;
+
+    inline rgb888() __attribute__((always_inline)) {
+    }
+
+    inline rgb888( uint8_t r, uint8_t g, uint8_t b)  __attribute__((always_inline))
+      : red(r), green(g), blue(b)
+    {
+    }
+
+    inline rgb888( const rgb24& col)  __attribute__((always_inline))
+      : red( colspace_scale5[ col.red ]), green( colspace_scale6[ col.green ] ), blue( colspace_scale5[ col.blue ] )
+    {
+    }
+};
+
+#elif defined(SMARTMATRIX_COLSPACE_RGB332)
+struct rgb24 {
+    uint8_t red   :3;
+    uint8_t green :3;
+    uint8_t blue  :2;
+
+    inline rgb24() __attribute__((always_inline)) {
+    }
+
+    inline rgb24( uint8_t r, uint8_t g, uint8_t b)  __attribute__((always_inline))
+      : red(r >> 5), green(g >> 5), blue(b >> 6)
+    {
+    }
+
+    inline rgb24& operator= (const uint8_t raw[3])  __attribute__((always_inline)) {
+      red = raw[0] >> 5;
+      green = raw[1] >> 5;
+      blue = raw[2] >> 6;
+      return *this;
+    }
+};
+
+// for (i = 0 ; i < bits; i++) { arr[i] = int(i * 255 / ( ( 1 << bits ) - 1 )); }
+const uint8_t colspace_scale3[] = { 0, 36, 72, 109, 145, 182, 218, 255 };
+const uint8_t colspace_scale2[] = { 0, 85, 170, 255 };
+
+// color
+struct rgb888 {
+    uint8_t red;
+    uint8_t green;
+    uint8_t blue;
+
+    inline rgb888() __attribute__((always_inline)) {
+    }
+
+    inline rgb888( uint8_t r, uint8_t g, uint8_t b)  __attribute__((always_inline))
+      : red(r), green(g), blue(b)
+    {
+    }
+
+    inline rgb888( const rgb24& col)  __attribute__((always_inline))
+      : red( colspace_scale3[ col.red ]), green( colspace_scale3[ col.green ] ), blue( colspace_scale2[ col.blue ] )
+    {
+    }
+};
+
+
+
+#else  // default colour space RGB888
 typedef struct rgb24 {
     uint8_t red;
     uint8_t green;
     uint8_t blue;
 } rgb24;
+
+#define rgb888 rgb24
+
+#endif
+
 
 
 #if COLOR_DEPTH_RGB > 24
