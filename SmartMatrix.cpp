@@ -385,18 +385,21 @@ INLINE void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
         matrixUpdateBlocks[freeRowBuffer][j].timerValues.timer_oe = timerLUT[j].timer_oe;
     }
 
+#ifndef DISABLE_FOREGROUND_FUNCTIONS
     rgb24 tempPixel0;
     rgb24 tempPixel1;
 
+    uint8_t rowShift = 0;
+
     bool bHasForeground = hasForeground;
+#endif
+
     bool bHasCC = SmartMatrix::_ccmode != ccNone;
     rgb24 *pRow = SmartMatrix::getRefreshRow(currentRow);
     rgb24 *pRow2 = SmartMatrix::getRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET);
-    
+
     rgb888 row1Col;
     rgb888 row2Col;
-
-    uint8_t rowShift = 0;
 
     for (i = 0; i < MATRIX_WIDTH; i++) {
 

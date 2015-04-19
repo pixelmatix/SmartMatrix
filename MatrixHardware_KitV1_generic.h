@@ -149,7 +149,7 @@
 
 // refresh rate not set explicitly: do some calculations according to amount of panels used
 // if using more than 4 panels: use a Teensy 3.1 with cpu speed set to 144 MHz
-#ifndef MAXTRIX_REFRESH_RATE
+#ifndef MATRIX_REFRESH_RATE
  #if MATRIX_TOTAL_PANELS >= 6
   #define MATRIX_REFRESH_RATE         80
  #elif MATRIX_TOTAL_PANELS >= 4
