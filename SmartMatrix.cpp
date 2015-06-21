@@ -106,15 +106,12 @@ INLINE void SmartMatrix::matrixCalculations(void) {
     while (!cbIsFull(&dmaBuffer)) {
         // do once-per-frame updates
         if (!currentRow) {
-            handleBufferSwap();
-            handleForegroundDrawingCopy();
-
-            calculateBackgroundLUT();
+            frameRefreshCallback_Foreground();
+            frameRefreshCallback_Background();
 
 #ifdef DEBUG_PINS_ENABLED
     digitalWriteFast(DEBUG_PIN_3, HIGH); // oscilloscope trigger
 #endif
-            updateForeground();
 #ifdef DEBUG_PINS_ENABLED
     digitalWriteFast(DEBUG_PIN_3, LOW);
 #endif

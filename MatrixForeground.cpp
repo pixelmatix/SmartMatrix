@@ -429,3 +429,8 @@ bool SmartMatrix::getForegroundRefreshPixel(uint8_t hardwareX, uint8_t hardwareY
     }
     return false;
 }
+
+void SmartMatrix::frameRefreshCallback_Foreground(void) {
+    handleForegroundDrawingCopy();
+    updateForeground();
+}

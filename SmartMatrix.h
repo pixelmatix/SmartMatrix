@@ -193,6 +193,8 @@ private:
 
     // functions called by ISR
     static void matrixCalculations(void);
+    static void frameRefreshCallback_Background(void);
+    static void frameRefreshCallback_Foreground(void);
 
     // functions for refreshing
     static void loadMatrixBuffers(unsigned char currentRow);
