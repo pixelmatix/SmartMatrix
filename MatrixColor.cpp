@@ -169,7 +169,6 @@ color_chan_t SmartMatrix::colorCorrection(uint8_t inputcolor) {
     }
 }
 
-
 color_chan_t SmartMatrix::backgroundColorCorrection(uint8_t inputcolor) {
     return backgroundColorCorrectionLUT[inputcolor];
 }

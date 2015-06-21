@@ -365,7 +365,7 @@ void SmartMatrix::updateForeground(void) {
 }
 
 // returns true and copies color to xyPixel if pixel is opaque, returns false if not
-bool SmartMatrix::getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24 *xyPixel) {
+bool SmartMatrix::getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24 &xyPixel) {
     uint8_t localScreenX, localScreenY;
 
     // convert hardware x/y to the pixel in the local screen
@@ -394,9 +394,38 @@ bool SmartMatrix::getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24
     uint32_t bitmask = 0x01 << (31 - localScreenX);
 
     if (foregroundBitmap[foregroundRefreshBuffer][localScreenY][0] & bitmask) {
-        copyRgb24(*xyPixel, textcolor);
+        copyRgb24(xyPixel, textcolor);
         return true;
     }
 
+    return false;
+}
+
+bool SmartMatrix::getForegroundRefreshPixel(uint8_t hardwareX, uint8_t hardwareY, rgb48 &xyPixel) {
+    rgb24 tempPixel;
+
+    // do once per refresh
+    bool bHasCC = SmartMatrix::_ccmode != ccNone;
+
+    if(getForegroundPixel(hardwareX, hardwareY, tempPixel)) {
+        if(bHasCC) {
+            // load foreground pixel with color correction
+            xyPixel.red = colorCorrection(tempPixel.red);
+            xyPixel.green = colorCorrection(tempPixel.green);
+            xyPixel.blue = colorCorrection(tempPixel.blue);
+        } else {
+            // load foreground pixel without color correction
+#if LATCHES_PER_ROW >= 12
+            xyPixel.red = tempPixel.red << 8;
+            xyPixel.green = tempPixel.green << 8;
+            xyPixel.blue = tempPixel.blue << 8;
+#else
+            xyPixel.red = tempPixel.red;
+            xyPixel.green = tempPixel.green;
+            xyPixel.blue = tempPixel.blue;
+#endif
+        }
+        return true;
+    }
     return false;
 }

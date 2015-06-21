@@ -74,6 +74,12 @@ typedef struct rgb24 {
 
 
 #if COLOR_DEPTH_RGB > 24
+typedef struct rgb48 {
+    uint16_t red;
+    uint16_t green;
+    uint16_t blue;
+} rgb48;
+
 #define color_chan_t uint16_t
 #else
 #define color_chan_t uint8_t
@@ -198,12 +204,14 @@ private:
     static rgb24 *getCurrentRefreshRow(uint8_t y);
 #ifdef SMARTMATRIX_TRIPLEBUFFER
     static rgb24 *getPreviousRefreshRow(uint8_t y);
+    static void getBackgroundRefreshPixel(uint8_t x, uint8_t y, rgb48 &refreshPixel);
     static uint32_t calculateFcInterpCoefficient();
 #endif
     static void handleBufferSwap(void);
     static void handleForegroundDrawingCopy(void);
     static void updateForeground(void);
-    static bool getForegroundPixel(uint8_t x, uint8_t y, rgb24 *xyPixel);
+    static bool getForegroundPixel(uint8_t x, uint8_t y, rgb24 &xyPixel);
+    static bool getForegroundRefreshPixel(uint8_t x, uint8_t y, rgb48 &xyPixel);
     static void redrawForeground(void);
     static void setScrollMinMax(void);
 
