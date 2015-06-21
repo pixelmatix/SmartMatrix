@@ -190,6 +190,7 @@ uint32_t lutInterpolate(const uint16_t *lut, uint32_t arg)
 }
 #endif
 
+#if COLOR_DEPTH_RGB > 24
 void SmartMatrix::getBackgroundRefreshPixel(uint8_t x, uint8_t y, rgb48 &refreshPixel) {
     rgb24 currentPixel = currentRefreshBufferPtr[y][x];
 
@@ -215,6 +216,26 @@ void SmartMatrix::getBackgroundRefreshPixel(uint8_t x, uint8_t y, rgb48 &refresh
     }
 #endif
 }
+#else
+void SmartMatrix::getBackgroundRefreshPixel(uint8_t x, uint8_t y, rgb24 &refreshPixel) {
+    rgb24 currentPixel = currentRefreshBufferPtr[y][x];
+
+    // do once per refresh
+    bool bHasCC = SmartMatrix::_ccmode != ccNone;
+
+    if(bHasCC) {
+        // load background pixel with color correction
+        refreshPixel.red = backgroundColorCorrection(currentPixel.red);
+        refreshPixel.green = backgroundColorCorrection(currentPixel.green);
+        refreshPixel.blue = backgroundColorCorrection(currentPixel.blue);
+    } else {
+        // load background pixel without color correction
+        refreshPixel.red = currentPixel.red;
+        refreshPixel.green = currentPixel.green;
+        refreshPixel.blue = currentPixel.blue;
+    }
+}
+#endif
 
 // reads pixel from drawing buffer, not refresh buffer
 const rgb24 SmartMatrix::readPixel(int16_t x, int16_t y) const {
@@ -1073,7 +1094,7 @@ rgb24 *SmartMatrix::getRealBackBuffer() {
 void SmartMatrix::frameRefreshCallback_Background(void) {
     handleBufferSwap();
     calculateBackgroundLUT();
-    
+
 #ifdef SMARTMATRIX_TRIPLEBUFFER
     fcCoefficient = calculateFcInterpCoefficient();
     icPrev = 257 * (0x10000 - fcCoefficient);

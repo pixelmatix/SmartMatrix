@@ -366,7 +366,6 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
 
     unsigned char freeRowBuffer = cbGetNextWrite(&dmaBuffer);
 
-    // for each color bit, fill buffer with pixel data for all columns in current rows
     for (j = 0; j < LATCHES_PER_ROW; j++) {
         // copy bits to set and clear to generate address for current block
         matrixUpdateBlocks[freeRowBuffer][j].addressValues.bits_to_clear = rowAddressPair.bits_to_clear;
@@ -376,13 +375,9 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
         matrixUpdateBlocks[freeRowBuffer][j].timerValues.timer_oe = timerLUT[j].timer_oe;
     }
 
-#if COLOR_DEPTH_RGB > 24
-    rgb48 tempPixel0;
-    rgb48 tempPixel1;
-#else
-    rgb24 tempPixel0;
-    rgb24 tempPixel1;
-#endif
+
+    refreshPixel tempPixel0;
+    refreshPixel tempPixel1;
 
     bool bHasForeground = hasForeground;
 

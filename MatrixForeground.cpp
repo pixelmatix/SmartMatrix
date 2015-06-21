@@ -401,6 +401,7 @@ bool SmartMatrix::getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24
     return false;
 }
 
+#if COLOR_DEPTH_RGB > 24
 bool SmartMatrix::getForegroundRefreshPixel(uint8_t hardwareX, uint8_t hardwareY, rgb48 &xyPixel) {
     rgb24 tempPixel;
 
@@ -415,20 +416,38 @@ bool SmartMatrix::getForegroundRefreshPixel(uint8_t hardwareX, uint8_t hardwareY
             xyPixel.blue = colorCorrection(tempPixel.blue);
         } else {
             // load foreground pixel without color correction
-#if LATCHES_PER_ROW >= 12
             xyPixel.red = tempPixel.red << 8;
             xyPixel.green = tempPixel.green << 8;
             xyPixel.blue = tempPixel.blue << 8;
-#else
-            xyPixel.red = tempPixel.red;
-            xyPixel.green = tempPixel.green;
-            xyPixel.blue = tempPixel.blue;
-#endif
         }
         return true;
     }
     return false;
 }
+#else
+bool SmartMatrix::getForegroundRefreshPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24 &xyPixel) {
+    rgb24 tempPixel;
+
+    // do once per refresh
+    bool bHasCC = SmartMatrix::_ccmode != ccNone;
+
+    if(getForegroundPixel(hardwareX, hardwareY, tempPixel)) {
+        if(bHasCC) {
+            // load foreground pixel with color correction
+            xyPixel.red = colorCorrection(tempPixel.red);
+            xyPixel.green = colorCorrection(tempPixel.green);
+            xyPixel.blue = colorCorrection(tempPixel.blue);
+        } else {
+            // load foreground pixel without color correction
+            xyPixel.red = tempPixel.red;
+            xyPixel.green = tempPixel.green;
+            xyPixel.blue = tempPixel.blue;
+        }
+        return true;
+    }
+    return false;
+}
+#endif
 
 void SmartMatrix::frameRefreshCallback_Foreground(void) {
     handleForegroundDrawingCopy();
