@@ -190,9 +190,6 @@ void SmartMatrix::begin(void)
     // fill buffer with data before enabling DMA
     matrixCalculations();
 
-    // load color correction table
-    calculateBackgroundLUT();
-
     // setup debug output
 #ifdef DEBUG_PINS_ENABLED
     pinMode(DEBUG_PIN_1, OUTPUT);
