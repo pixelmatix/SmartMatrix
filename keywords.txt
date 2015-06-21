@@ -28,6 +28,7 @@ drawFastHLine	KEYWORD2
 drawCircle	KEYWORD2
 fillCircle	KEYWORD2
 fillCircle	KEYWORD2
+drawEllipse	KEYWORD2
 drawTriangle	KEYWORD2
 fillTriangle	KEYWORD2
 fillTriangle	KEYWORD2
@@ -55,6 +56,7 @@ setScrollColor	KEYWORD2
 setScrollOffsetFromEdge	KEYWORD2
 setScrollOffsetFromTop	KEYWORD2
 setScrollStartOffsetFromLeft	KEYWORD2
+updateScrollText	KEYWORD2
 stopScrollText	KEYWORD2
 getScrollStatus	KEYWORD2
 
