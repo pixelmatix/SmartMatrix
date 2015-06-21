@@ -31,6 +31,7 @@
 #include "MatrixHardware_KitV1_32x32.h"
 //#include "MatrixHardware_KitV1_16x32.h"
 
+#define ENABLE_FADECANDY_GAMMA_CORRECTION               1
 
 // scroll text
 const int textLayerMaxStringLength = 100;
@@ -102,7 +103,11 @@ typedef struct screen_config {
     uint16_t localHeight;
 } screen_config;
 
+// definition telling FastLED that setBackBuffer() and getRealBackBuffer() are available
 #define SMART_MATRIX_CAN_TRIPLE_BUFFER 1
+
+// enable true triple buffering and interpolation
+#define SMARTMATRIX_TRIPLEBUFFER
 
 class SmartMatrix {
 public:
@@ -111,6 +116,10 @@ public:
 
     // drawing functions
     void swapBuffers(bool copy = true);
+#ifdef SMARTMATRIX_TRIPLEBUFFER
+    void swapBuffersWithInterpolation_frames(int framesToInterpolate, bool copy = false);
+    void swapBuffersWithInterpolation_ms(int interpolationSpan_ms, bool copy = false);
+#endif
     void drawPixel(int16_t x, int16_t y, const rgb24& color);
     void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const rgb24& color);
     void drawFastVLine(int16_t x, int16_t y0, int16_t y1, const rgb24& color);
@@ -186,7 +195,11 @@ private:
     static color_chan_t backgroundColorCorrection(uint8_t inputcolor);
 
     static void getPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24 *xyPixel);
-    static rgb24 *getRefreshRow(uint8_t y);
+    static rgb24 *getCurrentRefreshRow(uint8_t y);
+#ifdef SMARTMATRIX_TRIPLEBUFFER
+    static rgb24 *getPreviousRefreshRow(uint8_t y);
+    static uint32_t calculateFcInterpCoefficient();
+#endif
     static void handleBufferSwap(void);
     static void handleForegroundDrawingCopy(void);
     static void updateForeground(void);
@@ -219,6 +232,9 @@ private:
     // keeping track of drawing buffers
     static unsigned char currentDrawBuffer;
     static unsigned char currentRefreshBuffer;
+#ifdef SMARTMATRIX_TRIPLEBUFFER    
+    static unsigned char previousRefreshBuffer;
+#endif
     static volatile bool swapPending;
     static volatile bool foregroundCopyPending;
     static bool swapWithCopy;

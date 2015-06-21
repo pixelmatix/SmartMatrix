@@ -24,10 +24,18 @@
 #include <stdlib.h>
 #include "SmartMatrix.h"
 
+#ifdef SMARTMATRIX_TRIPLEBUFFER
+static rgb24 backgroundBuffer[3][MATRIX_HEIGHT][MATRIX_WIDTH];
+#else
 static rgb24 backgroundBuffer[2][MATRIX_HEIGHT][MATRIX_WIDTH];
+#endif
 
 static rgb24 (*currentDrawBufferPtr)[MATRIX_WIDTH] = backgroundBuffer[0];
 static rgb24 (*currentRefreshBufferPtr)[MATRIX_WIDTH] = backgroundBuffer[1];
+#ifdef SMARTMATRIX_TRIPLEBUFFER
+rgb24 (*previousRefreshBufferPtr)[MATRIX_WIDTH] = backgroundBuffer[2];
+unsigned char SmartMatrix::previousRefreshBuffer = 2;
+#endif
 unsigned char SmartMatrix::currentDrawBuffer = 0;
 unsigned char SmartMatrix::currentRefreshBuffer = 1;
 volatile bool SmartMatrix::swapPending = false;
@@ -38,7 +46,38 @@ void SmartMatrix::getPixel(uint8_t x, uint8_t y, rgb24 *xyPixel) {
     copyRgb24(*xyPixel, currentRefreshBufferPtr[y][x]);
 }
 
-rgb24 *SmartMatrix::getRefreshRow(uint8_t y) {
+volatile int totalFramesToInterpolate;
+volatile int framesInterpolated;
+
+#ifdef SMARTMATRIX_TRIPLEBUFFER
+// function from fadecandy
+uint32_t SmartMatrix::calculateFcInterpCoefficient()
+{
+    /*
+     * Calculate our interpolation coefficient. This is a value between
+     * 0x0000 and 0x10000, representing some point in between fbPrev and fbNext.
+     *
+     * We timestamp each frame at the moment its final packet has been received.
+     * In other words, fbNew has no valid timestamp yet, and fbPrev/fbNext both
+     * have timestamps in the recent past.
+     *
+     * fbNext's timestamp indicates when both fbPrev and fbNext entered their current
+     * position in the keyframe queue. The difference between fbPrev and fbNext indicate
+     * how long the interpolation between those keyframes should take.
+     */
+
+    if(framesInterpolated >= totalFramesToInterpolate)
+        return 0x10000;
+
+    return (0x10000 * framesInterpolated) / totalFramesToInterpolate;
+}
+
+rgb24 *SmartMatrix::getPreviousRefreshRow(uint8_t y) {
+  return previousRefreshBufferPtr[y];
+}
+#endif
+
+rgb24 *SmartMatrix::getCurrentRefreshRow(uint8_t y) {
   return currentRefreshBufferPtr[y];
 }
 
@@ -306,8 +345,6 @@ void SmartMatrix::fillCircle(int16_t x0, int16_t y0, uint16_t radius, const rgb2
     }
 }
 
-
-
 // algorithm from drawCircle rearranged with hlines drawn between points on the raidus
 void SmartMatrix::fillCircle(int16_t x0, int16_t y0, uint16_t radius, const rgb24& fillColor)
 {
@@ -551,7 +588,6 @@ void SmartMatrix::drawRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t
         }
     }
 }
-
 
 // Code from http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html
 void SmartMatrix::fillFlatSideTriangleInt(int16_t x1, int16_t y1, int16_t x2, int16_t y2,
@@ -800,11 +836,33 @@ void SmartMatrix::drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t he
     }
 }
 
+#ifdef SMARTMATRIX_TRIPLEBUFFER
+int newFramesToInterpolate;
+#endif
 
 void SmartMatrix::handleBufferSwap(void) {
+#ifdef SMARTMATRIX_TRIPLEBUFFER
+    if(framesInterpolated < totalFramesToInterpolate)
+        framesInterpolated++;
+#endif
+
     if (!swapPending)
         return;
 
+#ifdef SMARTMATRIX_TRIPLEBUFFER
+    framesInterpolated = 0;
+    totalFramesToInterpolate = newFramesToInterpolate;
+
+    unsigned char newDrawBuffer = previousRefreshBuffer;
+
+    previousRefreshBuffer = currentRefreshBuffer;
+    currentRefreshBuffer = currentDrawBuffer;
+    currentDrawBuffer = newDrawBuffer;
+
+    currentRefreshBufferPtr = backgroundBuffer[currentRefreshBuffer];
+    previousRefreshBufferPtr = backgroundBuffer[previousRefreshBuffer];
+    currentDrawBufferPtr = backgroundBuffer[currentDrawBuffer];
+#else
     unsigned char newDrawBuffer = currentRefreshBuffer;
 
     currentRefreshBuffer = currentDrawBuffer;
@@ -812,13 +870,19 @@ void SmartMatrix::handleBufferSwap(void) {
 
     currentRefreshBufferPtr = backgroundBuffer[currentRefreshBuffer];
     currentDrawBufferPtr = backgroundBuffer[currentDrawBuffer];
+#endif
 
     swapPending = false;
 }
 
-// waits until swap is complete before returning
+// waits until previous swap is complete
+// waits until current swap is complete if copy is enabled
 void SmartMatrix::swapBuffers(bool copy) {
     while (swapPending);
+
+#ifdef SMARTMATRIX_TRIPLEBUFFER
+    newFramesToInterpolate = 0;
+#endif
 
     swapPending = true;
 
@@ -827,6 +891,36 @@ void SmartMatrix::swapBuffers(bool copy) {
         memcpy(currentDrawBufferPtr, currentRefreshBufferPtr, sizeof(backgroundBuffer[0]));
     }
 }
+
+#ifdef SMARTMATRIX_TRIPLEBUFFER
+// waits until previous swap and previous interpolation span is complete
+void SmartMatrix::swapBuffersWithInterpolation_frames(int framesToInterpolate, bool copy) {
+    while (swapPending);
+    while (framesInterpolated < totalFramesToInterpolate);
+
+    newFramesToInterpolate = framesToInterpolate;
+
+    swapPending = true;
+    if (copy) {
+        while (swapPending);
+        memcpy(currentDrawBufferPtr, currentRefreshBufferPtr, sizeof(backgroundBuffer[0]));
+    }
+}
+
+// waits until previous swap and previous interpolation span is complete
+void SmartMatrix::swapBuffersWithInterpolation_ms(int interpolationSpan_ms, bool copy) {
+    while (swapPending);
+    while (framesInterpolated < totalFramesToInterpolate);
+
+    newFramesToInterpolate = interpolationSpan_ms * MATRIX_REFRESH_RATE / 1000;
+
+    swapPending = true;
+    if (copy) {
+        while (swapPending);
+        memcpy(currentDrawBufferPtr, currentRefreshBufferPtr, sizeof(backgroundBuffer[0]));
+    }
+}
+#endif
 
 // return pointer to start of currentDrawBuffer, so application can do efficient loading of bitmaps
 rgb24 *SmartMatrix::backBuffer(void) {
