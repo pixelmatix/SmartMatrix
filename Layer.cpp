@@ -15,3 +15,7 @@ void SM_Layer::getRefreshPixel(uint8_t x, uint8_t y, rgb24 &refreshPixel) {
 void SM_Layer::getRefreshPixel(uint8_t x, uint8_t y, rgb48 &refreshPixel) {
 
 }
+
+void SM_Layer::updateScreenConfig(screen_config & newConfig) {
+    copyScreenConfig(screenConfig, newConfig);
+}

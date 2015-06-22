@@ -29,8 +29,6 @@
 
 SmartMatrix * globalinstance;
 
-SMLayerForeground foregroundLayerTest;
-
 #define INLINE __attribute__( ( always_inline ) ) inline
 
 // these definitions may change if switching major display type
@@ -111,6 +109,11 @@ INLINE void SmartMatrix::matrixCalculations(void) {
     while (!cbIsFull(&dmaBuffer)) {
         // do once-per-frame updates
         if (!currentRow) {
+            if (screenConfigChange) {
+                globalinstance->foregroundLayerTest.updateScreenConfig(screenConfig);
+                screenConfigChange = false;
+            }
+
             globalinstance->frameRefreshCallback_Foreground();
             frameRefreshCallback_Background();
 
@@ -401,8 +404,8 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
             globalinstance->getForegroundRefreshPixel(i, currentRow, tempPixel0);
             globalinstance->getForegroundRefreshPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, tempPixel1);
         }
-        foregroundLayerTest.getRefreshPixel(i, currentRow, tempPixel0);
-        foregroundLayerTest.getRefreshPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, tempPixel1);
+        globalinstance->foregroundLayerTest.getRefreshPixel(i, currentRow, tempPixel0);
+        globalinstance->foregroundLayerTest.getRefreshPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, tempPixel1);
 
         temp0red = tempPixel0.red;
         temp0green = tempPixel0.green;
@@ -670,8 +673,3 @@ void rowShiftCompleteISR(void) {
     digitalWriteFast(DEBUG_PIN_1, LOW); // oscilloscope trigger
 #endif
 }
-
-SMLayerForeground * SmartMatrix::getForegroundLayer(void) {
-    return &foregroundLayerTest;
-}
-

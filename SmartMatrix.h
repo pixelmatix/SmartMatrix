@@ -48,27 +48,6 @@ typedef rgb48 refreshPixel;
 typedef rgb24 refreshPixel;
 #endif
 
-typedef enum colorCorrectionModes {
-    ccNone,
-    cc24,
-    cc12,
-    cc48
-} colorCorrectionModes;
-
-// config
-typedef enum rotationDegrees {
-    rotation0,
-    rotation90,
-    rotation180,
-    rotation270
-} rotationDegrees;
-
-typedef struct screen_config {
-    rotationDegrees rotation;
-    uint16_t localWidth;
-    uint16_t localHeight;
-} screen_config;
-
 // definition telling FastLED that setBackBuffer() and getRealBackBuffer() are available
 #define SMART_MATRIX_CAN_TRIPLE_BUFFER 1
 
@@ -152,7 +131,7 @@ public:
     void setColorCorrection(colorCorrectionModes mode);
     void setFont(fontChoices newFont);
 
-    SMLayerForeground * getForegroundLayer(void);
+    SMLayerForeground foregroundLayerTest;
 
 private:
     // enable ISR access to private member variables
@@ -205,6 +184,7 @@ private:
     static colorCorrectionModes _ccmode;
     static screen_config screenConfig;
     static volatile bool brightnessChange;
+    static volatile bool screenConfigChange;
     static int dimmingFactor;
     static uint8_t backgroundBrightness;
     static const int dimmingMaximum;
@@ -253,6 +233,7 @@ private:
     bitmap_font *foregroundfont = (bitmap_font *) &apple3x5;
 
     bool hasForeground = false;
+    screen_config foregroundScreenConfig;
 };
 
 #endif

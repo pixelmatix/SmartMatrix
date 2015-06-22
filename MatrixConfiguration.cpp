@@ -39,6 +39,7 @@ void SmartMatrix::setRotation(rotationDegrees rotation) {
         screenConfig.localWidth = MATRIX_HEIGHT;
         screenConfig.localHeight = MATRIX_WIDTH;
     }
+    screenConfigChange = true;
 }
 
 uint16_t SmartMatrix::getScreenWidth(void) const {
@@ -50,6 +51,7 @@ uint16_t SmartMatrix::getScreenHeight(void) const {
 }
 
 volatile bool SmartMatrix::brightnessChange = false;
+volatile bool SmartMatrix::screenConfigChange = true;
 const int SmartMatrix::dimmingMaximum = 255;
 // large factor = more dim, default is full brightness
 int SmartMatrix::dimmingFactor = dimmingMaximum - (100 * 255)/100;

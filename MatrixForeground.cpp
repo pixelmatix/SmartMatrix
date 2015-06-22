@@ -85,7 +85,7 @@ void SmartMatrix::drawForegroundChar(int16_t x, int16_t y, char character, bool 
     for (k = y; k < y+foregroundfont->Height; k++) {
         // ignore rows that are not on the screen
         if(k < 0) continue;
-        if (k > SmartMatrix::screenConfig.localHeight) return;
+        if (k > foregroundLayerTest.screenConfig.localHeight) return;
 
         // read in uint8, shift it to be in MSB (font is in the top bits of the uint32)
         tempBitmask = getBitmapFontRowAtXY(character, k - y, foregroundfont) << 24;
@@ -133,7 +133,7 @@ void SmartMatrix::setScrollMinMax(void) {
     case bounceReverse:
     case wrapForwardFromLeft:
         scrollMin = -textWidth;
-        scrollMax = screenConfig.localWidth;
+        scrollMax = foregroundLayerTest.screenConfig.localWidth;
 
         scrollPosition = scrollMax;
 
@@ -214,7 +214,7 @@ void SmartMatrix::redrawForeground(void) {
     uint8_t charY0, charY1;
 
 
-    for (j = 0; j < screenConfig.localHeight; j++) {
+    for (j = 0; j < foregroundLayerTest.screenConfig.localHeight; j++) {
 
         // skip rows without text
         if (j < fontTopOffset || j >= fontTopOffset + scrollFont->Height)
@@ -235,8 +235,8 @@ void SmartMatrix::redrawForeground(void) {
         // find rows within character bitmap that will be drawn (0-font->height unless text is partially off screen)
         charY0 = j - fontTopOffset;
 
-        if (screenConfig.localHeight < fontTopOffset + scrollFont->Height) {
-            charY1 = screenConfig.localHeight - fontTopOffset;
+        if (foregroundLayerTest.screenConfig.localHeight < fontTopOffset + scrollFont->Height) {
+            charY1 = foregroundLayerTest.screenConfig.localHeight - fontTopOffset;
         } else {
             charY1 = scrollFont->Height;
         }
@@ -255,7 +255,7 @@ void SmartMatrix::redrawForeground(void) {
         for (k = 0; k < charY1 - charY0; k++)
             foregroundBitmap[foregroundRefreshBuffer][j + k][0] = 0x00;
 
-        while (textPosition < textlen && charPosition < screenConfig.localWidth) {
+        while (textPosition < textlen && charPosition < foregroundLayerTest.screenConfig.localWidth) {
             uint32_t tempBitmask;
             // draw character from top to bottom
             for (k = charY0; k < charY1; k++) {
@@ -339,7 +339,7 @@ bool SmartMatrix::getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24
     uint8_t localScreenX, localScreenY;
 
     // convert hardware x/y to the pixel in the local screen
-    switch( SmartMatrix::screenConfig.rotation ) {
+    switch( foregroundLayerTest.screenConfig.rotation ) {
       case rotation0 :
         localScreenX = hardwareX;
         localScreenY = hardwareY;
