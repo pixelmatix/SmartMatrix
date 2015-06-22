@@ -25,6 +25,9 @@
 #include "CircularBuffer.h"
 #include "DMAChannel.h"
 
+#include "Layer_Foreground.h"
+
+SMLayerForeground foregroundLayerTest;
 
 #define INLINE __attribute__( ( always_inline ) ) inline
 
@@ -395,7 +398,9 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
         if(bHasForeground) {
             getForegroundRefreshPixel(i, currentRow, tempPixel0);
             getForegroundRefreshPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, tempPixel1);
-        } 
+        }
+        foregroundLayerTest.getRefreshPixel(i, currentRow, tempPixel0);
+        foregroundLayerTest.getRefreshPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, tempPixel1);
 
         temp0red = tempPixel0.red;
         temp0green = tempPixel0.green;

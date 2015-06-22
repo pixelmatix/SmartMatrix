@@ -31,6 +31,8 @@
 #include "MatrixHardware_KitV1_32x32.h"
 //#include "MatrixHardware_KitV1_16x32.h"
 
+#include "MatrixCommon.h"
+
 #define ENABLE_FADECANDY_GAMMA_CORRECTION               1
 
 // scroll text
@@ -66,19 +68,7 @@ typedef enum fontChoices {
 
 
 // color
-typedef struct rgb24 {
-    uint8_t red;
-    uint8_t green;
-    uint8_t blue;
-} rgb24;
-
-
 #if COLOR_DEPTH_RGB > 24
-typedef struct rgb48 {
-    uint16_t red;
-    uint16_t green;
-    uint16_t blue;
-} rgb48;
 
 typedef rgb48 refreshPixel;
 
@@ -241,9 +231,6 @@ private:
     // configuration helper functions
     static void calculateTimerLut(void);
     static void calculateBackgroundLUT(void);
-
-    // color functions (replace with class and copy constructor?)
-    static void copyRgb24(rgb24 & dst, const rgb24 & src);
 
     // configuration
     static colorCorrectionModes _ccmode;
