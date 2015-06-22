@@ -33,39 +33,9 @@
 
 #include "MatrixCommon.h"
 
+#include "Layer_Foreground.h"
+
 #define ENABLE_FADECANDY_GAMMA_CORRECTION               1
-
-// scroll text
-const int textLayerMaxStringLength = 100;
-
-typedef enum ScrollMode {
-    wrapForward,
-    bounceForward,
-    bounceReverse,
-    stopped,
-    off,
-    wrapForwardFromLeft,
-} ScrollMode;
-
-
-// font
-#include "MatrixFontCommon.h"
-extern const bitmap_font apple3x5;
-extern const bitmap_font apple5x7;
-extern const bitmap_font apple6x10;
-extern const bitmap_font apple8x13;
-extern const bitmap_font gohufont6x11;
-extern const bitmap_font gohufont6x11b;
-
-typedef enum fontChoices {
-    font3x5,
-    font5x7,
-    font6x10,
-    font8x13,
-    gohufont11,
-    gohufont11b
-} fontChoices;
-
 
 // color
 #if COLOR_DEPTH_RGB > 24
@@ -84,9 +54,6 @@ typedef enum colorCorrectionModes {
     cc12,
     cc48
 } colorCorrectionModes;
-
-#define RGB24_ISEQUAL(a, b)     ((a.red == b.red) && (a.green == b.green) && (a.blue == b.blue))
-
 
 // config
 typedef enum rotationDegrees {
@@ -185,6 +152,8 @@ public:
     void setColorCorrection(colorCorrectionModes mode);
     void setFont(fontChoices newFont);
 
+    SMLayerForeground * getForegroundLayer(void);
+
 private:
     // enable ISR access to private member variables
     friend void rowCalculationISR(void);
@@ -193,7 +162,7 @@ private:
     // functions called by ISR
     static void matrixCalculations(void);
     static void frameRefreshCallback_Background(void);
-    static void frameRefreshCallback_Foreground(void);
+    void frameRefreshCallback_Foreground(void);
 
     // functions for refreshing
     static void loadMatrixBuffers(unsigned char currentRow);
@@ -209,17 +178,17 @@ private:
 #endif
 #if COLOR_DEPTH_RGB > 24
     static void getBackgroundRefreshPixel(uint8_t x, uint8_t y, rgb48 &refreshPixel);
-    static bool getForegroundRefreshPixel(uint8_t x, uint8_t y, rgb48 &xyPixel);
+    bool getForegroundRefreshPixel(uint8_t x, uint8_t y, rgb48 &xyPixel);
 #else
     static void getBackgroundRefreshPixel(uint8_t x, uint8_t y, rgb24 &refreshPixel);
-    static bool getForegroundRefreshPixel(uint8_t x, uint8_t y, rgb24 &xyPixel);
+    bool getForegroundRefreshPixel(uint8_t x, uint8_t y, rgb24 &xyPixel);
 #endif
     static void handleBufferSwap(void);
-    static void handleForegroundDrawingCopy(void);
-    static void updateForeground(void);
-    static bool getForegroundPixel(uint8_t x, uint8_t y, rgb24 &xyPixel);
-    static void redrawForeground(void);
-    static void setScrollMinMax(void);
+    void handleForegroundDrawingCopy(void);
+    void updateForeground(void);
+    bool getForegroundPixel(uint8_t x, uint8_t y, rgb24 &xyPixel);
+    void redrawForeground(void);
+    void setScrollMinMax(void);
 
     // drawing functions not meant for user
     void drawHardwareHLine(uint8_t x0, uint8_t x1, uint8_t y, const rgb24& color);
@@ -247,13 +216,40 @@ private:
     static unsigned char previousRefreshBuffer;
 #endif
     static volatile bool swapPending;
-    static volatile bool foregroundCopyPending;
     static bool swapWithCopy;
 
     // font
     static bool getBitmapFontPixelAtXY(unsigned char letter, unsigned char x, unsigned char y, const bitmap_font *font);
     const bitmap_font *fontLookup(fontChoices font) const;
     static uint16_t getBitmapFontRowAtXY(unsigned char letter, unsigned char y, const bitmap_font *font);
+
+    // options
+    char text[textLayerMaxStringLength];
+
+    unsigned char textlen;
+    int scrollcounter = 0;
+
+    rgb24 textcolor = {0xff, 0xff, 0xff};
+    int fontTopOffset = 1;
+    int fontLeftOffset = 1;
+    bool majorScrollFontChange = false;
+
+    // scrolling
+    ScrollMode scrollmode = bounceForward;
+    unsigned char framesperscroll = 4;
+
+    //bitmap size is 32 rows (supporting maximum dimension of screen height in all rotations), by 32 bits
+    // double buffered to prevent flicker while drawing
+    uint32_t foregroundBitmap[2][MATRIX_WIDTH][MATRIX_WIDTH / 32];
+    bool foregroundCopyPending = false;
+
+    const bitmap_font *scrollFont = &apple5x7;
+
+    // these variables describe the text bitmap: size, location on the screen, and bounds of where it moves
+    unsigned int textWidth;
+    int scrollMin, scrollMax;
+    int scrollPosition;
+
 };
 
 #endif

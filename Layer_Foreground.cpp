@@ -1,5 +1,6 @@
 #include "Layer_Foreground.h"
 
+
 SMLayerForeground::SMLayerForeground(void) {
 
 }
@@ -14,6 +15,15 @@ void SMLayerForeground::getRefreshPixel(uint8_t x, uint8_t y, rgb24 &refreshPixe
 }
 
 void SMLayerForeground::getRefreshPixel(uint8_t x, uint8_t y, rgb48 &refreshPixel) {
+    rgb48 color48;
+    color48.red = textcolor.red << 8;
+    color48.green = textcolor.green << 8;
+    color48.blue = textcolor.blue << 8;
+
     if(x == y)
-        copyRgb48(refreshPixel, {0xffff, 0xffff, 0xffff});
+        copyRgb48(refreshPixel, color48);
+}
+
+void SMLayerForeground::setScrollColor(const rgb24 & newColor) {
+    copyRgb24(textcolor, newColor);
 }

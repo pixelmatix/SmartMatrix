@@ -24,37 +24,11 @@
 #include <string.h>
 #include "SmartMatrix.h"
 
-// FIXME: Most of these variable should be in smartmatrix class (i.e. one per instance of smart matrix, rather than being global)
-// options
-static char text[textLayerMaxStringLength];
-static unsigned char textlen;
-static int scrollcounter = 0;
-
-static rgb24 textcolor = {0xff, 0xff, 0xff};
-static int fontTopOffset = 1;
-static int fontLeftOffset = 1;
-static bool majorScrollFontChange = false;
-
-
 bool hasForeground = false;
 
 // Scrolling
-static ScrollMode scrollmode = bounceForward;
-static unsigned char framesperscroll = 4;
-
-//bitmap size is 32 rows (supporting maximum dimension of screen height in all rotations), by 32 bits
-// double buffered to prevent flicker while drawing
-static uint32_t foregroundBitmap[2][MATRIX_WIDTH][MATRIX_WIDTH / 32];
 const unsigned char foregroundDrawBuffer = 0;
 const unsigned char foregroundRefreshBuffer = 1;
-volatile bool SmartMatrix::foregroundCopyPending = false;
-
-static const bitmap_font *scrollFont = &apple5x7;
-
-// these variables describe the text bitmap: size, location on the screen, and bounds of where it moves
-static unsigned int textWidth;
-static int scrollMin, scrollMax;
-static int scrollPosition;
 
 // stops the scrolling text on the next refresh
 void SmartMatrix::stopScrollText(void) {

@@ -27,6 +27,8 @@
 
 #include "Layer_Foreground.h"
 
+SmartMatrix * globalinstance;
+
 SMLayerForeground foregroundLayerTest;
 
 #define INLINE __attribute__( ( always_inline ) ) inline
@@ -99,7 +101,7 @@ static gpiopair gpiosync;
 
 
 SmartMatrix::SmartMatrix(void) {
-
+    globalinstance = this;
 }
 
 INLINE void SmartMatrix::matrixCalculations(void) {
@@ -109,7 +111,7 @@ INLINE void SmartMatrix::matrixCalculations(void) {
     while (!cbIsFull(&dmaBuffer)) {
         // do once-per-frame updates
         if (!currentRow) {
-            frameRefreshCallback_Foreground();
+            globalinstance->frameRefreshCallback_Foreground();
             frameRefreshCallback_Background();
 
 #ifdef DEBUG_PINS_ENABLED
@@ -396,8 +398,8 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
         getBackgroundRefreshPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, tempPixel1);
         // overlay pixel data from foreground layer
         if(bHasForeground) {
-            getForegroundRefreshPixel(i, currentRow, tempPixel0);
-            getForegroundRefreshPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, tempPixel1);
+            globalinstance->getForegroundRefreshPixel(i, currentRow, tempPixel0);
+            globalinstance->getForegroundRefreshPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, tempPixel1);
         }
         foregroundLayerTest.getRefreshPixel(i, currentRow, tempPixel0);
         foregroundLayerTest.getRefreshPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, tempPixel1);
@@ -668,3 +670,8 @@ void rowShiftCompleteISR(void) {
     digitalWriteFast(DEBUG_PIN_1, LOW); // oscilloscope trigger
 #endif
 }
+
+SMLayerForeground * SmartMatrix::getForegroundLayer(void) {
+    return &foregroundLayerTest;
+}
+
