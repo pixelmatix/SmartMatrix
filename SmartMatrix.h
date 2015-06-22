@@ -250,6 +250,9 @@ private:
     int scrollMin, scrollMax;
     int scrollPosition;
 
+    bitmap_font *foregroundfont = (bitmap_font *) &apple3x5;
+
+    bool hasForeground = false;
 };
 
 #endif

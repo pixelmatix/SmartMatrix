@@ -384,7 +384,7 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
     refreshPixel tempPixel0;
     refreshPixel tempPixel1;
 
-    bool bHasForeground = hasForeground;
+    bool bHasForeground = globalinstance->hasForeground;
 
     for (i = 0; i < MATRIX_WIDTH; i++) {
 #if LATCHES_PER_ROW >= 12

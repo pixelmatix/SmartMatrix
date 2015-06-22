@@ -24,8 +24,6 @@
 #include <string.h>
 #include "SmartMatrix.h"
 
-bool hasForeground = false;
-
 // Scrolling
 const unsigned char foregroundDrawBuffer = 0;
 const unsigned char foregroundRefreshBuffer = 1;
@@ -73,8 +71,6 @@ void SmartMatrix::drawForegroundPixel(int16_t x, int16_t y, bool opaque) {
         foregroundBitmap[foregroundDrawBuffer][y][0] &= tempBitmask;
     }
 }
-
-bitmap_font *foregroundfont = (bitmap_font *) &apple3x5;
 
 
 void SmartMatrix::setForegroundFont(fontChoices newFont) {
