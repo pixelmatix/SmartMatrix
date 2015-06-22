@@ -27,3 +27,7 @@ void SMLayerForeground::getRefreshPixel(uint8_t x, uint8_t y, rgb48 &refreshPixe
 void SMLayerForeground::setScrollColor(const rgb24 & newColor) {
     copyRgb24(textcolor, newColor);
 }
+
+void SMLayerForeground::setColorCorrection(colorCorrectionModes mode) {
+    ccmode = mode;
+}

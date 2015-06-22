@@ -376,7 +376,7 @@ bool SmartMatrix::getForegroundRefreshPixel(uint8_t hardwareX, uint8_t hardwareY
     rgb24 tempPixel;
 
     // do once per refresh
-    bool bHasCC = SmartMatrix::_ccmode != ccNone;
+    bool bHasCC = foregroundLayerTest.ccmode != ccNone;
 
     if(getForegroundPixel(hardwareX, hardwareY, tempPixel)) {
         if(bHasCC) {
@@ -399,7 +399,7 @@ bool SmartMatrix::getForegroundRefreshPixel(uint8_t hardwareX, uint8_t hardwareY
     rgb24 tempPixel;
 
     // do once per refresh
-    bool bHasCC = SmartMatrix::_ccmode != ccNone;
+    bool bHasCC = foregroundLayerTest.ccmode != ccNone;
 
     if(getForegroundPixel(hardwareX, hardwareY, tempPixel)) {
         if(bHasCC) {

@@ -45,6 +45,9 @@ class SMLayerForeground : public SM_Layer {
         void getRefreshPixel(uint8_t x, uint8_t y, rgb48 &refreshPixel);
 
         void setScrollColor(const rgb24 & newColor);
+        colorCorrectionModes ccmode = cc48;
+        void setColorCorrection(colorCorrectionModes mode);
+
     private:
         rgb24 textcolor = {0xff, 0xff, 0xff};
 
