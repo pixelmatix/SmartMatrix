@@ -40,6 +40,8 @@ void setup() {
 
   matrix.begin();
 
+  matrix.setBrightness(25);
+
   // Initialize our coordinates to some random values
   x = random16();
   y = random16();
@@ -52,6 +54,7 @@ void setup() {
   matrix.setScrollFont(font8x13);
   matrix.scrollText("Smart Matrix & FastLED", -1);
   matrix.setScrollOffsetFromEdge(9);
+  matrix.foregroundLayerTest.setScrollColor({0xff,0,0});
 }
 
 // Fill the x/y array of 8-bit noise values using the inoise8 function.

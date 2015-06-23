@@ -48,8 +48,13 @@ class SMLayerForeground : public SM_Layer {
         colorCorrectionModes ccmode = cc48;
         void setColorCorrection(colorCorrectionModes mode);
 
+        //bitmap size is 32 rows (supporting maximum dimension of screen height in all rotations), by 32 bits
+        // double buffered to prevent flicker while drawing
+        uint32_t foregroundBitmap[2][32][32 / 32];
+
     private:
         rgb24 textcolor = {0xff, 0xff, 0xff};
+        bool getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24 &xyPixel);
 
 };
 

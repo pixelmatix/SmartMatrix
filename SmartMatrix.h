@@ -39,12 +39,8 @@
 
 // color
 #if COLOR_DEPTH_RGB > 24
-
 typedef rgb48 refreshPixel;
-
-#define color_chan_t uint16_t
 #else
-#define color_chan_t uint8_t
 typedef rgb24 refreshPixel;
 #endif
 
@@ -146,7 +142,6 @@ private:
     // functions for refreshing
     static void loadMatrixBuffers(unsigned char currentRow);
 
-    static color_chan_t colorCorrection(uint8_t inputcolor);
     static color_chan_t backgroundColorCorrection(uint8_t inputcolor);
 
     static void getPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24 *xyPixel);
@@ -178,7 +173,6 @@ private:
 
     // configuration helper functions
     static void calculateTimerLut(void);
-    static void calculateBackgroundLUT(void);
 
     // configuration
     static colorCorrectionModes _ccmode;
@@ -218,9 +212,6 @@ private:
     ScrollMode scrollmode = bounceForward;
     unsigned char framesperscroll = 4;
 
-    //bitmap size is 32 rows (supporting maximum dimension of screen height in all rotations), by 32 bits
-    // double buffered to prevent flicker while drawing
-    uint32_t foregroundBitmap[2][MATRIX_WIDTH][MATRIX_WIDTH / 32];
     bool foregroundCopyPending = false;
 
     const bitmap_font *scrollFont = &apple5x7;

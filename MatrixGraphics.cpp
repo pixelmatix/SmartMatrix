@@ -27,6 +27,12 @@
 // needed for lutInterpolate, and must be included after Arduino.h (contains definition for PI - conflict with wiring.h)
 #include "arm_math.h"
 
+static color_chan_t backgroundColorCorrectionLUT[256];
+
+color_chan_t SmartMatrix::backgroundColorCorrection(uint8_t inputcolor) {
+    return backgroundColorCorrectionLUT[inputcolor];
+}
+
 #ifdef SMARTMATRIX_TRIPLEBUFFER
 static rgb24 backgroundBuffer[3][MATRIX_HEIGHT][MATRIX_WIDTH];
 #else
@@ -1093,7 +1099,7 @@ rgb24 *SmartMatrix::getRealBackBuffer() {
 
 void SmartMatrix::frameRefreshCallback_Background(void) {
     handleBufferSwap();
-    calculateBackgroundLUT();
+    calculateBackgroundLUT(backgroundColorCorrectionLUT, backgroundBrightness);
 
 #ifdef SMARTMATRIX_TRIPLEBUFFER
     fcCoefficient = calculateFcInterpCoefficient();

@@ -23,6 +23,12 @@
 
 #include "SmartMatrix.h"
 
+colorCorrectionModes SmartMatrix::_ccmode = cc48;
+
+void SmartMatrix::setColorCorrection(colorCorrectionModes mode) {
+    _ccmode = mode;
+}
+
 screen_config SmartMatrix::screenConfig = {
     .rotation = rotation0,
     .localWidth = MATRIX_WIDTH,

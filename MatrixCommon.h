@@ -28,6 +28,16 @@ typedef enum colorCorrectionModes {
     cc48
 } colorCorrectionModes;
 
+#if COLOR_DEPTH_RGB > 24
+#define color_chan_t uint16_t
+#else
+#define color_chan_t uint8_t
+#endif
+
+color_chan_t colorCorrection(uint8_t inputcolor);
+
+void calculateBackgroundLUT(color_chan_t * lut, uint8_t backgroundBrightness);
+
 // config
 typedef enum rotationDegrees {
     rotation0,
@@ -43,5 +53,6 @@ typedef struct screen_config {
 } screen_config;
 
 void copyScreenConfig(screen_config &dst, const screen_config &src);
+
 
 #endif
