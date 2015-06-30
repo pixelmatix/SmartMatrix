@@ -109,11 +109,12 @@ INLINE void SmartMatrix::matrixCalculations(void) {
         if (!currentRow) {
             if (screenConfigChange) {
                 globalinstance->foregroundLayerTest.updateScreenConfig(screenConfig);
+                globalinstance->backgroundLayerTest.updateScreenConfig(screenConfig);
                 screenConfigChange = false;
             }
 
             globalinstance->foregroundLayerTest.frameRefreshCallback();
-            frameRefreshCallback_Background();
+            globalinstance->backgroundLayerTest.frameRefreshCallback();
 
 #ifdef DEBUG_PINS_ENABLED
     digitalWriteFast(DEBUG_PIN_3, HIGH); // oscilloscope trigger
@@ -394,8 +395,8 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
 #endif
 
         // get pixel data from graphics layer
-        getBackgroundRefreshPixel(i, currentRow, tempPixel0);
-        getBackgroundRefreshPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, tempPixel1);
+        globalinstance->backgroundLayerTest.getRefreshPixel(i, currentRow, tempPixel0);
+        globalinstance->backgroundLayerTest.getRefreshPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, tempPixel1);
         // overlay pixel data from foreground layer
         if(bHasForeground) {
             globalinstance->foregroundLayerTest.getRefreshPixel(i, currentRow, tempPixel0);

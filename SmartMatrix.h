@@ -34,6 +34,7 @@
 #include "MatrixCommon.h"
 
 #include "Layer_Foreground.h"
+#include "Layer_Background.h"
 
 #define ENABLE_FADECANDY_GAMMA_CORRECTION               1
 
@@ -48,7 +49,7 @@ typedef rgb24 refreshPixel;
 #define SMART_MATRIX_CAN_TRIPLE_BUFFER 1
 
 // enable true triple buffering and interpolation
-#define SMARTMATRIX_TRIPLEBUFFER
+//#define SMARTMATRIX_TRIPLEBUFFER
 
 #ifdef SMARTMATRIX_TRIPLEBUFFER
 #if COLOR_DEPTH_RGB <= 24
@@ -91,7 +92,7 @@ public:
     void drawString(int16_t x, int16_t y, const rgb24& charColor, const char text[]);
     void drawString(int16_t x, int16_t y, const rgb24& charColor, const rgb24& backColor, const char text[]);
     void drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, const rgb24& bitmapColor, const uint8_t *bitmap);
-    const rgb24 readPixel(int16_t x, int16_t y) const;
+    const rgb24 readPixel(int16_t x, int16_t y);
     rgb24 *backBuffer(void);
     void setBackBuffer(rgb24 *newBuffer);
     rgb24 *getRealBackBuffer(void);
@@ -128,6 +129,7 @@ public:
     void setFont(fontChoices newFont);
 
     SMLayerForeground foregroundLayerTest;
+    SMLayerBackground backgroundLayerTest;
 
 private:
     // enable ISR access to private member variables
@@ -136,34 +138,9 @@ private:
 
     // functions called by ISR
     static void matrixCalculations(void);
-    static void frameRefreshCallback_Background(void);
 
     // functions for refreshing
     static void loadMatrixBuffers(unsigned char currentRow);
-
-    static color_chan_t backgroundColorCorrection(uint8_t inputcolor);
-
-    static void getPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24 *xyPixel);
-    static rgb24 *getCurrentRefreshRow(uint8_t y);
-#ifdef SMARTMATRIX_TRIPLEBUFFER
-    static rgb24 *getPreviousRefreshRow(uint8_t y);
-    static uint32_t calculateFcInterpCoefficient();
-#endif
-#if COLOR_DEPTH_RGB > 24
-    static void getBackgroundRefreshPixel(uint8_t x, uint8_t y, rgb48 &refreshPixel);
-    bool getForegroundRefreshPixel(uint8_t x, uint8_t y, rgb48 &xyPixel);
-#else
-    static void getBackgroundRefreshPixel(uint8_t x, uint8_t y, rgb24 &refreshPixel);
-    bool getForegroundRefreshPixel(uint8_t x, uint8_t y, rgb24 &xyPixel);
-#endif
-    static void handleBufferSwap(void);
-
-    // drawing functions not meant for user
-    void drawHardwareHLine(uint8_t x0, uint8_t x1, uint8_t y, const rgb24& color);
-    void drawHardwareVLine(uint8_t x, uint8_t y0, uint8_t y1, const rgb24& color);
-    void bresteepline(int16_t x3, int16_t y3, int16_t x4, int16_t y4, const rgb24& color);
-    void fillFlatSideTriangleInt(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const rgb24& color);
-    static bool getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap);
 
     // configuration helper functions
     static void calculateTimerLut(void);
@@ -174,18 +151,7 @@ private:
     static volatile bool brightnessChange;
     static volatile bool screenConfigChange;
     static int dimmingFactor;
-    static uint8_t backgroundBrightness;
     static const int dimmingMaximum;
-
-    // keeping track of drawing buffers
-    static unsigned char currentDrawBuffer;
-    static unsigned char currentRefreshBuffer;
-#ifdef SMARTMATRIX_TRIPLEBUFFER    
-    static unsigned char previousRefreshBuffer;
-#endif
-    static volatile bool swapPending;
-    static bool swapWithCopy;
-
 };
 
 #endif

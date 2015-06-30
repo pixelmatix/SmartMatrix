@@ -67,9 +67,3 @@ void SmartMatrix::setBrightness(uint8_t brightness) {
     brightnessChange = true;
 }
 
-uint8_t SmartMatrix::backgroundBrightness = 255;
-
-void SmartMatrix::setBackgroundBrightness(uint8_t brightness) {
-    backgroundBrightness = brightness;
-}
-
