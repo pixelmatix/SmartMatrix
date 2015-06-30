@@ -28,6 +28,19 @@ typedef enum colorCorrectionModes {
     cc48
 } colorCorrectionModes;
 
+#ifndef COLOR_DEPTH_RGB
+//#error "Not Defined COLOR_DEPTH_RGB"
+#define COLOR_DEPTH_RGB 36
+#endif
+
+
+#if COLOR_DEPTH_RGB > 24
+#define Chan8ToColor( c ) ((c) << 8)
+#else
+#define Chan8ToColor( c ) (c)
+#endif
+
+
 #if COLOR_DEPTH_RGB > 24
 #define color_chan_t uint16_t
 #else

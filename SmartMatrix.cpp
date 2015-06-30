@@ -401,11 +401,9 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
         getBackgroundRefreshPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, tempPixel1);
         // overlay pixel data from foreground layer
         if(bHasForeground) {
-            globalinstance->getForegroundRefreshPixel(i, currentRow, tempPixel0);
-            globalinstance->getForegroundRefreshPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, tempPixel1);
+            globalinstance->foregroundLayerTest.getRefreshPixel(i, currentRow, tempPixel0);
+            globalinstance->foregroundLayerTest.getRefreshPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, tempPixel1);
         }
-        globalinstance->foregroundLayerTest.getRefreshPixel(i, currentRow, tempPixel0);
-        globalinstance->foregroundLayerTest.getRefreshPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, tempPixel1);
 
         temp0red = tempPixel0.red;
         temp0green = tempPixel0.green;
