@@ -50,7 +50,7 @@ int getBitmapFontLocation(unsigned char letter, const bitmap_font *font) {
     return -1;
 }
 
-bool SmartMatrix::getBitmapFontPixelAtXY(unsigned char letter, unsigned char x, unsigned char y, const bitmap_font *font)
+bool getBitmapFontPixelAtXY(unsigned char letter, unsigned char x, unsigned char y, const bitmap_font *font)
 {
     int location;
     if (y >= font->Height)
@@ -67,7 +67,7 @@ bool SmartMatrix::getBitmapFontPixelAtXY(unsigned char letter, unsigned char x, 
         return false;
 }
 
-uint16_t SmartMatrix::getBitmapFontRowAtXY(unsigned char letter, unsigned char y, const bitmap_font *font) {
+uint16_t getBitmapFontRowAtXY(unsigned char letter, unsigned char y, const bitmap_font *font) {
     int location;
     if (y >= font->Height)
         return 0x0000;
@@ -90,6 +90,6 @@ static const bitmap_font *fontArray[] = {
     &gohufont6x11b,
 };
 
-const bitmap_font *SmartMatrix::fontLookup(fontChoices font) const {
+const bitmap_font *fontLookup(fontChoices font) {
     return fontArray[font];
 }

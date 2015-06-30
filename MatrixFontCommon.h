@@ -8,6 +8,9 @@
 #ifndef MATRIXFONTCOMMON_H_
 #define MATRIXFONTCOMMON_H_
 
+#include <stdbool.h>
+#include <stdint.h>
+
 	/// bitmap font structure
 typedef struct bitmap_font {
 	unsigned char Width;		///< max. character width
@@ -17,6 +20,27 @@ typedef struct bitmap_font {
 	const unsigned short *Index;	///< encoding to character index
 	const unsigned char *Bitmap;	///< bitmap of all characters
 } bitmap_font;
+
+
+extern const bitmap_font apple3x5;
+extern const bitmap_font apple5x7;
+extern const bitmap_font apple6x10;
+extern const bitmap_font apple8x13;
+extern const bitmap_font gohufont6x11;
+extern const bitmap_font gohufont6x11b;
+
+typedef enum fontChoices {
+    font3x5,
+    font5x7,
+    font6x10,
+    font8x13,
+    gohufont11,
+    gohufont11b
+} fontChoices;
+
+bool getBitmapFontPixelAtXY(unsigned char letter, unsigned char x, unsigned char y, const bitmap_font *font);
+const bitmap_font *fontLookup(fontChoices font);
+uint16_t getBitmapFontRowAtXY(unsigned char letter, unsigned char y, const bitmap_font *font);
 
 /// @{ defines to have human readable font files
 #define ________ 0x00

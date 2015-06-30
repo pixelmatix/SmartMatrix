@@ -25,8 +25,6 @@
 #include "CircularBuffer.h"
 #include "DMAChannel.h"
 
-#include "Layer_Foreground.h"
-
 SmartMatrix * globalinstance;
 
 #define INLINE __attribute__( ( always_inline ) ) inline
@@ -114,7 +112,7 @@ INLINE void SmartMatrix::matrixCalculations(void) {
                 screenConfigChange = false;
             }
 
-            globalinstance->frameRefreshCallback_Foreground();
+            globalinstance->foregroundLayerTest.frameRefreshCallback();
             frameRefreshCallback_Background();
 
 #ifdef DEBUG_PINS_ENABLED
@@ -363,7 +361,6 @@ void SmartMatrix::begin(void)
     FTM1_SC = FTM_SC_CLKS(1) | FTM_SC_PS(LATCH_TIMER_PRESCALE);
 }
 
-extern bool hasForeground;
 void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
     int i, j;
 
@@ -387,7 +384,7 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
     refreshPixel tempPixel0;
     refreshPixel tempPixel1;
 
-    bool bHasForeground = globalinstance->hasForeground;
+    bool bHasForeground = globalinstance->foregroundLayerTest.hasForeground;
 
     for (i = 0; i < MATRIX_WIDTH; i++) {
 #if LATCHES_PER_ROW >= 12

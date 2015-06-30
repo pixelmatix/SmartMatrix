@@ -137,7 +137,6 @@ private:
     // functions called by ISR
     static void matrixCalculations(void);
     static void frameRefreshCallback_Background(void);
-    void frameRefreshCallback_Foreground(void);
 
     // functions for refreshing
     static void loadMatrixBuffers(unsigned char currentRow);
@@ -158,11 +157,6 @@ private:
     bool getForegroundRefreshPixel(uint8_t x, uint8_t y, rgb24 &xyPixel);
 #endif
     static void handleBufferSwap(void);
-    void handleForegroundDrawingCopy(void);
-    void updateForeground(void);
-    bool getForegroundPixel(uint8_t x, uint8_t y, rgb24 &xyPixel);
-    void redrawForeground(void);
-    void setScrollMinMax(void);
 
     // drawing functions not meant for user
     void drawHardwareHLine(uint8_t x0, uint8_t x1, uint8_t y, const rgb24& color);
@@ -192,39 +186,6 @@ private:
     static volatile bool swapPending;
     static bool swapWithCopy;
 
-    // font
-    static bool getBitmapFontPixelAtXY(unsigned char letter, unsigned char x, unsigned char y, const bitmap_font *font);
-    const bitmap_font *fontLookup(fontChoices font) const;
-    static uint16_t getBitmapFontRowAtXY(unsigned char letter, unsigned char y, const bitmap_font *font);
-
-    // options
-    char text[textLayerMaxStringLength];
-
-    unsigned char textlen;
-    int scrollcounter = 0;
-
-    rgb24 textcolor = {0xff, 0xff, 0xff};
-    int fontTopOffset = 1;
-    int fontLeftOffset = 1;
-    bool majorScrollFontChange = false;
-
-    // scrolling
-    ScrollMode scrollmode = bounceForward;
-    unsigned char framesperscroll = 4;
-
-    bool foregroundCopyPending = false;
-
-    const bitmap_font *scrollFont = &apple5x7;
-
-    // these variables describe the text bitmap: size, location on the screen, and bounds of where it moves
-    unsigned int textWidth;
-    int scrollMin, scrollMax;
-    int scrollPosition;
-
-    bitmap_font *foregroundfont = (bitmap_font *) &apple3x5;
-
-    bool hasForeground = false;
-    screen_config foregroundScreenConfig;
 };
 
 #endif
