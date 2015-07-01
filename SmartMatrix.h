@@ -146,7 +146,6 @@ private:
     static void calculateTimerLut(void);
 
     // configuration
-    static colorCorrectionModes _ccmode;
     static screen_config screenConfig;
     static volatile bool brightnessChange;
     static volatile bool screenConfigChange;

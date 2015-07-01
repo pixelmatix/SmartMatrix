@@ -1105,5 +1105,8 @@ void SMLayerBackground::setBrightness(uint8_t brightness) {
     backgroundBrightness = brightness;
 }
 
+void SMLayerBackground::setColorCorrection(colorCorrectionModes mode) {
+    ccmode = mode;
+}
 
 

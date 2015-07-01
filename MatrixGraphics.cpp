@@ -155,3 +155,7 @@ void SmartMatrix::setBackgroundBrightness(uint8_t brightness) {
     backgroundLayerTest.setBrightness(brightness);
 }
 
+void SmartMatrix::setColorCorrection(colorCorrectionModes mode) {
+    backgroundLayerTest.setColorCorrection(mode);
+}
+

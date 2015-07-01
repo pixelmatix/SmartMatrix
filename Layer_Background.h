@@ -49,6 +49,7 @@ class SMLayerBackground : public SM_Layer {
         rgb24 *getRealBackBuffer(void);
         void setFont(fontChoices newFont);
         void setBrightness(uint8_t brightness);
+        void setColorCorrection(colorCorrectionModes mode);
 
     private:
         colorCorrectionModes ccmode = cc48;
