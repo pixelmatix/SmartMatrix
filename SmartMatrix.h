@@ -128,8 +128,8 @@ public:
     void setColorCorrection(colorCorrectionModes mode);
     void setFont(fontChoices newFont);
 
-    SMLayerForeground * foregroundLayerTest;
-    SMLayerBackground * backgroundLayerTest;
+    SMLayerForeground * foregroundLayer;
+    SMLayerBackground * backgroundLayer;
 
     void useDefaultLayers(void);
     void addLayer(SM_Layer * newlayer);

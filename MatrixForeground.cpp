@@ -24,87 +24,87 @@
 #include "SmartMatrix.h"
 
 void SmartMatrix::stopScrollText(void) {
-    if(foregroundLayerTest)
-        foregroundLayerTest->stopScrollText();
+    if(foregroundLayer)
+        foregroundLayer->stopScrollText();
 }
 
 void SmartMatrix::clearForeground(void) {
-    if(foregroundLayerTest)
-        foregroundLayerTest->clearForeground();
+    if(foregroundLayer)
+        foregroundLayer->clearForeground();
 }
 
 void SmartMatrix::displayForegroundDrawing(bool waitUntilComplete) {
-    if(foregroundLayerTest)
-        foregroundLayerTest->displayForegroundDrawing(waitUntilComplete);
+    if(foregroundLayer)
+        foregroundLayer->displayForegroundDrawing(waitUntilComplete);
 }
 
 void SmartMatrix::drawForegroundPixel(int16_t x, int16_t y, bool opaque) {
-    if(foregroundLayerTest)
-        foregroundLayerTest->drawForegroundPixel(x, y, opaque);
+    if(foregroundLayer)
+        foregroundLayer->drawForegroundPixel(x, y, opaque);
 }
 
 void SmartMatrix::setForegroundFont(fontChoices newFont) {
-    if(foregroundLayerTest)
-        foregroundLayerTest->setForegroundFont(newFont);
+    if(foregroundLayer)
+        foregroundLayer->setForegroundFont(newFont);
 }
 
 void SmartMatrix::drawForegroundChar(int16_t x, int16_t y, char character, bool opaque) {
-    if(foregroundLayerTest)
-        foregroundLayerTest->drawForegroundChar(x,y,character,opaque);
+    if(foregroundLayer)
+        foregroundLayer->drawForegroundChar(x,y,character,opaque);
 }
 
 void SmartMatrix::drawForegroundString(int16_t x, int16_t y, const char text [], bool opaque) {
-    if(foregroundLayerTest)
-        foregroundLayerTest->drawForegroundString(x,y,text,opaque);
+    if(foregroundLayer)
+        foregroundLayer->drawForegroundString(x,y,text,opaque);
 }
 
 void SmartMatrix::drawForegroundMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, uint8_t *bitmap, bool opaque) {
-    if(foregroundLayerTest)
-        foregroundLayerTest->drawForegroundMonoBitmap(x,y,width,height,bitmap,opaque);
+    if(foregroundLayer)
+        foregroundLayer->drawForegroundMonoBitmap(x,y,width,height,bitmap,opaque);
 }
 
 int SmartMatrix::getScrollStatus(void) {
-    if(foregroundLayerTest)
-        return foregroundLayerTest->getScrollStatus();
+    if(foregroundLayer)
+        return foregroundLayer->getScrollStatus();
     return 0;
 }
 
 void SmartMatrix::scrollText(const char inputtext[], int numScrolls) {
-    if(foregroundLayerTest)
-        foregroundLayerTest->scrollText(inputtext, numScrolls);
+    if(foregroundLayer)
+        foregroundLayer->scrollText(inputtext, numScrolls);
 }
 
 void SmartMatrix::updateScrollText(const char inputtext[]){
-    if(foregroundLayerTest)
-        foregroundLayerTest->updateScrollText(inputtext);
+    if(foregroundLayer)
+        foregroundLayer->updateScrollText(inputtext);
 }
 
 void SmartMatrix::setScrollMode(ScrollMode mode) {
-    if(foregroundLayerTest)
-        foregroundLayerTest->setScrollMode(mode);
+    if(foregroundLayer)
+        foregroundLayer->setScrollMode(mode);
 }
 
 void SmartMatrix::setScrollSpeed(unsigned char pixels_per_second) {
-    if(foregroundLayerTest)
-        foregroundLayerTest->setScrollSpeed(pixels_per_second);
+    if(foregroundLayer)
+        foregroundLayer->setScrollSpeed(pixels_per_second);
 }
 
 void SmartMatrix::setScrollFont(fontChoices newFont) {
-    if(foregroundLayerTest)
-        foregroundLayerTest->setScrollFont(newFont);
+    if(foregroundLayer)
+        foregroundLayer->setScrollFont(newFont);
 }
 
 void SmartMatrix::setScrollColor(const rgb24 & newColor) {
-    if(foregroundLayerTest)
-        foregroundLayerTest->setScrollColor(newColor);
+    if(foregroundLayer)
+        foregroundLayer->setScrollColor(newColor);
 }
 
 void SmartMatrix::setScrollOffsetFromTop(int offset) {
-    if(foregroundLayerTest)
-        foregroundLayerTest->setScrollOffsetFromTop(offset);
+    if(foregroundLayer)
+        foregroundLayer->setScrollOffsetFromTop(offset);
 }
 
 void SmartMatrix::setScrollStartOffsetFromLeft(int offset) {
-    if(foregroundLayerTest)
-        foregroundLayerTest->setScrollStartOffsetFromLeft(offset);
+    if(foregroundLayer)
+        foregroundLayer->setScrollStartOffsetFromLeft(offset);
 }

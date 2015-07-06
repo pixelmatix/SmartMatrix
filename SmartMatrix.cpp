@@ -112,8 +112,8 @@ void SmartMatrix::addLayer(SM_Layer * newlayer) {
 }
 
 void SmartMatrix::useDefaultLayers(void) {
-    backgroundLayerTest = (SMLayerBackground *)baseLayer;
-    foregroundLayerTest = (SMLayerForeground *)(baseLayer->nextLayer);
+    backgroundLayer = (SMLayerBackground *)baseLayer;
+    foregroundLayer = (SMLayerForeground *)(baseLayer->nextLayer);
 }
 
 INLINE void SmartMatrix::matrixCalculations(void) {
