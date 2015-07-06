@@ -108,13 +108,17 @@ INLINE void SmartMatrix::matrixCalculations(void) {
         // do once-per-frame updates
         if (!currentRow) {
             if (screenConfigChange) {
-                globalinstance->foregroundLayerTest.updateScreenConfig(screenConfig);
-                globalinstance->backgroundLayerTest.updateScreenConfig(screenConfig);
+                if(globalinstance->layers[0])
+                    globalinstance->layers[0]->updateScreenConfig(screenConfig);
+                if(globalinstance->layers[1])
+                    globalinstance->layers[1]->updateScreenConfig(screenConfig);
                 screenConfigChange = false;
             }
 
-            globalinstance->foregroundLayerTest.frameRefreshCallback();
-            globalinstance->backgroundLayerTest.frameRefreshCallback();
+                if(globalinstance->layers[0])
+                    globalinstance->layers[0]->frameRefreshCallback();
+                if(globalinstance->layers[1])
+                    globalinstance->layers[1]->frameRefreshCallback();
 
 #ifdef DEBUG_PINS_ENABLED
     digitalWriteFast(DEBUG_PIN_3, HIGH); // oscilloscope trigger
@@ -168,6 +172,9 @@ INLINE void SmartMatrix::calculateTimerLut(void) {
 
 void SmartMatrix::begin(void)
 {
+    layers[0] = &backgroundLayerTest;
+    layers[1] = &foregroundLayerTest;
+
     int i;
     cbInit(&dmaBuffer, DMA_BUFFER_NUMBER_OF_ROWS);
 
@@ -385,8 +392,6 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
     refreshPixel tempPixel0;
     refreshPixel tempPixel1;
 
-    bool bHasForeground = globalinstance->foregroundLayerTest.hasForeground;
-
     for (i = 0; i < MATRIX_WIDTH; i++) {
 #if LATCHES_PER_ROW >= 12
         uint16_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;
@@ -395,12 +400,14 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
 #endif
 
         // get pixel data from graphics layer
-        globalinstance->backgroundLayerTest.getRefreshPixel(i, currentRow, tempPixel0);
-        globalinstance->backgroundLayerTest.getRefreshPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, tempPixel1);
+        if(globalinstance->layers[0]) {
+            globalinstance->layers[0]->getRefreshPixel(i, currentRow, tempPixel0);
+            globalinstance->layers[0]->getRefreshPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, tempPixel1);
+        }
         // overlay pixel data from foreground layer
-        if(bHasForeground) {
-            globalinstance->foregroundLayerTest.getRefreshPixel(i, currentRow, tempPixel0);
-            globalinstance->foregroundLayerTest.getRefreshPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, tempPixel1);
+        if(globalinstance->layers[1]) {
+            globalinstance->layers[1]->getRefreshPixel(i, currentRow, tempPixel0);
+            globalinstance->layers[1]->getRefreshPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, tempPixel1);
         }
 
         temp0red = tempPixel0.red;

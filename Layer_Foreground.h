@@ -58,9 +58,6 @@ class SMLayerForeground : public SM_Layer {
         void setScrollOffsetFromTop(int offset);
         void setScrollStartOffsetFromLeft(int offset);
 
-        // move to private after finishing class port
-        bool hasForeground = false;
-
     private:
         void redrawForeground(void);
         static bool getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap);

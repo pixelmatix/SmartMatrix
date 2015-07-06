@@ -118,8 +118,6 @@ void SMLayerForeground::clearForeground(void) {
 }
 
 void SMLayerForeground::displayForegroundDrawing(bool waitUntilComplete) {
-    hasForeground = true;
-
     while (foregroundCopyPending);
 
     foregroundCopyPending = true;
@@ -354,7 +352,6 @@ void SMLayerForeground::redrawForeground(void) {
         if (j < fontTopOffset || j >= fontTopOffset + scrollFont->Height)
             continue;
 
-        hasForeground = true;
         // now in row with text
         // find the position of the first char
         charPosition = scrollPosition;

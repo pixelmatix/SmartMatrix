@@ -131,6 +131,8 @@ public:
     SMLayerForeground foregroundLayerTest;
     SMLayerBackground backgroundLayerTest;
 
+    SM_Layer * layers[2];
+
 private:
     // enable ISR access to private member variables
     friend void rowCalculationISR(void);
