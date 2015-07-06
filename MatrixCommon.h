@@ -3,6 +3,10 @@
 
 #include <stdint.h>
 
+#ifdef ARDUINO_ARCH_AVR
+#include "Arduino.h"
+#endif
+
 typedef struct rgb24 {
     uint8_t red;
     uint8_t green;

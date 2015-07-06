@@ -1,8 +1,6 @@
 #ifndef _LAYER_BACKGROUND_H_
 #define _LAYER_BACKGROUND_H_
 
-#include "Arduino.h"
-
 #include "Layer.h"
 #include "MatrixCommon.h"
 #include "MatrixFontCommon.h"
