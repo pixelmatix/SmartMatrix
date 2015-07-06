@@ -1,7 +1,6 @@
 #ifndef _LAYER_H_
 #define _LAYER_H_
 
-#include "Arduino.h"
 #include "MatrixCommon.h"
 
 class SM_Layer {
