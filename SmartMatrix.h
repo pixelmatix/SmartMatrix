@@ -131,7 +131,13 @@ public:
     SMLayerForeground foregroundLayerTest;
     SMLayerBackground backgroundLayerTest;
 
-    SM_Layer * layers[2];
+    void useDefaultLayers(void);
+    void addLayer(SM_Layer * newlayer);
+
+    SM_Layer * baseLayer;
+
+    
+
 
 private:
     // enable ISR access to private member variables

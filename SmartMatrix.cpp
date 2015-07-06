@@ -98,7 +98,29 @@ static gpiopair gpiosync;
 
 SmartMatrix::SmartMatrix(void) {
     globalinstance = this;
+
+    addLayer(&backgroundLayerTest);
+    addLayer(&foregroundLayerTest);
 }
+
+void SmartMatrix::addLayer(SM_Layer * newlayer) {
+    if(baseLayer) {
+        SM_Layer * templayer = baseLayer;
+        while(templayer->nextLayer)
+            templayer = templayer->nextLayer;
+        templayer->nextLayer = newlayer;
+    } else {
+        baseLayer = newlayer;
+    }
+}
+
+#if 0
+void SmartMatrix::useDefaultLayers(void) {
+    backgroundLayerTest = (SMLayerBackground *)baseLayer;
+    foregroundLayerTest = (SMLayerForeground *)(baseLayer->nextLayer);
+}
+#endif
+
 
 INLINE void SmartMatrix::matrixCalculations(void) {
     static unsigned char currentRow = 0;
@@ -108,17 +130,19 @@ INLINE void SmartMatrix::matrixCalculations(void) {
         // do once-per-frame updates
         if (!currentRow) {
             if (screenConfigChange) {
-                if(globalinstance->layers[0])
-                    globalinstance->layers[0]->updateScreenConfig(screenConfig);
-                if(globalinstance->layers[1])
-                    globalinstance->layers[1]->updateScreenConfig(screenConfig);
+                SM_Layer * templayer = globalinstance->baseLayer;
+                while(templayer) {
+                    templayer->updateScreenConfig(screenConfig);
+                    templayer = templayer->nextLayer;
+                }
                 screenConfigChange = false;
             }
 
-                if(globalinstance->layers[0])
-                    globalinstance->layers[0]->frameRefreshCallback();
-                if(globalinstance->layers[1])
-                    globalinstance->layers[1]->frameRefreshCallback();
+            SM_Layer * templayer = globalinstance->baseLayer;
+            while(templayer) {
+                templayer->frameRefreshCallback();
+                templayer = templayer->nextLayer;
+            }
 
 #ifdef DEBUG_PINS_ENABLED
     digitalWriteFast(DEBUG_PIN_3, HIGH); // oscilloscope trigger
@@ -172,9 +196,6 @@ INLINE void SmartMatrix::calculateTimerLut(void) {
 
 void SmartMatrix::begin(void)
 {
-    layers[0] = &backgroundLayerTest;
-    layers[1] = &foregroundLayerTest;
-
     int i;
     cbInit(&dmaBuffer, DMA_BUFFER_NUMBER_OF_ROWS);
 
@@ -399,15 +420,12 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
         uint8_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;
 #endif
 
-        // get pixel data from graphics layer
-        if(globalinstance->layers[0]) {
-            globalinstance->layers[0]->getRefreshPixel(i, currentRow, tempPixel0);
-            globalinstance->layers[0]->getRefreshPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, tempPixel1);
-        }
-        // overlay pixel data from foreground layer
-        if(globalinstance->layers[1]) {
-            globalinstance->layers[1]->getRefreshPixel(i, currentRow, tempPixel0);
-            globalinstance->layers[1]->getRefreshPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, tempPixel1);
+        // get pixel data from layers
+        SM_Layer * templayer = globalinstance->baseLayer;
+        while(templayer) {
+            templayer->getRefreshPixel(i, currentRow, tempPixel0);
+            templayer->getRefreshPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, tempPixel1);
+            templayer = templayer->nextLayer;
         }
 
         temp0red = tempPixel0.red;
