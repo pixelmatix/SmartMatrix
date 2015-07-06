@@ -6,6 +6,8 @@
 #include <SmartMatrix_32x32.h>
 
 SmartMatrix matrix;
+SMLayerForeground foregroundLayer;
+SMLayerBackground backgroundLayer;
 
 const int defaultBrightness = 100*(255/100);    // full brightness
 //const int defaultBrightness = 15*(255/100);    // dim: 15% brightness
@@ -15,8 +17,6 @@ const rgb24 defaultBackgroundColor = {0x40, 0, 0};
 // Teensy 3.0 has the LED on pin 13
 const int ledPin = 13;
 
-SMLayerForeground foregroundLayerTest;
-SMLayerBackground backgroundLayerTest;
 
 // the setup() method runs once, when the sketch starts
 void setup() {
@@ -25,11 +25,11 @@ void setup() {
 
     Serial.begin(38400);
 
-    matrix.addLayer(&backgroundLayerTest);
-    matrix.addLayer(&foregroundLayerTest);
+    matrix.addLayer(&backgroundLayer);
+    matrix.addLayer(&foregroundLayer);
     matrix.useDefaultLayers();
-
     matrix.begin();
+
     matrix.setBrightness(defaultBrightness);
 
     matrix.setScrollOffsetFromEdge(defaultScrollOffset);

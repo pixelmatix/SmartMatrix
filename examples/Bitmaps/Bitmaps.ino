@@ -19,6 +19,8 @@
 #include "chrome16.c"
 
 SmartMatrix matrix;
+SMLayerForeground foregroundLayer;
+SMLayerBackground backgroundLayer;
 
 int led = 13;
 
@@ -35,6 +37,9 @@ void drawBitmap(int16_t x, int16_t y, const gimp32x32bitmap* bitmap) {
 }
 
 void setup() {
+  matrix.addLayer(&backgroundLayer);
+  matrix.addLayer(&foregroundLayer);
+  matrix.useDefaultLayers();
   matrix.begin();
   matrix.setBrightness(128);
 

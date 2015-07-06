@@ -30,6 +30,8 @@
 #include <FastLED.h>
 
 SmartMatrix matrix;
+SMLayerForeground foregroundLayer;
+SMLayerBackground backgroundLayer;
 
 #define ADC_INPUT_PIN   A2
 
@@ -58,7 +60,11 @@ void setup()
     Serial.begin(9600);
 
     // Initialize 32x32 LED Matrix
+    matrix.addLayer(&backgroundLayer);
+    matrix.addLayer(&foregroundLayer);
+    matrix.useDefaultLayers();
     matrix.begin();
+
     matrix.setBrightness(255);
 
     // Audio requires memory to work.

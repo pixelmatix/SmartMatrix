@@ -18,6 +18,8 @@
 #define kMatrixHeight MATRIX_HEIGHT
 
 SmartMatrix matrix;
+SMLayerForeground foregroundLayer;
+SMLayerBackground backgroundLayer;
 
 // The 32bit version of our coordinates
 static uint16_t x;
@@ -51,6 +53,9 @@ void setup() {
   // Serial.println("resetting!");
   delay(3000);
 
+  matrix.addLayer(&backgroundLayer);
+  matrix.addLayer(&foregroundLayer);
+  matrix.useDefaultLayers();
   matrix.begin();
 
   matrix.setBackgroundBrightness(96);

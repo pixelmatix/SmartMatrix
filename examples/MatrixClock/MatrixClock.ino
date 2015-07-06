@@ -16,6 +16,8 @@
 #include <SmartMatrix_32x32.h>
 
 SmartMatrix matrix;
+SMLayerForeground foregroundLayer;
+SMLayerBackground backgroundLayer;
 
 const rgb24 clockColor = {0xff, 0xff, 0xff};
 
@@ -33,6 +35,9 @@ void setup() {
   CORE_PIN17_CONFIG = (PORT_PCR_MUX(2) | PORT_PCR_PE | PORT_PCR_PS);
 
   // setup matrix
+  matrix.addLayer(&backgroundLayer);
+  matrix.addLayer(&foregroundLayer);
+  matrix.useDefaultLayers();
   matrix.begin();
   matrix.setScrollFont(font3x5);
 }
