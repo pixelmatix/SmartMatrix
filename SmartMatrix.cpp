@@ -98,9 +98,6 @@ static gpiopair gpiosync;
 
 SmartMatrix::SmartMatrix(void) {
     globalinstance = this;
-
-    addLayer(&backgroundLayerTest);
-    addLayer(&foregroundLayerTest);
 }
 
 void SmartMatrix::addLayer(SM_Layer * newlayer) {
@@ -114,13 +111,10 @@ void SmartMatrix::addLayer(SM_Layer * newlayer) {
     }
 }
 
-#if 0
 void SmartMatrix::useDefaultLayers(void) {
     backgroundLayerTest = (SMLayerBackground *)baseLayer;
     foregroundLayerTest = (SMLayerForeground *)(baseLayer->nextLayer);
 }
-#endif
-
 
 INLINE void SmartMatrix::matrixCalculations(void) {
     static unsigned char currentRow = 0;

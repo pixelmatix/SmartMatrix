@@ -15,12 +15,19 @@ const rgb24 defaultBackgroundColor = {0x40, 0, 0};
 // Teensy 3.0 has the LED on pin 13
 const int ledPin = 13;
 
+SMLayerForeground foregroundLayerTest;
+SMLayerBackground backgroundLayerTest;
+
 // the setup() method runs once, when the sketch starts
 void setup() {
     // initialize the digital pin as an output.
     pinMode(ledPin, OUTPUT);
 
     Serial.begin(38400);
+
+    matrix.addLayer(&backgroundLayerTest);
+    matrix.addLayer(&foregroundLayerTest);
+    matrix.useDefaultLayers();
 
     matrix.begin();
     matrix.setBrightness(defaultBrightness);

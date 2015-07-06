@@ -108,7 +108,7 @@ public:
     void setScrollStartOffsetFromLeft(int offset);
     void updateScrollText(const char inputtext[]);
     void stopScrollText(void);
-    int getScrollStatus(void) const;
+    int getScrollStatus(void);
 
     // foreground drawing
     void clearForeground(void);
@@ -128,8 +128,8 @@ public:
     void setColorCorrection(colorCorrectionModes mode);
     void setFont(fontChoices newFont);
 
-    SMLayerForeground foregroundLayerTest;
-    SMLayerBackground backgroundLayerTest;
+    SMLayerForeground * foregroundLayerTest;
+    SMLayerBackground * backgroundLayerTest;
 
     void useDefaultLayers(void);
     void addLayer(SM_Layer * newlayer);
