@@ -24,7 +24,10 @@
 #ifndef SmartMatrix_h
 #define SmartMatrix_h
 
+#ifdef ARDUINO_ARCH_AVR
 #include "Arduino.h"
+#endif
+
 #include <stdint.h>
 
 // include one of the MatrixHardware_*.h files here:
