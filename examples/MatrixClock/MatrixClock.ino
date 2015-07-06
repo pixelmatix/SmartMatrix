@@ -13,7 +13,7 @@
 #include <Wire.h>
 #include <Time.h>
 #include <DS1307RTC.h>
-#include <SmartMatrix_32x32.h>
+#include <SmartMatrix.h>
 
 SmartMatrix matrix;
 
@@ -68,7 +68,7 @@ void loop() {
     if (hour < 10)
         x = 4;
     matrix.setFont(gohufont11b);
-    matrix.drawString(x, MATRIX_HEIGHT/2 - 6, clockColor, timeBuffer);
+    matrix.drawString(x, matrix.getScreenHeight() / 2 - 6, clockColor, timeBuffer);
     matrix.swapBuffers();
   } else {
     if (RTC.chipPresent()) {
@@ -79,14 +79,14 @@ void loop() {
       /* Draw Error Message to SmartMatrix */
       matrix.setFont(font3x5);
       sprintf(timeBuffer, "Stopped");
-      matrix.drawString(x, MATRIX_HEIGHT/2 - 3, clockColor, "Stopped");
+      matrix.drawString(x, matrix.getScreenHeight() / 2 - 3, clockColor, "Stopped");
     } else {
       Serial.println("DS1307 read error!  Please check the circuitry.");
       Serial.println();
 
       /* Draw Error Message to SmartMatrix */
       matrix.setFont(font3x5);
-      matrix.drawString(x, MATRIX_HEIGHT/2 - 3, clockColor, "No Clock");
+      matrix.drawString(x, matrix.getScreenHeight() / 2 - 3, clockColor, "No Clock");
     }
     matrix.swapBuffers();
     delay(9000);

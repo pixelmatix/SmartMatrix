@@ -5,7 +5,7 @@
  * http://docs.pixelmatix.com/SmartMatrix/library.html#drawing-raw-bitmaps
  */
 
-#include <SmartMatrix_32x32.h>
+#include <SmartMatrix.h>
 
 #include "gimpbitmap.h"
 
@@ -65,8 +65,8 @@ void loop() {
 
   matrix.fillScreen({0,0,0});
   // draw this smaller bitmap centered
-  int x = (MATRIX_WIDTH / 2) - (chrome16.width/2);
-  int y = (MATRIX_HEIGHT / 2) - (chrome16.height/2);
+  int x = (matrix.getScreenWidth() / 2) - (chrome16.width/2);
+  int y = (matrix.getScreenHeight() / 2) - (chrome16.height/2);
   drawBitmap(x, y, (const gimp32x32bitmap*)&chrome16);
   matrix.swapBuffers();
 

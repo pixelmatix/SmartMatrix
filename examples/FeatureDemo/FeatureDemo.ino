@@ -3,7 +3,7 @@
     This example code is released into the public domain
 */
 
-#include <SmartMatrix_32x32.h>
+#include <SmartMatrix.h>
 
 SmartMatrix matrix;
 
@@ -203,14 +203,18 @@ void loop() {
             float fraction = ((float)millis() - currentMillis) / ((float)transitionTime / 2);
 
             if (millis() - currentMillis < transitionTime / 2) {
-                color.red = 255 - 255.0 * fraction;
-                color.green = 255.0 * fraction;
-                color.blue = 0;
+                color = {
+                  (uint8_t)(255 - 255.0 * fraction),
+                  (uint8_t)(255.0 * fraction),
+                  0
+                };
             }
             else {
-                color.red = 0;
-                color.green = 255 - 255.0 / 2 * (fraction - 1.0);
-                color.blue = 255.0 * (fraction - 1.0);
+                color = {
+                  0,
+                  (uint8_t)(255 - 255.0 / 2 * (fraction - 1.0)),
+                  (uint8_t)(255.0 * (fraction - 1.0))
+                };
             }
 
             for (i = 0; i < 20; i++) {
@@ -244,9 +248,11 @@ void loop() {
             rgb24 color;
             float fraction = ((float)millis() - currentMillis) / ((float)transitionTime / 2);
 
-            color.red = 255 - 255.0 * fraction;
-            color.green = 255.0 * fraction;
-            color.blue = 0;
+            color = {
+              (uint8_t)(255 - 255.0 * fraction),
+              (uint8_t)(255.0 * fraction),
+              0
+            };
 
             matrix.drawFastVLine(i, 0, matrix.getScreenHeight(), color);
             matrix.swapBuffers(true);
@@ -260,9 +266,11 @@ void loop() {
             fraction -= 1.0;
             if (fraction < 0) fraction = 0.0;
 
-            color.red = 0;
-            color.green = 255 - 255.0 / 2 * (fraction);
-            color.blue = 255.0 * (fraction);
+            color = {
+              0,
+              (uint8_t)(255 - 255.0 / 2 * (fraction)),
+              (uint8_t)(255.0 * (fraction))
+            };
 
             matrix.drawFastHLine(0, matrix.getScreenWidth(), i, color);
             matrix.swapBuffers(true);
@@ -280,9 +288,11 @@ void loop() {
             rgb24 color;
             float fraction = ((float)millis() - currentMillis) / ((float)transitionTime / 2);
 
-            color.red = 255 - 255.0 * fraction;
-            color.green = 255.0 * fraction;
-            color.blue = 0;
+            color = {
+              (uint8_t)(255 - 255.0 * fraction),
+              (uint8_t)(255.0 * fraction),
+              0
+            };
 
             matrix.drawLine(i, 0, 0, i, color);
             matrix.swapBuffers(true);
@@ -296,9 +306,11 @@ void loop() {
             fraction -= 1.0;
             if (fraction < 0) fraction = 0.0;
 
-            color.red = 0;
-            color.green = 255 - 255.0 / 2 * (fraction);
-            color.blue = 255.0 * (fraction);
+            color = {
+              0,
+              (uint8_t)(255 - 255.0 / 2 * (fraction)),
+              (uint8_t)(255.0 * (fraction))
+            };
 
             matrix.drawLine(0, matrix.getScreenHeight() - i, matrix.getScreenWidth(), i, color);
             matrix.swapBuffers(true);
@@ -328,9 +340,11 @@ void loop() {
             rgb24 color;
             float fraction = ((float)millis() - currentMillis) / ((float)transitionTime / 2);
 
-            color.red = 255 - 255.0 * fraction;
-            color.green = 255.0 * fraction;
-            color.blue = 0;
+            color = {
+              (uint8_t)(255 - 255.0 * fraction),
+              (uint8_t)(255.0 * fraction),
+              0
+            };
 
             matrix.drawTriangle(i, 0, matrix.getScreenWidth(), i, matrix.getScreenWidth() - i, matrix.getScreenHeight(), color);
             matrix.swapBuffers(true);
@@ -344,9 +358,11 @@ void loop() {
             fraction -= 1.0;
             if (fraction < 0) fraction = 0.0;
 
-            color.red = 0;
-            color.green = 255 - 255.0 / 2 * (fraction);
-            color.blue = 255.0 * (fraction);
+            color = {
+              0,
+              (uint8_t)(255 - 255.0 / 2 * (fraction)),
+              (uint8_t)(255.0 * (fraction))
+            };
 
             matrix.drawTriangle(matrix.getScreenWidth() - i, matrix.getScreenHeight(), 0, matrix.getScreenHeight() - i, matrix.getScreenWidth(), i, color);
             matrix.swapBuffers(true);
@@ -376,9 +392,11 @@ void loop() {
             rgb24 color;
             float fraction = ((float)millis() - currentMillis) / ((float)transitionTime / 2);
 
-            color.red = 255 - 255.0 * fraction;
-            color.green = 255.0 * fraction;
-            color.blue = 0;
+            color = {
+              (uint8_t)(255 - 255.0 * fraction),
+              (uint8_t)(255.0 * fraction),
+              0
+            };
 
             int radius = i / 2;
             if (radius > matrix.getScreenWidth())
@@ -396,9 +414,11 @@ void loop() {
             fraction -= 1.0;
             if (fraction < 0) fraction = 0.0;
 
-            color.red = 0;
-            color.green = 255 - 255.0 / 2 * (fraction);
-            color.blue = 255.0 * (fraction);
+            color = {
+              0,
+              (uint8_t)(255 - 255.0 / 2 * (fraction)),
+              (uint8_t)(255.0 * (fraction))
+            };
 
             matrix.drawCircle(matrix.getScreenWidth() / 2, matrix.getScreenHeight() / 2, i, color);
             matrix.swapBuffers(true);
@@ -429,9 +449,11 @@ void loop() {
             rgb24 color;
             float fraction = ((float)millis() - currentMillis) / ((float)transitionTime / 2);
 
-            color.red = 255 - 255.0 * fraction;
-            color.green = 255.0 * fraction;
-            color.blue = 0;
+            color = {
+              (uint8_t)(255 - 255.0 * fraction),
+              (uint8_t)(255.0 * fraction),
+              0
+            };
 
             matrix.drawRectangle(matrix.getScreenWidth() / 2 - i - 1, matrix.getScreenHeight() / 2 - i - 1, matrix.getScreenWidth() / 2 + i, matrix.getScreenHeight() / 2 + i, color);
             matrix.swapBuffers(true);
@@ -444,9 +466,11 @@ void loop() {
             fraction -= 1.0;
             if (fraction < 0) fraction = 0.0;
 
-            color.red = 0;
-            color.green = 255 - 255.0 / 2 * (fraction);
-            color.blue = 255.0 * (fraction);
+            color = {
+              0,
+              (uint8_t)(255 - 255.0 / 2 * (fraction)),
+              (uint8_t)(255.0 * (fraction))
+            };
 
             matrix.drawRectangle(i / 4, i / 2, i, i, color);
             matrix.swapBuffers(true);
@@ -476,9 +500,11 @@ void loop() {
             rgb24 color;
             float fraction = ((float)millis() - currentMillis) / ((float)transitionTime / 2);
 
-            color.red = 255 - 255.0 * fraction;
-            color.green = 255.0 * fraction;
-            color.blue = 0;
+            color = {
+              (uint8_t)(255 - 255.0 * fraction),
+              (uint8_t)(255.0 * fraction),
+              0
+            };
 
             matrix.drawRoundRectangle(matrix.getScreenWidth() / 2 - i - 1, matrix.getScreenHeight() / 2 - i - 1, matrix.getScreenWidth() / 2 + i, matrix.getScreenHeight() / 2 + i, i / 2, color);
             matrix.swapBuffers(true);
@@ -491,9 +517,11 @@ void loop() {
             fraction -= 1.0;
             if (fraction < 0) fraction = 0.0;
 
-            color.red = 0;
-            color.green = 255 - 255.0 / 2 * (fraction);
-            color.blue = 255.0 * (fraction);
+            color = {
+              0,
+              (uint8_t)(255 - 255.0 / 2 * (fraction)),
+              (uint8_t)(255.0 * (fraction))
+            };
 
             matrix.drawRoundRectangle(i / 4, i / 2, i, i, i / 2, color);
             matrix.swapBuffers(true);
@@ -525,9 +553,11 @@ void loop() {
             rgb24 color;
             float fraction = ((float)millis() - currentMillis) / ((float)transitionTime);
 
-            color.red = random(256);
-            color.green = random(256);
-            color.blue = 0;
+            color = {
+              (uint8_t)(random(256)),
+              (uint8_t)(random(256)),
+              0
+            };
 
             if (fraction < 1.0 / 3) {
                 matrix.drawRectangle(random(matrix.getScreenWidth() / 4), random(matrix.getScreenHeight() / 4),
@@ -599,14 +629,18 @@ void loop() {
             float fraction = ((float)millis() - currentMillis) / ((float)transitionTime / 2);
 
             if (millis() - currentMillis < transitionTime / 2) {
-                color.red = 255 - 255.0 * fraction;
-                color.green = 255.0 * fraction;
-                color.blue = 0;
+                color = {
+                  (uint8_t)(255 - 255.0 * fraction),
+                  (uint8_t)(255.0 * fraction),
+                  0
+                };
             }
             else {
-                color.red = 0;
-                color.green = 255 - 255.0 / 2 * (fraction - 1.0);
-                color.blue = 255.0 * (fraction - 1.0);
+                color = {
+                  0,
+                  (uint8_t)(255 - 255.0 / 2 * (fraction - 1.0)),
+                  (uint8_t)(255.0 * (fraction - 1.0))
+                };
             }
 
             for (i = 0; i < 20; i++) {
@@ -786,14 +820,18 @@ void loop() {
             float fraction = ((float)millis() - currentMillis) / ((float)transitionTime / 2);
 
             if (millis() - currentMillis < transitionTime / 2) {
-                color.red = 255 - 255.0 * fraction;
-                color.green = 255.0 * fraction;
-                color.blue = 0;
+                color = {
+                  (uint8_t)(255 - 255.0 * fraction),
+                  (uint8_t)(255.0 * fraction),
+                  0
+                };
             }
             else {
-                color.red = 0;
-                color.green = 255 - 255.0 / 2 * (fraction - 1.0);
-                color.blue = 255.0 * (fraction - 1.0);
+                color = {
+                  0,
+                  (uint8_t)(255 - 255.0 / 2 * (fraction - 1.0)),
+                  (uint8_t)(255.0 * (fraction - 1.0))
+                };
             }
 
             matrix.setScrollColor(color);
@@ -810,19 +848,19 @@ void loop() {
         matrix.setScrollMode(wrapForward);
         matrix.setScrollSpeed(40);
 
-        matrix.scrollText("Wrap Forward", 2);
+        matrix.scrollText("Wrap Forward - Wrap Forward - Wrap Forward", 2);
         matrix.setFont(font3x5);
         matrix.drawString(0, matrix.getScreenHeight() / 2, {0xff, 0xff, 0xff}, "Modes");
         matrix.swapBuffers(true);
 
-        uint transitionTime = 6000;
+        uint transitionTime = 6000 * 2;
         currentMillis = millis();
         while (millis() - currentMillis < transitionTime);
 
         matrix.setScrollMode(bounceForward);
-        matrix.scrollText("Bounce", 2);
+        matrix.scrollText("Bounce - 12345 - Bounce - 54321", 2);
 
-        transitionTime = 4500;
+        transitionTime = 4500 * 4;
         currentMillis = millis();
         while (millis() - currentMillis < transitionTime);
 
@@ -1053,9 +1091,11 @@ void loop() {
             extern const bitmap_font weathericon;
 
             for (i = 0; i < 32 * matrix.getScreenHeight(); i++) {
-                buffer[i].red = weathericon.Bitmap[i * 3 + 0];
-                buffer[i].green = weathericon.Bitmap[i * 3 + 1];
-                buffer[i].blue = weathericon.Bitmap[i * 3 + 2];
+                buffer[i] = {
+                  weathericon.Bitmap[i * 3 + 0],
+                  weathericon.Bitmap[i * 3 + 1],
+                  weathericon.Bitmap[i * 3 + 2]
+                };
             }
 
             matrix.drawString(12, 16, {0xff, 0, 0}, value);
@@ -1088,9 +1128,11 @@ void loop() {
             extern const bitmap_font weathericon;
 
             for (i = 0; i < 32 * matrix.getScreenHeight(); i++) {
-                buffer[i].red = weathericon.Bitmap[i * 3 + 0];
-                buffer[i].green = weathericon.Bitmap[i * 3 + 1];
-                buffer[i].blue = weathericon.Bitmap[i * 3 + 2];
+                buffer[i] = {
+                  weathericon.Bitmap[i * 3 + 0],
+                  weathericon.Bitmap[i * 3 + 1],
+                  weathericon.Bitmap[i * 3 + 2]
+                };
             }
 
             if (j%2) {

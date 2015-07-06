@@ -24,6 +24,8 @@
 #include <string.h>
 #include "SmartMatrix.h"
 
+#ifndef DISABLE_FOREGROUND_FUNCTIONS
+
 // FIXME: Most of these variable should be in smartmatrix class (i.e. one per instance of smart matrix, rather than being global)
 // options
 static char text[textLayerMaxStringLength];
@@ -42,9 +44,15 @@ bool hasForeground = false;
 static ScrollMode scrollmode = bounceForward;
 static unsigned char framesperscroll = 4;
 
-//bitmap size is 32 rows (supporting maximum dimension of screen height in all rotations), by 32 bits
+// foreground bitmap, one uint32_t stores 32 bits
 // double buffered to prevent flicker while drawing
-static uint32_t foregroundBitmap[2][MATRIX_WIDTH][MATRIX_WIDTH / 32];
+#if DRAWING_HEIGHT >= 32
+  static uint32_t foregroundBitmap[2][ DRAWING_HEIGHT * DRAWING_WIDTH / 32 ];
+#else
+  // safety space for height = 16 and rotation = 90 or 270
+  static uint32_t foregroundBitmap[2][ DRAWING_HEIGHT * 2 * DRAWING_WIDTH / 32 ];
+#endif
+
 const unsigned char foregroundDrawBuffer = 0;
 const unsigned char foregroundRefreshBuffer = 1;
 volatile bool SmartMatrix::foregroundCopyPending = false;
@@ -55,6 +63,16 @@ static const bitmap_font *scrollFont = &apple5x7;
 static unsigned int textWidth;
 static int scrollMin, scrollMax;
 static int scrollPosition;
+
+// shift and dimension values required for addressing and limits
+// initialised or changed in handleForegroundDrawingCopy()
+//   (because this is the first foreground method called during a loop-cycle)
+// these variables try to minimise the need for time consuming calculations
+static rotationDegrees currRotation    = rotation0;
+static uint16_t        currLocalWidth  = 0; // 0 forces initialisation in first call of handleForegroundDrawingCopy()
+static uint16_t        currLocalHeight = 0;
+static uint16_t        arrayYmult      = currLocalWidth / 32;
+
 
 // stops the scrolling text on the next refresh
 void SmartMatrix::stopScrollText(void) {
@@ -80,6 +98,16 @@ void SmartMatrix::displayForegroundDrawing(bool waitUntilComplete) {
 }
 
 void SmartMatrix::handleForegroundDrawingCopy(void) {
+    // check if first call or if rotation has changed. if so: correct some values required for addressing
+    if ((currLocalWidth == 0) || (currRotation != screenConfig.rotation)) {
+      currRotation = screenConfig.rotation;
+      currLocalWidth  = (screenConfig.rotation == 0 || screenConfig.rotation == 180)
+                        ? screenConfig.localWidth : screenConfig.localHeight;
+      currLocalHeight = (screenConfig.rotation == 0 || screenConfig.rotation == 180)
+                        ? screenConfig.localHeight : screenConfig.localWidth;
+      arrayYmult      = currLocalWidth / 32;
+    }
+
     if (!foregroundCopyPending)
         return;
 
@@ -92,11 +120,11 @@ void SmartMatrix::drawForegroundPixel(int16_t x, int16_t y, bool opaque) {
     uint32_t tempBitmask;
 
     if(opaque) {
-        tempBitmask = 0x80000000 >> x;
-        foregroundBitmap[foregroundDrawBuffer][y][0] |= tempBitmask;
+        tempBitmask = 0x80000000 >> (x % 32);
+        foregroundBitmap[foregroundDrawBuffer][y * arrayYmult + (x / 32) ] |= tempBitmask;
     } else {
-        tempBitmask = ~(0x80000000 >> x);
-        foregroundBitmap[foregroundDrawBuffer][y][0] &= tempBitmask;
+        tempBitmask = ~(0x80000000 >> (x % 32));
+        foregroundBitmap[foregroundDrawBuffer][y * arrayYmult + (x / 32) ] &= tempBitmask;
     }
 }
 
@@ -115,20 +143,20 @@ void SmartMatrix::drawForegroundChar(int16_t x, int16_t y, char character, bool 
     for (k = y; k < y+foregroundfont->Height; k++) {
         // ignore rows that are not on the screen
         if(k < 0) continue;
-        if (k > SmartMatrix::screenConfig.localHeight) return;
+        if (k >= currLocalHeight) return;
 
         // read in uint8, shift it to be in MSB (font is in the top bits of the uint32)
         tempBitmask = getBitmapFontRowAtXY(character, k - y, foregroundfont) << 24;
         if (x < 0)
-            foregroundBitmap[foregroundDrawBuffer][k][0] |= tempBitmask << -x;
+            foregroundBitmap[foregroundDrawBuffer][k * arrayYmult + 0 ] |= tempBitmask << -x;
         else
-            foregroundBitmap[foregroundDrawBuffer][k][0] |= tempBitmask >> x;
+            foregroundBitmap[foregroundDrawBuffer][k * arrayYmult + (x / 32) ] |= tempBitmask >> (x % 32);
     }
 }
 
 void SmartMatrix::drawForegroundString(int16_t x, int16_t y, const char text [], bool opaque) {
     // limit text to 10 chars, why?
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 30; i++) {
         char character = text[i];
         if (character == '\0')
             return;
@@ -163,7 +191,7 @@ void SmartMatrix::setScrollMinMax(void) {
     case bounceReverse:
     case wrapForwardFromLeft:
         scrollMin = -textWidth;
-        scrollMax = screenConfig.localWidth;
+        scrollMax = currLocalWidth;
 
         scrollPosition = scrollMax;
 
@@ -239,12 +267,12 @@ void SmartMatrix::setScrollStartOffsetFromLeft(int offset) {
 
 // if font size or position changed since the last call, redraw the whole frame
 void SmartMatrix::redrawForeground(void) {
-    int j, k;
+    int j, k, l;
     int charPosition, textPosition;
     uint8_t charY0, charY1;
 
 
-    for (j = 0; j < screenConfig.localHeight; j++) {
+    for (j = 0; j < currLocalHeight; j++) {
 
         // skip rows without text
         if (j < fontTopOffset || j >= fontTopOffset + scrollFont->Height)
@@ -265,8 +293,8 @@ void SmartMatrix::redrawForeground(void) {
         // find rows within character bitmap that will be drawn (0-font->height unless text is partially off screen)
         charY0 = j - fontTopOffset;
 
-        if (screenConfig.localHeight < fontTopOffset + scrollFont->Height) {
-            charY1 = screenConfig.localHeight - fontTopOffset;
+        if (currLocalHeight < fontTopOffset + scrollFont->Height) {
+            charY1 = currLocalHeight - fontTopOffset;
         } else {
             charY1 = scrollFont->Height;
         }
@@ -282,19 +310,33 @@ void SmartMatrix::redrawForeground(void) {
         }
 
         // clear rows used by font before drawing on top
-        for (k = 0; k < charY1 - charY0; k++)
-            foregroundBitmap[foregroundRefreshBuffer][j + k][0] = 0x00;
+        for (k = 0; k < charY1 - charY0; k++) {
+            //foregroundBitmap[foregroundRefreshBuffer][j + k][0] = 0x00;
+            for (l = 0; l < arrayYmult; l++) {
+                foregroundBitmap[foregroundRefreshBuffer][ (j + k) * arrayYmult + l] = 0x00;
+            }
+        }
 
-        while (textPosition < textlen && charPosition < screenConfig.localWidth) {
+        while (textPosition < textlen && charPosition < currLocalWidth) {
             uint32_t tempBitmask;
             // draw character from top to bottom
             for (k = charY0; k < charY1; k++) {
                 // read in uint8, shift it to be in MSB (font is in the top bits of the uint32)
+
                 tempBitmask = getBitmapFontRowAtXY(text[textPosition], k, scrollFont) << 24;
-                if (charPosition < 0)
-                    foregroundBitmap[foregroundRefreshBuffer][j + k - charY0][0] |= tempBitmask << -charPosition;
-                else
-                    foregroundBitmap[foregroundRefreshBuffer][j + k - charY0][0] |= tempBitmask >> charPosition;
+                //if (charPosition < 0)
+                //    foregroundBitmap[foregroundRefreshBuffer][j + k - charY0][0] |= tempBitmask << -charPosition;
+                //else
+                //    foregroundBitmap[foregroundRefreshBuffer][j + k - charY0][0] |= tempBitmask >> charPosition;
+                //for (l = 0; l < panels_per_row /*SmartMatrix::screenConfig.localWidth / 32*/; ++l) {
+                for (l = 0; l < arrayYmult; l++) {
+                    // character position relative to panel l
+                    int panelPosition = charPosition - l * 32;
+                    if (panelPosition > -8 && panelPosition < 0)
+                        foregroundBitmap[foregroundRefreshBuffer][(j + k - charY0) * arrayYmult + l] |= tempBitmask << -panelPosition;
+                    else if (panelPosition >= 0 && panelPosition < 32)
+                        foregroundBitmap[foregroundRefreshBuffer][(j + k - charY0) * arrayYmult + l] |= tempBitmask >> panelPosition;
+                }
             }
 
             // get set up for next character
@@ -366,7 +408,7 @@ void SmartMatrix::updateForeground(void) {
 
 // returns true and copies color to xyPixel if pixel is opaque, returns false if not
 bool SmartMatrix::getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24 *xyPixel) {
-    uint8_t localScreenX, localScreenY;
+    uint8_t localScreenX = hardwareX, localScreenY = hardwareY; // initialise to avoid compiler-warnings
 
     // convert hardware x/y to the pixel in the local screen
     switch( SmartMatrix::screenConfig.rotation ) {
@@ -375,15 +417,15 @@ bool SmartMatrix::getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24
         localScreenY = hardwareY;
         break;
       case rotation180 :
-        localScreenX = (MATRIX_WIDTH - 1) - hardwareX;
-        localScreenY = (MATRIX_HEIGHT - 1) - hardwareY;
+        localScreenX = (DRAWING_WIDTH - 1) - hardwareX;
+        localScreenY = (DRAWING_HEIGHT - 1) - hardwareY;
         break;
       case  rotation90 :
         localScreenX = hardwareY;
-        localScreenY = (MATRIX_WIDTH - 1) - hardwareX;
+        localScreenY = (DRAWING_WIDTH - 1) - hardwareX;
         break;
       case  rotation270 :
-        localScreenX = (MATRIX_HEIGHT - 1) - hardwareY;
+        localScreenX = (DRAWING_HEIGHT - 1) - hardwareY;
         localScreenY = hardwareX;
         break;
       default:
@@ -391,12 +433,14 @@ bool SmartMatrix::getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24
         return false;
     };
 
-    uint32_t bitmask = 0x01 << (31 - localScreenX);
+    uint32_t bitmask = 0x80000000 >> (localScreenX % 32);
 
-    if (foregroundBitmap[foregroundRefreshBuffer][localScreenY][0] & bitmask) {
+    if (foregroundBitmap[foregroundRefreshBuffer][localScreenY * arrayYmult + (localScreenX / 32) ] & bitmask) {
         copyRgb24(*xyPixel, textcolor);
         return true;
     }
 
     return false;
 }
+
+#endif // DISABLE_FOREGROUND_FUNCTIONS

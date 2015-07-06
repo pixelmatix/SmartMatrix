@@ -11,11 +11,11 @@
  * http://docs.pixelmatix.com/SmartMatrix/#external-libraries
  */
 
-#include <SmartMatrix_32x32.h>
+#include <SmartMatrix.h>
 #include <FastLED.h>
 
-#define kMatrixWidth  MATRIX_WIDTH
-#define kMatrixHeight MATRIX_HEIGHT
+#define kMatrixWidth  DRAWING_WIDTH
+#define kMatrixHeight DRAWING_HEIGHT
 
 SmartMatrix matrix;
 
