@@ -13,16 +13,16 @@
 static color_chan_t backgroundColorCorrectionLUT[256];
 
 #ifdef SMARTMATRIX_TRIPLEBUFFER
-static rgb24 backgroundBuffer[3][MATRIX_HEIGHT][MATRIX_WIDTH];
+static rgb24 backgroundBuffer[3*MATRIX_HEIGHT*MATRIX_WIDTH];
 #else
-static rgb24 backgroundBuffer[2][MATRIX_HEIGHT][MATRIX_WIDTH];
+static rgb24 backgroundBuffer[3*MATRIX_HEIGHT*MATRIX_WIDTH];
 #endif
 
 // buffers are pointers to a 2-dimensional array of unknown size * MATRIX_WIDTH
-static rgb24 (*currentDrawBufferPtr)[MATRIX_WIDTH] = backgroundBuffer[0];
-static rgb24 (*currentRefreshBufferPtr)[MATRIX_WIDTH] = backgroundBuffer[1];
+static rgb24 *currentDrawBufferPtr = &backgroundBuffer[0 * (MATRIX_WIDTH * MATRIX_HEIGHT)];
+static rgb24 *currentRefreshBufferPtr = &backgroundBuffer[1 * (MATRIX_WIDTH * MATRIX_HEIGHT)];
 #ifdef SMARTMATRIX_TRIPLEBUFFER
-rgb24 (*previousRefreshBufferPtr)[MATRIX_WIDTH] = backgroundBuffer[2];
+rgb24 *previousRefreshBufferPtr = &backgroundBuffer[2 * (MATRIX_WIDTH * MATRIX_HEIGHT)];
 unsigned char SMLayerBackground::previousRefreshBuffer = 2;
 #endif
 unsigned char SMLayerBackground::currentDrawBuffer = 0;
@@ -47,10 +47,10 @@ void SMLayerBackground::frameRefreshCallback(void) {
 }
 
 void SMLayerBackground::getRefreshPixel(uint8_t hardwareX, uint8_t hardwareY, rgb48 &xyPixel) {
-    rgb24 currentPixel = currentRefreshBufferPtr[hardwareY][hardwareX];
+    rgb24 currentPixel = currentRefreshBufferPtr[(hardwareY * MATRIX_HEIGHT) + hardwareX];
 
 #ifdef SMARTMATRIX_TRIPLEBUFFER
-    rgb24 prevPixel = previousRefreshBufferPtr[hardwareY][hardwareX];
+    rgb24 prevPixel = previousRefreshBufferPtr[(hardwareY * MATRIX_HEIGHT) + hardwareX];
     refreshPixel.red = lutInterpolate(lightPowerMap16bit2, ((prevPixel.red * icPrev + currentPixel.red * icNext) >> 16));
     refreshPixel.green = lutInterpolate(lightPowerMap16bit2, ((prevPixel.green * icPrev + currentPixel.green * icNext) >> 16));
     refreshPixel.blue = lutInterpolate(lightPowerMap16bit2, ((prevPixel.blue * icPrev + currentPixel.blue * icNext) >> 16));
@@ -73,7 +73,7 @@ void SMLayerBackground::getRefreshPixel(uint8_t hardwareX, uint8_t hardwareY, rg
 }
 
 void SMLayerBackground::getRefreshPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24 &xyPixel) {
-    rgb24 currentPixel = currentRefreshBufferPtr[hardwareY][hardwareX];
+    rgb24 currentPixel = currentRefreshBufferPtr[(hardwareY * MATRIX_HEIGHT) + hardwareX];
 
     // do once per refresh
     bool bHasCC = ccmode != ccNone;
@@ -100,7 +100,7 @@ color_chan_t SMLayerBackground::backgroundColorCorrection(uint8_t inputcolor) {
 
 // coordinates based on screen position, which is between 0-localWidth/localHeight
 void SMLayerBackground::getPixel(uint8_t x, uint8_t y, rgb24 *xyPixel) {
-    copyRgb24(*xyPixel, currentRefreshBufferPtr[y][x]);
+    copyRgb24(*xyPixel, currentRefreshBufferPtr[(y * MATRIX_HEIGHT) + x]);
 }
 
 volatile int totalFramesToInterpolate;
@@ -130,12 +130,12 @@ uint32_t SMLayerBackground::calculateFcInterpCoefficient()
 }
 
 rgb24 *SMLayerBackground::getPreviousRefreshRow(uint8_t y) {
-  return previousRefreshBufferPtr[y];
+  return &previousRefreshBufferPtr[y*MATRIX_HEIGHT];
 }
 #endif
 
 rgb24 *SMLayerBackground::getCurrentRefreshRow(uint8_t y) {
-  return currentRefreshBufferPtr[y];
+  return &currentRefreshBufferPtr[y*MATRIX_HEIGHT];
 }
 
 #ifdef SMARTMATRIX_TRIPLEBUFFER
@@ -268,7 +268,7 @@ const rgb24 SMLayerBackground::readPixel(int16_t x, int16_t y) {
         hwy = (MATRIX_HEIGHT - 1) - x;
     }
 
-    return currentDrawBufferPtr[hwy][hwx];
+    return currentDrawBufferPtr[(hwy * MATRIX_HEIGHT) + hwx];
 }
 
 void SMLayerBackground::drawPixel(int16_t x, int16_t y, const rgb24& color) {
@@ -293,7 +293,7 @@ void SMLayerBackground::drawPixel(int16_t x, int16_t y, const rgb24& color) {
         hwy = (MATRIX_HEIGHT - 1) - x;
     }
 
-    copyRgb24(currentDrawBufferPtr[hwy][hwx], color);
+    copyRgb24(currentDrawBufferPtr[(hwy * MATRIX_HEIGHT) + hwx], color);
 }
 
 #define SWAPint(X,Y) { \
@@ -307,7 +307,7 @@ void SMLayerBackground::drawHardwareHLine(uint8_t x0, uint8_t x1, uint8_t y, con
     int i;
 
     for (i = x0; i <= x1; i++) {
-        copyRgb24(currentDrawBufferPtr[y][i], color);
+        copyRgb24(currentDrawBufferPtr[(y * MATRIX_HEIGHT) + i], color);
     }
 }
 
@@ -316,7 +316,7 @@ void SMLayerBackground::drawHardwareVLine(uint8_t x, uint8_t y0, uint8_t y1, con
     int i;
 
     for (i = y0; i <= y1; i++) {
-        copyRgb24(currentDrawBufferPtr[i][x], color);
+        copyRgb24(currentDrawBufferPtr[(i * MATRIX_HEIGHT) + x], color);
     }
 }
 
@@ -1022,17 +1022,17 @@ void SMLayerBackground::handleBufferSwap(void) {
     currentRefreshBuffer = currentDrawBuffer;
     currentDrawBuffer = newDrawBuffer;
 
-    currentRefreshBufferPtr = backgroundBuffer[currentRefreshBuffer];
-    previousRefreshBufferPtr = backgroundBuffer[previousRefreshBuffer];
-    currentDrawBufferPtr = backgroundBuffer[currentDrawBuffer];
+    currentRefreshBufferPtr = &backgroundBuffer[currentRefreshBuffer * (MATRIX_WIDTH * MATRIX_HEIGHT)];
+    previousRefreshBufferPtr = &backgroundBuffer[previousRefreshBuffer * (MATRIX_WIDTH * MATRIX_HEIGHT)];
+    currentDrawBufferPtr = &backgroundBuffer[currentDrawBuffer * (MATRIX_WIDTH * MATRIX_HEIGHT)];
 #else
     unsigned char newDrawBuffer = currentRefreshBuffer;
 
     currentRefreshBuffer = currentDrawBuffer;
     currentDrawBuffer = newDrawBuffer;
 
-    currentRefreshBufferPtr = backgroundBuffer[currentRefreshBuffer];
-    currentDrawBufferPtr = backgroundBuffer[currentDrawBuffer];
+    currentRefreshBufferPtr = &backgroundBuffer[currentRefreshBuffer * (MATRIX_WIDTH * MATRIX_HEIGHT)];
+    currentDrawBufferPtr = &backgroundBuffer[currentDrawBuffer * (MATRIX_WIDTH * MATRIX_HEIGHT)];
 #endif
 
     swapPending = false;
@@ -1051,7 +1051,7 @@ void SMLayerBackground::swapBuffers(bool copy) {
 
     if (copy) {
         while (swapPending);
-        memcpy(currentDrawBufferPtr, currentRefreshBufferPtr, sizeof(backgroundBuffer[0]));
+        memcpy(currentDrawBufferPtr, currentRefreshBufferPtr, sizeof(rgb24) * (MATRIX_WIDTH * MATRIX_HEIGHT));
     }
 }
 
@@ -1066,7 +1066,7 @@ void SMLayerBackground::swapBuffersWithInterpolation_frames(int framesToInterpol
     swapPending = true;
     if (copy) {
         while (swapPending);
-        memcpy(currentDrawBufferPtr, currentRefreshBufferPtr, sizeof(backgroundBuffer[0]));
+        memcpy(currentDrawBufferPtr, currentRefreshBufferPtr, sizeof(rgb24) * (MATRIX_WIDTH * MATRIX_HEIGHT));
     }
 }
 
@@ -1080,22 +1080,22 @@ void SMLayerBackground::swapBuffersWithInterpolation_ms(int interpolationSpan_ms
     swapPending = true;
     if (copy) {
         while (swapPending);
-        memcpy(currentDrawBufferPtr, currentRefreshBufferPtr, sizeof(backgroundBuffer[0]));
+        memcpy(currentDrawBufferPtr, currentRefreshBufferPtr, sizeof(rgb24) * (MATRIX_WIDTH * MATRIX_HEIGHT));
     }
 }
 #endif
 
 // return pointer to start of currentDrawBuffer, so application can do efficient loading of bitmaps
 rgb24 *SMLayerBackground::backBuffer(void) {
-    return currentDrawBufferPtr[0];
+    return currentDrawBufferPtr;
 }
 
 void SMLayerBackground::setBackBuffer(rgb24 *newBuffer) {
-  currentDrawBufferPtr = (rgb24 (*)[MATRIX_WIDTH])newBuffer;
+  currentDrawBufferPtr = newBuffer;
 }
 
 rgb24 *SMLayerBackground::getRealBackBuffer() {
-  return &backgroundBuffer[currentDrawBuffer][0][0];
+  return &backgroundBuffer[currentDrawBuffer * (MATRIX_WIDTH * MATRIX_HEIGHT)];
 }
 
 uint8_t SMLayerBackground::backgroundBrightness = 255;
