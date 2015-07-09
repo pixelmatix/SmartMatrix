@@ -64,6 +64,7 @@ class SMLayerForeground : public SM_Layer {
 
         rgb24 textcolor = {0xff, 0xff, 0xff};
 
+        unsigned char currentframe = 0;
         char text[textLayerMaxStringLength];
 
         unsigned char textlen;

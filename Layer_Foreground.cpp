@@ -1,7 +1,6 @@
 #include "Layer_Foreground.h"
 #include <string.h>
 
-
 const unsigned char foregroundDrawBuffer = 0;
 const unsigned char foregroundRefreshBuffer = 1;
 
@@ -256,7 +255,6 @@ void SMLayerForeground::updateScrollText(const char inputtext[]){
 // function needs major efficiency improvments
 void SMLayerForeground::updateForeground(void) {
     bool resetScrolls = false;
-    static unsigned char currentframe = 0;
 
     // return if not ready to update
     if (!scrollcounter || ++currentframe <= framesperscroll)
