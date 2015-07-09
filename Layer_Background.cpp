@@ -31,7 +31,6 @@ volatile bool SMLayerBackground::swapPending = false;
 static bitmap_font *font = (bitmap_font *) &apple3x5;
 
 
-
 SMLayerBackground::SMLayerBackground(void) {
 
 }

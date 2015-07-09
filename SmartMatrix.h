@@ -135,9 +135,6 @@ public:
 
     SM_Layer * baseLayer;
 
-    
-
-
 private:
     // enable ISR access to private member variables
     friend void rowCalculationISR(void);
