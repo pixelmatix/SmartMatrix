@@ -58,7 +58,7 @@ typedef rgb24 refreshPixel;
 
 class SmartMatrix {
 public:
-    SmartMatrix(void);
+    SmartMatrix(uint8_t width, uint8_t height);
     void begin(void);
 
     // drawing functions
@@ -155,6 +155,7 @@ private:
     static int dimmingFactor;
     static const int dimmingMaximum;
     static rotationDegrees rotation;
+    static uint8_t matrixWidth, matrixHeight;
 };
 
 #endif

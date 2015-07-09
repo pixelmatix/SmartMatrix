@@ -96,8 +96,13 @@ typedef struct gpiopair {
 static gpiopair gpiosync;
 
 
-SmartMatrix::SmartMatrix(void) {
+uint8_t SmartMatrix::matrixWidth;
+uint8_t SmartMatrix::matrixHeight;
+
+SmartMatrix::SmartMatrix(uint8_t width, uint8_t height) {
     globalinstance = this;
+    matrixWidth = width;
+    matrixHeight = height;
 }
 
 void SmartMatrix::addLayer(SM_Layer * newlayer) {

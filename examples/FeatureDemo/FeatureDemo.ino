@@ -5,7 +5,7 @@
 
 #include <SmartMatrix_32x32.h>
 
-SmartMatrix matrix;
+SmartMatrix matrix(32,32);
 
 const int defaultBrightness = 100*(255/100);    // full brightness
 //const int defaultBrightness = 15*(255/100);    // dim: 15% brightness
