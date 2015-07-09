@@ -7,7 +7,7 @@
 
 class SMLayerBackground : public SM_Layer {
     public:
-        SMLayerBackground();
+        SMLayerBackground(rgb24 * buffer);
         void frameRefreshCallback();
         void getRefreshPixel(uint8_t x, uint8_t y, rgb24 &refreshPixel);
         void getRefreshPixel(uint8_t x, uint8_t y, rgb48 &refreshPixel);
@@ -51,6 +51,8 @@ class SMLayerBackground : public SM_Layer {
 
     private:
         colorCorrectionModes ccmode = cc48;
+
+        rgb24 * backgroundBuffer;
 
         static color_chan_t backgroundColorCorrection(uint8_t inputcolor);
 

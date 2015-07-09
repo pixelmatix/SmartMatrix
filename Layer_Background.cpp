@@ -12,17 +12,11 @@
 
 static color_chan_t backgroundColorCorrectionLUT[256];
 
-#ifdef SMARTMATRIX_TRIPLEBUFFER
-static rgb24 backgroundBuffer[3*MATRIX_HEIGHT*MATRIX_WIDTH];
-#else
-static rgb24 backgroundBuffer[3*MATRIX_HEIGHT*MATRIX_WIDTH];
-#endif
-
 // buffers are pointers to a 2-dimensional array of unknown size * MATRIX_WIDTH
-static rgb24 *currentDrawBufferPtr = &backgroundBuffer[0 * (MATRIX_WIDTH * MATRIX_HEIGHT)];
-static rgb24 *currentRefreshBufferPtr = &backgroundBuffer[1 * (MATRIX_WIDTH * MATRIX_HEIGHT)];
+static rgb24 *currentDrawBufferPtr;
+static rgb24 *currentRefreshBufferPtr;
 #ifdef SMARTMATRIX_TRIPLEBUFFER
-rgb24 *previousRefreshBufferPtr = &backgroundBuffer[2 * (MATRIX_WIDTH * MATRIX_HEIGHT)];
+rgb24 *previousRefreshBufferPtr;
 unsigned char SMLayerBackground::previousRefreshBuffer = 2;
 #endif
 unsigned char SMLayerBackground::currentDrawBuffer = 0;
@@ -31,8 +25,14 @@ volatile bool SMLayerBackground::swapPending = false;
 static bitmap_font *font = (bitmap_font *) &apple3x5;
 
 
-SMLayerBackground::SMLayerBackground(void) {
+SMLayerBackground::SMLayerBackground(rgb24 * buffer) {
+    backgroundBuffer = buffer;
 
+    currentDrawBufferPtr = &backgroundBuffer[0 * (MATRIX_WIDTH * MATRIX_HEIGHT)];
+    currentRefreshBufferPtr = &backgroundBuffer[1 * (MATRIX_WIDTH * MATRIX_HEIGHT)];
+#ifdef SMARTMATRIX_TRIPLEBUFFER
+    previousRefreshBufferPtr = &backgroundBuffer[2 * (MATRIX_WIDTH * MATRIX_HEIGHT)];
+#endif
 }
 
 void SMLayerBackground::frameRefreshCallback(void) {

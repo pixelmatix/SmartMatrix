@@ -25,7 +25,8 @@ void setup() {
 
     static uint32_t foregroundBitmap[2 * 32 * (32 / 32)];
     static SMLayerForeground foregroundLayer(foregroundBitmap, 32, 32);
-    static SMLayerBackground backgroundLayer;
+    static rgb24 backgroundBitmap[2*32*32];
+    static SMLayerBackground backgroundLayer(backgroundBitmap);
     matrix.addLayer(&backgroundLayer);
     matrix.addLayer(&foregroundLayer);
     matrix.useDefaultLayers();
