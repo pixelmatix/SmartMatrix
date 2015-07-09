@@ -7,7 +7,7 @@
 
 class SMLayerBackground : public SM_Layer {
     public:
-        SMLayerBackground(rgb24 * buffer);
+        SMLayerBackground(rgb24 * buffer, uint8_t width, uint8_t height);
         void frameRefreshCallback();
         void getRefreshPixel(uint8_t x, uint8_t y, rgb24 &refreshPixel);
         void getRefreshPixel(uint8_t x, uint8_t y, rgb48 &refreshPixel);
@@ -53,20 +53,21 @@ class SMLayerBackground : public SM_Layer {
         colorCorrectionModes ccmode = cc48;
 
         rgb24 * backgroundBuffer;
+        uint8_t matrixWidth, matrixHeight;
 
         static color_chan_t backgroundColorCorrection(uint8_t inputcolor);
 
-        static void getPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24 *xyPixel);
-        static rgb24 *getCurrentRefreshRow(uint8_t y);
+        void getPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24 *xyPixel);
+        rgb24 *getCurrentRefreshRow(uint8_t y);
     #ifdef SMARTMATRIX_TRIPLEBUFFER
-        static rgb24 *getPreviousRefreshRow(uint8_t y);
+        rgb24 *getPreviousRefreshRow(uint8_t y);
         static uint32_t calculateFcInterpCoefficient();
     #endif
     #if COLOR_DEPTH_RGB > 24
-        static void getBackgroundRefreshPixel(uint8_t x, uint8_t y, rgb48 &refreshPixel);
+        void getBackgroundRefreshPixel(uint8_t x, uint8_t y, rgb48 &refreshPixel);
         bool getForegroundRefreshPixel(uint8_t x, uint8_t y, rgb48 &xyPixel);
     #else
-        static void getBackgroundRefreshPixel(uint8_t x, uint8_t y, rgb24 &refreshPixel);
+        void getBackgroundRefreshPixel(uint8_t x, uint8_t y, rgb24 &refreshPixel);
         bool getForegroundRefreshPixel(uint8_t x, uint8_t y, rgb24 &xyPixel);
     #endif
 

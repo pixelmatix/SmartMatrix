@@ -2,17 +2,12 @@
 
 // TODO: get color correction working
 
-// TODO: get these from screenconfig?
-#define MATRIX_WIDTH 32
-#define MATRIX_HEIGHT 32
-
 
 // needed for lutInterpolate, and must be included after Arduino.h (contains definition for PI - conflict with wiring.h)
 #include "arm_math.h"
 
 static color_chan_t backgroundColorCorrectionLUT[256];
 
-// buffers are pointers to a 2-dimensional array of unknown size * MATRIX_WIDTH
 static rgb24 *currentDrawBufferPtr;
 static rgb24 *currentRefreshBufferPtr;
 #ifdef SMARTMATRIX_TRIPLEBUFFER
@@ -25,13 +20,15 @@ volatile bool SMLayerBackground::swapPending = false;
 static bitmap_font *font = (bitmap_font *) &apple3x5;
 
 
-SMLayerBackground::SMLayerBackground(rgb24 * buffer) {
+SMLayerBackground::SMLayerBackground(rgb24 * buffer, uint8_t width, uint8_t height) {
     backgroundBuffer = buffer;
+    matrixWidth = width;
+    matrixHeight = height;
 
-    currentDrawBufferPtr = &backgroundBuffer[0 * (MATRIX_WIDTH * MATRIX_HEIGHT)];
-    currentRefreshBufferPtr = &backgroundBuffer[1 * (MATRIX_WIDTH * MATRIX_HEIGHT)];
+    currentDrawBufferPtr = &backgroundBuffer[0 * (matrixWidth * matrixHeight)];
+    currentRefreshBufferPtr = &backgroundBuffer[1 * (matrixWidth * matrixHeight)];
 #ifdef SMARTMATRIX_TRIPLEBUFFER
-    previousRefreshBufferPtr = &backgroundBuffer[2 * (MATRIX_WIDTH * MATRIX_HEIGHT)];
+    previousRefreshBufferPtr = &backgroundBuffer[2 * (matrixWidth * matrixHeight)];
 #endif
 }
 
@@ -47,10 +44,10 @@ void SMLayerBackground::frameRefreshCallback(void) {
 }
 
 void SMLayerBackground::getRefreshPixel(uint8_t hardwareX, uint8_t hardwareY, rgb48 &xyPixel) {
-    rgb24 currentPixel = currentRefreshBufferPtr[(hardwareY * MATRIX_HEIGHT) + hardwareX];
+    rgb24 currentPixel = currentRefreshBufferPtr[(hardwareY * matrixHeight) + hardwareX];
 
 #ifdef SMARTMATRIX_TRIPLEBUFFER
-    rgb24 prevPixel = previousRefreshBufferPtr[(hardwareY * MATRIX_HEIGHT) + hardwareX];
+    rgb24 prevPixel = previousRefreshBufferPtr[(hardwareY * matrixHeight) + hardwareX];
     refreshPixel.red = lutInterpolate(lightPowerMap16bit2, ((prevPixel.red * icPrev + currentPixel.red * icNext) >> 16));
     refreshPixel.green = lutInterpolate(lightPowerMap16bit2, ((prevPixel.green * icPrev + currentPixel.green * icNext) >> 16));
     refreshPixel.blue = lutInterpolate(lightPowerMap16bit2, ((prevPixel.blue * icPrev + currentPixel.blue * icNext) >> 16));
@@ -73,7 +70,7 @@ void SMLayerBackground::getRefreshPixel(uint8_t hardwareX, uint8_t hardwareY, rg
 }
 
 void SMLayerBackground::getRefreshPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24 &xyPixel) {
-    rgb24 currentPixel = currentRefreshBufferPtr[(hardwareY * MATRIX_HEIGHT) + hardwareX];
+    rgb24 currentPixel = currentRefreshBufferPtr[(hardwareY * matrixHeight) + hardwareX];
 
     // do once per refresh
     bool bHasCC = ccmode != ccNone;
@@ -100,7 +97,7 @@ color_chan_t SMLayerBackground::backgroundColorCorrection(uint8_t inputcolor) {
 
 // coordinates based on screen position, which is between 0-localWidth/localHeight
 void SMLayerBackground::getPixel(uint8_t x, uint8_t y, rgb24 *xyPixel) {
-    copyRgb24(*xyPixel, currentRefreshBufferPtr[(y * MATRIX_HEIGHT) + x]);
+    copyRgb24(*xyPixel, currentRefreshBufferPtr[(y * matrixHeight) + x]);
 }
 
 volatile int totalFramesToInterpolate;
@@ -130,12 +127,12 @@ uint32_t SMLayerBackground::calculateFcInterpCoefficient()
 }
 
 rgb24 *SMLayerBackground::getPreviousRefreshRow(uint8_t y) {
-  return &previousRefreshBufferPtr[y*MATRIX_HEIGHT];
+  return &previousRefreshBufferPtr[y*matrixHeight];
 }
 #endif
 
 rgb24 *SMLayerBackground::getCurrentRefreshRow(uint8_t y) {
-  return &currentRefreshBufferPtr[y*MATRIX_HEIGHT];
+  return &currentRefreshBufferPtr[y*matrixHeight];
 }
 
 #ifdef SMARTMATRIX_TRIPLEBUFFER
@@ -258,17 +255,17 @@ const rgb24 SMLayerBackground::readPixel(int16_t x, int16_t y) {
         hwx = x;
         hwy = y;
     } else if (screenConfig.rotation == rotation180) {
-        hwx = (MATRIX_WIDTH - 1) - x;
-        hwy = (MATRIX_HEIGHT - 1) - y;
+        hwx = (matrixWidth - 1) - x;
+        hwy = (matrixHeight - 1) - y;
     } else if (screenConfig.rotation == rotation90) {
-        hwx = (MATRIX_WIDTH - 1) - y;
+        hwx = (matrixWidth - 1) - y;
         hwy = x;
     } else { /* if (screenConfig.rotation == rotation270)*/
         hwx = y;
-        hwy = (MATRIX_HEIGHT - 1) - x;
+        hwy = (matrixHeight - 1) - x;
     }
 
-    return currentDrawBufferPtr[(hwy * MATRIX_HEIGHT) + hwx];
+    return currentDrawBufferPtr[(hwy * matrixHeight) + hwx];
 }
 
 void SMLayerBackground::drawPixel(int16_t x, int16_t y, const rgb24& color) {
@@ -283,17 +280,17 @@ void SMLayerBackground::drawPixel(int16_t x, int16_t y, const rgb24& color) {
         hwx = x;
         hwy = y;
     } else if (screenConfig.rotation == rotation180) {
-        hwx = (MATRIX_WIDTH - 1) - x;
-        hwy = (MATRIX_HEIGHT - 1) - y;
+        hwx = (matrixWidth - 1) - x;
+        hwy = (matrixHeight - 1) - y;
     } else if (screenConfig.rotation == rotation90) {
-        hwx = (MATRIX_WIDTH - 1) - y;
+        hwx = (matrixWidth - 1) - y;
         hwy = x;
     } else { /* if (screenConfig.rotation == rotation270)*/
         hwx = y;
-        hwy = (MATRIX_HEIGHT - 1) - x;
+        hwy = (matrixHeight - 1) - x;
     }
 
-    copyRgb24(currentDrawBufferPtr[(hwy * MATRIX_HEIGHT) + hwx], color);
+    copyRgb24(currentDrawBufferPtr[(hwy * matrixHeight) + hwx], color);
 }
 
 #define SWAPint(X,Y) { \
@@ -307,7 +304,7 @@ void SMLayerBackground::drawHardwareHLine(uint8_t x0, uint8_t x1, uint8_t y, con
     int i;
 
     for (i = x0; i <= x1; i++) {
-        copyRgb24(currentDrawBufferPtr[(y * MATRIX_HEIGHT) + i], color);
+        copyRgb24(currentDrawBufferPtr[(y * matrixHeight) + i], color);
     }
 }
 
@@ -316,7 +313,7 @@ void SMLayerBackground::drawHardwareVLine(uint8_t x, uint8_t y0, uint8_t y1, con
     int i;
 
     for (i = y0; i <= y1; i++) {
-        copyRgb24(currentDrawBufferPtr[(i * MATRIX_HEIGHT) + x], color);
+        copyRgb24(currentDrawBufferPtr[(i * matrixHeight) + x], color);
     }
 }
 
@@ -340,11 +337,11 @@ void SMLayerBackground::drawFastHLine(int16_t x0, int16_t x1, int16_t y, const r
     if (screenConfig.rotation == rotation0) {
         drawHardwareHLine(x0, x1, y, color);
     } else if (screenConfig.rotation == rotation180) {
-        drawHardwareHLine((MATRIX_WIDTH - 1) - x1, (MATRIX_WIDTH - 1) - x0, (MATRIX_HEIGHT - 1) - y, color);
+        drawHardwareHLine((matrixWidth - 1) - x1, (matrixWidth - 1) - x0, (matrixHeight - 1) - y, color);
     } else if (screenConfig.rotation == rotation90) {
-        drawHardwareVLine((MATRIX_WIDTH - 1) - y, x0, x1, color);
+        drawHardwareVLine((matrixWidth - 1) - y, x0, x1, color);
     } else { /* if (screenConfig.rotation == rotation270)*/
-        drawHardwareVLine(y, (MATRIX_HEIGHT - 1) - x1, (MATRIX_HEIGHT - 1) - x0, color);
+        drawHardwareVLine(y, (matrixHeight - 1) - x1, (matrixHeight - 1) - x0, color);
     }
 }
 
@@ -368,11 +365,11 @@ void SMLayerBackground::drawFastVLine(int16_t x, int16_t y0, int16_t y1, const r
     if (screenConfig.rotation == rotation0) {
         drawHardwareVLine(x, y0, y1, color);
     } else if (screenConfig.rotation == rotation180) {
-        drawHardwareVLine((MATRIX_WIDTH - 1) - x, (MATRIX_HEIGHT - 1) - y1, (MATRIX_HEIGHT - 1) - y0, color);
+        drawHardwareVLine((matrixWidth - 1) - x, (matrixHeight - 1) - y1, (matrixHeight - 1) - y0, color);
     } else if (screenConfig.rotation == rotation90) {
-        drawHardwareHLine((MATRIX_WIDTH - 1) - y1, (MATRIX_WIDTH - 1) - y0, x, color);
+        drawHardwareHLine((matrixWidth - 1) - y1, (matrixWidth - 1) - y0, x, color);
     } else { /* if (screenConfig.rotation == rotation270)*/
-        drawHardwareHLine(y0, y1, (MATRIX_HEIGHT - 1) - x, color);
+        drawHardwareHLine(y0, y1, (matrixHeight - 1) - x, color);
     }
 }
 
@@ -1022,17 +1019,17 @@ void SMLayerBackground::handleBufferSwap(void) {
     currentRefreshBuffer = currentDrawBuffer;
     currentDrawBuffer = newDrawBuffer;
 
-    currentRefreshBufferPtr = &backgroundBuffer[currentRefreshBuffer * (MATRIX_WIDTH * MATRIX_HEIGHT)];
-    previousRefreshBufferPtr = &backgroundBuffer[previousRefreshBuffer * (MATRIX_WIDTH * MATRIX_HEIGHT)];
-    currentDrawBufferPtr = &backgroundBuffer[currentDrawBuffer * (MATRIX_WIDTH * MATRIX_HEIGHT)];
+    currentRefreshBufferPtr = &backgroundBuffer[currentRefreshBuffer * (matrixWidth * matrixHeight)];
+    previousRefreshBufferPtr = &backgroundBuffer[previousRefreshBuffer * (matrixWidth * matrixHeight)];
+    currentDrawBufferPtr = &backgroundBuffer[currentDrawBuffer * (matrixWidth * matrixHeight)];
 #else
     unsigned char newDrawBuffer = currentRefreshBuffer;
 
     currentRefreshBuffer = currentDrawBuffer;
     currentDrawBuffer = newDrawBuffer;
 
-    currentRefreshBufferPtr = &backgroundBuffer[currentRefreshBuffer * (MATRIX_WIDTH * MATRIX_HEIGHT)];
-    currentDrawBufferPtr = &backgroundBuffer[currentDrawBuffer * (MATRIX_WIDTH * MATRIX_HEIGHT)];
+    currentRefreshBufferPtr = &backgroundBuffer[currentRefreshBuffer * (matrixWidth * matrixHeight)];
+    currentDrawBufferPtr = &backgroundBuffer[currentDrawBuffer * (matrixWidth * matrixHeight)];
 #endif
 
     swapPending = false;
@@ -1051,7 +1048,7 @@ void SMLayerBackground::swapBuffers(bool copy) {
 
     if (copy) {
         while (swapPending);
-        memcpy(currentDrawBufferPtr, currentRefreshBufferPtr, sizeof(rgb24) * (MATRIX_WIDTH * MATRIX_HEIGHT));
+        memcpy(currentDrawBufferPtr, currentRefreshBufferPtr, sizeof(rgb24) * (matrixWidth * matrixHeight));
     }
 }
 
@@ -1066,7 +1063,7 @@ void SMLayerBackground::swapBuffersWithInterpolation_frames(int framesToInterpol
     swapPending = true;
     if (copy) {
         while (swapPending);
-        memcpy(currentDrawBufferPtr, currentRefreshBufferPtr, sizeof(rgb24) * (MATRIX_WIDTH * MATRIX_HEIGHT));
+        memcpy(currentDrawBufferPtr, currentRefreshBufferPtr, sizeof(rgb24) * (matrixWidth * matrixHeight));
     }
 }
 
@@ -1080,7 +1077,7 @@ void SMLayerBackground::swapBuffersWithInterpolation_ms(int interpolationSpan_ms
     swapPending = true;
     if (copy) {
         while (swapPending);
-        memcpy(currentDrawBufferPtr, currentRefreshBufferPtr, sizeof(rgb24) * (MATRIX_WIDTH * MATRIX_HEIGHT));
+        memcpy(currentDrawBufferPtr, currentRefreshBufferPtr, sizeof(rgb24) * (matrixWidth * matrixHeight));
     }
 }
 #endif
@@ -1095,7 +1092,7 @@ void SMLayerBackground::setBackBuffer(rgb24 *newBuffer) {
 }
 
 rgb24 *SMLayerBackground::getRealBackBuffer() {
-  return &backgroundBuffer[currentDrawBuffer * (MATRIX_WIDTH * MATRIX_HEIGHT)];
+  return &backgroundBuffer[currentDrawBuffer * (matrixWidth * matrixHeight)];
 }
 
 uint8_t SMLayerBackground::backgroundBrightness = 255;
