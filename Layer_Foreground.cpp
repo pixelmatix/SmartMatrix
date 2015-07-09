@@ -113,7 +113,7 @@ void SMLayerForeground::stopScrollText(void) {
 }
 
 void SMLayerForeground::clearForeground(void) {
-    memset(&foregroundBitmap[foregroundDrawBuffer*matrixHeight], 0x00, matrixHeight);
+    memset(&foregroundBitmap[foregroundDrawBuffer*matrixHeight], 0x00, matrixHeight*4);
 }
 
 void SMLayerForeground::displayForegroundDrawing(bool waitUntilComplete) {
@@ -128,7 +128,7 @@ void SMLayerForeground::handleForegroundDrawingCopy(void) {
     if (!foregroundCopyPending)
         return;
 
-    memcpy(&foregroundBitmap[foregroundRefreshBuffer*matrixHeight], &foregroundBitmap[foregroundDrawBuffer*matrixHeight], matrixHeight);
+    memcpy(&foregroundBitmap[foregroundRefreshBuffer*matrixHeight], &foregroundBitmap[foregroundDrawBuffer*matrixHeight], matrixHeight*4);
     redrawForeground();
     foregroundCopyPending = false;
 }
@@ -376,8 +376,8 @@ void SMLayerForeground::redrawForeground(void) {
          */
         if(majorScrollFontChange) {
             // clear full refresh buffer and copy background over
-            memset(&foregroundBitmap[foregroundRefreshBuffer*matrixHeight], 0x00, matrixHeight);
-            memcpy(&foregroundBitmap[foregroundRefreshBuffer*matrixHeight], &foregroundBitmap[foregroundDrawBuffer*matrixHeight], matrixHeight);
+            memset(&foregroundBitmap[foregroundRefreshBuffer*matrixHeight], 0x00, matrixHeight*4);
+            memcpy(&foregroundBitmap[foregroundRefreshBuffer*matrixHeight], &foregroundBitmap[foregroundDrawBuffer*matrixHeight], matrixHeight*4);
             majorScrollFontChange = false;
         }
 
