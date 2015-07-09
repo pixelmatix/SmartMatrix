@@ -6,8 +6,6 @@
 #include <SmartMatrix_32x32.h>
 
 SmartMatrix matrix;
-SMLayerForeground foregroundLayer;
-SMLayerBackground backgroundLayer;
 
 const int defaultBrightness = 100*(255/100);    // full brightness
 //const int defaultBrightness = 15*(255/100);    // dim: 15% brightness
@@ -25,6 +23,9 @@ void setup() {
 
     Serial.begin(38400);
 
+    static uint32_t foregroundBitmap[2 * 32 * (32 / 32)];
+    static SMLayerForeground foregroundLayer(foregroundBitmap, 32, 32);
+    static SMLayerBackground backgroundLayer;
     matrix.addLayer(&backgroundLayer);
     matrix.addLayer(&foregroundLayer);
     matrix.useDefaultLayers();
