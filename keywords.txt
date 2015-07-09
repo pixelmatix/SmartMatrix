@@ -10,7 +10,6 @@ fontChoices	KEYWORD1
 rgb24	KEYWORD1
 colorCorrectionModes	KEYWORD1
 rotationDegrees	KEYWORD1
-screen_config	KEYWORD1
 SmartMatrix	KEYWORD1
 SmartMatrix_32x32	KEYWORD1
 

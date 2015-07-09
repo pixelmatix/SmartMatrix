@@ -8,14 +8,15 @@ class SM_Layer {
         virtual void frameRefreshCallback();
         virtual void getRefreshPixel(uint8_t x, uint8_t y, rgb24 &refreshPixel);
         virtual void getRefreshPixel(uint8_t x, uint8_t y, rgb48 &refreshPixel);
-        void updateScreenConfig(screen_config & newConfig);
-        screen_config screenConfig;
+        void setRotation(rotationDegrees newrotation);
         void addLayer(SM_Layer * newlayer);
         SM_Layer * nextLayer;
     protected:
+        rotationDegrees rotation;
+        uint8_t matrixWidth, matrixHeight;
+        uint8_t localWidth, localHeight;
         
     private:
-
 };
 
 #endif

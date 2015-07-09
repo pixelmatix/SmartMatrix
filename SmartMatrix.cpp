@@ -123,13 +123,13 @@ INLINE void SmartMatrix::matrixCalculations(void) {
     while (!cbIsFull(&dmaBuffer)) {
         // do once-per-frame updates
         if (!currentRow) {
-            if (screenConfigChange) {
+            if (rotationChange) {
                 SM_Layer * templayer = globalinstance->baseLayer;
                 while(templayer) {
-                    templayer->updateScreenConfig(screenConfig);
+                    templayer->setRotation(rotation);
                     templayer = templayer->nextLayer;
                 }
-                screenConfigChange = false;
+                rotationChange = false;
             }
 
             SM_Layer * templayer = globalinstance->baseLayer;

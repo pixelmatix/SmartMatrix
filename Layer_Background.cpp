@@ -247,20 +247,20 @@ const rgb24 SMLayerBackground::readPixel(int16_t x, int16_t y) {
     int hwx, hwy;
 
     // check for out of bounds coordinates
-    if (x < 0 || y < 0 || x >= screenConfig.localWidth || y >= screenConfig.localHeight)
+    if (x < 0 || y < 0 || x >= localWidth || y >= localHeight)
         return (rgb24){0, 0, 0};
 
     // map pixel into hardware buffer before writing
-    if (screenConfig.rotation == rotation0) {
+    if (rotation == rotation0) {
         hwx = x;
         hwy = y;
-    } else if (screenConfig.rotation == rotation180) {
+    } else if (rotation == rotation180) {
         hwx = (matrixWidth - 1) - x;
         hwy = (matrixHeight - 1) - y;
-    } else if (screenConfig.rotation == rotation90) {
+    } else if (rotation == rotation90) {
         hwx = (matrixWidth - 1) - y;
         hwy = x;
-    } else { /* if (screenConfig.rotation == rotation270)*/
+    } else { /* if (rotation == rotation270)*/
         hwx = y;
         hwy = (matrixHeight - 1) - x;
     }
@@ -272,20 +272,20 @@ void SMLayerBackground::drawPixel(int16_t x, int16_t y, const rgb24& color) {
     int hwx, hwy;
 
     // check for out of bounds coordinates
-    if (x < 0 || y < 0 || x >= screenConfig.localWidth || y >= screenConfig.localHeight)
+    if (x < 0 || y < 0 || x >= localWidth || y >= localHeight)
         return;
 
     // map pixel into hardware buffer before writing
-    if (screenConfig.rotation == rotation0) {
+    if (rotation == rotation0) {
         hwx = x;
         hwy = y;
-    } else if (screenConfig.rotation == rotation180) {
+    } else if (rotation == rotation180) {
         hwx = (matrixWidth - 1) - x;
         hwy = (matrixHeight - 1) - y;
-    } else if (screenConfig.rotation == rotation90) {
+    } else if (rotation == rotation90) {
         hwx = (matrixWidth - 1) - y;
         hwy = x;
-    } else { /* if (screenConfig.rotation == rotation270)*/
+    } else { /* if (rotation == rotation270)*/
         hwx = y;
         hwy = (matrixHeight - 1) - x;
     }
@@ -323,24 +323,24 @@ void SMLayerBackground::drawFastHLine(int16_t x0, int16_t x1, int16_t y, const r
         SWAPint(x1, x0);
 
     // check for completely out of bounds line
-    if (x1 < 0 || x0 >= screenConfig.localWidth || y < 0 || y >= screenConfig.localHeight)
+    if (x1 < 0 || x0 >= localWidth || y < 0 || y >= localHeight)
         return;
 
     // truncate if partially out of bounds
     if (x0 < 0)
         x0 = 0;
 
-    if (x1 >= screenConfig.localWidth)
-        x1 = screenConfig.localWidth - 1;
+    if (x1 >= localWidth)
+        x1 = localWidth - 1;
 
     // map to hardware drawline function
-    if (screenConfig.rotation == rotation0) {
+    if (rotation == rotation0) {
         drawHardwareHLine(x0, x1, y, color);
-    } else if (screenConfig.rotation == rotation180) {
+    } else if (rotation == rotation180) {
         drawHardwareHLine((matrixWidth - 1) - x1, (matrixWidth - 1) - x0, (matrixHeight - 1) - y, color);
-    } else if (screenConfig.rotation == rotation90) {
+    } else if (rotation == rotation90) {
         drawHardwareVLine((matrixWidth - 1) - y, x0, x1, color);
-    } else { /* if (screenConfig.rotation == rotation270)*/
+    } else { /* if (rotation == rotation270)*/
         drawHardwareVLine(y, (matrixHeight - 1) - x1, (matrixHeight - 1) - x0, color);
     }
 }
@@ -351,24 +351,24 @@ void SMLayerBackground::drawFastVLine(int16_t x, int16_t y0, int16_t y1, const r
         SWAPint(y1, y0);
 
     // check for completely out of bounds line
-    if (y1 < 0 || y0 >= screenConfig.localHeight || x < 0 || x >= screenConfig.localWidth)
+    if (y1 < 0 || y0 >= localHeight || x < 0 || x >= localWidth)
         return;
 
     // truncate if partially out of bounds
     if (y0 < 0)
         y0 = 0;
 
-    if (y1 >= screenConfig.localHeight)
-        y1 = screenConfig.localHeight - 1;
+    if (y1 >= localHeight)
+        y1 = localHeight - 1;
 
     // map to hardware drawline function
-    if (screenConfig.rotation == rotation0) {
+    if (rotation == rotation0) {
         drawHardwareVLine(x, y0, y1, color);
-    } else if (screenConfig.rotation == rotation180) {
+    } else if (rotation == rotation180) {
         drawHardwareVLine((matrixWidth - 1) - x, (matrixHeight - 1) - y1, (matrixHeight - 1) - y0, color);
-    } else if (screenConfig.rotation == rotation90) {
+    } else if (rotation == rotation90) {
         drawHardwareHLine((matrixWidth - 1) - y1, (matrixWidth - 1) - y0, x, color);
-    } else { /* if (screenConfig.rotation == rotation270)*/
+    } else { /* if (rotation == rotation270)*/
         drawHardwareHLine(y0, y1, (matrixHeight - 1) - x, color);
     }
 }
@@ -907,7 +907,7 @@ void SMLayerBackground::fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_
 }
 
 void SMLayerBackground::fillScreen(const rgb24& color) {
-    fillRectangle(0, 0, screenConfig.localWidth, screenConfig.localHeight, color);
+    fillRectangle(0, 0, localWidth, localHeight, color);
 }
 
 void SMLayerBackground::fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const rgb24& outlineColor, const rgb24& fillColor) {

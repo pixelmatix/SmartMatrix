@@ -53,7 +53,6 @@ class SMLayerBackground : public SM_Layer {
         colorCorrectionModes ccmode = cc48;
 
         rgb24 * backgroundBuffer;
-        uint8_t matrixWidth, matrixHeight;
 
         static color_chan_t backgroundColorCorrection(uint8_t inputcolor);
 

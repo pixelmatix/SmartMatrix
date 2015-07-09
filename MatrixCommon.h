@@ -63,13 +63,4 @@ typedef enum rotationDegrees {
     rotation270
 } rotationDegrees;
 
-typedef struct screen_config {
-    rotationDegrees rotation;
-    uint16_t localWidth;
-    uint16_t localHeight;
-} screen_config;
-
-void copyScreenConfig(screen_config &dst, const screen_config &src);
-
-
 #endif

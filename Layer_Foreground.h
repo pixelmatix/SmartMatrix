@@ -88,10 +88,6 @@ class SMLayerForeground : public SM_Layer {
         int scrollPosition;
 
         bitmap_font *foregroundfont = (bitmap_font *) &apple3x5;
-
-        screen_config foregroundScreenConfig;
-
-        uint8_t matrixWidth, matrixHeight;
 };
 
 #endif

@@ -24,35 +24,31 @@
 #include "SmartMatrix.h"
 
 
-screen_config SmartMatrix::screenConfig = {
-    .rotation = rotation0,
-    .localWidth = MATRIX_WIDTH,
-    .localHeight = MATRIX_HEIGHT,
-};
-
-void SmartMatrix::setRotation(rotationDegrees rotation) {
-    screenConfig.rotation = rotation;
-
-    if (rotation == rotation0 || rotation == rotation180) {
-        screenConfig.localWidth = MATRIX_WIDTH;
-        screenConfig.localHeight = MATRIX_HEIGHT;
-    } else {
-        screenConfig.localWidth = MATRIX_HEIGHT;
-        screenConfig.localHeight = MATRIX_WIDTH;
-    }
-    screenConfigChange = true;
+void SmartMatrix::setRotation(rotationDegrees newrotation) {
+    rotation = newrotation;
+    rotationChange = true;
 }
 
 uint16_t SmartMatrix::getScreenWidth(void) const {
-    return screenConfig.localWidth;
+    if (rotation == rotation0 || rotation == rotation180) {
+        return MATRIX_WIDTH;
+    } else {
+        return MATRIX_HEIGHT;
+    }
 }
 
 uint16_t SmartMatrix::getScreenHeight(void) const {
-    return screenConfig.localHeight;
+    if (rotation == rotation0 || rotation == rotation180) {
+        return MATRIX_HEIGHT;
+    } else {
+        return MATRIX_WIDTH;
+    }
 }
 
 volatile bool SmartMatrix::brightnessChange = false;
-volatile bool SmartMatrix::screenConfigChange = true;
+volatile bool SmartMatrix::rotationChange = true;
+rotationDegrees SmartMatrix::rotation = rotation0;
+
 const int SmartMatrix::dimmingMaximum = 255;
 // large factor = more dim, default is full brightness
 int SmartMatrix::dimmingFactor = dimmingMaximum - (100 * 255)/100;

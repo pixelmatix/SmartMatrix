@@ -150,11 +150,11 @@ private:
     static void calculateTimerLut(void);
 
     // configuration
-    static screen_config screenConfig;
     static volatile bool brightnessChange;
-    static volatile bool screenConfigChange;
+    static volatile bool rotationChange;
     static int dimmingFactor;
     static const int dimmingMaximum;
+    static rotationDegrees rotation;
 };
 
 #endif
