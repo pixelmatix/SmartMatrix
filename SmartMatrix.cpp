@@ -75,12 +75,26 @@ static DMAMEM matrixUpdateBlock matrixUpdateBlocks[DMA_BUFFER_NUMBER_OF_ROWS][LA
 
 /*
   buffer contains:
-    COLOR_DEPTH/sizeof(int32_t) * 2 words for each pair of pixels (pixel data from n, and n+MATRIX_ROW_PAIR_OFFSET)
+    COLOR_DEPTH/COLOR_CHANNELS_PER_PIXEL/sizeof(int32_t) * (2 words for each pair of pixels: pixel data from n, and n+MATRIX_ROW_PAIR_OFFSET)
       first half of the words contain a byte for each shade, going from LSB to MSB
       second half of the words have the same data, plus a high bit in each byte for the clock
     there are MATRIX_WIDTH number of these in order to refresh a row (pair of rows)
+    data is organized: matrixUpdateData[row][pixels within row][color depth * 2 updates per clock]
+
+    DMA doesn't shift out the data sequentially, for each row, DMA goes through the buffer matrixUpdateData[currentrow][]
+
+    layout of single matrixUpdateData row:
+    in drawing, [] = byte, data is arranged as uint32_t going left to right in the drawing, "clk" is low, "CLK" is high
+    DMA goes down each column of the drawing per latch, resetting back to the top + shifting 1 byte to the right for the next latch
+    [pixel pair  0 - clk - MSB][pixel pair  0 - clk - MSB-1]...[pixel pair  0 - clk - LSB+1][pixel pair  0 - clk - LSB]
+    [pixel pair  0 - CLK - MSB][pixel pair  0 - CLK - MSB-1]...[pixel pair  0 - CLK - LSB+1][pixel pair  0 - CLK - LSB]
+    [pixel pair  1 - clk - MSB][pixel pair  1 - clk - MSB-1]...[pixel pair  1 - clk - LSB+1][pixel pair  1 - clk - LSB]
+    [pixel pair  1 - CLK - MSB][pixel pair  1 - CLK - MSB-1]...[pixel pair  1 - CLK - LSB+1][pixel pair  1 - CLK - LSB]
+    ...
+    [pixel pair 15 - clk - MSB][pixel pair 15 - clk - MSB-1]...[pixel pair 15 - clk - LSB+1][pixel pair 15 - clk - LSB]
+    [pixel pair 15 - CLK - MSB][pixel pair 15 - CLK - MSB-1]...[pixel pair 15 - CLK - LSB+1][pixel pair 15 - CLK - LSB]
  */
-static DMAMEM uint32_t matrixUpdateData[DMA_BUFFER_NUMBER_OF_ROWS][MATRIX_WIDTH][(LATCHES_PER_ROW / sizeof(uint32_t)) * DMA_UPDATES_PER_CLOCK];
+static DMAMEM uint32_t matrixUpdateData[DMA_BUFFER_NUMBER_OF_ROWS * MATRIX_WIDTH * (LATCHES_PER_ROW / sizeof(uint32_t)) * DMA_UPDATES_PER_CLOCK];
 
 #define ADDRESS_ARRAY_REGISTERS_TO_UPDATE   2
 static addresspair addressLUT[MATRIX_ROWS_PER_FRAME];
@@ -95,14 +109,22 @@ typedef struct gpiopair {
 
 static gpiopair gpiosync;
 
-
 uint8_t SmartMatrix::matrixWidth;
 uint8_t SmartMatrix::matrixHeight;
+uint8_t SmartMatrix::latchesPerRow;
+uint8_t SmartMatrix::dmaBufferNumRows;
+uint8_t SmartMatrix::dmaBufferBytesPerPixel;
+uint16_t SmartMatrix::dmaBufferBytesPerRow;
 
 SmartMatrix::SmartMatrix(uint8_t width, uint8_t height) {
     globalinstance = this;
     matrixWidth = width;
     matrixHeight = height;
+
+    latchesPerRow = LATCHES_PER_ROW;
+    dmaBufferNumRows = DMA_BUFFER_NUMBER_OF_ROWS;
+    dmaBufferBytesPerPixel = LATCHES_PER_ROW * DMA_UPDATES_PER_CLOCK;
+    dmaBufferBytesPerRow = dmaBufferBytesPerPixel * matrixWidth;
 }
 
 void SmartMatrix::addLayer(SM_Layer * newlayer) {
@@ -353,16 +375,16 @@ void SmartMatrix::begin(void)
 #define DMA_TCD_MLOFF_MASK  (0x3FFFFC00)
 
     // dmaClockOutData - repeatedly load gpio_array into GPIOD_PDOR, stop and int on major loop complete
-    dmaClockOutData.TCD->SADDR = matrixUpdateData[0][0];
-    dmaClockOutData.TCD->SOFF = sizeof(matrixUpdateData[0][0]) / 2;
+    dmaClockOutData.TCD->SADDR = matrixUpdateData;
+    dmaClockOutData.TCD->SOFF = latchesPerRow;
     // SADDR will get updated by ISR, no need to set SLAST
     dmaClockOutData.TCD->SLAST = 0;
     dmaClockOutData.TCD->ATTR = DMA_TCD_ATTR_SSIZE(0) | DMA_TCD_ATTR_DSIZE(0);
     // after each minor loop, set source to point back to the beginning of this set of data,
     // but advance by 1 byte to get the next significant bits data
     dmaClockOutData.TCD->NBYTES_MLOFFYES = DMA_TCD_NBYTES_SMLOE |
-                               (((1 - sizeof(matrixUpdateData[0])) << 10) & DMA_TCD_MLOFF_MASK) |
-                               (MATRIX_WIDTH * DMA_UPDATES_PER_CLOCK);
+                               (((1 - (dmaBufferBytesPerPixel * matrixWidth)) << 10) & DMA_TCD_MLOFF_MASK) |
+                               (matrixWidth * DMA_UPDATES_PER_CLOCK);
     dmaClockOutData.TCD->DADDR = &GPIOD_PDOR;
     dmaClockOutData.TCD->DOFF = 0;
     dmaClockOutData.TCD->DLASTSGA = 0;
@@ -633,21 +655,21 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
         clkset.p2clk = 1;
         clkset.p3clk = 1;
 
-        // copy words to DMA buffer
-        matrixUpdateData[freeRowBuffer][i][0] = o0.word;
-        matrixUpdateData[freeRowBuffer][i][1] = o1.word;
+        // copy words to DMA buffer as a pair, one with clock set low, next with clock set high
 
-        // copy the next set of words with the same data, but clock set high
-        matrixUpdateData[freeRowBuffer][i][LATCHES_PER_ROW / sizeof(uint32_t) + 0] = o0.word | clkset.word;
-        matrixUpdateData[freeRowBuffer][i][LATCHES_PER_ROW / sizeof(uint32_t) + 1] = o1.word | clkset.word;
+        uint32_t * tempptr = (uint32_t*)matrixUpdateData + ((freeRowBuffer*dmaBufferBytesPerRow)/sizeof(uint32_t)) + ((i*dmaBufferBytesPerPixel)/sizeof(uint32_t));
+        *tempptr = o0.word;
+        *(tempptr + latchesPerRow/sizeof(uint32_t)) = o0.word | clkset.word;
+        *(++tempptr) = o1.word;
+        *(tempptr + latchesPerRow/sizeof(uint32_t)) = o1.word | clkset.word;
 
 #if LATCHES_PER_ROW >= 12
-        matrixUpdateData[freeRowBuffer][i][2] = o2.word;
-        matrixUpdateData[freeRowBuffer][i][LATCHES_PER_ROW / sizeof(uint32_t) + 2] = o2.word | clkset.word;
+        *(++tempptr) = o2.word;
+        *(tempptr + latchesPerRow/sizeof(uint32_t)) = o2.word | clkset.word;
 #endif
 #if LATCHES_PER_ROW == 16
-        matrixUpdateData[freeRowBuffer][i][3] = o3.word;
-        matrixUpdateData[freeRowBuffer][i][LATCHES_PER_ROW / sizeof(uint32_t) + 3] = o3.word | clkset.word;
+        *(++tempptr) = o3.word;
+        *(tempptr + latchesPerRow/sizeof(uint32_t)) = o3.word | clkset.word;
 #endif
     }
 
@@ -678,7 +700,7 @@ void rowShiftCompleteISR(void) {
     int currentRow = cbGetNextRead(&dmaBuffer);
     dmaUpdateAddress.TCD->SADDR = &matrixUpdateBlocks[currentRow][0].addressValues;
     dmaUpdateTimer.TCD->SADDR = &matrixUpdateBlocks[currentRow][0].timerValues.timer_oe;
-    dmaClockOutData.TCD->SADDR = matrixUpdateData[currentRow][0];
+    dmaClockOutData.TCD->SADDR = (uint8_t*)matrixUpdateData + (currentRow * SmartMatrix::dmaBufferBytesPerRow);
 
     // clear pending GPIO int for PORTA before enabling DMA again
     CORE_PIN3_CONFIG |= (1 << 24);

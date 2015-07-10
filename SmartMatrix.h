@@ -156,6 +156,11 @@ private:
     static const int dimmingMaximum;
     static rotationDegrees rotation;
     static uint8_t matrixWidth, matrixHeight;
+
+    static uint8_t latchesPerRow;
+    static uint8_t dmaBufferNumRows;
+    static uint8_t dmaBufferBytesPerPixel;
+    static uint16_t dmaBufferBytesPerRow;
 };
 
 #endif
