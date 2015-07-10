@@ -73,6 +73,13 @@ typedef struct matrixUpdateBlock {
 static CircularBuffer dmaBuffer;
 static DMAMEM matrixUpdateBlock matrixUpdateBlocks[DMA_BUFFER_NUMBER_OF_ROWS][LATCHES_PER_ROW];
 
+uint8_t SmartMatrix::matrixWidth;
+uint8_t SmartMatrix::matrixHeight;
+uint8_t SmartMatrix::latchesPerRow;
+uint8_t SmartMatrix::dmaBufferNumRows;
+uint8_t SmartMatrix::dmaBufferBytesPerPixel;
+uint16_t SmartMatrix::dmaBufferBytesPerRow;
+
 /*
   buffer contains:
     COLOR_DEPTH/COLOR_CHANNELS_PER_PIXEL/sizeof(int32_t) * (2 words for each pair of pixels: pixel data from n, and n+MATRIX_ROW_PAIR_OFFSET)
@@ -94,7 +101,7 @@ static DMAMEM matrixUpdateBlock matrixUpdateBlocks[DMA_BUFFER_NUMBER_OF_ROWS][LA
     [pixel pair 15 - clk - MSB][pixel pair 15 - clk - MSB-1]...[pixel pair 15 - clk - LSB+1][pixel pair 15 - clk - LSB]
     [pixel pair 15 - CLK - MSB][pixel pair 15 - CLK - MSB-1]...[pixel pair 15 - CLK - LSB+1][pixel pair 15 - CLK - LSB]
  */
-static DMAMEM uint32_t matrixUpdateData[DMA_BUFFER_NUMBER_OF_ROWS * MATRIX_WIDTH * (LATCHES_PER_ROW / sizeof(uint32_t)) * DMA_UPDATES_PER_CLOCK];
+uint32_t * SmartMatrix::matrixUpdateData;
 
 #define ADDRESS_ARRAY_REGISTERS_TO_UPDATE   2
 static addresspair addressLUT[MATRIX_ROWS_PER_FRAME];
@@ -109,14 +116,8 @@ typedef struct gpiopair {
 
 static gpiopair gpiosync;
 
-uint8_t SmartMatrix::matrixWidth;
-uint8_t SmartMatrix::matrixHeight;
-uint8_t SmartMatrix::latchesPerRow;
-uint8_t SmartMatrix::dmaBufferNumRows;
-uint8_t SmartMatrix::dmaBufferBytesPerPixel;
-uint16_t SmartMatrix::dmaBufferBytesPerRow;
 
-SmartMatrix::SmartMatrix(uint8_t width, uint8_t height) {
+SmartMatrix::SmartMatrix(uint8_t width, uint8_t height, uint32_t * dataBuffer) {
     globalinstance = this;
     matrixWidth = width;
     matrixHeight = height;
@@ -125,6 +126,7 @@ SmartMatrix::SmartMatrix(uint8_t width, uint8_t height) {
     dmaBufferNumRows = DMA_BUFFER_NUMBER_OF_ROWS;
     dmaBufferBytesPerPixel = LATCHES_PER_ROW * DMA_UPDATES_PER_CLOCK;
     dmaBufferBytesPerRow = dmaBufferBytesPerPixel * matrixWidth;
+    matrixUpdateData = dataBuffer;
 }
 
 void SmartMatrix::addLayer(SM_Layer * newlayer) {
@@ -700,7 +702,7 @@ void rowShiftCompleteISR(void) {
     int currentRow = cbGetNextRead(&dmaBuffer);
     dmaUpdateAddress.TCD->SADDR = &matrixUpdateBlocks[currentRow][0].addressValues;
     dmaUpdateTimer.TCD->SADDR = &matrixUpdateBlocks[currentRow][0].timerValues.timer_oe;
-    dmaClockOutData.TCD->SADDR = (uint8_t*)matrixUpdateData + (currentRow * SmartMatrix::dmaBufferBytesPerRow);
+    dmaClockOutData.TCD->SADDR = (uint8_t*)SmartMatrix::matrixUpdateData + (currentRow * SmartMatrix::dmaBufferBytesPerRow);
 
     // clear pending GPIO int for PORTA before enabling DMA again
     CORE_PIN3_CONFIG |= (1 << 24);

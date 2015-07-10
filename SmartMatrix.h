@@ -58,7 +58,7 @@ typedef rgb24 refreshPixel;
 
 class SmartMatrix {
 public:
-    SmartMatrix(uint8_t width, uint8_t height);
+    SmartMatrix(uint8_t width, uint8_t height, uint32_t * dataBuffer);
     void begin(void);
 
     // drawing functions
@@ -161,6 +161,7 @@ private:
     static uint8_t dmaBufferNumRows;
     static uint8_t dmaBufferBytesPerPixel;
     static uint16_t dmaBufferBytesPerRow;
+    static uint32_t * matrixUpdateData;
 };
 
 #endif

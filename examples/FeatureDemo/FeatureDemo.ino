@@ -5,7 +5,15 @@
 
 #include <SmartMatrix_32x32.h>
 
-SmartMatrix matrix(32,32);
+const uint8_t kMatrixHeight = 32;
+const uint8_t kMatrixWidth = 32;
+const uint8_t kColorDepth = 36;
+const uint8_t kDmaBufferRows = 4;
+const uint8_t kDmaUpdatesPerClock = 2;
+
+static DMAMEM uint32_t matrixUpdateData[kDmaBufferRows * kMatrixWidth * (kColorDepth/3 / sizeof(uint32_t)) * kDmaUpdatesPerClock];
+
+SmartMatrix matrix(32,32, matrixUpdateData);
 
 const int defaultBrightness = 100*(255/100);    // full brightness
 //const int defaultBrightness = 15*(255/100);    // dim: 15% brightness
