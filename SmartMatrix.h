@@ -56,9 +56,24 @@ typedef rgb24 refreshPixel;
 #endif
 #endif
 
+typedef struct timerpair {
+    uint16_t timer_oe;
+    uint16_t timer_period;
+} timerpair;
+
+typedef struct addresspair {
+    uint16_t bits_to_clear;
+    uint16_t bits_to_set;
+} addresspair;
+
+typedef struct matrixUpdateBlock {
+    timerpair timerValues;
+    addresspair addressValues;
+} matrixUpdateBlock;
+
 class SmartMatrix {
 public:
-    SmartMatrix(uint8_t width, uint8_t height, uint32_t * dataBuffer);
+    SmartMatrix(uint8_t width, uint8_t height, uint32_t * dataBuffer, matrixUpdateBlock * blockBuffer);
     void begin(void);
 
     // drawing functions
@@ -162,6 +177,7 @@ private:
     static uint8_t dmaBufferBytesPerPixel;
     static uint16_t dmaBufferBytesPerRow;
     static uint32_t * matrixUpdateData;
+    static matrixUpdateBlock * matrixUpdateBlocks;
 };
 
 #endif

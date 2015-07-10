@@ -12,8 +12,9 @@ const uint8_t kDmaBufferRows = 4;
 const uint8_t kDmaUpdatesPerClock = 2;
 
 static DMAMEM uint32_t matrixUpdateData[kDmaBufferRows * kMatrixWidth * (kColorDepth/3 / sizeof(uint32_t)) * kDmaUpdatesPerClock];
+static DMAMEM matrixUpdateBlock matrixUpdateBlocks[kDmaBufferRows * kColorDepth/3];
 
-SmartMatrix matrix(32,32, matrixUpdateData);
+SmartMatrix matrix(32,32, matrixUpdateData, matrixUpdateBlocks);
 
 const int defaultBrightness = 100*(255/100);    // full brightness
 //const int defaultBrightness = 15*(255/100);    // dim: 15% brightness

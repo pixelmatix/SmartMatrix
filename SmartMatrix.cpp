@@ -55,23 +55,11 @@ DMAChannel dmaClockOutData(false);
 void rowShiftCompleteISR(void);
 void rowCalculationISR(void);
 
-typedef struct timerpair {
-    uint16_t timer_oe;
-    uint16_t timer_period;
-} timerpair;
-
-typedef struct addresspair {
-    uint16_t bits_to_clear;
-    uint16_t bits_to_set;
-} addresspair;
-
-typedef struct matrixUpdateBlock {
-    timerpair timerValues;
-    addresspair addressValues;
-} matrixUpdateBlock;
 
 static CircularBuffer dmaBuffer;
-static DMAMEM matrixUpdateBlock matrixUpdateBlocks[DMA_BUFFER_NUMBER_OF_ROWS * LATCHES_PER_ROW];
+//static DMAMEM matrixUpdateBlock matrixUpdateBlocks[DMA_BUFFER_NUMBER_OF_ROWS * LATCHES_PER_ROW];
+
+matrixUpdateBlock * SmartMatrix::matrixUpdateBlocks;
 
 uint8_t SmartMatrix::matrixWidth;
 uint8_t SmartMatrix::matrixHeight;
@@ -117,7 +105,7 @@ typedef struct gpiopair {
 static gpiopair gpiosync;
 
 
-SmartMatrix::SmartMatrix(uint8_t width, uint8_t height, uint32_t * dataBuffer) {
+SmartMatrix::SmartMatrix(uint8_t width, uint8_t height, uint32_t * dataBuffer, matrixUpdateBlock * blockBuffer) {
     globalinstance = this;
     matrixWidth = width;
     matrixHeight = height;
@@ -127,6 +115,7 @@ SmartMatrix::SmartMatrix(uint8_t width, uint8_t height, uint32_t * dataBuffer) {
     dmaBufferBytesPerPixel = LATCHES_PER_ROW * DMA_UPDATES_PER_CLOCK;
     dmaBufferBytesPerRow = dmaBufferBytesPerPixel * matrixWidth;
     matrixUpdateData = dataBuffer;
+    matrixUpdateBlocks = blockBuffer;
 }
 
 void SmartMatrix::addLayer(SM_Layer * newlayer) {
@@ -700,8 +689,8 @@ void rowShiftCompleteISR(void) {
 
     // get next row to draw to display and update DMA pointers
     int currentRow = cbGetNextRead(&dmaBuffer);
-    dmaUpdateAddress.TCD->SADDR = &((matrixUpdateBlock*)matrixUpdateBlocks + (currentRow * SmartMatrix::latchesPerRow))->addressValues;
-    dmaUpdateTimer.TCD->SADDR = &((matrixUpdateBlock*)matrixUpdateBlocks + (currentRow * SmartMatrix::latchesPerRow))->timerValues.timer_oe;
+    dmaUpdateAddress.TCD->SADDR = &((matrixUpdateBlock*)SmartMatrix::matrixUpdateBlocks + (currentRow * SmartMatrix::latchesPerRow))->addressValues;
+    dmaUpdateTimer.TCD->SADDR = &((matrixUpdateBlock*)SmartMatrix::matrixUpdateBlocks + (currentRow * SmartMatrix::latchesPerRow))->timerValues.timer_oe;
     dmaClockOutData.TCD->SADDR = (uint8_t*)SmartMatrix::matrixUpdateData + (currentRow * SmartMatrix::dmaBufferBytesPerRow);
 
     // clear pending GPIO int for PORTA before enabling DMA again
