@@ -71,7 +71,7 @@ typedef struct matrixUpdateBlock {
 } matrixUpdateBlock;
 
 static CircularBuffer dmaBuffer;
-static DMAMEM matrixUpdateBlock matrixUpdateBlocks[DMA_BUFFER_NUMBER_OF_ROWS][LATCHES_PER_ROW];
+static DMAMEM matrixUpdateBlock matrixUpdateBlocks[DMA_BUFFER_NUMBER_OF_ROWS * LATCHES_PER_ROW];
 
 uint8_t SmartMatrix::matrixWidth;
 uint8_t SmartMatrix::matrixHeight;
@@ -338,7 +338,7 @@ void SmartMatrix::begin(void)
 
     // dmaUpdateAddress - copy address values from current position in array to buffer to temporarily hold row values for the next timer cycle
     // only use single major loop, never disable channel
-    dmaUpdateAddress.TCD->SADDR = &matrixUpdateBlocks[0][0].addressValues;
+    dmaUpdateAddress.TCD->SADDR = &((matrixUpdateBlock*)matrixUpdateBlocks)->addressValues;
     dmaUpdateAddress.TCD->SOFF = sizeof(uint16_t);
     dmaUpdateAddress.TCD->SLAST = sizeof(matrixUpdateBlock) - (ADDRESS_ARRAY_REGISTERS_TO_UPDATE * sizeof(uint16_t));
     dmaUpdateAddress.TCD->ATTR = DMA_TCD_ATTR_SSIZE(1) | DMA_TCD_ATTR_DSIZE(1);
@@ -358,7 +358,7 @@ void SmartMatrix::begin(void)
     // only use single major loop, never disable channel
     // link to dmaClockOutData channel when complete
 #define TIMER_REGISTERS_TO_UPDATE   2
-    dmaUpdateTimer.source(matrixUpdateBlocks[0][0].timerValues.timer_oe);
+    dmaUpdateTimer.TCD->SADDR = &((matrixUpdateBlock*)matrixUpdateBlocks)->timerValues.timer_oe;
     dmaUpdateTimer.TCD->SOFF = sizeof(uint16_t);
     dmaUpdateTimer.TCD->SLAST = sizeof(matrixUpdateBlock) - (TIMER_REGISTERS_TO_UPDATE * sizeof(uint16_t));
     dmaUpdateTimer.TCD->ATTR = DMA_TCD_ATTR_SSIZE(1) | DMA_TCD_ATTR_DSIZE(1);
@@ -424,14 +424,14 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
     unsigned char freeRowBuffer = cbGetNextWrite(&dmaBuffer);
 
     for (j = 0; j < LATCHES_PER_ROW; j++) {
+        matrixUpdateBlock* tempptr = (matrixUpdateBlock*)matrixUpdateBlocks + (freeRowBuffer * latchesPerRow) + j;
         // copy bits to set and clear to generate address for current block
-        matrixUpdateBlocks[freeRowBuffer][j].addressValues.bits_to_clear = rowAddressPair.bits_to_clear;
-        matrixUpdateBlocks[freeRowBuffer][j].addressValues.bits_to_set = rowAddressPair.bits_to_set;
+        tempptr->addressValues.bits_to_clear = rowAddressPair.bits_to_clear;
+        tempptr->addressValues.bits_to_set = rowAddressPair.bits_to_set;
 
-        matrixUpdateBlocks[freeRowBuffer][j].timerValues.timer_period = timerLUT[j].timer_period;
-        matrixUpdateBlocks[freeRowBuffer][j].timerValues.timer_oe = timerLUT[j].timer_oe;
+        tempptr->timerValues.timer_period = timerLUT[j].timer_period;
+        tempptr->timerValues.timer_oe = timerLUT[j].timer_oe;
     }
-
 
     refreshPixel tempPixel0;
     refreshPixel tempPixel1;
@@ -700,8 +700,8 @@ void rowShiftCompleteISR(void) {
 
     // get next row to draw to display and update DMA pointers
     int currentRow = cbGetNextRead(&dmaBuffer);
-    dmaUpdateAddress.TCD->SADDR = &matrixUpdateBlocks[currentRow][0].addressValues;
-    dmaUpdateTimer.TCD->SADDR = &matrixUpdateBlocks[currentRow][0].timerValues.timer_oe;
+    dmaUpdateAddress.TCD->SADDR = &((matrixUpdateBlock*)matrixUpdateBlocks + (currentRow * SmartMatrix::latchesPerRow))->addressValues;
+    dmaUpdateTimer.TCD->SADDR = &((matrixUpdateBlock*)matrixUpdateBlocks + (currentRow * SmartMatrix::latchesPerRow))->timerValues.timer_oe;
     dmaClockOutData.TCD->SADDR = (uint8_t*)SmartMatrix::matrixUpdateData + (currentRow * SmartMatrix::dmaBufferBytesPerRow);
 
     // clear pending GPIO int for PORTA before enabling DMA again
