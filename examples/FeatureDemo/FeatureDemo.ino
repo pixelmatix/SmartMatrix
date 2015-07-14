@@ -4,6 +4,8 @@
 */
 
 #include <SmartMatrix_32x32.h>
+#include "colorwheel.c"
+#include "gimpbitmap.h"
 
 const uint8_t kMatrixHeight = 32;
 const uint8_t kMatrixWidth = 32;
