@@ -949,6 +949,8 @@ void loop() {
 
         // rotate 90
         matrix.setRotation(rotation90);
+        // delay after rotation to make sure the rotation propogates to the background layer before drawing (1/framerate is probably long enough)
+        delay(40);
         matrix.scrollText("Rotation 90", 1);
         matrix.fillScreen(defaultBackgroundColor);
         matrix.drawString(1, matrix.getScreenHeight()/2, {0xff, 0xff, 0xff}, "BACKGND");
@@ -956,24 +958,27 @@ void loop() {
         while(matrix.getScrollStatus());
 
         matrix.setRotation(rotation180);
+        delay(40);
         matrix.scrollText("Rotation 180", 1);
         matrix.fillScreen(defaultBackgroundColor);
         matrix.drawString(1, matrix.getScreenHeight()/2, {0xff, 0xff, 0xff}, "BACKGND");
-        matrix.swapBuffers(true);
+        matrix.swapBuffers(false);
         while(matrix.getScrollStatus());
 
         matrix.setRotation(rotation270);
+        delay(40);
         matrix.scrollText("Rotation 270", 1);
         matrix.fillScreen(defaultBackgroundColor);
         matrix.drawString(1, matrix.getScreenHeight()/2, {0xff, 0xff, 0xff}, "BACKGND");
-        matrix.swapBuffers(true);
+        matrix.swapBuffers(false);
         while(matrix.getScrollStatus());
 
-        matrix.scrollText("Rotation 0", 1);
         matrix.setRotation(rotation0);
+        delay(40);
+        matrix.scrollText("Rotation 0", 1);
         matrix.fillScreen(defaultBackgroundColor);
         matrix.drawString(1, matrix.getScreenHeight()/2, {0xff, 0xff, 0xff}, "BACKGND");
-        matrix.swapBuffers(true);
+        matrix.swapBuffers(false);
         while(matrix.getScrollStatus());
     }
 #endif
