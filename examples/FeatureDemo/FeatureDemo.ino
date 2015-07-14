@@ -24,6 +24,17 @@ const rgb24 defaultBackgroundColor = {0x40, 0, 0};
 // Teensy 3.0 has the LED on pin 13
 const int ledPin = 13;
 
+void drawBitmap(int16_t x, int16_t y, const gimp32x32bitmap* bitmap) {
+  for(unsigned int i=0; i < bitmap->height; i++) {
+    for(unsigned int j=0; j < bitmap->width; j++) {
+      rgb24 pixel = { bitmap->pixel_data[(i*bitmap->width + j)*3 + 0],
+                      bitmap->pixel_data[(i*bitmap->width + j)*3 + 1],
+                      bitmap->pixel_data[(i*bitmap->width + j)*3 + 2] };
+
+      matrix.drawPixel(x + j, y + i, pixel);
+    }
+  }
+}
 
 // the setup() method runs once, when the sketch starts
 void setup() {
@@ -1066,15 +1077,7 @@ void loop() {
             percent[1] = '0' + (int)(brightness * 100.0 / 255) % 100 / 10;
             percent[2] = '0' + (int)(brightness * 100.0 / 255) % 10;
 
-            rgb24 *buffer = matrix.backBuffer();
-
-            extern const bitmap_font weathericon;
-
-            for (i = 0; i < 32 * matrix.getScreenHeight(); i++) {
-                buffer[i].red = weathericon.Bitmap[i * 3 + 0];
-                buffer[i].green = weathericon.Bitmap[i * 3 + 1];
-                buffer[i].blue = weathericon.Bitmap[i * 3 + 2];
-            }
+            drawBitmap(0,0,&colorwheel);
 
             matrix.drawString(12, 16, {0xff, 0, 0}, value);
             matrix.drawString(12, 24, {0xff, 0, 0}, percent);
@@ -1101,16 +1104,6 @@ void loop() {
         currentMillis = millis();
 
         for (j = 0; j < 4; j++) {
-            rgb24 *buffer = matrix.backBuffer();
-
-            extern const bitmap_font weathericon;
-
-            for (i = 0; i < 32 * matrix.getScreenHeight(); i++) {
-                buffer[i].red = weathericon.Bitmap[i * 3 + 0];
-                buffer[i].green = weathericon.Bitmap[i * 3 + 1];
-                buffer[i].blue = weathericon.Bitmap[i * 3 + 2];
-            }
-
             if (j%2) {
                 matrix.drawString(1, 16, {0xff, 0, 0}, "CC:ON");
                 matrix.setColorCorrection(cc24);
