@@ -4,7 +4,11 @@
 const unsigned char foregroundDrawBuffer = 0;
 const unsigned char foregroundRefreshBuffer = 1;
 
+#define FOREGROUND_ROW_SIZE     (matrixWidth / (sizeof(uint32_t)*8))
+#define FOREGROUND_BUFFER_SIZE  (FOREGROUND_ROW_SIZE * matrixHeight)
+
 SMLayerForeground::SMLayerForeground(uint32_t * bitmap, uint8_t width, uint8_t height) {
+    // size of bitmap is 2 * FOREGROUND_BUFFER_SIZE
     foregroundBitmap = bitmap;
     matrixWidth = width;
     matrixHeight = height;
@@ -44,7 +48,7 @@ bool SMLayerForeground::getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY,
 
     uint32_t bitmask = 0x01 << (31 - localScreenX);
 
-    if (foregroundBitmap[(foregroundRefreshBuffer * matrixHeight) + localScreenY] & bitmask) {
+    if (foregroundBitmap[(foregroundRefreshBuffer * FOREGROUND_BUFFER_SIZE) + localScreenY] & bitmask) {
         copyRgb24(xyPixel, textcolor);
         return true;
     }
@@ -112,7 +116,7 @@ void SMLayerForeground::stopScrollText(void) {
 }
 
 void SMLayerForeground::clearForeground(void) {
-    memset(&foregroundBitmap[foregroundDrawBuffer*matrixHeight], 0x00, matrixHeight*4);
+    memset(&foregroundBitmap[foregroundDrawBuffer*FOREGROUND_BUFFER_SIZE], 0x00, FOREGROUND_ROW_SIZE * sizeof(uint32_t));
 }
 
 void SMLayerForeground::displayForegroundDrawing(bool waitUntilComplete) {
@@ -127,7 +131,7 @@ void SMLayerForeground::handleForegroundDrawingCopy(void) {
     if (!foregroundCopyPending)
         return;
 
-    memcpy(&foregroundBitmap[foregroundRefreshBuffer*matrixHeight], &foregroundBitmap[foregroundDrawBuffer*matrixHeight], matrixHeight*4);
+    memcpy(&foregroundBitmap[foregroundRefreshBuffer*FOREGROUND_BUFFER_SIZE], &foregroundBitmap[foregroundDrawBuffer*FOREGROUND_BUFFER_SIZE], FOREGROUND_ROW_SIZE * sizeof(uint32_t));
     redrawForeground();
     foregroundCopyPending = false;
 }
@@ -137,10 +141,10 @@ void SMLayerForeground::drawForegroundPixel(int16_t x, int16_t y, bool opaque) {
 
     if(opaque) {
         tempBitmask = 0x80000000 >> x;
-        foregroundBitmap[foregroundDrawBuffer*matrixHeight + y] |= tempBitmask;
+        foregroundBitmap[foregroundDrawBuffer*FOREGROUND_BUFFER_SIZE + y] |= tempBitmask;
     } else {
         tempBitmask = ~(0x80000000 >> x);
-        foregroundBitmap[foregroundDrawBuffer*matrixHeight + y] &= tempBitmask;
+        foregroundBitmap[foregroundDrawBuffer*FOREGROUND_BUFFER_SIZE + y] &= tempBitmask;
     }
 }
 
@@ -161,9 +165,9 @@ void SMLayerForeground::drawForegroundChar(int16_t x, int16_t y, char character,
         // read in uint8, shift it to be in MSB (font is in the top bits of the uint32)
         tempBitmask = getBitmapFontRowAtXY(character, k - y, foregroundfont) << 24;
         if (x < 0)
-            foregroundBitmap[foregroundDrawBuffer*matrixHeight + k] |= tempBitmask << -x;
+            foregroundBitmap[foregroundDrawBuffer*FOREGROUND_BUFFER_SIZE + k] |= tempBitmask << -x;
         else
-            foregroundBitmap[foregroundDrawBuffer*matrixHeight + k] |= tempBitmask >> x;
+            foregroundBitmap[foregroundDrawBuffer*FOREGROUND_BUFFER_SIZE + k] |= tempBitmask >> x;
     }
 }
 
@@ -374,14 +378,14 @@ void SMLayerForeground::redrawForeground(void) {
          */
         if(majorScrollFontChange) {
             // clear full refresh buffer and copy background over
-            memset(&foregroundBitmap[foregroundRefreshBuffer*matrixHeight], 0x00, matrixHeight*4);
-            memcpy(&foregroundBitmap[foregroundRefreshBuffer*matrixHeight], &foregroundBitmap[foregroundDrawBuffer*matrixHeight], matrixHeight*4);
+            memset(&foregroundBitmap[foregroundRefreshBuffer*FOREGROUND_BUFFER_SIZE], 0x00, FOREGROUND_ROW_SIZE * sizeof(uint32_t));
+            memcpy(&foregroundBitmap[foregroundRefreshBuffer*FOREGROUND_BUFFER_SIZE], &foregroundBitmap[foregroundDrawBuffer*FOREGROUND_BUFFER_SIZE], FOREGROUND_ROW_SIZE * sizeof(uint32_t));
             majorScrollFontChange = false;
         }
 
         // clear rows used by font before drawing on top
         for (k = 0; k < charY1 - charY0; k++)
-            foregroundBitmap[foregroundRefreshBuffer*matrixHeight + (j + k)] = 0x00;
+            foregroundBitmap[foregroundRefreshBuffer*FOREGROUND_BUFFER_SIZE + (j + k)] = 0x00;
 
         while (textPosition < textlen && charPosition < localWidth) {
             uint32_t tempBitmask;
@@ -390,9 +394,9 @@ void SMLayerForeground::redrawForeground(void) {
                 // read in uint8, shift it to be in MSB (font is in the top bits of the uint32)
                 tempBitmask = getBitmapFontRowAtXY(text[textPosition], k, scrollFont) << 24;
                 if (charPosition < 0)
-                    foregroundBitmap[foregroundRefreshBuffer*matrixHeight + (j + k) - charY0] |= tempBitmask << -charPosition;
+                    foregroundBitmap[foregroundRefreshBuffer*FOREGROUND_BUFFER_SIZE + (j + k) - charY0] |= tempBitmask << -charPosition;
                 else
-                    foregroundBitmap[foregroundRefreshBuffer*matrixHeight + (j + k) - charY0] |= tempBitmask >> charPosition;
+                    foregroundBitmap[foregroundRefreshBuffer*FOREGROUND_BUFFER_SIZE + (j + k) - charY0] |= tempBitmask >> charPosition;
             }
 
             // get set up for next character
