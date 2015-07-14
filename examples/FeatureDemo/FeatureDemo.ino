@@ -7,17 +7,11 @@
 #include "colorwheel.c"
 #include "gimpbitmap.h"
 
-const uint8_t kMatrixHeight = 32;
-const uint8_t kMatrixWidth = 32;
-const uint8_t kColorDepth = 36;
-const uint8_t kDmaBufferRows = 4;
-const uint8_t kDmaUpdatesPerClock = 2;
-
-static DMAMEM uint32_t matrixUpdateData[kDmaBufferRows * kMatrixWidth * (kColorDepth/3 / sizeof(uint32_t)) * kDmaUpdatesPerClock];
-// single buffer is divided up to hold matrixUpdateBlocks, addressLUT, timerLUT to simplify user sketch code and reduce constructor parameters
-static DMAMEM uint8_t matrixUpdateBlocks[(sizeof(matrixUpdateBlock) * kDmaBufferRows * kColorDepth/3) + (sizeof(addresspair) * kMatrixHeight/2) + (sizeof(timerpair) * kColorDepth/3)];
-
-SmartMatrix matrix(kMatrixWidth,kMatrixHeight, matrixUpdateData, matrixUpdateBlocks);
+const uint8_t kMatrixHeight = 16;       // known working: 16, 32
+const uint8_t kMatrixWidth = 32;        // known working: 32
+const uint8_t kColorDepth = 36;         // known working: 36
+const uint8_t kDmaBufferRows = 4;       // known working: 4
+SMARTMATRIX_ALLOCATE_BUFFERS(kMatrixWidth, kMatrixHeight, kDmaBufferRows, kColorDepth);
 
 const int defaultBrightness = 100*(255/100);    // full brightness
 //const int defaultBrightness = 15*(255/100);    // dim: 15% brightness
@@ -46,16 +40,7 @@ void setup() {
 
     Serial.begin(38400);
 
-    static rgb24 backgroundBitmap[2*kMatrixWidth*kMatrixHeight];
-    static SMLayerBackground backgroundLayer(backgroundBitmap, kMatrixWidth, kMatrixHeight);
-    matrix.addLayer(&backgroundLayer);
-
-    static uint8_t foregroundBitmap[2 * kMatrixHeight * (kMatrixWidth / 8)];
-    static SMLayerForeground foregroundLayer(foregroundBitmap, kMatrixWidth, kMatrixHeight);
-    matrix.addLayer(&foregroundLayer);
-
-    matrix.useDefaultLayers();
-    matrix.begin();
+    SMARTMATRIX_SETUP_DEFAULT_LAYERS(kMatrixWidth, kMatrixHeight);
 
     matrix.setBrightness(defaultBrightness);
 
