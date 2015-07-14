@@ -22,7 +22,7 @@ typedef enum ScrollMode {
 
 class SMLayerForeground : public SM_Layer {
     public:
-        SMLayerForeground(uint32_t * bitmap, uint8_t width, uint8_t height);
+        SMLayerForeground(uint8_t * bitmap, uint8_t width, uint8_t height);
         void frameRefreshCallback();
         void getRefreshPixel(uint8_t x, uint8_t y, rgb24 &refreshPixel);
         void getRefreshPixel(uint8_t x, uint8_t y, rgb48 &refreshPixel);
@@ -33,7 +33,7 @@ class SMLayerForeground : public SM_Layer {
 
         //bitmap size is 32 rows (supporting maximum dimension of screen height in all rotations), by 32 bits
         // double buffered to prevent flicker while drawing
-        uint32_t * foregroundBitmap;
+        uint8_t * foregroundBitmap;
 
         void stopScrollText(void);
         void clearForeground(void);

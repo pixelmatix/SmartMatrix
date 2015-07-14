@@ -50,7 +50,7 @@ void setup() {
     static SMLayerBackground backgroundLayer(backgroundBitmap, kMatrixWidth, kMatrixHeight);
     matrix.addLayer(&backgroundLayer);
 
-    static uint32_t foregroundBitmap[2 * kMatrixHeight * (kMatrixWidth / (sizeof(uint32_t)*8))];
+    static uint8_t foregroundBitmap[2 * kMatrixHeight * (kMatrixWidth / 8)];
     static SMLayerForeground foregroundLayer(foregroundBitmap, kMatrixWidth, kMatrixHeight);
     matrix.addLayer(&foregroundLayer);
 
