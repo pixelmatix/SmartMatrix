@@ -14,9 +14,10 @@ const uint8_t kDmaBufferRows = 4;
 const uint8_t kDmaUpdatesPerClock = 2;
 
 static DMAMEM uint32_t matrixUpdateData[kDmaBufferRows * kMatrixWidth * (kColorDepth/3 / sizeof(uint32_t)) * kDmaUpdatesPerClock];
-static DMAMEM matrixUpdateBlock matrixUpdateBlocks[kDmaBufferRows * kColorDepth/3];
+// single buffer is divided up to hold matrixUpdateBlocks, addressLUT, timerLUT to simplify user sketch code and reduce constructor parameters
+static DMAMEM uint8_t matrixUpdateBlocks[(sizeof(matrixUpdateBlock) * kDmaBufferRows * kColorDepth/3) + (sizeof(addresspair) * kMatrixHeight/2) + (sizeof(timerpair) * kColorDepth/3)];
 
-SmartMatrix matrix(32,32, matrixUpdateData, matrixUpdateBlocks);
+SmartMatrix matrix(kMatrixWidth,kMatrixHeight, matrixUpdateData, matrixUpdateBlocks);
 
 const int defaultBrightness = 100*(255/100);    // full brightness
 //const int defaultBrightness = 15*(255/100);    // dim: 15% brightness
@@ -45,12 +46,14 @@ void setup() {
 
     Serial.begin(38400);
 
-    static uint32_t foregroundBitmap[2 * 32 * (32 / 32)];
-    static SMLayerForeground foregroundLayer(foregroundBitmap, 32, 32);
-    static rgb24 backgroundBitmap[2*32*32];
-    static SMLayerBackground backgroundLayer(backgroundBitmap, 32, 32);
+    static rgb24 backgroundBitmap[2*kMatrixWidth*kMatrixHeight];
+    static SMLayerBackground backgroundLayer(backgroundBitmap, kMatrixWidth, kMatrixHeight);
     matrix.addLayer(&backgroundLayer);
+
+    static uint32_t foregroundBitmap[2 * kMatrixHeight * (kMatrixWidth / (sizeof(uint32_t)*8))];
+    static SMLayerForeground foregroundLayer(foregroundBitmap, kMatrixWidth, kMatrixHeight);
     matrix.addLayer(&foregroundLayer);
+
     matrix.useDefaultLayers();
     matrix.begin();
 

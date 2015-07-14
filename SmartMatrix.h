@@ -73,7 +73,7 @@ typedef struct matrixUpdateBlock {
 
 class SmartMatrix {
 public:
-    SmartMatrix(uint8_t width, uint8_t height, uint32_t * dataBuffer, matrixUpdateBlock * blockBuffer);
+    SmartMatrix(uint8_t width, uint8_t height, uint32_t * dataBuffer, uint8_t * blockBuffer);
     void begin(void);
 
     // drawing functions
@@ -176,8 +176,11 @@ private:
     static uint8_t dmaBufferNumRows;
     static uint8_t dmaBufferBytesPerPixel;
     static uint16_t dmaBufferBytesPerRow;
+
     static uint32_t * matrixUpdateData;
     static matrixUpdateBlock * matrixUpdateBlocks;
+    static addresspair * addressLUT;
+    static timerpair * timerLUT;
 };
 
 #endif

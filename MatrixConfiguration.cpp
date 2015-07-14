@@ -31,17 +31,17 @@ void SmartMatrix::setRotation(rotationDegrees newrotation) {
 
 uint16_t SmartMatrix::getScreenWidth(void) const {
     if (rotation == rotation0 || rotation == rotation180) {
-        return MATRIX_WIDTH;
+        return matrixWidth;
     } else {
-        return MATRIX_HEIGHT;
+        return matrixHeight;
     }
 }
 
 uint16_t SmartMatrix::getScreenHeight(void) const {
     if (rotation == rotation0 || rotation == rotation180) {
-        return MATRIX_HEIGHT;
+        return matrixHeight;
     } else {
-        return MATRIX_WIDTH;
+        return matrixWidth;
     }
 }
 

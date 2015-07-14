@@ -30,8 +30,8 @@ SmartMatrix * globalinstance;
 #define INLINE __attribute__( ( always_inline ) ) inline
 
 // these definitions may change if switching major display type
-#define MATRIX_ROW_PAIR_OFFSET          (MATRIX_HEIGHT/2)
-#define MATRIX_ROWS_PER_FRAME           (MATRIX_HEIGHT/2)
+#define MATRIX_ROWS_PER_FRAME           (matrixHeight/2)
+#define MATRIX_ROW_PAIR_OFFSET          (matrixHeight/2)
 #define PIXELS_UPDATED_PER_CLOCK        2
 #define COLOR_CHANNELS_PER_PIXEL        3
 #define LATCHES_PER_ROW                 (COLOR_DEPTH_RGB/COLOR_CHANNELS_PER_PIXEL)
@@ -57,9 +57,6 @@ void rowCalculationISR(void);
 
 
 static CircularBuffer dmaBuffer;
-//static DMAMEM matrixUpdateBlock matrixUpdateBlocks[DMA_BUFFER_NUMBER_OF_ROWS * LATCHES_PER_ROW];
-
-matrixUpdateBlock * SmartMatrix::matrixUpdateBlocks;
 
 uint8_t SmartMatrix::matrixWidth;
 uint8_t SmartMatrix::matrixHeight;
@@ -67,6 +64,11 @@ uint8_t SmartMatrix::latchesPerRow;
 uint8_t SmartMatrix::dmaBufferNumRows;
 uint8_t SmartMatrix::dmaBufferBytesPerPixel;
 uint16_t SmartMatrix::dmaBufferBytesPerRow;
+
+// todo: just use a single buffer for Blocks/LUT/Data?
+matrixUpdateBlock * SmartMatrix::matrixUpdateBlocks;    // array is size dmaBufferNumRows * latchesPerRow
+addresspair * SmartMatrix::addressLUT;      // array is size rowsPerFrame
+timerpair * SmartMatrix::timerLUT;          // array is size latchesPerRow
 
 /*
   buffer contains:
@@ -80,7 +82,7 @@ uint16_t SmartMatrix::dmaBufferBytesPerRow;
 
     layout of single matrixUpdateData row:
     in drawing, [] = byte, data is arranged as uint32_t going left to right in the drawing, "clk" is low, "CLK" is high
-    DMA goes down each column of the drawing per latch, resetting back to the top + shifting 1 byte to the right for the next latch
+    DMA goes down one column of the drawing per latch signal trigger, resetting back to the top + shifting 1 byte to the right for the next latch trigger
     [pixel pair  0 - clk - MSB][pixel pair  0 - clk - MSB-1]...[pixel pair  0 - clk - LSB+1][pixel pair  0 - clk - LSB]
     [pixel pair  0 - CLK - MSB][pixel pair  0 - CLK - MSB-1]...[pixel pair  0 - CLK - LSB+1][pixel pair  0 - CLK - LSB]
     [pixel pair  1 - clk - MSB][pixel pair  1 - clk - MSB-1]...[pixel pair  1 - clk - LSB+1][pixel pair  1 - clk - LSB]
@@ -92,9 +94,6 @@ uint16_t SmartMatrix::dmaBufferBytesPerRow;
 uint32_t * SmartMatrix::matrixUpdateData;
 
 #define ADDRESS_ARRAY_REGISTERS_TO_UPDATE   2
-static addresspair addressLUT[MATRIX_ROWS_PER_FRAME];
-
-static timerpair timerLUT[LATCHES_PER_ROW];
 
 // 2x uint32_t to match size and spacing of values it is updating: GPIOx_PSOR and GPIOx_PCOR are 32-bit and adjacent to each other
 typedef struct gpiopair {
@@ -105,7 +104,7 @@ typedef struct gpiopair {
 static gpiopair gpiosync;
 
 
-SmartMatrix::SmartMatrix(uint8_t width, uint8_t height, uint32_t * dataBuffer, matrixUpdateBlock * blockBuffer) {
+SmartMatrix::SmartMatrix(uint8_t width, uint8_t height, uint32_t * dataBuffer, uint8_t * blockBuffer) {
     globalinstance = this;
     matrixWidth = width;
     matrixHeight = height;
@@ -114,8 +113,14 @@ SmartMatrix::SmartMatrix(uint8_t width, uint8_t height, uint32_t * dataBuffer, m
     dmaBufferNumRows = DMA_BUFFER_NUMBER_OF_ROWS;
     dmaBufferBytesPerPixel = LATCHES_PER_ROW * DMA_UPDATES_PER_CLOCK;
     dmaBufferBytesPerRow = dmaBufferBytesPerPixel * matrixWidth;
+
     matrixUpdateData = dataBuffer;
-    matrixUpdateBlocks = blockBuffer;
+    // single buffer is divided up to hold matrixUpdateBlocks, addressLUT, timerLUT to simplify user sketch code and reduce constructor parameters
+    matrixUpdateBlocks = (matrixUpdateBlock*)blockBuffer;
+    blockBuffer += sizeof(matrixUpdateBlock) * dmaBufferNumRows * latchesPerRow;
+    addressLUT = (addresspair*)blockBuffer;
+    blockBuffer += sizeof(addresspair) * MATRIX_ROWS_PER_FRAME;
+    timerLUT = (timerpair*)blockBuffer;
 }
 
 void SmartMatrix::addLayer(SM_Layer * newlayer) {
@@ -425,7 +430,7 @@ void SmartMatrix::loadMatrixBuffers(unsigned char currentRow) {
     refreshPixel tempPixel0;
     refreshPixel tempPixel1;
 
-    for (i = 0; i < MATRIX_WIDTH; i++) {
+    for (i = 0; i < matrixWidth; i++) {
 #if LATCHES_PER_ROW >= 12
         uint16_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;
 #else

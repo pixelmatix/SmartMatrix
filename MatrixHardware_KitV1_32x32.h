@@ -26,10 +26,6 @@
 #ifndef MATRIX_HARDWARE_H
 #define MATRIX_HARDWARE_H
 
-// basic display size (32x32 1/16 refresh and 16x32 1/8 refresh display supported)
-#define MATRIX_HEIGHT       32
-#define MATRIX_WIDTH        32
-
 // an advanced user may need to tweak these values
 #define MATRIX_REFRESH_RATE         135
 // only 24-bit color supported
