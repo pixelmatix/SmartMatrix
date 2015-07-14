@@ -4,8 +4,8 @@
 const unsigned char foregroundDrawBuffer = 0;
 const unsigned char foregroundRefreshBuffer = 1;
 
-#define FOREGROUND_ROW_SIZE     (matrixWidth / 8)
-#define FOREGROUND_BUFFER_SIZE  (FOREGROUND_ROW_SIZE * matrixHeight)
+#define FOREGROUND_ROW_SIZE     (localWidth / 8)
+#define FOREGROUND_BUFFER_SIZE  (FOREGROUND_ROW_SIZE * localHeight)
 
 SMLayerForeground::SMLayerForeground(uint8_t * bitmap, uint8_t width, uint8_t height) {
     // size of bitmap is 2 * FOREGROUND_BUFFER_SIZE
