@@ -44,10 +44,10 @@ void SMLayerBackground::frameRefreshCallback(void) {
 }
 
 void SMLayerBackground::getRefreshPixel(uint8_t hardwareX, uint8_t hardwareY, rgb48 &xyPixel) {
-    rgb24 currentPixel = currentRefreshBufferPtr[(hardwareY * matrixHeight) + hardwareX];
+    rgb24 currentPixel = currentRefreshBufferPtr[(hardwareY * matrixWidth) + hardwareX];
 
 #ifdef SMARTMATRIX_TRIPLEBUFFER
-    rgb24 prevPixel = previousRefreshBufferPtr[(hardwareY * matrixHeight) + hardwareX];
+    rgb24 prevPixel = previousRefreshBufferPtr[(hardwareY * matrixWidth) + hardwareX];
     refreshPixel.red = lutInterpolate(lightPowerMap16bit2, ((prevPixel.red * icPrev + currentPixel.red * icNext) >> 16));
     refreshPixel.green = lutInterpolate(lightPowerMap16bit2, ((prevPixel.green * icPrev + currentPixel.green * icNext) >> 16));
     refreshPixel.blue = lutInterpolate(lightPowerMap16bit2, ((prevPixel.blue * icPrev + currentPixel.blue * icNext) >> 16));
@@ -70,7 +70,7 @@ void SMLayerBackground::getRefreshPixel(uint8_t hardwareX, uint8_t hardwareY, rg
 }
 
 void SMLayerBackground::getRefreshPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24 &xyPixel) {
-    rgb24 currentPixel = currentRefreshBufferPtr[(hardwareY * matrixHeight) + hardwareX];
+    rgb24 currentPixel = currentRefreshBufferPtr[(hardwareY * matrixWidth) + hardwareX];
 
     // do once per refresh
     bool bHasCC = ccmode != ccNone;
@@ -88,16 +88,13 @@ void SMLayerBackground::getRefreshPixel(uint8_t hardwareX, uint8_t hardwareY, rg
     }
 }
 
-
-
 color_chan_t SMLayerBackground::backgroundColorCorrection(uint8_t inputcolor) {
     return backgroundColorCorrectionLUT[inputcolor];
 }
 
-
 // coordinates based on screen position, which is between 0-localWidth/localHeight
 void SMLayerBackground::getPixel(uint8_t x, uint8_t y, rgb24 *xyPixel) {
-    copyRgb24(*xyPixel, currentRefreshBufferPtr[(y * matrixHeight) + x]);
+    copyRgb24(*xyPixel, currentRefreshBufferPtr[(y * matrixWidth) + x]);
 }
 
 volatile int totalFramesToInterpolate;
@@ -127,12 +124,12 @@ uint32_t SMLayerBackground::calculateFcInterpCoefficient()
 }
 
 rgb24 *SMLayerBackground::getPreviousRefreshRow(uint8_t y) {
-  return &previousRefreshBufferPtr[y*matrixHeight];
+  return &previousRefreshBufferPtr[y*matrixWidth];
 }
 #endif
 
 rgb24 *SMLayerBackground::getCurrentRefreshRow(uint8_t y) {
-  return &currentRefreshBufferPtr[y*matrixHeight];
+  return &currentRefreshBufferPtr[y*matrixWidth];
 }
 
 #ifdef SMARTMATRIX_TRIPLEBUFFER
@@ -250,7 +247,7 @@ const rgb24 SMLayerBackground::readPixel(int16_t x, int16_t y) {
     if (x < 0 || y < 0 || x >= localWidth || y >= localHeight)
         return (rgb24){0, 0, 0};
 
-    // map pixel into hardware buffer before writing
+    // map pixel into hardware buffer before reading
     if (rotation == rotation0) {
         hwx = x;
         hwy = y;
@@ -265,7 +262,7 @@ const rgb24 SMLayerBackground::readPixel(int16_t x, int16_t y) {
         hwy = (matrixHeight - 1) - x;
     }
 
-    return currentDrawBufferPtr[(hwy * matrixHeight) + hwx];
+    return currentDrawBufferPtr[(hwy * matrixWidth) + hwx];
 }
 
 void SMLayerBackground::drawPixel(int16_t x, int16_t y, const rgb24& color) {
@@ -290,7 +287,7 @@ void SMLayerBackground::drawPixel(int16_t x, int16_t y, const rgb24& color) {
         hwy = (matrixHeight - 1) - x;
     }
 
-    copyRgb24(currentDrawBufferPtr[(hwy * matrixHeight) + hwx], color);
+    copyRgb24(currentDrawBufferPtr[(hwy * matrixWidth) + hwx], color);
 }
 
 #define SWAPint(X,Y) { \
@@ -304,7 +301,7 @@ void SMLayerBackground::drawHardwareHLine(uint8_t x0, uint8_t x1, uint8_t y, con
     int i;
 
     for (i = x0; i <= x1; i++) {
-        copyRgb24(currentDrawBufferPtr[(y * matrixHeight) + i], color);
+        copyRgb24(currentDrawBufferPtr[(y * matrixWidth) + i], color);
     }
 }
 
@@ -313,7 +310,7 @@ void SMLayerBackground::drawHardwareVLine(uint8_t x, uint8_t y0, uint8_t y1, con
     int i;
 
     for (i = y0; i <= y1; i++) {
-        copyRgb24(currentDrawBufferPtr[(i * matrixHeight) + x], color);
+        copyRgb24(currentDrawBufferPtr[(i * matrixWidth) + x], color);
     }
 }
 
