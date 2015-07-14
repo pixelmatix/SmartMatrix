@@ -1114,6 +1114,7 @@ void loop() {
         currentMillis = millis();
 
         for (j = 0; j < 4; j++) {
+            drawBitmap(0,0,&colorwheel);
             if (j%2) {
                 matrix.drawString(1, 16, {0xff, 0, 0}, "CC:ON");
                 matrix.setColorCorrection(cc24);
