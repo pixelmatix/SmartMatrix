@@ -56,7 +56,6 @@ class SMLayerBackground : public SM_Layer {
 
         static color_chan_t backgroundColorCorrection(uint8_t inputcolor);
 
-        void getPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24 *xyPixel);
         rgb24 *getCurrentRefreshRow(uint8_t y);
     #ifdef SMARTMATRIX_TRIPLEBUFFER
         rgb24 *getPreviousRefreshRow(uint8_t y);

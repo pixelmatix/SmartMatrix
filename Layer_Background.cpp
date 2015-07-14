@@ -92,11 +92,6 @@ color_chan_t SMLayerBackground::backgroundColorCorrection(uint8_t inputcolor) {
     return backgroundColorCorrectionLUT[inputcolor];
 }
 
-// coordinates based on screen position, which is between 0-localWidth/localHeight
-void SMLayerBackground::getPixel(uint8_t x, uint8_t y, rgb24 *xyPixel) {
-    copyRgb24(*xyPixel, currentRefreshBufferPtr[(y * matrixWidth) + x]);
-}
-
 volatile int totalFramesToInterpolate;
 volatile int framesInterpolated;
 
