@@ -184,7 +184,7 @@ private:
 };
 
 // single matrixUpdateBlocks buffer is divided up to hold matrixUpdateBlocks, addressLUT, timerLUT to simplify user sketch code and reduce constructor parameters
-#define SMARTMATRIX_ALLOCATE_BUFFERS(width, height, rows, depth) \
+#define SMARTMATRIX_ALLOCATE_BUFFERS(width, height, depth, rows) \
 static DMAMEM uint32_t matrixUpdateData[rows * width * (kColorDepth/3 / sizeof(uint32_t)) * 2]; \
 static DMAMEM uint8_t matrixUpdateBlocks[(sizeof(matrixUpdateBlock) * rows * depth/3) + (sizeof(addresspair) * height/2) + (sizeof(timerpair) * depth/3)]; \
 SmartMatrix matrix(width,height, matrixUpdateData, matrixUpdateBlocks)
@@ -198,5 +198,10 @@ SmartMatrix matrix(width,height, matrixUpdateData, matrixUpdateBlocks)
     matrix.addLayer(&foregroundLayer);                                          \
     matrix.useDefaultLayers();                                                  \
     matrix.begin()
+
+#define SMARTMATRIX_ALLOCATE_FOREGROUND_LAYER(layername, width, height) \
+    static uint8_t foregroundBitmap[2 * kMatrixHeight * (kMatrixWidth / 8)];    \
+    static SMLayerForeground layername(foregroundBitmap, width, height)
+
 
 #endif
