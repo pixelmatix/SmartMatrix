@@ -49,7 +49,7 @@ SmartMatrix * globalinstance;
 #define LATCH_TIMER_PRESCALE  0x00
 #define NS_TO_TICKS(X)      (uint32_t)(F_BUS * ((X) / 1000000000.0))
 #define LATCH_TIMER_PULSE_WIDTH_TICKS   NS_TO_TICKS(LATCH_TIMER_PULSE_WIDTH_NS)
-#define TICKS_PER_ROW   (F_BUS/MATRIX_REFRESH_RATE/MATRIX_ROWS_PER_FRAME)
+#define TICKS_PER_ROW   (F_BUS/refreshRate/MATRIX_ROWS_PER_FRAME)
 #define MSB_BLOCK_TICKS     (TICKS_PER_ROW/2)
 #define MIN_BLOCK_PERIOD_PER_PIXEL_TICKS  NS_TO_TICKS(MIN_BLOCK_PERIOD_PER_PIXEL_NS)
 
@@ -75,6 +75,8 @@ uint8_t SmartMatrix::dmaBufferNumRows;
 uint8_t SmartMatrix::dmaBufferBytesPerPixel;
 uint16_t SmartMatrix::dmaBufferBytesPerRow;
 uint8_t SmartMatrix::colorDepthRgb;
+uint8_t SmartMatrix::refreshRate = 135;
+
 
 // todo: just use a single buffer for Blocks/LUT/Data?
 matrixUpdateBlock * SmartMatrix::matrixUpdateBlocks;    // array is size dmaBufferNumRows * latchesPerRow
@@ -169,6 +171,7 @@ INLINE void SmartMatrix::matrixCalculations(void) {
 
             SM_Layer * templayer = globalinstance->baseLayer;
             while(templayer) {
+                templayer->setRefreshRate(refreshRate);
                 templayer->frameRefreshCallback();
                 templayer = templayer->nextLayer;
             }

@@ -166,6 +166,7 @@ private:
     static rotationDegrees rotation;
     static uint8_t matrixWidth, matrixHeight;
     static uint8_t colorDepthRgb;
+    static uint8_t refreshRate;
 
     static uint8_t latchesPerRow;
     static uint8_t dmaBufferNumRows;

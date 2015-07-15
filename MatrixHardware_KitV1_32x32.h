@@ -27,7 +27,6 @@
 #define MATRIX_HARDWARE_H
 
 // an advanced user may need to tweak these values
-#define MATRIX_REFRESH_RATE         135
 // size of latch pulse - all address updates must fit inside high portion of latch pulse
 // increase this value if DMA use is causing address updates to take longer
 #define LATCH_TIMER_PULSE_WIDTH_NS  438

@@ -322,12 +322,9 @@ void SMLayerForeground::setScrollMode(ScrollMode mode) {
 
 // TODO:need to get refresh rate from main class
 
-#ifndef MATRIX_REFRESH_RATE
-#define MATRIX_REFRESH_RATE 120
-#endif
 
 void SMLayerForeground::setScrollSpeed(unsigned char pixels_per_second) {
-    framesperscroll = (MATRIX_REFRESH_RATE * 1.0) / pixels_per_second;
+    framesperscroll = (refreshRate * 1.0) / pixels_per_second;
 }
 
 void SMLayerForeground::setScrollFont(fontChoices newFont) {
