@@ -37,13 +37,6 @@ SmartMatrix * globalinstance;
 #define DMA_UPDATES_PER_CLOCK           2
 #define ROW_CALCULATION_ISR_PRIORITY   0xFE // 0xFF = lowest priority
 
-// an advanced user may need to tweak these values
-
-// set this by triggering scope on latch rising edge, and with persistence enabled,
-// look for the last clock pulse after the latch.  set the min block period to be beyond this last pulse
-// default (10us/32pixels) is a generous minimum that should work with all Teensy 3.x devices at 48MHz and above
-#define MIN_BLOCK_PERIOD_PER_PIXEL_NS     313
-
 // hardware-specific definitions
 // prescale of 0 is F_BUS
 #define LATCH_TIMER_PRESCALE  0x00

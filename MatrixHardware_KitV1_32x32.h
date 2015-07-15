@@ -26,12 +26,19 @@
 #ifndef MATRIX_HARDWARE_H
 #define MATRIX_HARDWARE_H
 
-// an advanced user may need to tweak these values
+/* an advanced user may need to tweak these values */
+
 // size of latch pulse - all address updates must fit inside high portion of latch pulse
 // increase this value if DMA use is causing address updates to take longer
 #define LATCH_TIMER_PULSE_WIDTH_NS  438
 
-// this section describes how the microcontroller is attached to the display
+// set this by triggering scope on latch rising edge, and with persistence enabled,
+// look for the last clock pulse after the latch.  set the min block period to be beyond this last pulse
+// default (10us/32pixels) is a generous minimum that should work with all Teensy 3.x devices at 48MHz and above
+#define MIN_BLOCK_PERIOD_PER_PIXEL_NS     313
+
+
+/* this section describes how the microcontroller is attached to the display */
 
 // defines data bit order from bit 0-7, four times to fit in uint32_t
 #define GPIO_WORD_ORDER p0r1:1, p0clk:1, p0g2:1, p0pad:1, p0b1:1, p0b2:1, p0r2:1, p0g1:1, \
