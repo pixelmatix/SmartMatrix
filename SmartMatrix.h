@@ -38,23 +38,17 @@
 #define ENABLE_FADECANDY_GAMMA_CORRECTION               1
 
 // color
-#if COLOR_DEPTH_RGB > 24
+//#if COLOR_DEPTH_RGB > 24
 typedef rgb48 refreshPixel;
-#else
-typedef rgb24 refreshPixel;
-#endif
+//#else
+//typedef rgb24 refreshPixel;
+//#endif
 
 // definition telling FastLED that setBackBuffer() and getRealBackBuffer() are available
 #define SMART_MATRIX_CAN_TRIPLE_BUFFER 1
 
 // enable true triple buffering and interpolation
 //#define SMARTMATRIX_TRIPLEBUFFER
-
-#ifdef SMARTMATRIX_TRIPLEBUFFER
-#if COLOR_DEPTH_RGB <= 24
-#error Must use 36 or 48-bit color for triplebuffering and interpolation
-#endif
-#endif
 
 typedef struct timerpair {
     uint16_t timer_oe;

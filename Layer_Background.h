@@ -54,6 +54,7 @@ class SMLayerBackground : public SM_Layer {
 
         rgb24 * backgroundBuffer;
 
+        // todo: sort through static, make sure usage is correct
         static color_chan_t backgroundColorCorrection(uint8_t inputcolor);
 
         rgb24 *getCurrentRefreshRow(uint8_t y);
@@ -61,19 +62,15 @@ class SMLayerBackground : public SM_Layer {
         rgb24 *getPreviousRefreshRow(uint8_t y);
         static uint32_t calculateFcInterpCoefficient();
     #endif
-    #if COLOR_DEPTH_RGB > 24
         void getBackgroundRefreshPixel(uint8_t x, uint8_t y, rgb48 &refreshPixel);
         bool getForegroundRefreshPixel(uint8_t x, uint8_t y, rgb48 &xyPixel);
-    #else
-        void getBackgroundRefreshPixel(uint8_t x, uint8_t y, rgb24 &refreshPixel);
-        bool getForegroundRefreshPixel(uint8_t x, uint8_t y, rgb24 &xyPixel);
-    #endif
 
         // drawing functions not meant for user
         void drawHardwareHLine(uint8_t x0, uint8_t x1, uint8_t y, const rgb24& color);
         void drawHardwareVLine(uint8_t x, uint8_t y0, uint8_t y1, const rgb24& color);
         void bresteepline(int16_t x3, int16_t y3, int16_t x4, int16_t y4, const rgb24& color);
         void fillFlatSideTriangleInt(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const rgb24& color);
+        // todo: move somewhere else
         static bool getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap);
 
         static uint8_t backgroundBrightness;
