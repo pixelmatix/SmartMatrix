@@ -201,7 +201,7 @@ INLINE void SmartMatrix::matrixCalculations(void) {
     }
 }
 
-INLINE void SmartMatrix::calculateTimerLut(void) {
+void SmartMatrix::calculateTimerLut(void) {
     int i;
 
     for (i = 0; i < latchesPerRow; i++) {

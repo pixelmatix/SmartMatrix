@@ -135,6 +135,7 @@ public:
     void setBackgroundBrightness(uint8_t brightness);
     void setColorCorrection(colorCorrectionModes mode);
     void setFont(fontChoices newFont);
+    void setRefreshRate(uint8_t newRefreshRate);
 
     SMLayerForeground * foregroundLayer;
     SMLayerBackground * backgroundLayer;

@@ -58,3 +58,8 @@ void SmartMatrix::setBrightness(uint8_t brightness) {
     brightnessChange = true;
 }
 
+void SmartMatrix::setRefreshRate(uint8_t newRefreshRate) {
+    refreshRate = newRefreshRate;
+    calculateTimerLut();
+}
+
