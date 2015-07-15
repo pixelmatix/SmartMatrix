@@ -5,7 +5,7 @@
  * http://docs.pixelmatix.com/SmartMatrix/library.html#drawing-raw-bitmaps
  */
 
-#include <SmartMatrix_32x32.h>
+#include <SmartMatrix3.h>
 
 #include "gimpbitmap.h"
 
@@ -18,9 +18,11 @@
 // chrome16 is a 16x16 pixel bitmap, exported from GIMP without modification
 #include "chrome16.c"
 
-SmartMatrix matrix;
-SMLayerForeground foregroundLayer;
-SMLayerBackground backgroundLayer;
+const uint8_t kMatrixHeight = 32;       // known working: 16, 32
+const uint8_t kMatrixWidth = 32;        // known working: 32, 64
+const uint8_t kColorDepthRgb = 36;      // known working: 36, 48 (24 isn't efficient and has color correction issues)
+const uint8_t kDmaBufferRows = 4;       // known working: 4
+SMARTMATRIX_ALLOCATE_BUFFERS(kMatrixWidth, kMatrixHeight, kColorDepthRgb, kDmaBufferRows);
 
 int led = 13;
 
@@ -37,10 +39,8 @@ void drawBitmap(int16_t x, int16_t y, const gimp32x32bitmap* bitmap) {
 }
 
 void setup() {
-  matrix.addLayer(&backgroundLayer);
-  matrix.addLayer(&foregroundLayer);
-  matrix.useDefaultLayers();
-  matrix.begin();
+  SMARTMATRIX_SETUP_DEFAULT_LAYERS(kMatrixWidth, kMatrixHeight);
+
   matrix.setBrightness(128);
 
   pinMode(led, OUTPUT);
@@ -70,8 +70,8 @@ void loop() {
 
   matrix.fillScreen({0,0,0});
   // draw this smaller bitmap centered
-  int x = (MATRIX_WIDTH / 2) - (chrome16.width/2);
-  int y = (MATRIX_HEIGHT / 2) - (chrome16.height/2);
+  int x = (kMatrixWidth / 2) - (chrome16.width/2);
+  int y = (kMatrixHeight / 2) - (chrome16.height/2);
   drawBitmap(x, y, (const gimp32x32bitmap*)&chrome16);
   matrix.swapBuffers();
 

@@ -1,10 +1,11 @@
-#include<SmartMatrix_32x32.h>
+#include<SmartMatrix3.h>
 #include<FastLED.h>
 
-#define kMatrixWidth  32
-#define kMatrixHeight 32
-
-SmartMatrix matrix;
+const uint8_t kMatrixHeight = 32;       // known working: 16, 32
+const uint8_t kMatrixWidth = 32;        // known working: 32, 64
+const uint8_t kColorDepthRgb = 36;      // known working: 36, 48 (24 isn't efficient and has color correction issues)
+const uint8_t kDmaBufferRows = 4;       // known working: 4
+SMARTMATRIX_ALLOCATE_BUFFERS(kMatrixWidth, kMatrixHeight, kColorDepthRgb, kDmaBufferRows);
 
 // The 32bit version of our coordinates
 static uint16_t x;
@@ -16,7 +17,7 @@ static uint16_t z;
 // 1 for a very slow moving effect, or 60 for something that ends up looking like
 // water.
 // uint16_t speed = 1; // almost looks like a painting, moves very slowly
-uint16_t speed = 20; // a nice starting speed, mixes well with a scale of 100
+uint16_t speed = 4; // a nice starting speed, mixes well with a scale of 100
 // uint16_t speed = 33;
 // uint16_t speed = 100; // wicked fast!
 
@@ -38,7 +39,7 @@ void setup() {
   // Serial.println("resetting!");
   //delay(3000);
 
-  matrix.begin();
+  SMARTMATRIX_SETUP_DEFAULT_LAYERS(kMatrixWidth, kMatrixHeight);
 
   matrix.setBrightness(25);
 
@@ -54,7 +55,7 @@ void setup() {
   matrix.setScrollFont(font8x13);
   matrix.scrollText("Smart Matrix & FastLED", -1);
   matrix.setScrollOffsetFromEdge(9);
-  matrix.foregroundLayer.setScrollColor({0xff,0,0});
+//  matrix.foregroundLayer.setScrollColor({0xff,0,0});
 }
 
 // Fill the x/y array of 8-bit noise values using the inoise8 function.
@@ -66,7 +67,7 @@ void fillnoise8() {
       noise[i][j] = inoise8(x + ioffset,y + joffset,z);
     }
   }
-  z += speed;
+  x += speed;
 }
 
 
@@ -91,13 +92,15 @@ void loop() {
 
 #define FRAME_UPDATE_INTERVAL_MS  400
 
-  // alternate between using swap with interpolation and no interpolation
-  if(millis() % 10000 < 5000) {
-    matrix.swapBuffersWithInterpolation_ms(FRAME_UPDATE_INTERVAL_MS);
-  } else {
-    matrix.swapBuffers(false);
-    delay(FRAME_UPDATE_INTERVAL_MS);
-  }
+//  // alternate between using swap with interpolation and no interpolation
+//  if(millis() % 10000 < 5000) {
+//    matrix.swapBuffersWithInterpolation_ms(FRAME_UPDATE_INTERVAL_MS);
+//  } else {
+//    matrix.swapBuffers(false);
+//    delay(FRAME_UPDATE_INTERVAL_MS);
+//  }
+
+  matrix.swapBuffers(false);
 
   LEDS.countFPS();
 }

@@ -13,11 +13,16 @@
 #include <Wire.h>
 #include <Time.h>
 #include <DS1307RTC.h>
-#include <SmartMatrix_32x32.h>
+#include <SmartMatrix3.h>
 
-SmartMatrix matrix;
-SMLayerForeground foregroundLayer;
-SMLayerBackground backgroundLayer;
+const uint8_t kMatrixHeight = 32;       // known working: 16, 32
+const uint8_t kMatrixWidth = 32;        // known working: 32, 64
+const uint8_t kColorDepthRgb = 36;      // known working: 36, 48 (24 isn't efficient and has color correction issues)
+const uint8_t kDmaBufferRows = 4;       // known working: 4
+SMARTMATRIX_ALLOCATE_BUFFERS(kMatrixWidth, kMatrixHeight, kColorDepthRgb, kDmaBufferRows);
+
+const int defaultBrightness = 100*(255/100);    // full brightness
+//const int defaultBrightness = 15*(255/100);    // dim: 15% brightness
 
 const rgb24 clockColor = {0xff, 0xff, 0xff};
 
@@ -35,10 +40,10 @@ void setup() {
   CORE_PIN17_CONFIG = (PORT_PCR_MUX(2) | PORT_PCR_PE | PORT_PCR_PS);
 
   // setup matrix
-  matrix.addLayer(&backgroundLayer);
-  matrix.addLayer(&foregroundLayer);
-  matrix.useDefaultLayers();
-  matrix.begin();
+
+  SMARTMATRIX_SETUP_DEFAULT_LAYERS(kMatrixWidth, kMatrixHeight);
+  matrix.setBrightness(defaultBrightness);
+  matrix.setColorCorrection(cc24);  
   matrix.setScrollFont(font3x5);
 }
 
@@ -73,7 +78,7 @@ void loop() {
     if (hour < 10)
         x = 4;
     matrix.setFont(gohufont11b);
-    matrix.drawString(x, MATRIX_HEIGHT/2 - 6, clockColor, timeBuffer);
+    matrix.drawString(x, kMatrixHeight / 2 - 6, clockColor, timeBuffer);
     matrix.swapBuffers();
   } else {
     if (RTC.chipPresent()) {
@@ -84,14 +89,14 @@ void loop() {
       /* Draw Error Message to SmartMatrix */
       matrix.setFont(font3x5);
       sprintf(timeBuffer, "Stopped");
-      matrix.drawString(x, MATRIX_HEIGHT/2 - 3, clockColor, "Stopped");
+      matrix.drawString(x, kMatrixHeight / 2 - 3, clockColor, "Stopped");
     } else {
       Serial.println("DS1307 read error!  Please check the circuitry.");
       Serial.println();
 
       /* Draw Error Message to SmartMatrix */
       matrix.setFont(font3x5);
-      matrix.drawString(x, MATRIX_HEIGHT/2 - 3, clockColor, "No Clock");
+      matrix.drawString(x, kMatrixHeight / 2 - 3, clockColor, "No Clock");
     }
     matrix.swapBuffers();
     delay(9000);

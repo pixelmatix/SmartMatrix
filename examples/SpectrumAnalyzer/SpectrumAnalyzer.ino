@@ -26,12 +26,17 @@
 #include <SPI.h>
 #include <SD.h>
 
-#include <SmartMatrix_32x32.h>
+#include <SmartMatrix3.h>
 #include <FastLED.h>
 
-SmartMatrix matrix;
-SMLayerForeground foregroundLayer;
-SMLayerBackground backgroundLayer;
+const uint8_t kMatrixHeight = 32;       // known working: 16, 32
+const uint8_t kMatrixWidth = 32;        // known working: 32, 64
+const uint8_t kColorDepthRgb = 36;      // known working: 36, 48 (24 isn't efficient and has color correction issues)
+const uint8_t kDmaBufferRows = 4;       // known working: 4
+SMARTMATRIX_ALLOCATE_BUFFERS(kMatrixWidth, kMatrixHeight, kColorDepthRgb, kDmaBufferRows);
+
+#define MATRIX_HEIGHT kMatrixHeight
+#define MATRIX_WIDTH kMatrixWidth
 
 #define ADC_INPUT_PIN   A2
 
@@ -59,11 +64,8 @@ void setup()
 {
     Serial.begin(9600);
 
-    // Initialize 32x32 LED Matrix
-    matrix.addLayer(&backgroundLayer);
-    matrix.addLayer(&foregroundLayer);
-    matrix.useDefaultLayers();
-    matrix.begin();
+    // Initialize Matrix
+    SMARTMATRIX_SETUP_DEFAULT_LAYERS(kMatrixWidth, kMatrixHeight);
 
     matrix.setBrightness(255);
 
