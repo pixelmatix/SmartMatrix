@@ -67,6 +67,10 @@ static CircularBuffer dmaBuffer;
 uint8_t SmartMatrix::matrixWidth;
 uint8_t SmartMatrix::matrixHeight;
 uint8_t SmartMatrix::latchesPerRow;
+// dmaBufferNumRows = the size of the buffer that DMA pulls from to refresh the display
+// must be minimum 2 rows so one can be updated while the other is refreshed
+// increase beyond two to give more time for the update routine to complete
+// (increase this number if non-DMA interrupts are causing display problems)
 uint8_t SmartMatrix::dmaBufferNumRows;
 uint8_t SmartMatrix::dmaBufferBytesPerPixel;
 uint16_t SmartMatrix::dmaBufferBytesPerRow;
@@ -111,14 +115,14 @@ typedef struct gpiopair {
 static gpiopair gpiosync;
 
 
-SmartMatrix::SmartMatrix(uint8_t width, uint8_t height, uint8_t depth, uint32_t * dataBuffer, uint8_t * blockBuffer) {
+SmartMatrix::SmartMatrix(uint8_t width, uint8_t height, uint8_t depth, uint8_t bufferrows, uint32_t * dataBuffer, uint8_t * blockBuffer) {
     globalinstance = this;
     matrixWidth = width;
     matrixHeight = height;
     colorDepthRgb = depth;
+    dmaBufferNumRows = bufferrows;
 
     latchesPerRow = colorDepthRgb/COLOR_CHANNELS_PER_PIXEL;
-    dmaBufferNumRows = DMA_BUFFER_NUMBER_OF_ROWS;
     dmaBufferBytesPerPixel = latchesPerRow * DMA_UPDATES_PER_CLOCK;
     dmaBufferBytesPerRow = dmaBufferBytesPerPixel * matrixWidth;
 
@@ -222,7 +226,7 @@ INLINE void SmartMatrix::calculateTimerLut(void) {
 void SmartMatrix::begin(void)
 {
     int i;
-    cbInit(&dmaBuffer, DMA_BUFFER_NUMBER_OF_ROWS);
+    cbInit(&dmaBuffer, dmaBufferNumRows);
 
     // fill addressLUT
     for (i = 0; i < MATRIX_ROWS_PER_FRAME; i++) {
