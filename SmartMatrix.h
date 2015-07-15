@@ -200,7 +200,7 @@ SmartMatrix matrix(width,height, matrixUpdateData, matrixUpdateBlocks)
     matrix.begin()
 
 #define SMARTMATRIX_ALLOCATE_FOREGROUND_LAYER(layername, width, height) \
-    static uint8_t foregroundBitmap[2 * kMatrixHeight * (kMatrixWidth / 8)];    \
+    static uint8_t foregroundBitmap[2 * width * (height / 8)];    \
     static SMLayerForeground layername(foregroundBitmap, width, height)
 
 
