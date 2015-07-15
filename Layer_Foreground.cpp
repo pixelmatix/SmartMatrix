@@ -168,7 +168,7 @@ void SMLayerForeground::drawForegroundChar(int16_t x, int16_t y, char character,
         } else {
             foregroundBitmap[foregroundDrawBuffer*FOREGROUND_BUFFER_SIZE + (k * FOREGROUND_ROW_SIZE) + (x/8)] |= tempBitmask >> (x%8);
             // do two writes if the shifted 8-bit wide bitmask is still on the screen
-            if(x + 8 < matrixWidth && x % 8)
+            if(x + 8 < localWidth && x % 8)
                 foregroundBitmap[foregroundDrawBuffer*FOREGROUND_BUFFER_SIZE + (k * FOREGROUND_ROW_SIZE) + (x/8) + 1] |= tempBitmask << (8-(x%8));
         }
     }
@@ -402,7 +402,7 @@ void SMLayerForeground::redrawForeground(void) {
                 } else {
                     foregroundBitmap[foregroundRefreshBuffer*FOREGROUND_BUFFER_SIZE + ((j + k - charY0) * FOREGROUND_ROW_SIZE) + (charPosition/8)] |= tempBitmask >> (charPosition%8);
                     // do two writes if the shifted 8-bit wide bitmask is still on the screen
-                    if(charPosition + 8 < matrixWidth && charPosition % 8)
+                    if(charPosition + 8 < localWidth && charPosition % 8)
                         foregroundBitmap[foregroundRefreshBuffer*FOREGROUND_BUFFER_SIZE + ((j + k - charY0) * FOREGROUND_ROW_SIZE) + (charPosition/8) + 1] |= tempBitmask << (8-(charPosition%8));
                 }
             }
