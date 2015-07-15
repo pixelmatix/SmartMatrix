@@ -35,7 +35,7 @@
 // set this by triggering scope on latch rising edge, and with persistence enabled,
 // look for the last clock pulse after the latch.  set the min block period to be beyond this last pulse
 // default (10us/32pixels) is a generous minimum that should work with all Teensy 3.x devices at 48MHz and above
-#define MIN_BLOCK_PERIOD_PER_PIXEL_NS     313
+#define MIN_BLOCK_PERIOD_PER_PIXEL_NS    (10000/32)
 
 
 /* this section describes how the microcontroller is attached to the display */
