@@ -3,7 +3,7 @@
     This example code is released into the public domain
 */
 
-#include <SmartMatrix_32x32.h>
+#include <SmartMatrix3.h>
 #include "colorwheel.c"
 #include "gimpbitmap.h"
 
