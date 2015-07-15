@@ -1072,6 +1072,7 @@ void loop() {
             percent[1] = '0' + (int)(brightness * 100.0 / 255) % 100 / 10;
             percent[2] = '0' + (int)(brightness * 100.0 / 255) % 10;
 
+            matrix.fillScreen({0,0,0});
             drawBitmap(0,0,&colorwheel);
 
             matrix.drawString(12, 16, {0xff, 0, 0}, value);
@@ -1099,6 +1100,7 @@ void loop() {
         currentMillis = millis();
 
         for (j = 0; j < 4; j++) {
+            matrix.fillScreen({0,0,0});
             drawBitmap(0,0,&colorwheel);
             if (j%2) {
                 matrix.drawString(1, 16, {0xff, 0, 0}, "CC:ON");
