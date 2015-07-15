@@ -73,7 +73,7 @@ typedef struct matrixUpdateBlock {
 
 class SmartMatrix {
 public:
-    SmartMatrix(uint8_t width, uint8_t height, uint32_t * dataBuffer, uint8_t * blockBuffer);
+    SmartMatrix(uint8_t width, uint8_t height, uint8_t depth, uint32_t * dataBuffer, uint8_t * blockBuffer);
     void begin(void);
 
     // drawing functions
@@ -171,6 +171,7 @@ private:
     static const int dimmingMaximum;
     static rotationDegrees rotation;
     static uint8_t matrixWidth, matrixHeight;
+    static uint8_t colorDepthRgb;
 
     static uint8_t latchesPerRow;
     static uint8_t dmaBufferNumRows;
@@ -185,9 +186,9 @@ private:
 
 // single matrixUpdateBlocks buffer is divided up to hold matrixUpdateBlocks, addressLUT, timerLUT to simplify user sketch code and reduce constructor parameters
 #define SMARTMATRIX_ALLOCATE_BUFFERS(width, height, depth, rows) \
-static DMAMEM uint32_t matrixUpdateData[rows * width * (kColorDepth/3 / sizeof(uint32_t)) * 2]; \
+static DMAMEM uint32_t matrixUpdateData[rows * width * (depth/3 / sizeof(uint32_t)) * 2]; \
 static DMAMEM uint8_t matrixUpdateBlocks[(sizeof(matrixUpdateBlock) * rows * depth/3) + (sizeof(addresspair) * height/2) + (sizeof(timerpair) * depth/3)]; \
-SmartMatrix matrix(width,height, matrixUpdateData, matrixUpdateBlocks)
+SmartMatrix matrix(width, height, depth, matrixUpdateData, matrixUpdateBlocks)
 
 #define SMARTMATRIX_SETUP_DEFAULT_LAYERS(width, height) \
     static rgb24 backgroundBitmap[2*width*height];                              \
@@ -202,6 +203,5 @@ SmartMatrix matrix(width,height, matrixUpdateData, matrixUpdateBlocks)
 #define SMARTMATRIX_ALLOCATE_FOREGROUND_LAYER(layername, width, height) \
     static uint8_t foregroundBitmap[2 * width * (height / 8)];    \
     static SMLayerForeground layername(foregroundBitmap, width, height)
-
 
 #endif

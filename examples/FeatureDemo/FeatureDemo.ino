@@ -7,11 +7,11 @@
 #include "colorwheel.c"
 #include "gimpbitmap.h"
 
-const uint8_t kMatrixHeight = 16;       // known working: 16, 32
-const uint8_t kMatrixWidth = 32;        // known working: 32
-const uint8_t kColorDepth = 36;         // known working: 36
+const uint8_t kMatrixHeight = 32;       // known working: 16, 32
+const uint8_t kMatrixWidth = 64;        // known working: 32
+const uint8_t kColorDepthRgb = 36;      // known working: 36, 48 (24 isn't efficient and has color correction issues)
 const uint8_t kDmaBufferRows = 4;       // known working: 4
-SMARTMATRIX_ALLOCATE_BUFFERS(kMatrixWidth, kMatrixHeight, kColorDepth, kDmaBufferRows);
+SMARTMATRIX_ALLOCATE_BUFFERS(kMatrixWidth, kMatrixHeight, kColorDepthRgb, kDmaBufferRows);
 
 const int defaultBrightness = 100*(255/100);    // full brightness
 //const int defaultBrightness = 15*(255/100);    // dim: 15% brightness
