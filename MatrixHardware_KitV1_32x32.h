@@ -38,10 +38,6 @@
 // size of latch pulse - all address updates must fit inside high portion of latch pulse
 // increase this value if DMA use is causing address updates to take longer
 #define LATCH_TIMER_PULSE_WIDTH_NS  438
-// set this by triggering scope on latch rising edge, and with persistence enabled,
-// look for the last clock pulse after the latch.  set the min block period to be beyond this last pulse
-// default (10us) is a generous minimum that should work with all Teensy 3.x devices at 48MHz and above
-#define MIN_BLOCK_PERIOD_NS     10000
 
 // this section describes how the microcontroller is attached to the display
 

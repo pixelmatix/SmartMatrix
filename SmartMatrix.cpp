@@ -38,6 +38,13 @@ SmartMatrix * globalinstance;
 #define DMA_UPDATES_PER_CLOCK           2
 #define ROW_CALCULATION_ISR_PRIORITY   0xFE // 0xFF = lowest priority
 
+// an advanced user may need to tweak these values
+
+// set this by triggering scope on latch rising edge, and with persistence enabled,
+// look for the last clock pulse after the latch.  set the min block period to be beyond this last pulse
+// default (10us/32pixels) is a generous minimum that should work with all Teensy 3.x devices at 48MHz and above
+#define MIN_BLOCK_PERIOD_PER_PIXEL_NS     313
+
 // hardware-specific definitions
 // prescale of 0 is F_BUS
 #define LATCH_TIMER_PRESCALE  0x00
@@ -45,7 +52,7 @@ SmartMatrix * globalinstance;
 #define LATCH_TIMER_PULSE_WIDTH_TICKS   NS_TO_TICKS(LATCH_TIMER_PULSE_WIDTH_NS)
 #define TICKS_PER_ROW   (F_BUS/MATRIX_REFRESH_RATE/MATRIX_ROWS_PER_FRAME)
 #define MSB_BLOCK_TICKS     (TICKS_PER_ROW/2)
-#define MIN_BLOCK_PERIOD_TICKS  NS_TO_TICKS(MIN_BLOCK_PERIOD_NS)
+#define MIN_BLOCK_PERIOD_PER_PIXEL_TICKS  NS_TO_TICKS(MIN_BLOCK_PERIOD_PER_PIXEL_NS)
 
 DMAChannel dmaOutputAddress(false);
 DMAChannel dmaUpdateAddress(false);
@@ -200,8 +207,8 @@ INLINE void SmartMatrix::calculateTimerLut(void) {
         // on-time is the max on-time * dimming factor, plus the dead time while the latch is high
         uint16_t ontime = (((MSB_BLOCK_TICKS >> (LATCHES_PER_ROW - i - 1)) * dimmingFactor) / dimmingMaximum) + LATCH_TIMER_PULSE_WIDTH_TICKS;
 
-        if (period < MIN_BLOCK_PERIOD_TICKS) {
-            uint16_t padding = MIN_BLOCK_PERIOD_TICKS - period;
+        if (period < MIN_BLOCK_PERIOD_PER_PIXEL_TICKS * matrixWidth) {
+            uint16_t padding = (MIN_BLOCK_PERIOD_PER_PIXEL_TICKS * matrixWidth) - period;
             period += padding;
             ontime += padding;
         }
