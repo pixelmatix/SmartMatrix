@@ -14,12 +14,10 @@ This documentation assumes you have a general knowledge of the Teensy 3.1, how t
 * [Arduino - Getting Started with Arduino](http://arduino.cc/en/Guide/HomePage)
 * For general Teensy 3.1 support, not related to the SmartMatrix Shield or SmartMatrix Library, post a question at the [PJRC Forum](http://forum.pjrc.com/forums/3-Technical-Support-amp-Questions)
 
-_Note for Teensy 3.0 users: Teensy 3.0 boards do work with the SmartMatrix Shield and the SmartMatrix Library, but this guide refers to Teensy 3.1 to be consistent.  A note will be added anywhere Teensy 3.0 behavior is different than Teensy 3.1._
-
 Make sure you have a supported version of the Arduino IDE and Teensyduino add-on installed.
 
-* [Arduino IDE](http://arduino.cc/en/main/software) - version 1.0.5 or 1.0.6
-* [Teensyduino](http://www.pjrc.com/teensy/td_download.html) - only version 1.20
+* [Arduino IDE](http://arduino.cc/en/main/software) - version 1.6.5 recomended
+* [Teensyduino](http://www.pjrc.com/teensy/td_download.html) - use the latest version
 
 Before continuing, use the blink example in the Arduino IDE to verify you can compile and run a sketch on your Teensy 3.1.
 
@@ -31,7 +29,7 @@ Import either the "16x32" or "32x32" library depending on what resolution displa
 
 Start with the FeatureDemo Example project, included with the library.  From the Arduino File menu, choose Examples, the appropriate SmartMatrix library for your display resolution, then FeatureDemo.  
 
-You should already have most of the correct settings to load the FeatureDemo sketch on your Teensy, from running the blink example earlier.  Under Tools, CPU Speed, make sure either 48 MHz or 96MHz (overclock) is selected.
+You should already have most of the correct settings to load the FeatureDemo sketch on your Teensy, from running the blink example earlier.  Under Tools, CPU Speed, make sure either 48 MHz or 96MHz (overclock) is selected.  (Some libraries are not compatible with the 72MHz CPU)
 
 Click the Upload button, and the sketch should compile and upload to your Teensy, and start running right away.
 
@@ -51,14 +49,14 @@ If you're having trouble compiling Aurora and are getting errors that refer to F
 This error means the FastLED library isn't installed (correctly):  
 `fatal error: FastLED.h: No such file or directory`
 
-The latest version of Teensyduino includes FastLED version 2.0 which is too old to work with SmartMatrix.  We need version 3.0 or later which is [available from GitHub](https://github.com/FastLED/FastLED/releases) and not included with Teensyduino.  If you see any of these errors, you likely have an older version of FastLED installed:  
+The FastLED version included with Teensyduino may lag behind the latest.  It's better to install FastLED manually using the latest version [available from GitHub](https://github.com/FastLED/FastLED/releases).  If you see any of these errors, you likely have an older version of FastLED installed:  
 `no known conversion for argument 4 from 'CRGB' to 'const rgb24&'`  
 `error: 'inoise8' was not declared in this scope`
 
 This can be tricky to track down as Teensyduino installs libraries into your Arduino application directory, which might not be in your Arduino sketchbook.  For OSX you will need to navigate into the the Arduino.app package to find the libraries folder and delete the old FastLED.
 
-Install FastLED 3.0 from the FastLED releases page:
+Install the latest version of FastLED (3.x or higher) from the FastLED releases page:
 https://github.com/FastLED/FastLED/releases
 
 **Teensy Audio Library**  
-The SpectrumAnalyzer sketch requires the [Teensy Audio Library](http://www.pjrc.com/teensy/td_libs_Audio.html), which is included in [Teensyduino 1.20](http://www.pjrc.com/teensy/td_download.html).  If you have trouble compiling, first make sure you can compile either of the FastLED examples, as FastLED 3.x is also a requirement for this sketch.  If you're missing the Audio library, the best way to install is by running the Teensyduino 1.20 installer.  Make sure the "Audio" library is checked during the install, but don't check all libraries as you will downgrade FastLED to 2.0.
+The SpectrumAnalyzer sketch requires the [Teensy Audio Library](http://www.pjrc.com/teensy/td_libs_Audio.html), which is included in [Teensyduino 1.20](http://www.pjrc.com/teensy/td_download.html).  If you have trouble compiling, first make sure you can compile either of the FastLED examples, as FastLED 3.x is also a requirement for this sketch.  If you're missing the Audio library, the best way to install is by running the Teensyduino 1.20 installer.  Make sure the "Audio" library is checked during the install, but don't check all libraries as you will downgrade FastLED.
