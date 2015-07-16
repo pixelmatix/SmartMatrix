@@ -85,14 +85,14 @@ public:
     void drawTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const rgb24& color);
     void fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const rgb24& fillColor);
     void fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3,
-      const rgb24& outlineColor, const rgb24& fillColor);
+    const rgb24& outlineColor, const rgb24& fillColor);
     void drawRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const rgb24& color);
     void fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const rgb24& color);
     void fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const rgb24& outlineColor, const rgb24& fillColor);
     void drawRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t radius, const rgb24& outlineColor);
     void fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t radius, const rgb24& fillColor);
     void fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t radius,
-      const rgb24& outlineColor, const rgb24& fillColor);
+    const rgb24& outlineColor, const rgb24& fillColor);
     void fillScreen(const rgb24& color);
     void drawChar(int16_t x, int16_t y, const rgb24& charColor, char character);
     void drawString(int16_t x, int16_t y, const rgb24& charColor, const char text[]);
