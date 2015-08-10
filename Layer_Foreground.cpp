@@ -417,3 +417,11 @@ void SMLayerForeground::redrawForeground(void) {
         j += (charY1 - charY0) - 1;
     }
 }
+
+bool SMLayerForeground::getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap) {
+    int cell = (y * ((width / 8) + 1)) + (x / 8);
+
+    uint8_t mask = 0x80 >> (x % 8);
+    return (mask & bitmap[cell]);
+}
+

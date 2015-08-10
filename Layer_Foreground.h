@@ -58,6 +58,7 @@ class SMLayerForeground : public SM_Layer {
 
     private:
         void redrawForeground(void);
+        // todo: move somewhere else
         static bool getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap);
         void updateForeground(void);
         bool getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24 &xyPixel);
