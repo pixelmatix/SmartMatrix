@@ -78,7 +78,7 @@ class SMLayerForeground : public SM_Layer {
         ScrollMode scrollmode = bounceForward;
         unsigned char framesperscroll = 4;
 
-        bool foregroundCopyPending = false;
+        volatile bool foregroundCopyPending = false;
 
         const bitmap_font *scrollFont = &apple5x7;
 
