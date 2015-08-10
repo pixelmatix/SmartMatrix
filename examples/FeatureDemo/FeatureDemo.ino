@@ -845,24 +845,20 @@ void loop() {
 
         matrix.setScrollMode(wrapForward);
         matrix.scrollText("Wrap Forward", 2);
-        currentMillis = millis();
         while (matrix.getScrollStatus());
 
         // use this mode to start the scrolling from any position, instead of the right edge
         matrix.setScrollMode(wrapForwardFromLeft);
         matrix.setScrollStartOffsetFromLeft(matrix.getScreenWidth()/2);
         matrix.scrollText("Wrap Forward From Left", 1);
-        currentMillis = millis();
         while (matrix.getScrollStatus());
 
         matrix.setScrollMode(bounceForward);
         matrix.scrollText("Bounce", 2);
-        currentMillis = millis();
         while (matrix.getScrollStatus());
 
         matrix.setScrollMode(bounceReverse);
         matrix.scrollText("Bounce (rev)", 2);
-        currentMillis = millis();
         while (matrix.getScrollStatus());
 
         // this mode doesn't scroll, and the position is set through setScrollStartOffsetFromLeft()
