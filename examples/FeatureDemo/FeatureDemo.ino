@@ -688,6 +688,12 @@ void loop() {
         delay(delayBetweenCharacters);
         matrix.swapBuffers();
 
+        // draw string but clear the background
+        matrix.drawString(leftEdgeOffset, matrix.getScreenHeight() / 2, {0, 0xff, 0}, {0,0,0}, "Hello!");
+
+        delay(delayBetweenCharacters * 2);
+        matrix.swapBuffers();
+
         while (millis() < currentMillis + transitionTime);
     }
 #endif
