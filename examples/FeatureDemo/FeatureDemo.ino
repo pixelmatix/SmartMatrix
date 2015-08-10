@@ -832,34 +832,47 @@ void loop() {
     // different modes
 #if (DEMO_SCROLL_MODES == 1)
     {
+        uint transitionTime;
+
         matrix.fillScreen(defaultBackgroundColor);
         matrix.swapBuffers();
 
         matrix.setScrollColor({0xff, 0xff, 0xff});
-        matrix.setScrollMode(wrapForward);
-        matrix.setScrollSpeed(40);
-
-        matrix.scrollText("Wrap Forward", 2);
         matrix.setFont(font3x5);
+        matrix.setScrollSpeed(40);
         matrix.drawString(0, matrix.getScreenHeight() / 2, {0xff, 0xff, 0xff}, "Modes");
         matrix.swapBuffers();
 
-        uint transitionTime = 6000;
+        matrix.setScrollMode(wrapForward);
+        matrix.scrollText("Wrap Forward", 2);
         currentMillis = millis();
-        while (millis() - currentMillis < transitionTime);
+        while (matrix.getScrollStatus());
+
+        // use this mode to start the scrolling from any position, instead of the right edge
+        matrix.setScrollMode(wrapForwardFromLeft);
+        matrix.setScrollStartOffsetFromLeft(matrix.getScreenWidth()/2);
+        matrix.scrollText("Wrap Forward From Left", 1);
+        currentMillis = millis();
+        while (matrix.getScrollStatus());
 
         matrix.setScrollMode(bounceForward);
         matrix.scrollText("Bounce", 2);
-
-        transitionTime = 4500;
         currentMillis = millis();
-        while (millis() - currentMillis < transitionTime);
+        while (matrix.getScrollStatus());
 
+        matrix.setScrollMode(bounceReverse);
+        matrix.scrollText("Bounce (rev)", 2);
+        currentMillis = millis();
+        while (matrix.getScrollStatus());
+
+        // this mode doesn't scroll, and the position is set through setScrollStartOffsetFromLeft()
         matrix.setScrollMode(stopped);
         matrix.scrollText("Stopped", 1);
-
+        matrix.setScrollStartOffsetFromLeft(0);
         transitionTime = 4500;
         currentMillis = millis();
+
+        // "stopped" will always have getScrollStatus() > 0, use time to transition)
         while (millis() - currentMillis < transitionTime);
 
         matrix.fillScreen(defaultBackgroundColor);
