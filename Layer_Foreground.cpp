@@ -157,6 +157,11 @@ void SMLayerForeground::drawForegroundChar(int16_t x, int16_t y, char character,
     uint8_t tempBitmask;
     int k;
 
+    // only draw if character is on the screen
+    if (x + scrollFont->Width < 0 || x >= localWidth) {
+        return;
+    }
+
     for (k = y; k < y+foregroundfont->Height; k++) {
         // ignore rows that are not on the screen
         if(k < 0) continue;
