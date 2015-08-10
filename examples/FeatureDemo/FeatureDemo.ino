@@ -108,7 +108,7 @@ void loop() {
         for (i = 0; i < 5000; i += delayBetweenShapes) {
             // draw for 100ms, then update frame, repeat
             currentMillis = millis();
-            int x0, y0, x1, y1, x2, y2, radius;
+            int x0, y0, x1, y1, x2, y2, radius, radius2;
             // x0,y0 pair is always on the screen
             x0 = random(matrix.getScreenWidth());
             y0 = random(matrix.getScreenHeight());
@@ -127,11 +127,12 @@ void loop() {
 
             // radius is positive, up to screen width size
             radius = random(matrix.getScreenWidth());
+            radius2 = random(matrix.getScreenWidth());
 
             rgb24 fillColor = {(uint8_t)random(192), (uint8_t)random(192), (uint8_t)random(192)};
             rgb24 outlineColor = {(uint8_t)random(192), (uint8_t)random(192), (uint8_t)random(192)};
 
-            switch (random(14)) {
+            switch (random(15)) {
             case 0:
                 matrix.drawPixel(x0, y0, outlineColor);
                 break;
@@ -187,6 +188,9 @@ void loop() {
             case 13:
                 matrix.fillRoundRectangle(x0, y0, x1, y1, radius, outlineColor, fillColor);
                 break;
+
+            case 14:
+                matrix.drawEllipse(x0, y0, radius, radius2, outlineColor);
 
             default:
                 break;
