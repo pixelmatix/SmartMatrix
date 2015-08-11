@@ -139,11 +139,14 @@ void SMLayerForeground::handleForegroundDrawingCopy(void) {
 void SMLayerForeground::drawForegroundPixel(int16_t x, int16_t y, bool opaque) {
     uint8_t tempBitmask;
 
+    if(x < 0 || x >= localWidth || y < 0 || y >= localWidth)
+        return;
+
     if(opaque) {
         tempBitmask = 0x80 >> (x%8);
         foregroundBitmap[foregroundDrawBuffer*FOREGROUND_BUFFER_SIZE + (y * FOREGROUND_ROW_SIZE) + (x/8)] |= tempBitmask;
     } else {
-        tempBitmask = ~(0x80 >> x);
+        tempBitmask = ~(0x80 >> (x%8));
         foregroundBitmap[foregroundDrawBuffer*FOREGROUND_BUFFER_SIZE + (y * FOREGROUND_ROW_SIZE) + (x/8)] &= tempBitmask;
     }
 }
