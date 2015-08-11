@@ -71,8 +71,8 @@ void setup() {
 #define DEMO_BRIGHTNESS         1
 #define DEMO_RAW_BITMAP         1
 #define DEMO_COLOR_CORRECTION   1
-#define DEMO_FOREGROUND_DRAWING 1
 #define DEMO_BACKGND_BRIGHTNESS 1
+#define DEMO_FOREGROUND_DRAWING 1
 #define DEMO_REFRESH_RATE       1
 #define DEMO_READ_PIXEL         1
 
@@ -1159,6 +1159,35 @@ void loop() {
         matrix.setColorCorrection(cc24);
     }
 #endif
+#if (DEMO_BACKGND_BRIGHTNESS == 1)
+    {
+        matrix.setScrollColor({0xff, 0xff, 0xff});
+        matrix.setScrollMode(wrapForward);
+        matrix.setScrollSpeed(40);
+        matrix.setScrollFont(font6x10);
+        matrix.scrollText("Change Background Brightness", 1);
+
+        matrix.fillScreen({0,0,0});
+        drawBitmap(0,0,&colorwheel);
+        matrix.swapBuffers();
+
+        const uint transitionTime = 7000;
+
+        // background brightness
+        currentMillis = millis();
+
+        while (millis() - currentMillis < transitionTime) {
+            float fraction = ((float)millis() - currentMillis) / ((float)transitionTime / 2);
+
+            if (fraction < 1.0)
+                fraction = 1.0 - fraction;
+            if (fraction > 1.0)
+                fraction = fraction - 1.0;
+            int brightness = fraction * 255.0;
+            matrix.setBackgroundBrightness(brightness);
+        }
+    }
+#endif
 #if (DEMO_FOREGROUND_DRAWING == 1)
     {
         matrix.fillScreen({0,0,0});
@@ -1299,35 +1328,6 @@ void loop() {
         matrix.displayForegroundDrawing();
         matrix.setScrollOffsetFromTop(defaultScrollOffset);
         matrix.setBackgroundBrightness(255);        
-    }
-#endif
-#if (DEMO_BACKGND_BRIGHTNESS == 1)
-    {
-        matrix.setScrollColor({0xff, 0xff, 0xff});
-        matrix.setScrollMode(wrapForward);
-        matrix.setScrollSpeed(40);
-        matrix.setScrollFont(font6x10);
-        matrix.scrollText("Change Background Brightness", 1);
-
-        matrix.fillScreen({0,0,0});
-        drawBitmap(0,0,&colorwheel);
-        matrix.swapBuffers();
-
-        const uint transitionTime = 7000;
-
-        // background brightness
-        currentMillis = millis();
-
-        while (millis() - currentMillis < transitionTime) {
-            float fraction = ((float)millis() - currentMillis) / ((float)transitionTime / 2);
-
-            if (fraction < 1.0)
-                fraction = 1.0 - fraction;
-            if (fraction > 1.0)
-                fraction = fraction - 1.0;
-            int brightness = fraction * 255.0;
-            matrix.setBackgroundBrightness(brightness);
-        }
     }
 #endif
 #if (DEMO_REFRESH_RATE == 1)
