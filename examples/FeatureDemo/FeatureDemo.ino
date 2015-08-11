@@ -44,7 +44,7 @@ void setup() {
 
     matrix.setBrightness(defaultBrightness);
 
-    matrix.setsetScrollOffsetFromTop(defaultScrollOffset);
+    matrix.setScrollOffsetFromTop(defaultScrollOffset);
 
     matrix.setColorCorrection(cc24);
 }
@@ -924,7 +924,7 @@ void loop() {
         matrix.setScrollColor({0xff, 0xff, 0xff});
         matrix.setScrollMode(wrapForward);
         matrix.setScrollSpeed(40);
-        matrix.setsetScrollOffsetFromTop(1);
+        matrix.setScrollOffsetFromTop(1);
 
         matrix.setScrollFont(font3x5);
         matrix.scrollText("All Fonts", 1);
@@ -942,7 +942,7 @@ void loop() {
         matrix.scrollText("Scrolling", 1);
         while (matrix.getScrollStatus());
 
-        matrix.setsetScrollOffsetFromTop(defaultScrollOffset);
+        matrix.setScrollOffsetFromTop(defaultScrollOffset);
     }
 #endif
     // position
@@ -956,10 +956,10 @@ void loop() {
         matrix.scrollText("Position Scrolling Text Anywhere", 1);
 
         for (i = 0; i < 6; i++) {
-            matrix.setsetScrollOffsetFromTop(i * (matrix.getScreenHeight() / 6));
+            matrix.setScrollOffsetFromTop(i * (matrix.getScreenHeight() / 6));
             delay(1000);
         }
-        matrix.setsetScrollOffsetFromTop(defaultScrollOffset);
+        matrix.setScrollOffsetFromTop(defaultScrollOffset);
     }
 #endif
 
