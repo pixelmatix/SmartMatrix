@@ -71,6 +71,7 @@ void setup() {
 #define DEMO_BRIGHTNESS         1
 #define DEMO_RAW_BITMAP         1
 #define DEMO_COLOR_CORRECTION   1
+#define DEMO_FOREGROUND_DRAWING 1
 
 
 // the loop() method runs over and over again,
@@ -1154,6 +1155,84 @@ void loop() {
             delay(transitionTime/4);
         }
         matrix.setColorCorrection(cc24);
+    }
+#endif
+#if (DEMO_FOREGROUND_DRAWING == 1)
+    {
+        matrix.fillScreen({0,0,0});
+        drawBitmap(0,0,&colorwheel);
+        matrix.swapBuffers();
+
+        const uint transitionTime = 3000;
+
+        const int testBitmapWidth = 15;
+        const int testBitmapHeight = 15;
+        uint8_t testBitmap[] = {
+            _______X, ________,
+            ______XX, X_______,
+            ______XX, X_______,
+            ______XX, X_______,
+            _____XXX, XX______,
+            XXXXXXXX, XXXXXXX_,
+            _XXXXXXX, XXXXXX__,
+            __XXXXXX, XXXXX___,
+            ___XXXXX, XXXX____,
+            ____XXXX, XXX_____,
+            ___XXXXX, XXXX____,
+            ___XXXX_, XXXX____,
+            __XXXX__, _XXXX___,
+            __XX____, ___XX___,
+            __X_____, ____X___,
+        };
+
+
+        // scrolling text interferes with the foreground drawing even when not actively scrolling
+        // move the scrolling text off of the screen
+        matrix.setScrollOffsetFromTop(matrix.getScreenHeight());
+
+        matrix.setForegroundFont(font3x5);
+        matrix.setScrollColor({0xff, 0xff, 0xff});
+        matrix.clearForeground();
+
+        matrix.drawForegroundChar(0, 0,'D', true);
+        matrix.drawForegroundChar(4, 0,'R', true);
+        matrix.drawForegroundChar(8, 0,'A', true);
+        matrix.drawForegroundChar(12,0,'W', true);
+        matrix.drawForegroundChar(20,0,'T', true);
+        matrix.drawForegroundChar(24,0,'O', true);
+
+        matrix.drawForegroundString(0, 6, "FOREGND",true);
+
+        matrix.displayForegroundDrawing();
+
+        delay(1000);
+
+        currentMillis = millis();
+
+        while (millis() - currentMillis < transitionTime) {
+            int x0, y0;
+            bool opaque;
+
+            for (i = 0; i < 20; i++) {
+                x0 = random(matrix.getScreenWidth());
+                y0 = random(matrix.getScreenHeight());
+                opaque = random(2);
+
+                matrix.drawForegroundPixel(x0, y0, opaque);
+            }
+
+            x0 = random(matrix.getScreenWidth());
+            y0 = random(matrix.getScreenHeight());
+
+            matrix.drawForegroundMonoBitmap(x0, y0, testBitmapWidth, testBitmapHeight, testBitmap, true);
+
+            matrix.displayForegroundDrawing();
+            delay(100);
+        }
+
+        matrix.setBackgroundBrightness(defaultBrightness);
+        matrix.clearForeground();
+        matrix.displayForegroundDrawing();
     }
 #endif
 }
