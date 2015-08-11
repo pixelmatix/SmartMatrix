@@ -1359,7 +1359,7 @@ void loop() {
 
             if (fraction <= 1.0)
                 refreshRate = maxRefreshRate - ((maxRefreshRate-minRefreshRate) * fraction);
-            if (fraction > 1.0)
+            else
                 refreshRate = minRefreshRate + ((maxRefreshRate-minRefreshRate) * (fraction - 1.0));
             matrix.setRefreshRate(refreshRate);
 
