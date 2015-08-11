@@ -1231,25 +1231,24 @@ void loop() {
             delay(100);
         }
 
-        matrix.setBackgroundBrightness(defaultBrightness);
         matrix.clearForeground();
         matrix.setScrollOffsetFromTop(defaultScrollOffset);
         matrix.displayForegroundDrawing();
     }
 #endif
 #if (DEMO_BACKGND_BRIGHTNESS == 1)
-{
+    {
         matrix.setScrollColor({0xff, 0xff, 0xff});
         matrix.setScrollMode(wrapForward);
         matrix.setScrollSpeed(40);
         matrix.setScrollFont(font6x10);
-        matrix.scrollText("Change Background Brightness Independently", 1);
+        matrix.scrollText("Change Background Brightness", 1);
 
         matrix.fillScreen({0,0,0});
         drawBitmap(0,0,&colorwheel);
         matrix.swapBuffers();
 
-        const uint transitionTime = 9000;
+        const uint transitionTime = 7000;
 
         // background brightness
         currentMillis = millis();
