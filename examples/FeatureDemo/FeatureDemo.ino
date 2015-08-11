@@ -73,6 +73,7 @@ void setup() {
 #define DEMO_COLOR_CORRECTION   1
 #define DEMO_FOREGROUND_DRAWING 1
 #define DEMO_BACKGND_BRIGHTNESS 1
+#define DEMO_REFRESH_RATE       1
 
 // the loop() method runs over and over again,
 // as long as the board has power
@@ -1263,6 +1264,53 @@ void loop() {
             int brightness = fraction * 255.0;
             matrix.setBackgroundBrightness(brightness);
         }
+    }
+#endif
+#if (DEMO_REFRESH_RATE == 1)
+    {
+        const int minRefreshRate = 20;
+        const int maxRefreshRate = 120;
+
+        matrix.setScrollColor({0xff, 0xff, 0xff});
+        matrix.setScrollMode(wrapForward);
+        matrix.setScrollSpeed(40);
+        matrix.setScrollFont(font6x10);
+        matrix.setScrollOffsetFromTop(0);
+        matrix.scrollText("Change Refresh Rate", 1);
+
+        matrix.fillScreen({0,0,0});
+        drawBitmap(0,0,&colorwheel);
+        matrix.swapBuffers();
+        matrix.setBackgroundBrightness(50);
+
+        const uint transitionTime = 9000;
+
+        // background brightness
+        currentMillis = millis();
+
+        while (millis() - currentMillis < transitionTime) {
+            float fraction = ((float)millis() - currentMillis) / ((float)transitionTime / 2);
+            int refreshRate;
+
+            if (fraction < 1.0)
+                refreshRate = maxRefreshRate - ((maxRefreshRate-minRefreshRate) * fraction);
+            if (fraction > 1.0)
+                refreshRate = minRefreshRate + ((maxRefreshRate-minRefreshRate) * (fraction - 1.0));
+            matrix.setRefreshRate(refreshRate);
+
+            char value[] = "000";
+            value[0] = '0' + refreshRate / 100;
+            value[1] = '0' + (refreshRate % 100) / 10;
+            value[2] = '0' + refreshRate % 10;
+
+            matrix.drawForegroundString(12, matrix.getScreenHeight()-1 -5, value, true);
+            matrix.displayForegroundDrawing();
+            matrix.clearForeground();
+        }
+
+        matrix.displayForegroundDrawing();
+        matrix.setScrollOffsetFromTop(defaultScrollOffset);
+        matrix.setBackgroundBrightness(255);
     }
 #endif
 }
