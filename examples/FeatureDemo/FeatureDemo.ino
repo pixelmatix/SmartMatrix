@@ -1263,7 +1263,13 @@ void loop() {
             x0 = random(matrix.getScreenWidth());
             y0 = random(matrix.getScreenHeight());
 
-            // draw crosshairs
+            color = matrix.readPixel(x0, y0);
+
+            // quick hack to (usually) stay within color wheel
+            if(color.red == 0 && color.green == 0 && color.blue == 0)
+                continue;
+
+            // draw crosshairs - sometimes they will be obscured by the scrolling text
             matrix.drawForegroundPixel(x0+1, y0, true);
             matrix.drawForegroundPixel(x0+2, y0, true);
             matrix.drawForegroundPixel(x0+3, y0, true);
@@ -1281,7 +1287,6 @@ void loop() {
             matrix.drawForegroundPixel(x0, y0-3, true);
             matrix.drawForegroundPixel(x0, y0-4, true);
 
-            color = matrix.readPixel(x0, y0);
             matrix.fillRectangle(matrix.getScreenWidth() - 5, matrix.getScreenHeight() - 5,
                 matrix.getScreenWidth(), matrix.getScreenHeight(), color);
             matrix.swapBuffers();
