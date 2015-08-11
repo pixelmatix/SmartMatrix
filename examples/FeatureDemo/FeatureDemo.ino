@@ -1129,7 +1129,6 @@ void loop() {
     // color correction options
 #if (DEMO_COLOR_CORRECTION == 1)
     {
-        // "Drawing Functions"
         matrix.setScrollColor({0xff, 0, 0});
         matrix.setScrollMode(wrapForward);
         matrix.setScrollSpeed(40);
