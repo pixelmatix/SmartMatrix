@@ -1192,6 +1192,7 @@ void loop() {
     {
         matrix.fillScreen({0,0,0});
         drawBitmap(0,0,&colorwheel);
+        matrix.setBackgroundBrightness(50);
         matrix.swapBuffers();
 
         const uint transitionTime = 3000;
@@ -1236,7 +1237,7 @@ void loop() {
 
         matrix.displayForegroundDrawing();
 
-        delay(1000);
+        delay(2000);
 
         currentMillis = millis();
 
@@ -1264,6 +1265,7 @@ void loop() {
         matrix.clearForeground();
         matrix.setScrollOffsetFromTop(defaultScrollOffset);
         matrix.displayForegroundDrawing();
+        matrix.setBackgroundBrightness(255);
     }
 #endif
 #if (DEMO_READ_PIXEL == 1)
@@ -1356,7 +1358,7 @@ void loop() {
             float fraction = ((float)millis() - currentMillis) / ((float)transitionTime / 2);
             int refreshRate;
 
-            if (fraction < 1.0)
+            if (fraction <= 1.0)
                 refreshRate = maxRefreshRate - ((maxRefreshRate-minRefreshRate) * fraction);
             if (fraction > 1.0)
                 refreshRate = minRefreshRate + ((maxRefreshRate-minRefreshRate) * (fraction - 1.0));
