@@ -46,7 +46,7 @@ void setup() {
 
     matrix.setScrollOffsetFromTop(defaultScrollOffset);
 
-    matrix.setColorCorrection(cc24);
+    matrix.setColorCorrection(cc48);
 }
 
 #define DEMO_INTRO              1
@@ -1147,7 +1147,7 @@ void loop() {
             drawBitmap(0,0,&colorwheel);
             if (j%2) {
                 matrix.drawString(1, 16, {0xff, 0, 0}, "CC:ON");
-                matrix.setColorCorrection(cc24);
+                matrix.setColorCorrection(cc48);
             } else {
                 matrix.drawString(1, 16, {0xff, 0, 0}, "CC:OFF");
                 matrix.setColorCorrection(ccNone);
@@ -1156,7 +1156,7 @@ void loop() {
             matrix.swapBuffers(false);
             delay(transitionTime/4);
         }
-        matrix.setColorCorrection(cc24);
+        matrix.setColorCorrection(cc48);
     }
 #endif
 #if (DEMO_BACKGND_BRIGHTNESS == 1)
