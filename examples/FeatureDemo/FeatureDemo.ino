@@ -74,6 +74,7 @@ void setup() {
 #define DEMO_FOREGROUND_DRAWING 1
 #define DEMO_BACKGND_BRIGHTNESS 1
 #define DEMO_REFRESH_RATE       1
+#define DEMO_READ_PIXEL         1
 
 // the loop() method runs over and over again,
 // as long as the board has power
@@ -1234,6 +1235,65 @@ void loop() {
         matrix.clearForeground();
         matrix.setScrollOffsetFromTop(defaultScrollOffset);
         matrix.displayForegroundDrawing();
+    }
+#endif
+#if (DEMO_READ_PIXEL == 1)
+    {
+        matrix.setScrollColor({0xff, 0xff, 0xff});
+        matrix.setScrollMode(wrapForward);
+        matrix.setScrollSpeed(40);
+        matrix.setScrollFont(font6x10);
+        matrix.setScrollOffsetFromTop(0);
+        matrix.scrollText("Read Pixel From Background", 1);
+
+        matrix.fillScreen({0,0,0});
+        drawBitmap(0,0,&colorwheel);
+        matrix.swapBuffers();
+        matrix.setBackgroundBrightness(50);
+
+        const uint transitionTime = 9000;
+
+        // background brightness
+        currentMillis = millis();
+
+        while (millis() - currentMillis < transitionTime) {
+            int x0, y0;
+
+            rgb24 color;
+            x0 = random(matrix.getScreenWidth());
+            y0 = random(matrix.getScreenHeight());
+
+            // draw crosshairs
+            matrix.drawForegroundPixel(x0+1, y0, true);
+            matrix.drawForegroundPixel(x0+2, y0, true);
+            matrix.drawForegroundPixel(x0+3, y0, true);
+            matrix.drawForegroundPixel(x0+4, y0, true);
+            matrix.drawForegroundPixel(x0-1, y0, true);
+            matrix.drawForegroundPixel(x0-2, y0, true);
+            matrix.drawForegroundPixel(x0-3, y0, true);
+            matrix.drawForegroundPixel(x0-4, y0, true);
+            matrix.drawForegroundPixel(x0, y0+1, true);
+            matrix.drawForegroundPixel(x0, y0+2, true);
+            matrix.drawForegroundPixel(x0, y0+3, true);
+            matrix.drawForegroundPixel(x0, y0+4, true);
+            matrix.drawForegroundPixel(x0, y0-1, true);
+            matrix.drawForegroundPixel(x0, y0-2, true);
+            matrix.drawForegroundPixel(x0, y0-3, true);
+            matrix.drawForegroundPixel(x0, y0-4, true);
+
+            color = matrix.readPixel(x0, y0);
+            matrix.fillRectangle(matrix.getScreenWidth() - 5, matrix.getScreenHeight() - 5,
+                matrix.getScreenWidth(), matrix.getScreenHeight(), color);
+            matrix.swapBuffers();
+
+            matrix.displayForegroundDrawing();
+            matrix.clearForeground();
+            delay(500);
+        }
+
+        matrix.displayForegroundDrawing();
+        matrix.setScrollOffsetFromTop(defaultScrollOffset);
+        matrix.setBackgroundBrightness(255);        
     }
 #endif
 #if (DEMO_BACKGND_BRIGHTNESS == 1)
