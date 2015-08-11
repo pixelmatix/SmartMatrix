@@ -1264,4 +1264,5 @@ void loop() {
             matrix.setBackgroundBrightness(brightness);
         }
     }
+#endif
 }
