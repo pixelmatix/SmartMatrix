@@ -168,7 +168,7 @@ void SMLayerForeground::drawForegroundChar(int16_t x, int16_t y, char character,
     for (k = y; k < y+foregroundfont->Height; k++) {
         // ignore rows that are not on the screen
         if(k < 0) continue;
-        if (k > localHeight) return;
+        if (k >= localHeight) return;
 
         tempBitmask = getBitmapFontRowAtXY(character, k - y, foregroundfont);
         if (x < 0) {
