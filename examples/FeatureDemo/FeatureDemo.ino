@@ -1232,6 +1232,7 @@ void loop() {
 
         matrix.setBackgroundBrightness(defaultBrightness);
         matrix.clearForeground();
+        matrix.setScrollOffsetFromTop(defaultScrollOffset);
         matrix.displayForegroundDrawing();
     }
 #endif
