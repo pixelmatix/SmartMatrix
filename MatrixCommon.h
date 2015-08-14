@@ -29,7 +29,8 @@ typedef enum colorCorrectionModes {
     ccNone,
     cc24,
     cc12,
-    cc48
+    cc48,
+    cc48dither
 } colorCorrectionModes;
 
 
@@ -47,6 +48,7 @@ typedef enum colorCorrectionModes {
 //#endif
 
 color_chan_t colorCorrection(uint8_t inputcolor);
+rgb24 colorCorrectionRgb24(uint8_t r, uint8_t g, uint8_t b);
 
 void calculateBackgroundLUT(color_chan_t * lut, uint8_t backgroundBrightness);
 

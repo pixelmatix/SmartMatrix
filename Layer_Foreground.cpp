@@ -65,9 +65,11 @@ void SMLayerForeground::getRefreshPixel(uint8_t hardwareX, uint8_t hardwareY, rg
     if(getForegroundPixel(hardwareX, hardwareY, tempPixel)) {
         if(bHasCC) {
             // load foreground pixel with color correction
-            xyPixel.red = colorCorrection(tempPixel.red);
-            xyPixel.green = colorCorrection(tempPixel.green);
-            xyPixel.blue = colorCorrection(tempPixel.blue);
+            // Currently this doesn't use the 16bit color table but seems like it should?
+            rgb24 ccPixel = colorCorrectionRgb24(tempPixel.red, tempPixel.green, tempPixel.blue);
+            xyPixel.red = ccPixel.red;
+            xyPixel.green = ccPixel.green;
+            xyPixel.blue = ccPixel.blue;
         } else {
             // load foreground pixel without color correction
             xyPixel.red = tempPixel.red << 8;
@@ -86,9 +88,7 @@ void SMLayerForeground::getRefreshPixel(uint8_t hardwareX, uint8_t hardwareY, rg
     if(getForegroundPixel(hardwareX, hardwareY, tempPixel)) {
         if(bHasCC) {
             // load foreground pixel with color correction
-            xyPixel.red = colorCorrection(tempPixel.red);
-            xyPixel.green = colorCorrection(tempPixel.green);
-            xyPixel.blue = colorCorrection(tempPixel.blue);
+            colorCorrectionRgb24(tempPixel.red, tempPixel.green, tempPixel.blue);
         } else {
             // load foreground pixel without color correction
             xyPixel.red = tempPixel.red;
