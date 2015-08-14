@@ -29,7 +29,8 @@ typedef enum colorCorrectionModes {
     ccNone,
     cc24,
     cc12,
-    cc48
+    cc48,
+    cc48dither
 } colorCorrectionModes;
 
 
