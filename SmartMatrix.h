@@ -143,6 +143,8 @@ public:
 
     SM_Layer * baseLayer;
 
+    void countFPS(void);
+
 private:
     // enable ISR access to private member variables
     friend void rowCalculationISR(void);

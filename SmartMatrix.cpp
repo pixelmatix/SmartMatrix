@@ -146,6 +146,21 @@ void SmartMatrix::useDefaultLayers(void) {
     foregroundLayer = (SMLayerForeground *)(baseLayer->nextLayer);
 }
 
+void SmartMatrix::countFPS(void) {
+  static long loops = 0;
+  static long lastMillis = 0;
+  long currentMillis = millis();
+
+  loops++;
+  if(currentMillis - lastMillis >= 1000){
+    Serial.print("Loops last second:");
+    Serial.println(loops);
+    
+    lastMillis = currentMillis;
+    loops = 0;
+  }
+}
+
 INLINE void SmartMatrix::matrixCalculations(void) {
     static unsigned char currentRow = 0;
 
