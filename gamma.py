@@ -22,7 +22,7 @@
 fout=open("gamma.h","wt")
 
 #adjust me! Each extra bit doubles the table size 
-ditherBits=3
+ditherBits=2
 
 # the gamma value
 gamma = 2.5
