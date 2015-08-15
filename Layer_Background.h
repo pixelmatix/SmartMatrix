@@ -5,46 +5,51 @@
 #include "MatrixCommon.h"
 #include "MatrixFontCommon.h"
 
-class SMLayerBackground : public SM_Layer {
+template <typename RGB>
+class SMLayerBackground : public SM_Layer<RGB> {
     public:
-        SMLayerBackground(rgb24 * buffer, uint8_t width, uint8_t height);
+        SMLayerBackground(RGB * buffer, uint8_t width, uint8_t height);
         void frameRefreshCallback();
-        void getRefreshPixel(uint8_t x, uint8_t y, rgb24 &refreshPixel);
-        void getRefreshPixel(uint8_t x, uint8_t y, rgb48 &refreshPixel);
+        void getRefreshPixel(uint8_t x, uint8_t y, RGB &refreshPixel);
 
         void swapBuffers(bool copy = true);
     #ifdef SMARTMATRIX_TRIPLEBUFFER
         void swapBuffersWithInterpolation_frames(int framesToInterpolate, bool copy = false);
         void swapBuffersWithInterpolation_ms(int interpolationSpan_ms, bool copy = false);
     #endif
-        void drawPixel(int16_t x, int16_t y, const rgb24& color);
-        void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const rgb24& color);
-        void drawFastVLine(int16_t x, int16_t y0, int16_t y1, const rgb24& color);
-        void drawFastHLine(int16_t x0, int16_t x1, int16_t y, const rgb24& color);
-        void drawCircle(int16_t x0, int16_t y0, uint16_t radius, const rgb24& color);
-        void fillCircle(int16_t x0, int16_t y0, uint16_t radius, const rgb24& outlineColor, const rgb24& fillColor);
-        void fillCircle(int16_t x0, int16_t y0, uint16_t radius, const rgb24& color);
-        void drawEllipse(int16_t x0, int16_t y0, uint16_t radiusX, uint16_t radiusY, const rgb24& color);
-        void drawTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const rgb24& color);
-        void fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const rgb24& fillColor);
+        void drawPixel(int16_t x, int16_t y, const RGB& color);
+        void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& color);
+        void drawFastVLine(int16_t x, int16_t y0, int16_t y1, const RGB& color);
+        void drawFastHLine(int16_t x0, int16_t x1, int16_t y, const RGB& color);
+        void drawCircle(int16_t x0, int16_t y0, uint16_t radius, const RGB& color);
+        void fillCircle(int16_t x0, int16_t y0, uint16_t radius, const RGB& outlineColor, const RGB& fillColor);
+        void fillCircle(int16_t x0, int16_t y0, uint16_t radius, const RGB& color);
+        void drawEllipse(int16_t x0, int16_t y0, uint16_t radiusX, uint16_t radiusY, const RGB& color);
+        void drawTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const RGB& color);
+        void fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const RGB& fillColor);
         void fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3,
-        const rgb24& outlineColor, const rgb24& fillColor);
-        void drawRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const rgb24& color);
-        void fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const rgb24& color);
-        void fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const rgb24& outlineColor, const rgb24& fillColor);
-        void drawRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t radius, const rgb24& outlineColor);
-        void fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t radius, const rgb24& fillColor);
+            const RGB& outlineColor, const RGB& fillColor);
+        void drawRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& color);
+        void fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& color);
+        void fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& outlineColor, const RGB& fillColor);
+        void drawRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t radius, const RGB& outlineColor);
+        void fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t radius, const RGB& fillColor);
         void fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t radius,
-        const rgb24& outlineColor, const rgb24& fillColor);
-        void fillScreen(const rgb24& color);
-        void drawChar(int16_t x, int16_t y, const rgb24& charColor, char character);
-        void drawString(int16_t x, int16_t y, const rgb24& charColor, const char text[]);
-        void drawString(int16_t x, int16_t y, const rgb24& charColor, const rgb24& backColor, const char text[]);
-        void drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, const rgb24& bitmapColor, const uint8_t *bitmap);
-        const rgb24 readPixel(int16_t x, int16_t y);
-        rgb24 *backBuffer(void);
-        void setBackBuffer(rgb24 *newBuffer);
-        rgb24 *getRealBackBuffer(void);
+            const RGB& outlineColor, const RGB& fillColor);
+        void fillScreen(const RGB& color);
+        void drawChar(int16_t x, int16_t y, const RGB& charColor, char character);
+        void drawString(int16_t x, int16_t y, const RGB& charColor, const char text[]);
+        void drawString(int16_t x, int16_t y, const RGB& charColor, const RGB& backColor, const char text[]);
+        void drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, const RGB& bitmapColor, const uint8_t *bitmap);
+
+        // reads pixel from drawing buffer, not refresh buffer
+        const RGB readPixel(int16_t x, int16_t y);
+
+        RGB *backBuffer(void);
+        void setBackBuffer(RGB *newBuffer);
+
+        RGB *getRealBackBuffer();
+
         void setFont(fontChoices newFont);
         void setBrightness(uint8_t brightness);
         void setColorCorrection(colorCorrectionModes mode);
@@ -52,28 +57,32 @@ class SMLayerBackground : public SM_Layer {
     private:
         colorCorrectionModes ccmode = cc48;
 
-        rgb24 * backgroundBuffer;
+        RGB *currentDrawBufferPtr;
+        RGB *currentRefreshBufferPtr;
+
+        RGB *backgroundBuffer;
 
         // todo: sort through static, make sure usage is correct
         static color_chan_t backgroundColorCorrection(uint8_t inputcolor);
 
-        rgb24 *getCurrentRefreshRow(uint8_t y);
+        RGB *getCurrentRefreshRow(uint8_t y);
+
     #ifdef SMARTMATRIX_TRIPLEBUFFER
-        rgb24 *getPreviousRefreshRow(uint8_t y);
+        RGB *getPreviousRefreshRow(uint8_t y);
         static uint32_t calculateFcInterpCoefficient();
     #endif
-        void getBackgroundRefreshPixel(uint8_t x, uint8_t y, rgb48 &refreshPixel);
-        bool getForegroundRefreshPixel(uint8_t x, uint8_t y, rgb48 &xyPixel);
+        void getBackgroundRefreshPixel(uint8_t x, uint8_t y, RGB &refreshPixel);
+        bool getForegroundRefreshPixel(uint8_t x, uint8_t y, RGB &xyPixel);
 
         // drawing functions not meant for user
-        void drawHardwareHLine(uint8_t x0, uint8_t x1, uint8_t y, const rgb24& color);
-        void drawHardwareVLine(uint8_t x, uint8_t y0, uint8_t y1, const rgb24& color);
-        void bresteepline(int16_t x3, int16_t y3, int16_t x4, int16_t y4, const rgb24& color);
-        void fillFlatSideTriangleInt(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const rgb24& color);
+        void drawHardwareHLine(uint8_t x0, uint8_t x1, uint8_t y, const RGB& color);
+        void drawHardwareVLine(uint8_t x, uint8_t y0, uint8_t y1, const RGB& color);
+        void bresteepline(int16_t x3, int16_t y3, int16_t x4, int16_t y4, const RGB& color);
+        void fillFlatSideTriangleInt(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const RGB& color);
         // todo: move somewhere else
         static bool getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap);
 
-        static uint8_t backgroundBrightness;
+        uint8_t backgroundBrightness = 255;
 
         // keeping track of drawing buffers
         static unsigned char currentDrawBuffer;
@@ -85,5 +94,7 @@ class SMLayerBackground : public SM_Layer {
         static bool swapWithCopy;
         void handleBufferSwap(void);
 };
+
+#include "Layer_Background_Impl.h"
 
 #endif
