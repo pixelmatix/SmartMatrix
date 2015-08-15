@@ -158,6 +158,22 @@ void SmartMatrix<RGB>::addLayer(SM_Layer<RGB> * newlayer) {
 }
 
 template <typename RGB>
+void SmartMatrix<RGB>::countFPS(void) {
+  static long loops = 0;
+  static long lastMillis = 0;
+  long currentMillis = millis();
+
+  loops++;
+  if(currentMillis - lastMillis >= 1000){
+    Serial.print("Loops last second:");
+    Serial.println(loops);
+    
+    lastMillis = currentMillis;
+    loops = 0;
+  }
+}
+
+template <typename RGB>
 void SmartMatrix<RGB>::useDefaultLayers(void) {
     backgroundLayer = (SMLayerBackground<RGB> *)baseLayer;
     foregroundLayer = (SMLayerForeground<RGB> *)(baseLayer->nextLayer);

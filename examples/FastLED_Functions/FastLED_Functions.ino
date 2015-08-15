@@ -85,7 +85,6 @@ void fillnoise8() {
   z += speed;
 }
 
-
 void loop() {
   static uint8_t circlex = 0;
   static uint8_t circley = 0;
@@ -111,6 +110,5 @@ void loop() {
   circlex += random16(2);
   circley += random16(2);
   matrix.swapBuffers(false);
-  LEDS.countFPS();
-  // delay(10);
+  matrix.countFPS();
 }

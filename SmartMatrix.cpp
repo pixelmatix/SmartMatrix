@@ -5,5 +5,4 @@ DMAChannel dmaUpdateAddress(false);
 DMAChannel dmaUpdateTimer(false);
 DMAChannel dmaClockOutData(false);
 
-
 CircularBuffer dmaBuffer;

@@ -140,6 +140,8 @@ public:
 
     SM_Layer<RGB> * baseLayer;
 
+    void countFPS(void);
+
 private:
     // enable ISR access to private member variables
     template <typename RGB1>
