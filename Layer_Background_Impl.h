@@ -1,7 +1,4 @@
 
-// TODO: get color correction working
-
-
 // needed for lutInterpolate, and must be included after Arduino.h (contains definition for PI - conflict with wiring.h)
 #include "arm_math.h"
 
