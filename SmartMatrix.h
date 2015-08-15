@@ -184,9 +184,6 @@ private:
     static timerpair * timerLUT;
 
     static SmartMatrix<RGB>* globalinstance;
-
-public:
-    rgb48 debugTmpPixel0;
 };
 
 // single matrixUpdateBlocks buffer is divided up to hold matrixUpdateBlocks, addressLUT, timerLUT to simplify user sketch code and reduce constructor parameters

@@ -690,7 +690,6 @@ void SmartMatrix<RGB>::loadMatrixBuffers(unsigned char currentRow) {
             *(tempptr + latchesPerRow/sizeof(uint32_t)) = o3.word | clkset.word;
         }
     }
-    globalinstance->debugTmpPixel0 = tempPixel0;
 }
 
 template <typename RGB>

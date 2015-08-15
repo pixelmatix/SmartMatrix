@@ -94,9 +94,6 @@ class SMLayerBackground : public SM_Layer<RGB> {
         static volatile bool swapPending;
         static bool swapWithCopy;
         void handleBufferSwap(void);
-public:
-        rgb48 debugOutPixel;
-        rgb24 debugInPixel;
 };
 
 #include "Layer_Background_Impl.h"

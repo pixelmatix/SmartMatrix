@@ -60,9 +60,6 @@ void SMLayerBackground<RGB>::getRefreshPixel(uint8_t hardwareX, uint8_t hardware
 #else
     // do once per refresh
     colorCorrection(ccmode, currentPixel, xyPixel);
-
-    debugInPixel = currentPixel;
-    debugOutPixel = xyPixel;
 #endif
 }
 
