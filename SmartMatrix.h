@@ -35,13 +35,6 @@
 
 #define ENABLE_FADECANDY_GAMMA_CORRECTION               1
 
-// color
-//#if COLOR_DEPTH_RGB > 24
-//typedef rgb48 refreshPixel;
-//#else
-//typedef RGB refreshPixel;
-//#endif
-
 // definition telling FastLED that setBackBuffer() and getRealBackBuffer() are available
 #define SMART_MATRIX_CAN_TRIPLE_BUFFER 1
 

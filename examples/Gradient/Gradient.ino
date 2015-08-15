@@ -1,10 +1,14 @@
 #include <SmartMatrix3.h>
 
+// Change the following value to 24 or 48 to change between storing colors
+// with 24 or 48bits. At 24bits, this example sketch shows "stepping" at low
+// color values, while at 48bits the gradient is smooth.
+#define DEPTH 48
+
 #define WIDTH 64
 #define HEIGHT 32
 
-#define DEPTH 48                          // known working: 24, 48 (why not 36?)
-#define PWM_DEPTH 48
+#define PWM_DEPTH 48                      // known working: 48 (24 not yet supported)
 const uint8_t kMatrixHeight = HEIGHT;     // known working: 16, 32
 const uint8_t kMatrixWidth = WIDTH;       // known working: 32, 64
 const uint8_t kDmaBufferRows = 4;         // known working: 4
@@ -15,7 +19,7 @@ void setup() {
   SMARTMATRIX_SETUP_DEFAULT_LAYERS(kMatrixWidth, kMatrixHeight, DEPTH);
 
   matrix.setBrightness(255);
-  matrix.setColorCorrection(ccNone);
+  matrix.setColorCorrection(cc48);
 }
 
 void loop() {
