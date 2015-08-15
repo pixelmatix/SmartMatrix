@@ -13,12 +13,21 @@ typedef struct rgb24 {
     uint8_t blue;
 } rgb24;
 
+typedef struct rgb36 {
+    uint16_t red;
+    uint16_t green;
+    uint16_t blue;
+} rgb36;
+
 typedef struct rgb48 {
     uint16_t red;
     uint16_t green;
     uint16_t blue;
 } rgb48;
 
+#define NAME2(fun,suffix) fun ## suffix
+#define NAME1(fun,suffix) NAME2(fun,suffix)
+#define RGB_TYPE(depth) NAME1(rgb,depth)
 
 #define RGB24_ISEQUAL(a, b)     ((a.red == b.red) && (a.green == b.green) && (a.blue == b.blue))
 

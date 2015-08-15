@@ -456,8 +456,8 @@ void SmartMatrix<RGB>::loadMatrixBuffers(unsigned char currentRow) {
         tempptr->timerValues.timer_oe = timerLUT[j].timer_oe;
     }
 
-    refreshPixel tempPixel0;
-    refreshPixel tempPixel1;
+    RGB tempPixel0;
+    RGB tempPixel1;
 
     for (i = 0; i < matrixWidth; i++) {
         uint16_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;

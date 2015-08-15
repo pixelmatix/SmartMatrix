@@ -37,7 +37,7 @@
 
 // color
 //#if COLOR_DEPTH_RGB > 24
-typedef rgb48 refreshPixel;
+//typedef rgb48 refreshPixel;
 //#else
 //typedef RGB refreshPixel;
 //#endif
@@ -190,14 +190,14 @@ private:
 #define SMARTMATRIX_ALLOCATE_BUFFERS(width, height, depth, rows) \
     static DMAMEM uint32_t matrixUpdateData[rows * width * (depth/3 / sizeof(uint32_t)) * 2]; \
     static DMAMEM uint8_t matrixUpdateBlocks[(sizeof(matrixUpdateBlock) * rows * depth/3) + (sizeof(addresspair) * height/2) + (sizeof(timerpair) * depth/3)]; \
-    SmartMatrix<rgb##depth> matrix(width, height, depth, rows, matrixUpdateData, matrixUpdateBlocks)
+    SmartMatrix<RGB_TYPE(depth)> matrix(width, height, depth, rows, matrixUpdateData, matrixUpdateBlocks)
 
 #define SMARTMATRIX_SETUP_DEFAULT_LAYERS(width, height, depth) \
-    static rgb##depth backgroundBitmap[2*width*height];                              \
-    static SMLayerBackground<rgb##depth> backgroundLayer(backgroundBitmap, width, height);  \
+    static RGB_TYPE(depth) backgroundBitmap[2*width*height];                              \
+    static SMLayerBackground<RGB_TYPE(depth)> backgroundLayer(backgroundBitmap, width, height);  \
     matrix.addLayer(&backgroundLayer);                                          \
     static uint8_t foregroundBitmap[2 * height * (width / 8)];                  \
-    static SMLayerForeground<rgb##depth> foregroundLayer(foregroundBitmap, width, height);  \
+    static SMLayerForeground<RGB_TYPE(depth)> foregroundLayer(foregroundBitmap, width, height);  \
     matrix.addLayer(&foregroundLayer);                                          \
     matrix.useDefaultLayers();                                                  \
     matrix.begin()
