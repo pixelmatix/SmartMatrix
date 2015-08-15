@@ -456,8 +456,8 @@ void SmartMatrix<RGB>::loadMatrixBuffers(unsigned char currentRow) {
         tempptr->timerValues.timer_oe = timerLUT[j].timer_oe;
     }
 
-    RGB tempPixel0;
-    RGB tempPixel1;
+    rgb48 tempPixel0;
+    rgb48 tempPixel1;
 
     for (i = 0; i < matrixWidth; i++) {
         uint16_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;
@@ -690,6 +690,7 @@ void SmartMatrix<RGB>::loadMatrixBuffers(unsigned char currentRow) {
             *(tempptr + latchesPerRow/sizeof(uint32_t)) = o3.word | clkset.word;
         }
     }
+    globalinstance->debugTmpPixel0 = tempPixel0;
 }
 
 template <typename RGB>

@@ -37,6 +37,8 @@ SMLayerBackground<RGB>::SMLayerBackground(RGB * buffer, uint8_t width, uint8_t h
 template <typename RGB>
 void SMLayerBackground<RGB>::frameRefreshCallback(void) {
     handleBufferSwap();
+
+    // Note: is this useful anymore?
     calculateBackgroundLUT(backgroundColorCorrectionLUT, backgroundBrightness);
 
 #ifdef SMARTMATRIX_TRIPLEBUFFER
@@ -47,7 +49,7 @@ void SMLayerBackground<RGB>::frameRefreshCallback(void) {
 }
 
 template <typename RGB>
-void SMLayerBackground<RGB>::getRefreshPixel(uint8_t hardwareX, uint8_t hardwareY, RGB &xyPixel) {
+void SMLayerBackground<RGB>::getRefreshPixel(uint8_t hardwareX, uint8_t hardwareY, rgb48 &xyPixel) {
     RGB currentPixel = currentRefreshBufferPtr[(hardwareY * this->matrixWidth) + hardwareX];
 
 #ifdef SMARTMATRIX_TRIPLEBUFFER
@@ -57,21 +59,13 @@ void SMLayerBackground<RGB>::getRefreshPixel(uint8_t hardwareX, uint8_t hardware
     refreshPixel.blue = lutInterpolate(lightPowerMap16bit2, ((prevPixel.blue * icPrev + currentPixel.blue * icNext) >> 16));
 #else
     // do once per refresh
-    bool bHasCC = ccmode != ccNone;
+    colorCorrection(ccmode, currentPixel, xyPixel);
 
-    if(bHasCC) {
-        // load background pixel with color correction
-        xyPixel.red = backgroundColorCorrection(currentPixel.red);
-        xyPixel.green = backgroundColorCorrection(currentPixel.green);
-        xyPixel.blue = backgroundColorCorrection(currentPixel.blue);
-    } else {
-        // load background pixel without color correction
-        xyPixel.red = currentPixel.red << 8;
-        xyPixel.green = currentPixel.green << 8;
-        xyPixel.blue = currentPixel.blue << 8;
-    }
+    debugInPixel = currentPixel;
+    debugOutPixel = xyPixel;
 #endif
 }
+
 
 
 template <typename RGB>

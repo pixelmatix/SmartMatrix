@@ -7,7 +7,9 @@ template <typename RGB>
 class SM_Layer {
     public:
         virtual void frameRefreshCallback();
-        virtual void getRefreshPixel(uint8_t x, uint8_t y, RGB &refreshPixel);
+
+        virtual void getRefreshPixel(uint8_t x, uint8_t y, rgb48 &xyPixel);
+
         void setRotation(rotationDegrees newrotation);
         void setRefreshRate(uint8_t newRefreshRate);
         void addLayer(SM_Layer * newlayer);

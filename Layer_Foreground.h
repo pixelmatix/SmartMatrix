@@ -25,7 +25,8 @@ class SMLayerForeground : public SM_Layer<RGB> {
     public:
         SMLayerForeground(uint8_t * bitmap, uint8_t width, uint8_t height);
         void frameRefreshCallback();
-        void getRefreshPixel(uint8_t x, uint8_t y, RGB &refreshPixel);
+
+        virtual void getRefreshPixel(uint8_t x, uint8_t y, rgb48 &xyPixel);
 
         void setScrollColor(const RGB & newColor);
         colorCorrectionModes ccmode = cc48;
@@ -61,7 +62,9 @@ class SMLayerForeground : public SM_Layer<RGB> {
         // todo: move somewhere else
         static bool getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap);
         void updateForeground(void);
-        bool getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, RGB &xyPixel);
+
+        template <typename RGB_OUT>
+        bool getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, RGB_OUT &xyPixel);
 
         RGB textcolor = {0xff, 0xff, 0xff};
 

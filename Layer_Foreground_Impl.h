@@ -21,8 +21,8 @@ void SMLayerForeground<RGB>::frameRefreshCallback(void) {
 }
 
 // returns true and copies color to xyPixel if pixel is opaque, returns false if not
-template<typename RGB>
-bool SMLayerForeground<RGB>::getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, RGB &xyPixel) {
+template<typename RGB> template <typename RGB_OUT>
+bool SMLayerForeground<RGB>::getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, RGB_OUT &xyPixel) {
     uint8_t localScreenX, localScreenY;
 
     // convert hardware x/y to the pixel in the local screen
@@ -58,27 +58,15 @@ bool SMLayerForeground<RGB>::getForegroundPixel(uint8_t hardwareX, uint8_t hardw
     return false;
 }
 
-template<typename RGB>
-void SMLayerForeground<RGB>::getRefreshPixel(uint8_t hardwareX, uint8_t hardwareY, RGB &xyPixel) {
-    RGB tempPixel;
-
+template <typename RGB>
+void SMLayerForeground<RGB>::getRefreshPixel(uint8_t x, uint8_t y, rgb48 &xyPixel) {
     // do once per refresh
-    bool bHasCC = ccmode != ccNone;
-
-    if(getForegroundPixel(hardwareX, hardwareY, tempPixel)) {
-        if(bHasCC) {
-            // load foreground pixel with color correction
-            xyPixel.red = colorCorrection(tempPixel.red);
-            xyPixel.green = colorCorrection(tempPixel.green);
-            xyPixel.blue = colorCorrection(tempPixel.blue);
-        } else {
-            // load foreground pixel without color correction
-            xyPixel.red = tempPixel.red << 8;
-            xyPixel.green = tempPixel.green << 8;
-            xyPixel.blue = tempPixel.blue << 8;
-        }
+    RGB tempPixel;
+    if(getForegroundPixel(x, y, tempPixel)) {
+        colorCorrection(ccmode, tempPixel, xyPixel);
     }
 }
+
 
 template<typename RGB>
 void SMLayerForeground<RGB>::setScrollColor(const RGB & newColor) {

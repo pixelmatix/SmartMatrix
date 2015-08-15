@@ -184,20 +184,23 @@ private:
     static timerpair * timerLUT;
 
     static SmartMatrix<RGB>* globalinstance;
+
+public:
+    rgb48 debugTmpPixel0;
 };
 
 // single matrixUpdateBlocks buffer is divided up to hold matrixUpdateBlocks, addressLUT, timerLUT to simplify user sketch code and reduce constructor parameters
-#define SMARTMATRIX_ALLOCATE_BUFFERS(width, height, depth, rows) \
-    static DMAMEM uint32_t matrixUpdateData[rows * width * (depth/3 / sizeof(uint32_t)) * 2]; \
-    static DMAMEM uint8_t matrixUpdateBlocks[(sizeof(matrixUpdateBlock) * rows * depth/3) + (sizeof(addresspair) * height/2) + (sizeof(timerpair) * depth/3)]; \
-    SmartMatrix<RGB_TYPE(depth)> matrix(width, height, depth, rows, matrixUpdateData, matrixUpdateBlocks)
+#define SMARTMATRIX_ALLOCATE_BUFFERS(width, height, storage_depth, pwm_depth, rows) \
+    static DMAMEM uint32_t matrixUpdateData[rows * width * (pwm_depth/3 / sizeof(uint32_t)) * 2]; \
+    static DMAMEM uint8_t matrixUpdateBlocks[(sizeof(matrixUpdateBlock) * rows * pwm_depth/3) + (sizeof(addresspair) * height/2) + (sizeof(timerpair) * pwm_depth/3)]; \
+    SmartMatrix<RGB_TYPE(storage_depth)> matrix(width, height, pwm_depth, rows, matrixUpdateData, matrixUpdateBlocks)
 
-#define SMARTMATRIX_SETUP_DEFAULT_LAYERS(width, height, depth) \
-    static RGB_TYPE(depth) backgroundBitmap[2*width*height];                              \
-    static SMLayerBackground<RGB_TYPE(depth)> backgroundLayer(backgroundBitmap, width, height);  \
+#define SMARTMATRIX_SETUP_DEFAULT_LAYERS(width, height, storage_depth) \
+    static RGB_TYPE(storage_depth) backgroundBitmap[2*width*height];                              \
+    static SMLayerBackground<RGB_TYPE(storage_depth)> backgroundLayer(backgroundBitmap, width, height);  \
     matrix.addLayer(&backgroundLayer);                                          \
     static uint8_t foregroundBitmap[2 * height * (width / 8)];                  \
-    static SMLayerForeground<RGB_TYPE(depth)> foregroundLayer(foregroundBitmap, width, height);  \
+    static SMLayerForeground<RGB_TYPE(storage_depth)> foregroundLayer(foregroundBitmap, width, height);  \
     matrix.addLayer(&foregroundLayer);                                          \
     matrix.useDefaultLayers();                                                  \
     matrix.begin()
