@@ -503,6 +503,16 @@ void SmartMatrix3<RGB>::loadMatrixBuffers(unsigned char currentRow) {
             temp1blue >>= 4;
         }
 
+        if(latchesPerRow == 8) {
+            temp0red >>= 8;
+            temp0green >>= 8;
+            temp0blue >>= 8;
+
+            temp1red >>= 8;
+            temp1green >>= 8;
+            temp1blue >>= 8;
+        }
+
         // this technique is from Fadecandy
         union {
             uint32_t word;
