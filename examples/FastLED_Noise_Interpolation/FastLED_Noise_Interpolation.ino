@@ -1,11 +1,11 @@
 #include<SmartMatrix3.h>
 #include<FastLED.h>
 
+#define COLOR_DEPTH 48
 const uint8_t kMatrixHeight = 32;       // known working: 16, 32
 const uint8_t kMatrixWidth = 32;        // known working: 32, 64
-const uint8_t kColorDepthRgb = 36;      // known working: 36, 48 (24 isn't efficient and has color correction issues)
 const uint8_t kDmaBufferRows = 4;       // known working: 4
-SMARTMATRIX_ALLOCATE_BUFFERS(kMatrixWidth, kMatrixHeight, kColorDepthRgb, kDmaBufferRows);
+SMARTMATRIX_ALLOCATE_BUFFERS(kMatrixWidth, kMatrixHeight, COLOR_DEPTH, 48, kDmaBufferRows);
 
 // The 32bit version of our coordinates
 static uint16_t x;
@@ -39,7 +39,7 @@ void setup() {
   // Serial.println("resetting!");
   //delay(3000);
 
-  SMARTMATRIX_SETUP_DEFAULT_LAYERS(kMatrixWidth, kMatrixHeight);
+  SMARTMATRIX_SETUP_DEFAULT_LAYERS(kMatrixWidth, kMatrixHeight, COLOR_DEPTH);
 
   matrix.setBrightness(25);
 
@@ -75,7 +75,7 @@ void loop() {
   static uint8_t ihue=0;
   fillnoise8();
 
-  rgb24 *buffer = matrix.backBuffer();
+  SM_RGB *buffer = matrix.backBuffer();
 
   for(int i = 0; i < kMatrixWidth; i++) {
     for(int j = 0; j < kMatrixHeight; j++) {

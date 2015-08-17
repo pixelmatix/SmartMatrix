@@ -183,6 +183,7 @@ private:
 
 // single matrixUpdateBlocks buffer is divided up to hold matrixUpdateBlocks, addressLUT, timerLUT to simplify user sketch code and reduce constructor parameters
 #define SMARTMATRIX_ALLOCATE_BUFFERS(width, height, storage_depth, pwm_depth, rows) \
+    typedef RGB_TYPE(COLOR_DEPTH) SM_RGB; \
     static DMAMEM uint32_t matrixUpdateData[rows * width * (pwm_depth/3 / sizeof(uint32_t)) * 2]; \
     static DMAMEM uint8_t matrixUpdateBlocks[(sizeof(matrixUpdateBlock) * rows * pwm_depth/3) + (sizeof(addresspair) * height/2) + (sizeof(timerpair) * pwm_depth/3)]; \
     SmartMatrix<RGB_TYPE(storage_depth)> matrix(width, height, pwm_depth, rows, matrixUpdateData, matrixUpdateBlocks)

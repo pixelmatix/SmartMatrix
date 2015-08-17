@@ -18,18 +18,18 @@
 // chrome16 is a 16x16 pixel bitmap, exported from GIMP without modification
 #include "chrome16.c"
 
+#define COLOR_DEPTH 48
 const uint8_t kMatrixHeight = 32;       // known working: 16, 32
 const uint8_t kMatrixWidth = 32;        // known working: 32, 64
-const uint8_t kColorDepthRgb = 36;      // known working: 36, 48 (24 isn't efficient and has color correction issues)
 const uint8_t kDmaBufferRows = 4;       // known working: 4
-SMARTMATRIX_ALLOCATE_BUFFERS(kMatrixWidth, kMatrixHeight, kColorDepthRgb, kDmaBufferRows);
+SMARTMATRIX_ALLOCATE_BUFFERS(kMatrixWidth, kMatrixHeight, COLOR_DEPTH, 48, kDmaBufferRows);
 
 int led = 13;
 
 void drawBitmap(int16_t x, int16_t y, const gimp32x32bitmap* bitmap) {
   for(unsigned int i=0; i < bitmap->height; i++) {
     for(unsigned int j=0; j < bitmap->width; j++) {
-      rgb24 pixel = { bitmap->pixel_data[(i*bitmap->width + j)*3 + 0],
+      SM_RGB pixel = { bitmap->pixel_data[(i*bitmap->width + j)*3 + 0],
                       bitmap->pixel_data[(i*bitmap->width + j)*3 + 1],
                       bitmap->pixel_data[(i*bitmap->width + j)*3 + 2] };
 
@@ -39,7 +39,7 @@ void drawBitmap(int16_t x, int16_t y, const gimp32x32bitmap* bitmap) {
 }
 
 void setup() {
-  SMARTMATRIX_SETUP_DEFAULT_LAYERS(kMatrixWidth, kMatrixHeight);
+  SMARTMATRIX_SETUP_DEFAULT_LAYERS(kMatrixWidth, kMatrixHeight, COLOR_DEPTH);
 
   matrix.setBrightness(128);
 

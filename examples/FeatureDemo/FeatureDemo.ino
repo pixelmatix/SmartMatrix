@@ -7,16 +7,16 @@
 #include "colorwheel.c"
 #include "gimpbitmap.h"
 
+#define COLOR_DEPTH 48
 const uint8_t kMatrixHeight = 32;       // known working: 16, 32
 const uint8_t kMatrixWidth = 32;        // known working: 32, 64
-const uint8_t kColorDepthRgb = 48;      // known working: 36, 48 (24 isn't efficient and has color correction issues)
 const uint8_t kDmaBufferRows = 4;       // known working: 4
-SMARTMATRIX_ALLOCATE_BUFFERS(kMatrixWidth, kMatrixHeight, kColorDepthRgb, kDmaBufferRows);
+SMARTMATRIX_ALLOCATE_BUFFERS(kMatrixWidth, kMatrixHeight, COLOR_DEPTH, 48, kDmaBufferRows);
 
 const int defaultBrightness = 100*(255/100);    // full brightness
 //const int defaultBrightness = 15*(255/100);    // dim: 15% brightness
 const int defaultScrollOffset = 6;
-const rgb24 defaultBackgroundColor = {0x40, 0, 0};
+const SM_RGB defaultBackgroundColor = {0x40, 0, 0};
 
 // Teensy 3.0 has the LED on pin 13
 const int ledPin = 13;
@@ -24,7 +24,7 @@ const int ledPin = 13;
 void drawBitmap(int16_t x, int16_t y, const gimp32x32bitmap* bitmap) {
   for(unsigned int i=0; i < bitmap->height; i++) {
     for(unsigned int j=0; j < bitmap->width; j++) {
-      rgb24 pixel = { bitmap->pixel_data[(i*bitmap->width + j)*3 + 0],
+      SM_RGB pixel = { bitmap->pixel_data[(i*bitmap->width + j)*3 + 0],
                       bitmap->pixel_data[(i*bitmap->width + j)*3 + 1],
                       bitmap->pixel_data[(i*bitmap->width + j)*3 + 2] };
 
@@ -40,7 +40,7 @@ void setup() {
 
     Serial.begin(38400);
 
-    SMARTMATRIX_SETUP_DEFAULT_LAYERS(kMatrixWidth, kMatrixHeight, Rgb48);
+    SMARTMATRIX_SETUP_DEFAULT_LAYERS(kMatrixWidth, kMatrixHeight, 48);
 
     matrix.setBrightness(defaultBrightness);
 
@@ -132,8 +132,8 @@ void loop() {
             radius = random(matrix.getScreenWidth());
             radius2 = random(matrix.getScreenWidth());
 
-            rgb24 fillColor = {(uint8_t)random(192), (uint8_t)random(192), (uint8_t)random(192)};
-            rgb24 outlineColor = {(uint8_t)random(192), (uint8_t)random(192), (uint8_t)random(192)};
+            SM_RGB fillColor = {(uint8_t)random(192), (uint8_t)random(192), (uint8_t)random(192)};
+            SM_RGB outlineColor = {(uint8_t)random(192), (uint8_t)random(192), (uint8_t)random(192)};
 
             switch (random(15)) {
             case 0:
@@ -225,7 +225,7 @@ void loop() {
         while (millis() - currentMillis < transitionTime) {
             int x0, y0;
 
-            rgb24 color;
+            SM_RGB color;
             float fraction = ((float)millis() - currentMillis) / ((float)transitionTime / 2);
 
             if (millis() - currentMillis < transitionTime / 2) {
@@ -267,7 +267,7 @@ void loop() {
         unsigned long delayCounter = currentMillis;
 
         for (i = 0; i < matrix.getScreenWidth(); i++) {
-            rgb24 color;
+            SM_RGB color;
             float fraction = ((float)millis() - currentMillis) / ((float)transitionTime / 2);
 
             color.red = 255 - 255.0 * fraction;
@@ -281,7 +281,7 @@ void loop() {
         }
 
         for (i = 0; i < matrix.getScreenHeight(); i++) {
-            rgb24 color;
+            SM_RGB color;
             float fraction = ((float)millis() - currentMillis) / ((float)transitionTime / 2);
             fraction -= 1.0;
             if (fraction < 0) fraction = 0.0;
@@ -303,7 +303,7 @@ void loop() {
         delayCounter = currentMillis;
 
         for (i = 0; i < matrix.getScreenWidth() * 2; i++) {
-            rgb24 color;
+            SM_RGB color;
             float fraction = ((float)millis() - currentMillis) / ((float)transitionTime / 2);
 
             color.red = 255 - 255.0 * fraction;
@@ -317,7 +317,7 @@ void loop() {
         }
 
         for (i = 0; i < matrix.getScreenWidth() * 2; i++) {
-            rgb24 color;
+            SM_RGB color;
             float fraction = ((float)millis() - currentMillis) / ((float)transitionTime / 2);
             fraction -= 1.0;
             if (fraction < 0) fraction = 0.0;
@@ -351,7 +351,7 @@ void loop() {
         unsigned long delayCounter = currentMillis;
 
         for (i = 0; i < matrix.getScreenWidth(); i++) {
-            rgb24 color;
+            SM_RGB color;
             float fraction = ((float)millis() - currentMillis) / ((float)transitionTime / 2);
 
             color.red = 255 - 255.0 * fraction;
@@ -365,7 +365,7 @@ void loop() {
         }
 
         for (i = 0; i < matrix.getScreenHeight(); i++) {
-            rgb24 color;
+            SM_RGB color;
             float fraction = ((float)millis() - currentMillis) / ((float)transitionTime / 2);
             fraction -= 1.0;
             if (fraction < 0) fraction = 0.0;
@@ -399,7 +399,7 @@ void loop() {
         unsigned long delayCounter = currentMillis;
 
         for (i = 0; i < matrix.getScreenWidth() * 2; i++) {
-            rgb24 color;
+            SM_RGB color;
             float fraction = ((float)millis() - currentMillis) / ((float)transitionTime / 2);
 
             color.red = 255 - 255.0 * fraction;
@@ -417,7 +417,7 @@ void loop() {
         }
 
         for (i = matrix.getScreenWidth() * 2 / 3; i >= 0; i--) {
-            rgb24 color;
+            SM_RGB color;
             float fraction = ((float)millis() - currentMillis) / ((float)transitionTime / 2);
             fraction -= 1.0;
             if (fraction < 0) fraction = 0.0;
@@ -452,7 +452,7 @@ void loop() {
         unsigned long delayCounter = currentMillis;
 
         for (i = 0; i < matrix.getScreenWidth() / 2; i++) {
-            rgb24 color;
+            SM_RGB color;
             float fraction = ((float)millis() - currentMillis) / ((float)transitionTime / 2);
 
             color.red = 255 - 255.0 * fraction;
@@ -465,7 +465,7 @@ void loop() {
             while (millis() < delayCounter);
         }
         for (i = 0; i < matrix.getScreenWidth(); i++) {
-            rgb24 color;
+            SM_RGB color;
             float fraction = ((float)millis() - currentMillis) / ((float)transitionTime / 2);
             fraction -= 1.0;
             if (fraction < 0) fraction = 0.0;
@@ -499,7 +499,7 @@ void loop() {
         unsigned long delayCounter = currentMillis;
 
         for (i = 0; i < matrix.getScreenWidth() / 2; i++) {
-            rgb24 color;
+            SM_RGB color;
             float fraction = ((float)millis() - currentMillis) / ((float)transitionTime / 2);
 
             color.red = 255 - 255.0 * fraction;
@@ -512,7 +512,7 @@ void loop() {
             while (millis() < delayCounter);
         }
         for (i = 0; i < matrix.getScreenWidth(); i++) {
-            rgb24 color;
+            SM_RGB color;
             float fraction = ((float)millis() - currentMillis) / ((float)transitionTime / 2);
             fraction -= 1.0;
             if (fraction < 0) fraction = 0.0;
@@ -548,7 +548,7 @@ void loop() {
         unsigned long delayCounter = currentMillis;
 
         while (millis() - currentMillis < transitionTime) {
-            rgb24 color;
+            SM_RGB color;
             float fraction = ((float)millis() - currentMillis) / ((float)transitionTime);
 
             color.red = random(256);
@@ -621,7 +621,7 @@ void loop() {
         currentMillis = millis();
 
         while (millis() - currentMillis < transitionTime) {
-            rgb24 color;
+            SM_RGB color;
             float fraction = ((float)millis() - currentMillis) / ((float)transitionTime / 2);
 
             if (millis() - currentMillis < transitionTime / 2) {
@@ -814,7 +814,7 @@ void loop() {
         currentMillis = millis();
 
         while (millis() - currentMillis < transitionTime) {
-            rgb24 color;
+            SM_RGB color;
             float fraction = ((float)millis() - currentMillis) / ((float)transitionTime / 2);
 
             if (millis() - currentMillis < transitionTime / 2) {
@@ -1289,7 +1289,7 @@ void loop() {
         while (millis() - currentMillis < transitionTime) {
             int x0, y0;
 
-            rgb24 color;
+            SM_RGB color;
             x0 = random(matrix.getScreenWidth());
             y0 = random(matrix.getScreenHeight());
 
