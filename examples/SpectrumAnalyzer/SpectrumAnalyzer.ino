@@ -29,11 +29,11 @@
 #include <SmartMatrix3.h>
 #include <FastLED.h>
 
+#define COLOR_DEPTH 48
 const uint8_t kMatrixHeight = 32;       // known working: 16, 32
 const uint8_t kMatrixWidth = 32;        // known working: 32, 64
-const uint8_t kColorDepthRgb = 36;      // known working: 36, 48 (24 isn't efficient and has color correction issues)
 const uint8_t kDmaBufferRows = 4;       // known working: 4
-SMARTMATRIX_ALLOCATE_BUFFERS(kMatrixWidth, kMatrixHeight, kColorDepthRgb, kDmaBufferRows);
+SMARTMATRIX_ALLOCATE_BUFFERS(kMatrixWidth, kMatrixHeight, COLOR_DEPTH, 48, kDmaBufferRows);
 
 #define MATRIX_HEIGHT kMatrixHeight
 #define MATRIX_WIDTH kMatrixWidth
@@ -56,7 +56,7 @@ float level[16];
 // looks more pleasing to corresponds to human sound perception.
 int shown[16];
 
-const rgb24 black = CRGB(0, 0, 0);
+const SM_RGB black = CRGB(0, 0, 0);
 
 byte status = 0;
 
@@ -65,7 +65,7 @@ void setup()
     Serial.begin(9600);
 
     // Initialize Matrix
-    SMARTMATRIX_SETUP_DEFAULT_LAYERS(kMatrixWidth, kMatrixHeight);
+    SMARTMATRIX_SETUP_DEFAULT_LAYERS(kMatrixWidth, kMatrixHeight, COLOR_DEPTH);
 
     matrix.setBrightness(255);
 
@@ -120,7 +120,7 @@ void loop()
             }
 
             // color hue based on band
-            rgb24 color = CRGB(CHSV(i * 15, 255, 255));
+            SM_RGB color = CRGB(CHSV(i * 15, 255, 255));
 
             // draw the levels on the matrix
             if (shown[i] >= 0) {
