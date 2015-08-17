@@ -35,9 +35,6 @@
 
 #define ENABLE_FADECANDY_GAMMA_CORRECTION               1
 
-// definition telling FastLED that setBackBuffer() and getRealBackBuffer() are available
-#define SMART_MATRIX_CAN_TRIPLE_BUFFER 1
-
 // enable true triple buffering and interpolation
 //#define SMARTMATRIX_TRIPLEBUFFER
 
@@ -57,9 +54,9 @@ typedef struct matrixUpdateBlock {
 } matrixUpdateBlock;
 
 template <typename RGB>
-class SmartMatrix {
+class SmartMatrix3 {
 public:
-    SmartMatrix(uint8_t width, uint8_t height, uint8_t depth, uint8_t bufferrows, uint32_t * dataBuffer, uint8_t * blockBuffer);
+    SmartMatrix3(uint8_t width, uint8_t height, uint8_t depth, uint8_t bufferrows, uint32_t * dataBuffer, uint8_t * blockBuffer);
     void begin(void);
 
     // drawing functions
@@ -178,7 +175,7 @@ private:
     static addresspair * addressLUT;
     static timerpair * timerLUT;
 
-    static SmartMatrix<RGB>* globalinstance;
+    static SmartMatrix3<RGB>* globalinstance;
 };
 
 // single matrixUpdateBlocks buffer is divided up to hold matrixUpdateBlocks, addressLUT, timerLUT to simplify user sketch code and reduce constructor parameters
@@ -186,7 +183,7 @@ private:
     typedef RGB_TYPE(COLOR_DEPTH) SM_RGB; \
     static DMAMEM uint32_t matrixUpdateData[rows * width * (pwm_depth/3 / sizeof(uint32_t)) * 2]; \
     static DMAMEM uint8_t matrixUpdateBlocks[(sizeof(matrixUpdateBlock) * rows * pwm_depth/3) + (sizeof(addresspair) * height/2) + (sizeof(timerpair) * pwm_depth/3)]; \
-    SmartMatrix<RGB_TYPE(storage_depth)> matrix(width, height, pwm_depth, rows, matrixUpdateData, matrixUpdateBlocks)
+    SmartMatrix3<RGB_TYPE(storage_depth)> matrix(width, height, pwm_depth, rows, matrixUpdateData, matrixUpdateBlocks)
 
 #define SMARTMATRIX_SETUP_DEFAULT_LAYERS(width, height, storage_depth) \
     static RGB_TYPE(storage_depth) backgroundBitmap[2*width*height];                              \
@@ -206,5 +203,21 @@ private:
 #include "MatrixConfiguration_Impl.h"
 #include "MatrixForeground_Impl.h"
 #include "SmartMatrix_Impl.h"
+
+class SmartMatrix {
+    public:
+        SmartMatrix();
+    void begin(void);
+
+    void swapBuffers(bool copy = true);
+
+    void fillScreen(const rgb24& color);
+
+    rgb24 *backBuffer(void);
+
+    void setBrightness(uint8_t brightness);
+
+    void setColorCorrection(colorCorrectionModes mode);
+};
 
 #endif

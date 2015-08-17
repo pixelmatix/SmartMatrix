@@ -22,13 +22,13 @@
  */
 
 template <typename RGB>
-void SmartMatrix<RGB>::setRotation(rotationDegrees newrotation) {
+void SmartMatrix3<RGB>::setRotation(rotationDegrees newrotation) {
     rotation = newrotation;
     rotationChange = true;
 }
 
 template <typename RGB>
-uint16_t SmartMatrix<RGB>::getScreenWidth(void) const {
+uint16_t SmartMatrix3<RGB>::getScreenWidth(void) const {
     if (rotation == rotation0 || rotation == rotation180) {
         return matrixWidth;
     } else {
@@ -37,7 +37,7 @@ uint16_t SmartMatrix<RGB>::getScreenWidth(void) const {
 }
 
 template <typename RGB>
-uint16_t SmartMatrix<RGB>::getScreenHeight(void) const {
+uint16_t SmartMatrix3<RGB>::getScreenHeight(void) const {
     if (rotation == rotation0 || rotation == rotation180) {
         return matrixHeight;
     } else {
@@ -46,26 +46,26 @@ uint16_t SmartMatrix<RGB>::getScreenHeight(void) const {
 }
 
 template <typename RGB>
-volatile bool SmartMatrix<RGB>::brightnessChange = false;
+volatile bool SmartMatrix3<RGB>::brightnessChange = false;
 template <typename RGB>
-volatile bool SmartMatrix<RGB>::rotationChange = true;
+volatile bool SmartMatrix3<RGB>::rotationChange = true;
 template <typename RGB>
-rotationDegrees SmartMatrix<RGB>::rotation = rotation0;
+rotationDegrees SmartMatrix3<RGB>::rotation = rotation0;
 
 template <typename RGB>
-const int SmartMatrix<RGB>::dimmingMaximum = 255;
+const int SmartMatrix3<RGB>::dimmingMaximum = 255;
 // large factor = more dim, default is full brightness
 template <typename RGB>
-int SmartMatrix<RGB>::dimmingFactor = dimmingMaximum - (100 * 255)/100;
+int SmartMatrix3<RGB>::dimmingFactor = dimmingMaximum - (100 * 255)/100;
 
 template <typename RGB>
-void SmartMatrix<RGB>::setBrightness(uint8_t brightness) {
+void SmartMatrix3<RGB>::setBrightness(uint8_t brightness) {
     dimmingFactor = dimmingMaximum - brightness;
     brightnessChange = true;
 }
 
 template <typename RGB>
-void SmartMatrix<RGB>::setRefreshRate(uint8_t newRefreshRate) {
+void SmartMatrix3<RGB>::setRefreshRate(uint8_t newRefreshRate) {
     refreshRate = newRefreshRate;
     calculateTimerLut();
 }

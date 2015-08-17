@@ -58,36 +58,36 @@ void rowCalculationISR(void);
 extern CircularBuffer dmaBuffer;
 
 template <typename RGB>
-SmartMatrix<RGB>* SmartMatrix<RGB>::globalinstance;
+SmartMatrix3<RGB>* SmartMatrix3<RGB>::globalinstance;
 template <typename RGB>
-uint8_t SmartMatrix<RGB>::matrixWidth;
+uint8_t SmartMatrix3<RGB>::matrixWidth;
 template <typename RGB>
-uint8_t SmartMatrix<RGB>::matrixHeight;
+uint8_t SmartMatrix3<RGB>::matrixHeight;
 template <typename RGB>
-uint8_t SmartMatrix<RGB>::latchesPerRow;
+uint8_t SmartMatrix3<RGB>::latchesPerRow;
 // dmaBufferNumRows = the size of the buffer that DMA pulls from to refresh the display
 // must be minimum 2 rows so one can be updated while the other is refreshed
 // increase beyond two to give more time for the update routine to complete
 // (increase this number if non-DMA interrupts are causing display problems)
 template <typename RGB>
-uint8_t SmartMatrix<RGB>::dmaBufferNumRows;
+uint8_t SmartMatrix3<RGB>::dmaBufferNumRows;
 template <typename RGB>
-uint8_t SmartMatrix<RGB>::dmaBufferBytesPerPixel;
+uint8_t SmartMatrix3<RGB>::dmaBufferBytesPerPixel;
 template <typename RGB>
-uint16_t SmartMatrix<RGB>::dmaBufferBytesPerRow;
+uint16_t SmartMatrix3<RGB>::dmaBufferBytesPerRow;
 template <typename RGB>
-uint8_t SmartMatrix<RGB>::colorDepthRgb;
+uint8_t SmartMatrix3<RGB>::colorDepthRgb;
 template <typename RGB>
-uint8_t SmartMatrix<RGB>::refreshRate = 135;
+uint8_t SmartMatrix3<RGB>::refreshRate = 135;
 
 
 // todo: just use a single buffer for Blocks/LUT/Data?
 template <typename RGB>
-matrixUpdateBlock * SmartMatrix<RGB>::matrixUpdateBlocks;    // array is size dmaBufferNumRows * latchesPerRow
+matrixUpdateBlock * SmartMatrix3<RGB>::matrixUpdateBlocks;    // array is size dmaBufferNumRows * latchesPerRow
 template <typename RGB>
-addresspair * SmartMatrix<RGB>::addressLUT;      // array is size rowsPerFrame
+addresspair * SmartMatrix3<RGB>::addressLUT;      // array is size rowsPerFrame
 template <typename RGB>
-timerpair * SmartMatrix<RGB>::timerLUT;          // array is size latchesPerRow
+timerpair * SmartMatrix3<RGB>::timerLUT;          // array is size latchesPerRow
 
 /*
   buffer contains:
@@ -111,7 +111,7 @@ timerpair * SmartMatrix<RGB>::timerLUT;          // array is size latchesPerRow
     [pixel pair 15 - CLK - MSB][pixel pair 15 - CLK - MSB-1]...[pixel pair 15 - CLK - LSB+1][pixel pair 15 - CLK - LSB]
  */
 template <typename RGB>
-uint32_t * SmartMatrix<RGB>::matrixUpdateData;
+uint32_t * SmartMatrix3<RGB>::matrixUpdateData;
 
 #define ADDRESS_ARRAY_REGISTERS_TO_UPDATE   2
 
@@ -125,8 +125,8 @@ static gpiopair gpiosync;
 
 
 template <typename RGB>
-SmartMatrix<RGB>::SmartMatrix(uint8_t width, uint8_t height, uint8_t depth, uint8_t bufferrows, uint32_t * dataBuffer, uint8_t * blockBuffer) {
-    SmartMatrix<RGB>::globalinstance = this;
+SmartMatrix3<RGB>::SmartMatrix3(uint8_t width, uint8_t height, uint8_t depth, uint8_t bufferrows, uint32_t * dataBuffer, uint8_t * blockBuffer) {
+    SmartMatrix3<RGB>::globalinstance = this;
     matrixWidth = width;
     matrixHeight = height;
     colorDepthRgb = depth;
@@ -146,7 +146,7 @@ SmartMatrix<RGB>::SmartMatrix(uint8_t width, uint8_t height, uint8_t depth, uint
 }
 
 template <typename RGB>
-void SmartMatrix<RGB>::addLayer(SM_Layer<RGB> * newlayer) {
+void SmartMatrix3<RGB>::addLayer(SM_Layer<RGB> * newlayer) {
     if(baseLayer) {
         SM_Layer<RGB> * templayer = baseLayer;
         while(templayer->nextLayer)
@@ -158,7 +158,7 @@ void SmartMatrix<RGB>::addLayer(SM_Layer<RGB> * newlayer) {
 }
 
 template <typename RGB>
-void SmartMatrix<RGB>::countFPS(void) {
+void SmartMatrix3<RGB>::countFPS(void) {
   static long loops = 0;
   static long lastMillis = 0;
   long currentMillis = millis();
@@ -174,13 +174,13 @@ void SmartMatrix<RGB>::countFPS(void) {
 }
 
 template <typename RGB>
-void SmartMatrix<RGB>::useDefaultLayers(void) {
+void SmartMatrix3<RGB>::useDefaultLayers(void) {
     backgroundLayer = (SMLayerBackground<RGB> *)baseLayer;
     foregroundLayer = (SMLayerForeground<RGB> *)(baseLayer->nextLayer);
 }
 
 template <typename RGB>
-INLINE void SmartMatrix<RGB>::matrixCalculations(void) {
+INLINE void SmartMatrix3<RGB>::matrixCalculations(void) {
     static unsigned char currentRow = 0;
 
     // only run the loop if there is free space, and fill the entire buffer before returning
@@ -223,13 +223,13 @@ INLINE void SmartMatrix<RGB>::matrixCalculations(void) {
         if (++currentRow >= MATRIX_ROWS_PER_FRAME)
             currentRow = 0;
 
-        SmartMatrix<RGB>::loadMatrixBuffers(currentRow);
+        SmartMatrix3<RGB>::loadMatrixBuffers(currentRow);
         cbWrite(&dmaBuffer);
     }
 }
 
 template <typename RGB>
-void SmartMatrix<RGB>::calculateTimerLut(void) {
+void SmartMatrix3<RGB>::calculateTimerLut(void) {
     int i;
 
     for (i = 0; i < latchesPerRow; i++) {
@@ -255,7 +255,7 @@ void SmartMatrix<RGB>::calculateTimerLut(void) {
 }
 
 template <typename RGB>
-void SmartMatrix<RGB>::begin(void)
+void SmartMatrix3<RGB>::begin(void)
 {
     int i;
     cbInit(&dmaBuffer, dmaBufferNumRows);
@@ -452,7 +452,7 @@ void SmartMatrix<RGB>::begin(void)
 }
 
 template <typename RGB>
-void SmartMatrix<RGB>::loadMatrixBuffers(unsigned char currentRow) {
+void SmartMatrix3<RGB>::loadMatrixBuffers(unsigned char currentRow) {
     int i, j;
 
     addresspair rowAddressPair;
@@ -714,7 +714,7 @@ void rowCalculationISR(void) {
     digitalWriteFast(DEBUG_PIN_2, HIGH); // oscilloscope trigger
 #endif
 
-    SmartMatrix<RGB>::matrixCalculations();
+    SmartMatrix3<RGB>::matrixCalculations();
 
 #ifdef DEBUG_PINS_ENABLED
     digitalWriteFast(DEBUG_PIN_2, LOW);
@@ -733,9 +733,9 @@ void rowShiftCompleteISR(void) {
 
     // get next row to draw to display and update DMA pointers
     int currentRow = cbGetNextRead(&dmaBuffer);
-    dmaUpdateAddress.TCD->SADDR = &((matrixUpdateBlock*)SmartMatrix<RGB>::matrixUpdateBlocks + (currentRow * SmartMatrix<RGB>::latchesPerRow))->addressValues;
-    dmaUpdateTimer.TCD->SADDR = &((matrixUpdateBlock*)SmartMatrix<RGB>::matrixUpdateBlocks + (currentRow * SmartMatrix<RGB>::latchesPerRow))->timerValues.timer_oe;
-    dmaClockOutData.TCD->SADDR = (uint8_t*)SmartMatrix<RGB>::matrixUpdateData + (currentRow * SmartMatrix<RGB>::dmaBufferBytesPerRow);
+    dmaUpdateAddress.TCD->SADDR = &((matrixUpdateBlock*)SmartMatrix3<RGB>::matrixUpdateBlocks + (currentRow * SmartMatrix3<RGB>::latchesPerRow))->addressValues;
+    dmaUpdateTimer.TCD->SADDR = &((matrixUpdateBlock*)SmartMatrix3<RGB>::matrixUpdateBlocks + (currentRow * SmartMatrix3<RGB>::latchesPerRow))->timerValues.timer_oe;
+    dmaClockOutData.TCD->SADDR = (uint8_t*)SmartMatrix3<RGB>::matrixUpdateData + (currentRow * SmartMatrix3<RGB>::dmaBufferBytesPerRow);
 
     // clear pending GPIO int for PORTA before enabling DMA again
     CORE_PIN3_CONFIG |= (1 << 24);
