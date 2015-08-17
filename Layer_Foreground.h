@@ -20,14 +20,15 @@ typedef enum ScrollMode {
 // font
 #include "MatrixFontCommon.h"
 
-class SMLayerForeground : public SM_Layer {
+template <typename RGB>
+class SMLayerForeground : public SM_Layer<RGB> {
     public:
         SMLayerForeground(uint8_t * bitmap, uint8_t width, uint8_t height);
         void frameRefreshCallback();
-        void getRefreshPixel(uint8_t x, uint8_t y, rgb24 &refreshPixel);
-        void getRefreshPixel(uint8_t x, uint8_t y, rgb48 &refreshPixel);
 
-        void setScrollColor(const rgb24 & newColor);
+        virtual void getRefreshPixel(uint8_t x, uint8_t y, rgb48 &xyPixel);
+
+        void setScrollColor(const RGB & newColor);
         colorCorrectionModes ccmode = cc48;
         void setColorCorrection(colorCorrectionModes mode);
 
@@ -61,9 +62,11 @@ class SMLayerForeground : public SM_Layer {
         // todo: move somewhere else
         static bool getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap);
         void updateForeground(void);
-        bool getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, rgb24 &xyPixel);
 
-        rgb24 textcolor = {0xff, 0xff, 0xff};
+        template <typename RGB_OUT>
+        bool getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, RGB_OUT &xyPixel);
+
+        RGB textcolor = {0xff, 0xff, 0xff};
 
         unsigned char currentframe = 0;
         char text[textLayerMaxStringLength];
@@ -90,6 +93,8 @@ class SMLayerForeground : public SM_Layer {
 
         bitmap_font *foregroundfont = (bitmap_font *) &apple3x5;
 };
+
+#include "Layer_Foreground_Impl.h"
 
 #endif
 
