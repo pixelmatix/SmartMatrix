@@ -17,11 +17,12 @@
 #define kMatrixWidth  MATRIX_WIDTH
 #define kMatrixHeight MATRIX_HEIGHT
 
-#define COLOR_DEPTH 48
 const uint8_t kMatrixHeight = 32;       // known working: 16, 32
 const uint8_t kMatrixWidth = 32;        // known working: 32, 64
 const uint8_t kDmaBufferRows = 4;       // known working: 4
-SMARTMATRIX_ALLOCATE_BUFFERS(kMatrixWidth, kMatrixHeight, COLOR_DEPTH, 48, kDmaBufferRows);
+#define COLOR_DEPTH 24                  // If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
+#define REFRESH_DEPTH 48                // known working: 24, 36, 48
+SMARTMATRIX_ALLOCATE_BUFFERS(kMatrixWidth, kMatrixHeight, COLOR_DEPTH, REFRESH_DEPTH, kDmaBufferRows);
 
 // The 32bit version of our coordinates
 static uint16_t x;

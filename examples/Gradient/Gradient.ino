@@ -3,15 +3,16 @@
 // Change the following value to 24 or 48 to change between storing colors
 // with 24 or 48bits. At 24bits, this example sketch shows "stepping" at low
 // color values, while at 48bits the gradient is smooth.
-#define COLOR_DEPTH 48                      // known working: 48, 24
 
 #define WIDTH 64
 #define HEIGHT 32
 
+#define COLOR_DEPTH 48
+#define REFRESH_DEPTH 48
 const uint8_t kMatrixHeight = HEIGHT;     // known working: 16, 32
 const uint8_t kMatrixWidth = WIDTH;       // known working: 32, 64
-const uint8_t kDmaBufferRows = 4;         // known working: 4
-SMARTMATRIX_ALLOCATE_BUFFERS(kMatrixWidth, kMatrixHeight, COLOR_DEPTH, 48, kDmaBufferRows);
+const uint8_t kDmaBufferRows = 4;       // known working: 4
+SMARTMATRIX_ALLOCATE_BUFFERS(kMatrixWidth, kMatrixHeight, COLOR_DEPTH, REFRESH_DEPTH, kDmaBufferRows);
 
 void setup() {
   //Serial.begin(115200);
