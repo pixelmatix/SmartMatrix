@@ -63,9 +63,6 @@ class SMLayerBackground : public SM_Layer<RGB> {
 
         RGB *backgroundBuffer;
 
-        // todo: sort through static, make sure usage is correct
-        static color_chan_t backgroundColorCorrection(uint8_t inputcolor);
-
         RGB *getCurrentRefreshRow(uint8_t y);
 
     #ifdef SMARTMATRIX_TRIPLEBUFFER
