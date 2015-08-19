@@ -191,16 +191,19 @@ void colorCorrection(colorCorrectionModes ccmode, const RGB_IN& in, RGB_OUT& out
         out = rgb24(lightPowerMap8bit[in.red],
                     lightPowerMap8bit[in.green],
                     lightPowerMap8bit[in.blue]);
+        break;
 
     case cc12:
         out = rgb24(lightPowerMap4bit[in.red] << 4,
                     lightPowerMap4bit[in.green] << 4,
                     lightPowerMap4bit[in.blue] << 4);
+        break;
 
     case cc48:
         out = rgb48(lightPowerMap16bit[in.red],
                     lightPowerMap16bit[in.green],
                     lightPowerMap16bit[in.blue]);
+        break;
 
     case ccNone:
     default:

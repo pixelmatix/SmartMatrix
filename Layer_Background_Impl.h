@@ -55,7 +55,7 @@ void SMLayerBackground<RGB>::getRefreshPixel(uint8_t hardwareX, uint8_t hardware
     refreshPixel.green = lutInterpolate(lightPowerMap16bit2, ((prevPixel.green * icPrev + currentPixel.green * icNext) >> 16));
     refreshPixel.blue = lutInterpolate(lightPowerMap16bit2, ((prevPixel.blue * icPrev + currentPixel.blue * icNext) >> 16));
 #else
-    if(ccmode != ccNone) {
+    if(this->ccmode != ccNone) {
         // load background pixel with color correction
         xyPixel = rgb48(backgroundColorCorrectionLUT[currentPixel.red],
             backgroundColorCorrectionLUT[currentPixel.green],
@@ -1072,7 +1072,7 @@ void SMLayerBackground<RGB>::setBrightness(uint8_t brightness) {
 
 template<typename RGB>
 void SMLayerBackground<RGB>::setColorCorrection(colorCorrectionModes mode) {
-    ccmode = mode;
+    this->ccmode = mode;
 }
 
 // reads pixel from drawing buffer, not refresh buffer

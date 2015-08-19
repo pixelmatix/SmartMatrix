@@ -60,10 +60,9 @@ bool SMLayerForeground<RGB>::getForegroundPixel(uint8_t hardwareX, uint8_t hardw
 
 template <typename RGB>
 void SMLayerForeground<RGB>::getRefreshPixel(uint8_t x, uint8_t y, rgb48 &xyPixel) {
-    // do once per refresh
     RGB tempPixel;
     if(getForegroundPixel(x, y, tempPixel)) {
-        colorCorrection(ccmode, tempPixel, xyPixel);
+        colorCorrection(this->ccmode, tempPixel, xyPixel);
     }
 }
 
@@ -75,7 +74,7 @@ void SMLayerForeground<RGB>::setScrollColor(const RGB & newColor) {
 
 template <typename RGB>
 void SMLayerForeground<RGB>::setColorCorrection(colorCorrectionModes mode) {
-    ccmode = mode;
+    this->ccmode = mode;
 }
 
 // stops the scrolling text on the next refresh
