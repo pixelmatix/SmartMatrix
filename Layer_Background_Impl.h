@@ -67,6 +67,29 @@ void SMLayerBackground<RGB>::getRefreshPixel(uint8_t hardwareX, uint8_t hardware
 #endif
 }
 
+template <typename RGB>
+void SMLayerBackground<RGB>::fillRefreshRow(uint8_t hardwareY, rgb48 refreshRow[]) {
+    bool bHasCC = this->ccmode != ccNone;
+    RGB currentPixel;
+    int i;
+
+    if(bHasCC) {
+        for(i=0; i<this->matrixWidth; i++) {
+            currentPixel = currentRefreshBufferPtr[(hardwareY * this->matrixWidth) + i];
+            // load background pixel with color correction
+            refreshRow[i] = rgb48(backgroundColorCorrectionLUT[currentPixel.red],
+                backgroundColorCorrectionLUT[currentPixel.green],
+                backgroundColorCorrectionLUT[currentPixel.blue]);
+        }
+    } else {
+        for(i=0; i<this->matrixWidth; i++) {
+            currentPixel = currentRefreshBufferPtr[(hardwareY * this->matrixWidth) + i];
+            // load background pixel without color correction
+            refreshRow[i] = currentPixel;
+        }
+    }
+}
+
 extern volatile int totalFramesToInterpolate;
 extern volatile int framesInterpolated;
 

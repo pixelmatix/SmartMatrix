@@ -472,26 +472,26 @@ void SmartMatrix3<RGB>::loadMatrixBuffers(unsigned char currentRow) {
         tempptr->timerValues.timer_oe = timerLUT[j].timer_oe;
     }
 
-    rgb48 tempPixel0;
-    rgb48 tempPixel1;
+    rgb48 tempRow0[matrixWidth];
+    rgb48 tempRow1[matrixWidth];
+
+    // get pixel data from layers
+    SM_Layer<RGB> * templayer = globalinstance->baseLayer;
+    while(templayer) {
+        templayer->fillRefreshRow(currentRow, tempRow0);
+        templayer->fillRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET, tempRow1);
+        templayer = templayer->nextLayer;        
+    }
 
     for (i = 0; i < matrixWidth; i++) {
         uint16_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;
 
-        // get pixel data from layers
-        SM_Layer<RGB> * templayer = globalinstance->baseLayer;
-        while(templayer) {
-            templayer->getRefreshPixel(i, currentRow, tempPixel0);
-            templayer->getRefreshPixel(i, currentRow + MATRIX_ROW_PAIR_OFFSET, tempPixel1);
-            templayer = templayer->nextLayer;
-        }
-
-        temp0red = tempPixel0.red;
-        temp0green = tempPixel0.green;
-        temp0blue = tempPixel0.blue;
-        temp1red = tempPixel1.red;
-        temp1green = tempPixel1.green;
-        temp1blue = tempPixel1.blue;
+        temp0red = tempRow0[i].red;
+        temp0green = tempRow0[i].green;
+        temp0blue = tempRow0[i].blue;
+        temp1red = tempRow1[i].red;
+        temp1green = tempRow1[i].green;
+        temp1blue = tempRow1[i].blue;
 
         if(latchesPerRow == 12) {
             temp0red >>= 4;

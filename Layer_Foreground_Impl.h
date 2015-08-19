@@ -66,6 +66,29 @@ void SMLayerForeground<RGB>::getRefreshPixel(uint8_t x, uint8_t y, rgb48 &xyPixe
     }
 }
 
+template <typename RGB>
+void SMLayerForeground<RGB>::fillRefreshRow(uint8_t hardwareY, rgb48 refreshRow[]) {
+    bool bHasCC = this->ccmode != ccNone;
+    RGB currentPixel;
+    int i;
+
+    if(bHasCC) {
+        for(i=0; i<this->matrixWidth; i++) {
+            if(!getForegroundPixel(i, hardwareY, currentPixel))
+                continue;
+
+            colorCorrection(this->ccmode, currentPixel, refreshRow[i]);
+        }
+    } else {
+        for(i=0; i<this->matrixWidth; i++) {
+            if(!getForegroundPixel(i, hardwareY, currentPixel))
+                continue;
+
+            // load background pixel without color correction
+            refreshRow[i] = currentPixel;
+        }
+    }
+}
 
 template<typename RGB>
 void SMLayerForeground<RGB>::setScrollColor(const RGB & newColor) {

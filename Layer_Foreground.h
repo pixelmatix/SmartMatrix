@@ -25,12 +25,13 @@ class SMLayerForeground : public SM_Layer<RGB> {
     public:
         SMLayerForeground(uint8_t * bitmap, uint8_t width, uint8_t height);
         void frameRefreshCallback();
-        virtual void getRefreshPixel(uint8_t x, uint8_t y, rgb48 &xyPixel);
+        void getRefreshPixel(uint8_t x, uint8_t y, rgb48 &xyPixel);
+        void fillRefreshRow(uint8_t hardwareY, rgb48 refreshRow[]);
         void setScrollColor(const RGB & newColor);
         colorCorrectionModes ccmode = cc48;
         void setColorCorrection(colorCorrectionModes mode);
 
-        //bitmap size is 32 rows (supporting maximum dimension of screen height in all rotations), by 32 bits
+        // bitmap size is 32 rows (supporting maximum dimension of screen height in all rotations), by 32 bits
         // double buffered to prevent flicker while drawing
         uint8_t * foregroundBitmap;
 
