@@ -10,9 +10,7 @@ class SMLayerBackground : public SM_Layer<RGB> {
     public:
         SMLayerBackground(RGB * buffer, uint8_t width, uint8_t height);
         void frameRefreshCallback();
-
         void getRefreshPixel(uint8_t hardwareX, uint8_t hardwareY, rgb48 &xyPixel);
-
         void swapBuffers(bool copy = true);
     #ifdef SMARTMATRIX_TRIPLEBUFFER
         void swapBuffersWithInterpolation_frames(int framesToInterpolate, bool copy = false);

@@ -25,9 +25,7 @@ class SMLayerForeground : public SM_Layer<RGB> {
     public:
         SMLayerForeground(uint8_t * bitmap, uint8_t width, uint8_t height);
         void frameRefreshCallback();
-
         virtual void getRefreshPixel(uint8_t x, uint8_t y, rgb48 &xyPixel);
-
         void setScrollColor(const RGB & newColor);
         colorCorrectionModes ccmode = cc48;
         void setColorCorrection(colorCorrectionModes mode);
