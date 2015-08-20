@@ -207,6 +207,7 @@ private:
 #include "MatrixForeground_Impl.h"
 #include "SmartMatrix_Impl.h"
 
+/* this dummy class and enum is for FastLED backwards compatibility */
 typedef enum colorCorrectionModes {
     ccNone,
     cc24,
@@ -229,5 +230,6 @@ class SmartMatrix {
 
     void setColorCorrection(colorCorrectionModes mode);
 };
+/* end FastLED backwards compatibility */
 
 #endif
