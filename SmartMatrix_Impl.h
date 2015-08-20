@@ -961,8 +961,8 @@ template <typename RGB>
 INLINE void SmartMatrix3<RGB>::loadMatrixBuffers24(unsigned char currentRow, unsigned char freeRowBuffer) {
     int i;
 
-    rgb48 tempRow0[matrixWidth];
-    rgb48 tempRow1[matrixWidth];
+    rgb24 tempRow0[matrixWidth];
+    rgb24 tempRow1[matrixWidth];
 
     // get pixel data from layers
     SM_Layer<RGB> * templayer = globalinstance->baseLayer;
@@ -975,12 +975,12 @@ INLINE void SmartMatrix3<RGB>::loadMatrixBuffers24(unsigned char currentRow, uns
     for (i = 0; i < matrixWidth; i++) {
         uint8_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;
 
-        temp0red = tempRow0[i].red >> 8;
-        temp0green = tempRow0[i].green >> 8;
-        temp0blue = tempRow0[i].blue >> 8;
-        temp1red = tempRow1[i].red >> 8;
-        temp1green = tempRow1[i].green >> 8;
-        temp1blue = tempRow1[i].blue >> 8;
+        temp0red = tempRow0[i].red;
+        temp0green = tempRow0[i].green;
+        temp0blue = tempRow0[i].blue;
+        temp1red = tempRow1[i].red;
+        temp1green = tempRow1[i].green;
+        temp1blue = tempRow1[i].blue;
 
         // this technique is from Fadecandy
         union {

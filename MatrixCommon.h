@@ -177,10 +177,16 @@ inline void calculateBackgroundLUT(color_chan_t * lut, uint8_t backgroundBrightn
 
 
 
-// only converting to rgb48, as that is the only type SmartMatrix is requesting from the Layer class - will fix later
 template <typename RGB_IN>
 void colorCorrection(const RGB_IN& in, rgb48& out) {
     out = rgb48(lightPowerMap16bit[in.red],
+                lightPowerMap16bit[in.green],
+                lightPowerMap16bit[in.blue]);
+}
+
+template <typename RGB_IN>
+void colorCorrection(const RGB_IN& in, rgb24& out) {
+    out = rgb24(lightPowerMap16bit[in.red],
                 lightPowerMap16bit[in.green],
                 lightPowerMap16bit[in.blue]);
 }

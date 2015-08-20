@@ -9,6 +9,7 @@ class SM_Layer {
         virtual void frameRefreshCallback();
         virtual void getRefreshPixel(uint8_t x, uint8_t y, rgb48 &xyPixel);
         virtual void fillRefreshRow(uint8_t hardwareY, rgb48 refreshRow[]);
+        virtual void fillRefreshRow(uint8_t hardwareY, rgb24 refreshRow[]);
         void setRotation(rotationDegrees newrotation);
         void setRefreshRate(uint8_t newRefreshRate);
         void addLayer(SM_Layer * newlayer);
