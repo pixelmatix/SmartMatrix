@@ -452,25 +452,8 @@ void SmartMatrix3<RGB>::begin(void)
 }
 
 template <typename RGB>
-void SmartMatrix3<RGB>::loadMatrixBuffers(unsigned char currentRow) {
-    int i, j;
-
-    addresspair rowAddressPair;
-
-    rowAddressPair.bits_to_set = addressLUT[currentRow].bits_to_set;
-    rowAddressPair.bits_to_clear = addressLUT[currentRow].bits_to_clear;
-
-    unsigned char freeRowBuffer = cbGetNextWrite(&dmaBuffer);
-
-    for (j = 0; j < latchesPerRow; j++) {
-        matrixUpdateBlock* tempptr = (matrixUpdateBlock*)matrixUpdateBlocks + (freeRowBuffer * latchesPerRow) + j;
-        // copy bits to set and clear to generate address for current block
-        tempptr->addressValues.bits_to_clear = rowAddressPair.bits_to_clear;
-        tempptr->addressValues.bits_to_set = rowAddressPair.bits_to_set;
-
-        tempptr->timerValues.timer_period = timerLUT[j].timer_period;
-        tempptr->timerValues.timer_oe = timerLUT[j].timer_oe;
-    }
+INLINE void SmartMatrix3<RGB>::loadMatrixBuffers48(unsigned char currentRow, unsigned char freeRowBuffer) {
+    int i;
 
     rgb48 tempRow0[matrixWidth];
     rgb48 tempRow1[matrixWidth];
@@ -493,6 +476,7 @@ void SmartMatrix3<RGB>::loadMatrixBuffers(unsigned char currentRow) {
         temp1green = tempRow1[i].green;
         temp1blue = tempRow1[i].blue;
 
+#if 0
         if(latchesPerRow == 12) {
             temp0red >>= 4;
             temp0green >>= 4;
@@ -512,6 +496,7 @@ void SmartMatrix3<RGB>::loadMatrixBuffers(unsigned char currentRow) {
             temp1green >>= 8;
             temp1blue >>= 8;
         }
+#endif
 
         // this technique is from Fadecandy
         union {
@@ -614,7 +599,7 @@ void SmartMatrix3<RGB>::loadMatrixBuffers(unsigned char currentRow) {
         *(++tempptr) = o1.word;
         *(tempptr + latchesPerRow/sizeof(uint32_t)) = o1.word | clkset.word;
 
-        if(latchesPerRow >= 12) {
+        //if(latchesPerRow >= 12) {
             union {
                 uint32_t word;
                 struct {
@@ -663,8 +648,261 @@ void SmartMatrix3<RGB>::loadMatrixBuffers(unsigned char currentRow) {
 
             *(++tempptr) = o2.word;
             *(tempptr + latchesPerRow/sizeof(uint32_t)) = o2.word | clkset.word;
-        }
+        //}
 
+        //if(latchesPerRow == 16) {
+            union {
+                uint32_t word;
+                struct {
+                    // order of bits in word matches how GPIO connects to the display
+                    uint32_t GPIO_WORD_ORDER;
+                };
+            } o3;
+
+            o3.word = 0;
+            //o3.p0clk = 0;
+            //o3.p0pad = 0;
+            o3.p0b1 = temp0blue    >> (0 + 3 * sizeof(uint32_t));
+            o3.p0r1 = temp0red     >> (0 + 3 * sizeof(uint32_t));
+            o3.p0r2 = temp1red     >> (0 + 3 * sizeof(uint32_t));
+            o3.p0g1 = temp0green   >> (0 + 3 * sizeof(uint32_t));
+            o3.p0g2 = temp1green   >> (0 + 3 * sizeof(uint32_t));
+            o3.p0b2 = temp1blue    >> (0 + 3 * sizeof(uint32_t));
+
+            //o3.p1clk = 0;
+            //o3.p1pad = 0;
+            o3.p1b1 = temp0blue    >> (1 + 3 * sizeof(uint32_t));
+            o3.p1r1 = temp0red     >> (1 + 3 * sizeof(uint32_t));
+            o3.p1r2 = temp1red     >> (1 + 3 * sizeof(uint32_t));
+            o3.p1g1 = temp0green   >> (1 + 3 * sizeof(uint32_t));
+            o3.p1g2 = temp1green   >> (1 + 3 * sizeof(uint32_t));
+            o3.p1b2 = temp1blue    >> (1 + 3 * sizeof(uint32_t));
+
+            //o3.p2clk = 0;
+            //o3.p2pad = 0;
+            o3.p2b1 = temp0blue    >> (2 + 3 * sizeof(uint32_t));
+            o3.p2r1 = temp0red     >> (2 + 3 * sizeof(uint32_t));
+            o3.p2r2 = temp1red     >> (2 + 3 * sizeof(uint32_t));
+            o3.p2g1 = temp0green   >> (2 + 3 * sizeof(uint32_t));
+            o3.p2g2 = temp1green   >> (2 + 3 * sizeof(uint32_t));
+            o3.p2b2 = temp1blue    >> (2 + 3 * sizeof(uint32_t));
+
+
+            //o3.p3clk = 0;
+            //o3.p3pad = 0;
+            o3.p3b1 = temp0blue    >> (3 + 3 * sizeof(uint32_t));
+            o3.p3r1 = temp0red     >> (3 + 3 * sizeof(uint32_t));
+            o3.p3r2 = temp1red     >> (3 + 3 * sizeof(uint32_t));
+            o3.p3g1 = temp0green   >> (3 + 3 * sizeof(uint32_t));
+            o3.p3g2 = temp1green   >> (3 + 3 * sizeof(uint32_t));
+            o3.p3b2 = temp1blue    >> (3 + 3 * sizeof(uint32_t));
+
+            *(++tempptr) = o3.word;
+            *(tempptr + latchesPerRow/sizeof(uint32_t)) = o3.word | clkset.word;
+        //}
+    }
+}
+
+template <typename RGB>
+INLINE void SmartMatrix3<RGB>::loadMatrixBuffers36(unsigned char currentRow, unsigned char freeRowBuffer) {
+    int i;
+
+    rgb48 tempRow0[matrixWidth];
+    rgb48 tempRow1[matrixWidth];
+
+    // get pixel data from layers
+    SM_Layer<RGB> * templayer = globalinstance->baseLayer;
+    while(templayer) {
+        templayer->fillRefreshRow(currentRow, tempRow0);
+        templayer->fillRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET, tempRow1);
+        templayer = templayer->nextLayer;        
+    }
+
+    for (i = 0; i < matrixWidth; i++) {
+        uint16_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;
+
+        temp0red = tempRow0[i].red;
+        temp0green = tempRow0[i].green;
+        temp0blue = tempRow0[i].blue;
+        temp1red = tempRow1[i].red;
+        temp1green = tempRow1[i].green;
+        temp1blue = tempRow1[i].blue;
+
+        //if(latchesPerRow == 12) {
+            temp0red >>= 4;
+            temp0green >>= 4;
+            temp0blue >>= 4;
+
+            temp1red >>= 4;
+            temp1green >>= 4;
+            temp1blue >>= 4;
+        //}
+
+#if 0
+        if(latchesPerRow == 8) {
+            temp0red >>= 8;
+            temp0green >>= 8;
+            temp0blue >>= 8;
+
+            temp1red >>= 8;
+            temp1green >>= 8;
+            temp1blue >>= 8;
+        }
+#endif
+
+        // this technique is from Fadecandy
+        union {
+            uint32_t word;
+            struct {
+                // order of bits in word matches how GPIO connects to the display
+                uint32_t GPIO_WORD_ORDER;
+            };
+        } o0, o1, clkset;
+
+        o0.word = 0;
+        // set bits starting from LSB brightness moving to MSB brightness with each byte across the word
+        // each word contains four brightness levels for single set of pixels above
+        // o0.p0clk = 0;
+        // o0.p0pad = 0;
+        o0.p0b1 = temp0blue    >> 0;
+        o0.p0r1 = temp0red     >> 0;
+        o0.p0r2 = temp1red     >> 0;
+        o0.p0g1 = temp0green   >> 0;
+        o0.p0g2 = temp1green   >> 0;
+        o0.p0b2 = temp1blue    >> 0;
+
+        // o0.p1clk = 0;
+        // o0.p1pad = 0;
+        o0.p1b1 = temp0blue    >> 1;
+        o0.p1r1 = temp0red     >> 1;
+        o0.p1r2 = temp1red     >> 1;
+        o0.p1g1 = temp0green   >> 1;
+        o0.p1g2 = temp1green   >> 1;
+        o0.p1b2 = temp1blue    >> 1;
+
+        // o0.p2clk = 0;
+        // o0.p2pad = 0;
+        o0.p2b1 = temp0blue    >> 2;
+        o0.p2r1 = temp0red     >> 2;
+        o0.p2r2 = temp1red     >> 2;
+        o0.p2g1 = temp0green   >> 2;
+        o0.p2g2 = temp1green   >> 2;
+        o0.p2b2 = temp1blue    >> 2;
+
+        // o0.p3clk = 0;
+        // o0.p3pad = 0;
+        o0.p3b1 = temp0blue    >> 3;
+        o0.p3r1 = temp0red     >> 3;
+        o0.p3r2 = temp1red     >> 3;
+        o0.p3g1 = temp0green   >> 3;
+        o0.p3g2 = temp1green   >> 3;
+        o0.p3b2 = temp1blue    >> 3;
+
+
+        // continue moving from LSB to MSB brightness with the next word
+        o1.word = 0;
+        // o1.p0clk = 0;
+        // o1.p0pad = 0;
+        o1.p0b1 = temp0blue    >> (0 + 1 * sizeof(uint32_t));
+        o1.p0r1 = temp0red     >> (0 + 1 * sizeof(uint32_t));
+        o1.p0r2 = temp1red     >> (0 + 1 * sizeof(uint32_t));
+        o1.p0g1 = temp0green   >> (0 + 1 * sizeof(uint32_t));
+        o1.p0g2 = temp1green   >> (0 + 1 * sizeof(uint32_t));
+        o1.p0b2 = temp1blue    >> (0 + 1 * sizeof(uint32_t));
+
+        // o1.p1clk = 0;
+        // o1.p1pad = 0;
+        o1.p1b1 = temp0blue    >> (1 + 1 * sizeof(uint32_t));
+        o1.p1r1 = temp0red     >> (1 + 1 * sizeof(uint32_t));
+        o1.p1r2 = temp1red     >> (1 + 1 * sizeof(uint32_t));
+        o1.p1g1 = temp0green   >> (1 + 1 * sizeof(uint32_t));
+        o1.p1g2 = temp1green   >> (1 + 1 * sizeof(uint32_t));
+        o1.p1b2 = temp1blue    >> (1 + 1 * sizeof(uint32_t));
+
+        // o1.p2clk = 0;
+        // o1.p2pad = 0;
+        o1.p2b1 = temp0blue    >> (2 + 1 * sizeof(uint32_t));
+        o1.p2r1 = temp0red     >> (2 + 1 * sizeof(uint32_t));
+        o1.p2r2 = temp1red     >> (2 + 1 * sizeof(uint32_t));
+        o1.p2g1 = temp0green   >> (2 + 1 * sizeof(uint32_t));
+        o1.p2g2 = temp1green   >> (2 + 1 * sizeof(uint32_t));
+        o1.p2b2 = temp1blue    >> (2 + 1 * sizeof(uint32_t));
+
+        // o1.p3clk = 0;
+        // o1.p3pad = 0;
+        o1.p3b1 = temp0blue    >> (3 + 1 * sizeof(uint32_t));
+        o1.p3r1 = temp0red     >> (3 + 1 * sizeof(uint32_t));
+        o1.p3r2 = temp1red     >> (3 + 1 * sizeof(uint32_t));
+        o1.p3g1 = temp0green   >> (3 + 1 * sizeof(uint32_t));
+        o1.p3g2 = temp1green   >> (3 + 1 * sizeof(uint32_t));
+        o1.p3b2 = temp1blue    >> (3 + 1 * sizeof(uint32_t));
+
+        clkset.word = 0x00;
+        clkset.p0clk = 1;
+        clkset.p1clk = 1;
+        clkset.p2clk = 1;
+        clkset.p3clk = 1;
+
+        // copy words to DMA buffer as a pair, one with clock set low, next with clock set high
+
+        uint32_t * tempptr = (uint32_t*)matrixUpdateData + ((freeRowBuffer*dmaBufferBytesPerRow)/sizeof(uint32_t)) + ((i*dmaBufferBytesPerPixel)/sizeof(uint32_t));
+        *tempptr = o0.word;
+        *(tempptr + latchesPerRow/sizeof(uint32_t)) = o0.word | clkset.word;
+        *(++tempptr) = o1.word;
+        *(tempptr + latchesPerRow/sizeof(uint32_t)) = o1.word | clkset.word;
+
+        //if(latchesPerRow >= 12) {
+            union {
+                uint32_t word;
+                struct {
+                    // order of bits in word matches how GPIO connects to the display
+                    uint32_t GPIO_WORD_ORDER;
+                };
+            } o2;
+
+            o2.word = 0;
+            //o2.p0clk = 0;
+            //o2.p0pad = 0;
+            o2.p0b1 = temp0blue    >> (0 + 2 * sizeof(uint32_t));
+            o2.p0r1 = temp0red     >> (0 + 2 * sizeof(uint32_t));
+            o2.p0r2 = temp1red     >> (0 + 2 * sizeof(uint32_t));
+            o2.p0g1 = temp0green   >> (0 + 2 * sizeof(uint32_t));
+            o2.p0g2 = temp1green   >> (0 + 2 * sizeof(uint32_t));
+            o2.p0b2 = temp1blue    >> (0 + 2 * sizeof(uint32_t));
+
+            //o2.p1clk = 0;
+            //o2.p1pad = 0;
+            o2.p1b1 = temp0blue    >> (1 + 2 * sizeof(uint32_t));
+            o2.p1r1 = temp0red     >> (1 + 2 * sizeof(uint32_t));
+            o2.p1r2 = temp1red     >> (1 + 2 * sizeof(uint32_t));
+            o2.p1g1 = temp0green   >> (1 + 2 * sizeof(uint32_t));
+            o2.p1g2 = temp1green   >> (1 + 2 * sizeof(uint32_t));
+            o2.p1b2 = temp1blue    >> (1 + 2 * sizeof(uint32_t));
+
+            //o2.p2clk = 0;
+            //o2.p2pad = 0;
+            o2.p2b1 = temp0blue    >> (2 + 2 * sizeof(uint32_t));
+            o2.p2r1 = temp0red     >> (2 + 2 * sizeof(uint32_t));
+            o2.p2r2 = temp1red     >> (2 + 2 * sizeof(uint32_t));
+            o2.p2g1 = temp0green   >> (2 + 2 * sizeof(uint32_t));
+            o2.p2g2 = temp1green   >> (2 + 2 * sizeof(uint32_t));
+            o2.p2b2 = temp1blue    >> (2 + 2 * sizeof(uint32_t));
+
+
+            //o2.p3clk = 0;
+            //o2.p3pad = 0;
+            o2.p3b1 = temp0blue    >> (3 + 2 * sizeof(uint32_t));
+            o2.p3r1 = temp0red     >> (3 + 2 * sizeof(uint32_t));
+            o2.p3r2 = temp1red     >> (3 + 2 * sizeof(uint32_t));
+            o2.p3g1 = temp0green   >> (3 + 2 * sizeof(uint32_t));
+            o2.p3g2 = temp1green   >> (3 + 2 * sizeof(uint32_t));
+            o2.p3b2 = temp1blue    >> (3 + 2 * sizeof(uint32_t));
+
+            *(++tempptr) = o2.word;
+            *(tempptr + latchesPerRow/sizeof(uint32_t)) = o2.word | clkset.word;
+        //}
+
+#if 0
         if(latchesPerRow == 16) {
             union {
                 uint32_t word;
@@ -715,7 +953,165 @@ void SmartMatrix3<RGB>::loadMatrixBuffers(unsigned char currentRow) {
             *(++tempptr) = o3.word;
             *(tempptr + latchesPerRow/sizeof(uint32_t)) = o3.word | clkset.word;
         }
+#endif
     }
+}
+
+template <typename RGB>
+INLINE void SmartMatrix3<RGB>::loadMatrixBuffers24(unsigned char currentRow, unsigned char freeRowBuffer) {
+    int i;
+
+    rgb48 tempRow0[matrixWidth];
+    rgb48 tempRow1[matrixWidth];
+
+    // get pixel data from layers
+    SM_Layer<RGB> * templayer = globalinstance->baseLayer;
+    while(templayer) {
+        templayer->fillRefreshRow(currentRow, tempRow0);
+        templayer->fillRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET, tempRow1);
+        templayer = templayer->nextLayer;        
+    }
+
+    for (i = 0; i < matrixWidth; i++) {
+        uint8_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;
+
+        temp0red = tempRow0[i].red >> 8;
+        temp0green = tempRow0[i].green >> 8;
+        temp0blue = tempRow0[i].blue >> 8;
+        temp1red = tempRow1[i].red >> 8;
+        temp1green = tempRow1[i].green >> 8;
+        temp1blue = tempRow1[i].blue >> 8;
+
+        // this technique is from Fadecandy
+        union {
+            uint32_t word;
+            struct {
+                // order of bits in word matches how GPIO connects to the display
+                uint32_t GPIO_WORD_ORDER;
+            };
+        } o0, o1, clkset;
+
+        o0.word = 0;
+        // set bits starting from LSB brightness moving to MSB brightness with each byte across the word
+        // each word contains four brightness levels for single set of pixels above
+        // o0.p0clk = 0;
+        // o0.p0pad = 0;
+        o0.p0b1 = temp0blue    >> 0;
+        o0.p0r1 = temp0red     >> 0;
+        o0.p0r2 = temp1red     >> 0;
+        o0.p0g1 = temp0green   >> 0;
+        o0.p0g2 = temp1green   >> 0;
+        o0.p0b2 = temp1blue    >> 0;
+
+        // o0.p1clk = 0;
+        // o0.p1pad = 0;
+        o0.p1b1 = temp0blue    >> 1;
+        o0.p1r1 = temp0red     >> 1;
+        o0.p1r2 = temp1red     >> 1;
+        o0.p1g1 = temp0green   >> 1;
+        o0.p1g2 = temp1green   >> 1;
+        o0.p1b2 = temp1blue    >> 1;
+
+        // o0.p2clk = 0;
+        // o0.p2pad = 0;
+        o0.p2b1 = temp0blue    >> 2;
+        o0.p2r1 = temp0red     >> 2;
+        o0.p2r2 = temp1red     >> 2;
+        o0.p2g1 = temp0green   >> 2;
+        o0.p2g2 = temp1green   >> 2;
+        o0.p2b2 = temp1blue    >> 2;
+
+        // o0.p3clk = 0;
+        // o0.p3pad = 0;
+        o0.p3b1 = temp0blue    >> 3;
+        o0.p3r1 = temp0red     >> 3;
+        o0.p3r2 = temp1red     >> 3;
+        o0.p3g1 = temp0green   >> 3;
+        o0.p3g2 = temp1green   >> 3;
+        o0.p3b2 = temp1blue    >> 3;
+
+
+        // continue moving from LSB to MSB brightness with the next word
+        o1.word = 0;
+        // o1.p0clk = 0;
+        // o1.p0pad = 0;
+        o1.p0b1 = temp0blue    >> (0 + 1 * sizeof(uint32_t));
+        o1.p0r1 = temp0red     >> (0 + 1 * sizeof(uint32_t));
+        o1.p0r2 = temp1red     >> (0 + 1 * sizeof(uint32_t));
+        o1.p0g1 = temp0green   >> (0 + 1 * sizeof(uint32_t));
+        o1.p0g2 = temp1green   >> (0 + 1 * sizeof(uint32_t));
+        o1.p0b2 = temp1blue    >> (0 + 1 * sizeof(uint32_t));
+
+        // o1.p1clk = 0;
+        // o1.p1pad = 0;
+        o1.p1b1 = temp0blue    >> (1 + 1 * sizeof(uint32_t));
+        o1.p1r1 = temp0red     >> (1 + 1 * sizeof(uint32_t));
+        o1.p1r2 = temp1red     >> (1 + 1 * sizeof(uint32_t));
+        o1.p1g1 = temp0green   >> (1 + 1 * sizeof(uint32_t));
+        o1.p1g2 = temp1green   >> (1 + 1 * sizeof(uint32_t));
+        o1.p1b2 = temp1blue    >> (1 + 1 * sizeof(uint32_t));
+
+        // o1.p2clk = 0;
+        // o1.p2pad = 0;
+        o1.p2b1 = temp0blue    >> (2 + 1 * sizeof(uint32_t));
+        o1.p2r1 = temp0red     >> (2 + 1 * sizeof(uint32_t));
+        o1.p2r2 = temp1red     >> (2 + 1 * sizeof(uint32_t));
+        o1.p2g1 = temp0green   >> (2 + 1 * sizeof(uint32_t));
+        o1.p2g2 = temp1green   >> (2 + 1 * sizeof(uint32_t));
+        o1.p2b2 = temp1blue    >> (2 + 1 * sizeof(uint32_t));
+
+        // o1.p3clk = 0;
+        // o1.p3pad = 0;
+        o1.p3b1 = temp0blue    >> (3 + 1 * sizeof(uint32_t));
+        o1.p3r1 = temp0red     >> (3 + 1 * sizeof(uint32_t));
+        o1.p3r2 = temp1red     >> (3 + 1 * sizeof(uint32_t));
+        o1.p3g1 = temp0green   >> (3 + 1 * sizeof(uint32_t));
+        o1.p3g2 = temp1green   >> (3 + 1 * sizeof(uint32_t));
+        o1.p3b2 = temp1blue    >> (3 + 1 * sizeof(uint32_t));
+
+        clkset.word = 0x00;
+        clkset.p0clk = 1;
+        clkset.p1clk = 1;
+        clkset.p2clk = 1;
+        clkset.p3clk = 1;
+
+        // copy words to DMA buffer as a pair, one with clock set low, next with clock set high
+
+        uint32_t * tempptr = (uint32_t*)matrixUpdateData + ((freeRowBuffer*dmaBufferBytesPerRow)/sizeof(uint32_t)) + ((i*dmaBufferBytesPerPixel)/sizeof(uint32_t));
+        *tempptr = o0.word;
+        *(tempptr + latchesPerRow/sizeof(uint32_t)) = o0.word | clkset.word;
+        *(++tempptr) = o1.word;
+        *(tempptr + latchesPerRow/sizeof(uint32_t)) = o1.word | clkset.word;
+    }
+}
+
+template <typename RGB>
+INLINE void SmartMatrix3<RGB>::loadMatrixBuffers(unsigned char currentRow) {
+    int i;
+
+    addresspair rowAddressPair;
+
+    rowAddressPair.bits_to_set = addressLUT[currentRow].bits_to_set;
+    rowAddressPair.bits_to_clear = addressLUT[currentRow].bits_to_clear;
+
+    unsigned char freeRowBuffer = cbGetNextWrite(&dmaBuffer);
+
+    for (i = 0; i < latchesPerRow; i++) {
+        matrixUpdateBlock* tempptr = (matrixUpdateBlock*)matrixUpdateBlocks + (freeRowBuffer * latchesPerRow) + i;
+        // copy bits to set and clear to generate address for current block
+        tempptr->addressValues.bits_to_clear = rowAddressPair.bits_to_clear;
+        tempptr->addressValues.bits_to_set = rowAddressPair.bits_to_set;
+
+        tempptr->timerValues.timer_period = timerLUT[i].timer_period;
+        tempptr->timerValues.timer_oe = timerLUT[i].timer_oe;
+    }
+
+    if(latchesPerRow == 16)
+        loadMatrixBuffers48(currentRow, freeRowBuffer);
+    else if(latchesPerRow == 12)
+        loadMatrixBuffers36(currentRow, freeRowBuffer);
+    else if(latchesPerRow == 8)
+        loadMatrixBuffers24(currentRow, freeRowBuffer);
 }
 
 template <typename RGB>
