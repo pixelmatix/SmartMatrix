@@ -207,6 +207,13 @@ private:
 #include "MatrixForeground_Impl.h"
 #include "SmartMatrix_Impl.h"
 
+typedef enum colorCorrectionModes {
+    ccNone,
+    cc24,
+    cc12,
+    cc48
+} colorCorrectionModes;
+
 class SmartMatrix {
     public:
         SmartMatrix();
