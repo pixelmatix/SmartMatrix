@@ -125,7 +125,7 @@ public:
     uint16_t getScreenHeight(void) const;
     void setBrightness(uint8_t brightness);
     void setBackgroundBrightness(uint8_t brightness);
-    void setColorCorrection(colorCorrectionModes mode);
+    void enableColorCorrection(bool enabled);
     void setFont(fontChoices newFont);
     void setRefreshRate(uint8_t newRefreshRate);
 
