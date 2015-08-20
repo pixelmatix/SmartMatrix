@@ -44,7 +44,6 @@ void setup() {
 
   SMARTMATRIX_SETUP_DEFAULT_LAYERS(kMatrixWidth, kMatrixHeight, COLOR_DEPTH);
   matrix.setBrightness(defaultBrightness);
-  matrix.setColorCorrection(cc24);  
   matrix.setScrollFont(font3x5);
 }
 

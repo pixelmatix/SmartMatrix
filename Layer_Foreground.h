@@ -28,8 +28,6 @@ class SMLayerForeground : public SM_Layer<RGB> {
         void getRefreshPixel(uint8_t x, uint8_t y, rgb48 &xyPixel);
         void fillRefreshRow(uint8_t hardwareY, rgb48 refreshRow[]);
         void setScrollColor(const RGB & newColor);
-        colorCorrectionModes ccmode = cc48;
-        void setColorCorrection(colorCorrectionModes mode);
 
         // bitmap size is 32 rows (supporting maximum dimension of screen height in all rotations), by 32 bits
         // double buffered to prevent flicker while drawing
@@ -56,6 +54,8 @@ class SMLayerForeground : public SM_Layer<RGB> {
         void setScrollOffsetFromTop(int offset);
         void setScrollStartOffsetFromLeft(int offset);
 
+        void enableColorCorrection(bool enabled);
+
     private:
         void redrawForeground(void);
         // todo: move somewhere else
@@ -76,6 +76,8 @@ class SMLayerForeground : public SM_Layer<RGB> {
         int fontTopOffset = 1;
         int fontLeftOffset = 1;
         bool majorScrollFontChange = false;
+
+        bool ccEnabled = sizeof(RGB) <= 3 ? true : false;
 
         // scrolling
         ScrollMode scrollmode = bounceForward;

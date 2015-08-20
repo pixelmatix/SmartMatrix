@@ -47,7 +47,7 @@ void setup() {
 
     matrix.setScrollOffsetFromTop(defaultScrollOffset);
 
-    matrix.setColorCorrection(cc48);
+    matrix.enableColorCorrection(true);
 }
 
 #define DEMO_INTRO              1
@@ -1147,16 +1147,16 @@ void loop() {
             drawBitmap(0,0,&colorwheel);
             if (j%2) {
                 matrix.drawString(1, 16, {0xff, 0, 0}, "CC:ON");
-                matrix.setColorCorrection(cc48);
+                matrix.enableColorCorrection(true);
             } else {
                 matrix.drawString(1, 16, {0xff, 0, 0}, "CC:OFF");
-                matrix.setColorCorrection(ccNone);
+                matrix.enableColorCorrection(false);
             }
             // use swapBuffers(false) as background bitmap is fully drawn each time, no need to copy buffer to drawing layer after swap
             matrix.swapBuffers(false);
             delay(transitionTime/4);
         }
-        matrix.setColorCorrection(cc48);
+        matrix.enableColorCorrection(true);
     }
 #endif
 #if (DEMO_BACKGND_BRIGHTNESS == 1)

@@ -19,7 +19,6 @@ void setup() {
   SMARTMATRIX_SETUP_DEFAULT_LAYERS(kMatrixWidth, kMatrixHeight, COLOR_DEPTH);
 
   matrix.setBrightness(255);
-  matrix.setColorCorrection(cc48);
 }
 
 void loop() {

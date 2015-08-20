@@ -52,10 +52,10 @@ class SMLayerBackground : public SM_Layer<RGB> {
 
         void setFont(fontChoices newFont);
         void setBrightness(uint8_t brightness);
-        void setColorCorrection(colorCorrectionModes mode);
+        void enableColorCorrection(bool enabled);
 
     private:
-        colorCorrectionModes ccmode = cc48;
+        bool ccEnabled = sizeof(RGB) <= 3 ? true : false;
 
         RGB *currentDrawBufferPtr;
         RGB *currentRefreshBufferPtr;

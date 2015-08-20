@@ -220,8 +220,7 @@ void SmartMatrix3<RGB>::setBackgroundBrightness(uint8_t brightness) {
 }
 
 template <typename RGB>
-void SmartMatrix3<RGB>::setColorCorrection(colorCorrectionModes mode) {
+void SmartMatrix3<RGB>::enableColorCorrection(bool enabled) {
     if(backgroundLayer)
-        backgroundLayer->setColorCorrection(mode);
+        backgroundLayer->enableColorCorrection(enabled);
 }
-

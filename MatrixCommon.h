@@ -56,14 +56,6 @@ inline rgb48& rgb48::operator=(const rgb24& col) {
 #define NAME1(fun,suffix) NAME2(fun,suffix)
 #define RGB_TYPE(depth) NAME1(rgb,depth)
 
-typedef enum colorCorrectionModes {
-    ccNone,
-    cc24,
-    cc12,
-    cc48
-} colorCorrectionModes;
-
-
 //#if COLOR_DEPTH_RGB > 24
 #define Chan8ToColor( c ) ((c) << 8)
 //#else
@@ -184,34 +176,13 @@ inline void calculateBackgroundLUT(color_chan_t * lut, uint8_t backgroundBrightn
 }
 
 
-template <typename RGB_IN, typename RGB_OUT>
-void colorCorrection(colorCorrectionModes ccmode, const RGB_IN& in, RGB_OUT& out) {
-    switch (ccmode) {
-    case cc24:
-        out = rgb24(lightPowerMap8bit[in.red],
-                    lightPowerMap8bit[in.green],
-                    lightPowerMap8bit[in.blue]);
-        break;
 
-    case cc12:
-        out = rgb24(lightPowerMap4bit[in.red] << 4,
-                    lightPowerMap4bit[in.green] << 4,
-                    lightPowerMap4bit[in.blue] << 4);
-        break;
-
-    case cc48:
-        out = rgb48(lightPowerMap16bit[in.red],
-                    lightPowerMap16bit[in.green],
-                    lightPowerMap16bit[in.blue]);
-        break;
-
-    case ccNone:
-    default:
-        out = in;
-    }
-
-    //static int counter = 0;
-    //Serial.print(counter++); Serial.print(" "); Serial.print(in.red); Serial.print(" "); Serial.println(out.red);
+// only converting to rgb48, as that is the only type SmartMatrix is requesting from the Layer class - will fix later
+template <typename RGB_IN>
+void colorCorrection(const RGB_IN& in, rgb48& out) {
+    out = rgb48(lightPowerMap16bit[in.red],
+                lightPowerMap16bit[in.green],
+                lightPowerMap16bit[in.blue]);
 }
 
 void calculateBackgroundLUT(color_chan_t * lut, uint8_t backgroundBrightness);
