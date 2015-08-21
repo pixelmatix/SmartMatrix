@@ -21,14 +21,14 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-template <typename RGB>
-void SmartMatrix3<RGB>::setRotation(rotationDegrees newrotation) {
+template <int refreshDepth>
+void SmartMatrix3<refreshDepth>::setRotation(rotationDegrees newrotation) {
     rotation = newrotation;
     rotationChange = true;
 }
 
-template <typename RGB>
-uint16_t SmartMatrix3<RGB>::getScreenWidth(void) const {
+template <int refreshDepth>
+uint16_t SmartMatrix3<refreshDepth>::getScreenWidth(void) const {
     if (rotation == rotation0 || rotation == rotation180) {
         return matrixWidth;
     } else {
@@ -36,8 +36,8 @@ uint16_t SmartMatrix3<RGB>::getScreenWidth(void) const {
     }
 }
 
-template <typename RGB>
-uint16_t SmartMatrix3<RGB>::getScreenHeight(void) const {
+template <int refreshDepth>
+uint16_t SmartMatrix3<refreshDepth>::getScreenHeight(void) const {
     if (rotation == rotation0 || rotation == rotation180) {
         return matrixHeight;
     } else {
@@ -45,27 +45,27 @@ uint16_t SmartMatrix3<RGB>::getScreenHeight(void) const {
     }
 }
 
-template <typename RGB>
-volatile bool SmartMatrix3<RGB>::brightnessChange = false;
-template <typename RGB>
-volatile bool SmartMatrix3<RGB>::rotationChange = true;
-template <typename RGB>
-rotationDegrees SmartMatrix3<RGB>::rotation = rotation0;
+template <int refreshDepth>
+volatile bool SmartMatrix3<refreshDepth>::brightnessChange = false;
+template <int refreshDepth>
+volatile bool SmartMatrix3<refreshDepth>::rotationChange = true;
+template <int refreshDepth>
+rotationDegrees SmartMatrix3<refreshDepth>::rotation = rotation0;
 
-template <typename RGB>
-const int SmartMatrix3<RGB>::dimmingMaximum = 255;
+template <int refreshDepth>
+const int SmartMatrix3<refreshDepth>::dimmingMaximum = 255;
 // large factor = more dim, default is full brightness
-template <typename RGB>
-int SmartMatrix3<RGB>::dimmingFactor = dimmingMaximum - (100 * 255)/100;
+template <int refreshDepth>
+int SmartMatrix3<refreshDepth>::dimmingFactor = dimmingMaximum - (100 * 255)/100;
 
-template <typename RGB>
-void SmartMatrix3<RGB>::setBrightness(uint8_t brightness) {
+template <int refreshDepth>
+void SmartMatrix3<refreshDepth>::setBrightness(uint8_t brightness) {
     dimmingFactor = dimmingMaximum - brightness;
     brightnessChange = true;
 }
 
-template <typename RGB>
-void SmartMatrix3<RGB>::setRefreshRate(uint8_t newRefreshRate) {
+template <int refreshDepth>
+void SmartMatrix3<refreshDepth>::setRefreshRate(uint8_t newRefreshRate) {
     refreshRate = newRefreshRate;
     calculateTimerLut();
 }
