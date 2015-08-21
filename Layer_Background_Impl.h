@@ -1088,7 +1088,7 @@ void SMLayerBackground<RGB>::swapBuffersWithInterpolation_ms(int interpolationSp
     while (swapPending);
     while (framesInterpolated < totalFramesToInterpolate);
 
-    newFramesToInterpolate = interpolationSpan_ms * refreshRate / 1000;
+    newFramesToInterpolate = interpolationSpan_ms * this->refreshRate / 1000;
 
     swapPending = true;
     if (copy) {
