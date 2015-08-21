@@ -26,6 +26,10 @@
 #ifndef MATRIX_HARDWARE_H
 #define MATRIX_HARDWARE_H
 
+#define COLOR_CHANNELS_PER_PIXEL        3
+#define PIXELS_UPDATED_PER_CLOCK        2
+#define DMA_UPDATES_PER_CLOCK           2
+
 /* an advanced user may need to tweak these values */
 
 // size of latch pulse - all address updates must fit inside high portion of latch pulse

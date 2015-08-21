@@ -103,7 +103,7 @@ private:
     static uint8_t colorDepthRgb;
     static uint8_t refreshRate;
 
-    static uint8_t latchesPerRow;
+    const static uint8_t latchesPerRow = refreshDepth/COLOR_CHANNELS_PER_PIXEL;
     static uint8_t dmaBufferNumRows;
     static uint8_t dmaBufferBytesPerPixel;
     static uint16_t dmaBufferBytesPerRow;
@@ -119,8 +119,8 @@ private:
 // single matrixUpdateBlocks buffer is divided up to hold matrixUpdateBlocks, addressLUT, timerLUT to simplify user sketch code and reduce constructor parameters
 #define SMARTMATRIX_ALLOCATE_BUFFERS(width, height, storage_depth, pwm_depth, rows) \
     typedef RGB_TYPE(storage_depth) SM_RGB; \
-    static DMAMEM uint32_t matrixUpdateData[rows * width * (pwm_depth/3 / sizeof(uint32_t)) * 2]; \
-    static DMAMEM uint8_t matrixUpdateBlocks[(sizeof(matrixUpdateBlock) * rows * pwm_depth/3) + (sizeof(addresspair) * height/2) + (sizeof(timerpair) * pwm_depth/3)]; \
+    static DMAMEM uint32_t matrixUpdateData[rows * width * (pwm_depth/COLOR_CHANNELS_PER_PIXEL / sizeof(uint32_t)) * DMA_UPDATES_PER_CLOCK]; \
+    static DMAMEM uint8_t matrixUpdateBlocks[(sizeof(matrixUpdateBlock) * rows * pwm_depth/COLOR_CHANNELS_PER_PIXEL) + (sizeof(addresspair) * height/PIXELS_UPDATED_PER_CLOCK) + (sizeof(timerpair) * pwm_depth/COLOR_CHANNELS_PER_PIXEL)]; \
     SmartMatrix3<pwm_depth> matrix(width, height, pwm_depth, rows, matrixUpdateData, matrixUpdateBlocks)
 
 #define SMARTMATRIX_ALLOCATE_DEFAULT_LAYERS(width, height, storage_depth) \

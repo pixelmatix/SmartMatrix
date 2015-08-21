@@ -30,9 +30,6 @@
 // these definitions may change if switching major display type
 #define MATRIX_ROWS_PER_FRAME           (matrixHeight/2)
 #define MATRIX_ROW_PAIR_OFFSET          (matrixHeight/2)
-#define PIXELS_UPDATED_PER_CLOCK        2
-#define COLOR_CHANNELS_PER_PIXEL        3
-#define DMA_UPDATES_PER_CLOCK           2
 #define ROW_CALCULATION_ISR_PRIORITY   0xFE // 0xFF = lowest priority
 
 // hardware-specific definitions
@@ -63,8 +60,6 @@ template <int refreshDepth>
 uint8_t SmartMatrix3<refreshDepth>::matrixWidth;
 template <int refreshDepth>
 uint8_t SmartMatrix3<refreshDepth>::matrixHeight;
-template <int refreshDepth>
-uint8_t SmartMatrix3<refreshDepth>::latchesPerRow;
 // dmaBufferNumRows = the size of the buffer that DMA pulls from to refresh the display
 // must be minimum 2 rows so one can be updated while the other is refreshed
 // increase beyond two to give more time for the update routine to complete
@@ -75,8 +70,6 @@ template <int refreshDepth>
 uint8_t SmartMatrix3<refreshDepth>::dmaBufferBytesPerPixel;
 template <int refreshDepth>
 uint16_t SmartMatrix3<refreshDepth>::dmaBufferBytesPerRow;
-template <int refreshDepth>
-uint8_t SmartMatrix3<refreshDepth>::colorDepthRgb;
 template <int refreshDepth>
 uint8_t SmartMatrix3<refreshDepth>::refreshRate = 135;
 
@@ -129,10 +122,7 @@ SmartMatrix3<refreshDepth>::SmartMatrix3(uint8_t width, uint8_t height, uint8_t 
     SmartMatrix3<refreshDepth>::globalinstance = this;
     matrixWidth = width;
     matrixHeight = height;
-    colorDepthRgb = depth;
     dmaBufferNumRows = bufferrows;
-
-    latchesPerRow = colorDepthRgb/COLOR_CHANNELS_PER_PIXEL;
     dmaBufferBytesPerPixel = latchesPerRow * DMA_UPDATES_PER_CLOCK;
     dmaBufferBytesPerRow = dmaBufferBytesPerPixel * matrixWidth;
 
