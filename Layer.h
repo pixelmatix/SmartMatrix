@@ -3,7 +3,6 @@
 
 #include "MatrixCommon.h"
 
-template <typename RGB>
 class SM_Layer {
     public:
         virtual void frameRefreshCallback();

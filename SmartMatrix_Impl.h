@@ -146,9 +146,9 @@ SmartMatrix3<RGB>::SmartMatrix3(uint8_t width, uint8_t height, uint8_t depth, ui
 }
 
 template <typename RGB>
-void SmartMatrix3<RGB>::addLayer(SM_Layer<RGB> * newlayer) {
+void SmartMatrix3<RGB>::addLayer(SM_Layer * newlayer) {
     if(baseLayer) {
-        SM_Layer<RGB> * templayer = baseLayer;
+        SM_Layer * templayer = baseLayer;
         while(templayer->nextLayer)
             templayer = templayer->nextLayer;
         templayer->nextLayer = newlayer;
@@ -174,12 +174,6 @@ void SmartMatrix3<RGB>::countFPS(void) {
 }
 
 template <typename RGB>
-void SmartMatrix3<RGB>::useDefaultLayers(void) {
-    backgroundLayer = (SMLayerBackground<RGB> *)baseLayer;
-    foregroundLayer = (SMLayerForeground<RGB> *)(baseLayer->nextLayer);
-}
-
-template <typename RGB>
 INLINE void SmartMatrix3<RGB>::matrixCalculations(void) {
     static unsigned char currentRow = 0;
 
@@ -188,7 +182,7 @@ INLINE void SmartMatrix3<RGB>::matrixCalculations(void) {
         // do once-per-frame updates
         if (!currentRow) {
             if (rotationChange) {
-                SM_Layer<RGB> * templayer = globalinstance->baseLayer;
+                SM_Layer * templayer = globalinstance->baseLayer;
                 while(templayer) {
                     templayer->setRotation(rotation);
                     templayer = templayer->nextLayer;
@@ -196,7 +190,7 @@ INLINE void SmartMatrix3<RGB>::matrixCalculations(void) {
                 rotationChange = false;
             }
 
-            SM_Layer<RGB> * templayer = globalinstance->baseLayer;
+            SM_Layer * templayer = globalinstance->baseLayer;
             while(templayer) {
                 templayer->setRefreshRate(refreshRate);
                 templayer->frameRefreshCallback();
@@ -459,7 +453,7 @@ INLINE void SmartMatrix3<RGB>::loadMatrixBuffers48(unsigned char currentRow, uns
     rgb48 tempRow1[matrixWidth];
 
     // get pixel data from layers
-    SM_Layer<RGB> * templayer = globalinstance->baseLayer;
+    SM_Layer * templayer = globalinstance->baseLayer;
     while(templayer) {
         templayer->fillRefreshRow(currentRow, tempRow0);
         templayer->fillRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET, tempRow1);
@@ -711,7 +705,7 @@ INLINE void SmartMatrix3<RGB>::loadMatrixBuffers36(unsigned char currentRow, uns
     rgb48 tempRow1[matrixWidth];
 
     // get pixel data from layers
-    SM_Layer<RGB> * templayer = globalinstance->baseLayer;
+    SM_Layer * templayer = globalinstance->baseLayer;
     while(templayer) {
         templayer->fillRefreshRow(currentRow, tempRow0);
         templayer->fillRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET, tempRow1);
@@ -965,7 +959,7 @@ INLINE void SmartMatrix3<RGB>::loadMatrixBuffers24(unsigned char currentRow, uns
     rgb24 tempRow1[matrixWidth];
 
     // get pixel data from layers
-    SM_Layer<RGB> * templayer = globalinstance->baseLayer;
+    SM_Layer * templayer = globalinstance->baseLayer;
     while(templayer) {
         templayer->fillRefreshRow(currentRow, tempRow0);
         templayer->fillRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET, tempRow1);

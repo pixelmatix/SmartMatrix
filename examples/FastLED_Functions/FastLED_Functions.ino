@@ -21,8 +21,9 @@ const uint8_t kMatrixHeight = 32;       // known working: 16, 32
 const uint8_t kMatrixWidth = 32;        // known working: 32, 64
 const uint8_t kDmaBufferRows = 4;       // known working: 4
 #define COLOR_DEPTH 24                  // If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
-#define REFRESH_DEPTH 48                // known working: 24, 36, 48
+#define REFRESH_DEPTH 36                // known working: 24, 36, 48
 SMARTMATRIX_ALLOCATE_BUFFERS(kMatrixWidth, kMatrixHeight, COLOR_DEPTH, REFRESH_DEPTH, kDmaBufferRows);
+SMARTMATRIX_ALLOCATE_DEFAULT_LAYERS(kMatrixWidth, kMatrixHeight, COLOR_DEPTH);
 
 // The 32bit version of our coordinates
 static uint16_t x;
@@ -56,9 +57,9 @@ void setup() {
   // Serial.println("resetting!");
   delay(3000);
 
-  SMARTMATRIX_SETUP_DEFAULT_LAYERS(kMatrixWidth, kMatrixHeight, COLOR_DEPTH);
+  SMARTMATRIX_MIN_SETUP_DEFAULT_LAYERS();
 
-  matrix.setBackgroundBrightness(96);
+  backgroundLayer.setBrightness(96);
 
   // Initialize our coordinates to some random values
   x = random16();
@@ -66,12 +67,12 @@ void setup() {
   z = random16();
 
   // Show off smart matrix scrolling text
-  matrix.setScrollMode(wrapForward);
-  matrix.setScrollColor({0xff, 0xff, 0xff});
-  matrix.setScrollSpeed(15);
-  matrix.setScrollFont(font6x10);
-  matrix.scrollText("SmartMatrix & FastLED", -1);
-  matrix.setScrollOffsetFromEdge((kMatrixHeight/2) - 5);
+  foregroundLayer.setScrollMode(wrapForward);
+  foregroundLayer.setScrollColor({0xff, 0xff, 0xff});
+  foregroundLayer.setScrollSpeed(15);
+  foregroundLayer.setScrollFont(font6x10);
+  foregroundLayer.scrollText("SmartMatrix & FastLED", -1);
+  foregroundLayer.setScrollOffsetFromEdge((kMatrixHeight/2) - 5);
 }
 
 // Fill the x/y array of 8-bit noise values using the inoise8 function.
@@ -90,7 +91,7 @@ void loop() {
   static uint8_t circlex = 0;
   static uint8_t circley = 0;
 
-  SM_RGB *buffer = matrix.backBuffer();
+  SM_RGB *buffer = backgroundLayer.backBuffer();
 
   static uint8_t ihue=0;
   fillnoise8();
@@ -107,9 +108,9 @@ void loop() {
   }
   ihue+=1;
 
-  matrix.fillCircle(circlex % 32,circley % 32,6,CRGB(CHSV(ihue+128,255,255)));
+  backgroundLayer.fillCircle(circlex % 32,circley % 32,6,CRGB(CHSV(ihue+128,255,255)));
   circlex += random16(2);
   circley += random16(2);
-  matrix.swapBuffers(false);
+  backgroundLayer.swapBuffers(false);
   matrix.countFPS();
 }

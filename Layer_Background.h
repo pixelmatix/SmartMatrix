@@ -6,7 +6,7 @@
 #include "MatrixFontCommon.h"
 
 template <typename RGB>
-class SMLayerBackground : public SM_Layer<RGB> {
+class SMLayerBackground : public SM_Layer {
     public:
         SMLayerBackground(RGB * buffer, uint8_t width, uint8_t height);
         void frameRefreshCallback();
