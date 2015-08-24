@@ -1,22 +1,9 @@
-#ifndef _LAYER_FOREGROUND_H_
-#define _LAYER_FOREGROUND_H_
+#ifndef _LAYER_FOREGROUND2_H_
+#define _LAYER_FOREGROUND2_H_
 
 #include "Layer.h"
 #include "MatrixCommon.h"
-
-// scroll text
-const int textLayerMaxStringLength = 100;
-
-typedef enum ScrollMode {
-    wrapForward,
-    bounceForward,
-    bounceReverse,
-    stopped,
-    off,
-    wrapForwardFromLeft,
-} ScrollMode;
-
-#define SMARTMATRIX_FOREGROUND_OPTIONS_NONE     0
+#include "Layer_Foreground.h"
 
 //#define FOREGROUND_DRAWING_ENABLED
 
@@ -24,9 +11,9 @@ typedef enum ScrollMode {
 #include "MatrixFontCommon.h"
 
 template <typename RGB, unsigned int optionFlags>
-class SMLayerForeground : public SM_Layer {
+class SMLayerForeground2 : public SM_Layer {
     public:
-        SMLayerForeground(uint8_t * bitmap, uint8_t width, uint8_t height);
+        SMLayerForeground2(uint8_t * bitmap, uint8_t width, uint8_t height);
         void frameRefreshCallback();
         void getRefreshPixel(uint8_t x, uint8_t y, rgb48 &xyPixel);
         void fillRefreshRow(uint8_t hardwareY, rgb48 refreshRow[]);
@@ -99,7 +86,7 @@ class SMLayerForeground : public SM_Layer {
 #endif
 };
 
-#include "Layer_Foreground_Impl.h"
+#include "Layer_Foreground2_Impl.h"
 
 #endif
 

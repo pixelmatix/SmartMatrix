@@ -28,6 +28,7 @@ const uint8_t kForegroundOptions = (SMARTMATRIX_BACKGROUND_OPTIONS_NONE);
 SMARTMATRIX_ALLOCATE_BUFFERS(matrix, kMatrixWidth, kMatrixHeight, kRefreshDepth, kDmaBufferRows, kMatrixOptions);
 SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kBackgroundOptions);
 SMARTMATRIX_ALLOCATE_FOREGROUND_LAYER(foregroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kForegroundOptions);
+SMARTMATRIX_ALLOCATE_FOREGROUND2_LAYER(foregroundLayer2, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kForegroundOptions);
 
 // The 32bit version of our coordinates
 static uint16_t x;
@@ -63,6 +64,7 @@ void setup() {
 
   matrix.addLayer(&backgroundLayer); 
   matrix.addLayer(&foregroundLayer); 
+  matrix.addLayer(&foregroundLayer2); 
   matrix.begin();
 
   backgroundLayer.setBrightness(96);
@@ -78,7 +80,16 @@ void setup() {
   foregroundLayer.setScrollSpeed(15);
   foregroundLayer.setScrollFont(font6x10);
   foregroundLayer.scrollText("SmartMatrix & FastLED", -1);
-  foregroundLayer.setScrollOffsetFromEdge((kMatrixHeight/2) - 5);
+  foregroundLayer.setScrollOffsetFromTop((kMatrixHeight/2) - 5);
+
+  // Show off smart matrix scrolling text
+  foregroundLayer2.setScrollMode(wrapForward);
+  foregroundLayer2.setScrollColor({0xff, 0, 0});
+  foregroundLayer2.setScrollSpeed(50);
+  foregroundLayer2.setScrollFont(font3x5);
+  foregroundLayer2.scrollText("Second Layer", -1);
+  foregroundLayer2.setScrollOffsetFromTop((kMatrixHeight/2) - 10);
+
 }
 
 // Fill the x/y array of 8-bit noise values using the inoise8 function.
