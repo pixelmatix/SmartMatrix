@@ -6,23 +6,23 @@ const unsigned char foregroundRefreshBuffer = 1;
 #define FOREGROUND_ROW_SIZE     (this->localWidth / 8)
 #define FOREGROUND_BUFFER_SIZE  (FOREGROUND_ROW_SIZE * this->localHeight)
 
-template <typename RGB>
-SMLayerForeground<RGB>::SMLayerForeground(uint8_t * bitmap, uint8_t width, uint8_t height) {
+template <typename RGB, unsigned int optionFlags>
+SMLayerForeground<RGB, optionFlags>::SMLayerForeground(uint8_t * bitmap, uint8_t width, uint8_t height) {
     // size of bitmap is 2 * FOREGROUND_BUFFER_SIZE
     foregroundBitmap = bitmap;
     this->matrixWidth = width;
     this->matrixHeight = height;
 }
 
-template <typename RGB>
-void SMLayerForeground<RGB>::frameRefreshCallback(void) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerForeground<RGB, optionFlags>::frameRefreshCallback(void) {
     handleForegroundDrawingCopy();
     updateForeground();
 }
 
 // returns true and copies color to xyPixel if pixel is opaque, returns false if not
-template<typename RGB> template <typename RGB_OUT>
-bool SMLayerForeground<RGB>::getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, RGB_OUT &xyPixel) {
+template<typename RGB, unsigned int optionFlags> template <typename RGB_OUT>
+bool SMLayerForeground<RGB, optionFlags>::getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, RGB_OUT &xyPixel) {
     uint8_t localScreenX, localScreenY;
 
     // convert hardware x/y to the pixel in the local screen
@@ -58,8 +58,8 @@ bool SMLayerForeground<RGB>::getForegroundPixel(uint8_t hardwareX, uint8_t hardw
     return false;
 }
 
-template <typename RGB>
-void SMLayerForeground<RGB>::getRefreshPixel(uint8_t x, uint8_t y, rgb48 &xyPixel) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerForeground<RGB, optionFlags>::getRefreshPixel(uint8_t x, uint8_t y, rgb48 &xyPixel) {
     RGB tempPixel;
     if(getForegroundPixel(x, y, tempPixel)) {
         if(this->ccEnabled)
@@ -69,8 +69,8 @@ void SMLayerForeground<RGB>::getRefreshPixel(uint8_t x, uint8_t y, rgb48 &xyPixe
     }
 }
 
-template <typename RGB>
-void SMLayerForeground<RGB>::fillRefreshRow(uint8_t hardwareY, rgb48 refreshRow[]) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerForeground<RGB, optionFlags>::fillRefreshRow(uint8_t hardwareY, rgb48 refreshRow[]) {
     RGB currentPixel;
     int i;
 
@@ -92,8 +92,8 @@ void SMLayerForeground<RGB>::fillRefreshRow(uint8_t hardwareY, rgb48 refreshRow[
     }
 }
 
-template <typename RGB>
-void SMLayerForeground<RGB>::fillRefreshRow(uint8_t hardwareY, rgb24 refreshRow[]) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerForeground<RGB, optionFlags>::fillRefreshRow(uint8_t hardwareY, rgb24 refreshRow[]) {
     RGB currentPixel;
     int i;
 
@@ -115,19 +115,19 @@ void SMLayerForeground<RGB>::fillRefreshRow(uint8_t hardwareY, rgb24 refreshRow[
     }
 }
 
-template<typename RGB>
-void SMLayerForeground<RGB>::setScrollColor(const RGB & newColor) {
+template<typename RGB, unsigned int optionFlags>
+void SMLayerForeground<RGB, optionFlags>::setScrollColor(const RGB & newColor) {
     textcolor = newColor;
 }
 
-template<typename RGB>
-void SMLayerForeground<RGB>::enableColorCorrection(bool enabled) {
+template<typename RGB, unsigned int optionFlags>
+void SMLayerForeground<RGB, optionFlags>::enableColorCorrection(bool enabled) {
     this->ccEnabled = sizeof(RGB) <= 3 ? enabled : false;
 }
 
 // stops the scrolling text on the next refresh
-template <typename RGB>
-void SMLayerForeground<RGB>::stopScrollText(void) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerForeground<RGB, optionFlags>::stopScrollText(void) {
     // setup conditions for ending scrolling:
     // scrollcounter is next to zero
     scrollcounter = 1;
@@ -135,13 +135,13 @@ void SMLayerForeground<RGB>::stopScrollText(void) {
     scrollPosition = scrollMin;
 }
 
-template <typename RGB>
-void SMLayerForeground<RGB>::clearForeground(void) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerForeground<RGB, optionFlags>::clearForeground(void) {
     memset(&foregroundBitmap[foregroundDrawBuffer*FOREGROUND_BUFFER_SIZE], 0x00, FOREGROUND_BUFFER_SIZE);
 }
 
-template <typename RGB>
-void SMLayerForeground<RGB>::displayForegroundDrawing(bool waitUntilComplete) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerForeground<RGB, optionFlags>::displayForegroundDrawing(bool waitUntilComplete) {
     while (foregroundCopyPending);
 
     foregroundCopyPending = true;
@@ -149,8 +149,8 @@ void SMLayerForeground<RGB>::displayForegroundDrawing(bool waitUntilComplete) {
     while (waitUntilComplete && foregroundCopyPending);
 }
 
-template <typename RGB>
-void SMLayerForeground<RGB>::handleForegroundDrawingCopy(void) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerForeground<RGB, optionFlags>::handleForegroundDrawingCopy(void) {
     if (!foregroundCopyPending)
         return;
 
@@ -159,8 +159,8 @@ void SMLayerForeground<RGB>::handleForegroundDrawingCopy(void) {
     foregroundCopyPending = false;
 }
 
-template <typename RGB>
-void SMLayerForeground<RGB>::drawForegroundPixel(int16_t x, int16_t y, bool opaque) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerForeground<RGB, optionFlags>::drawForegroundPixel(int16_t x, int16_t y, bool opaque) {
     uint8_t tempBitmask;
 
     if(x < 0 || x >= this->localWidth || y < 0 || y >= this->localWidth)
@@ -175,14 +175,14 @@ void SMLayerForeground<RGB>::drawForegroundPixel(int16_t x, int16_t y, bool opaq
     }
 }
 
-template <typename RGB>
-void SMLayerForeground<RGB>::setForegroundFont(fontChoices newFont) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerForeground<RGB, optionFlags>::setForegroundFont(fontChoices newFont) {
     foregroundfont = (bitmap_font *)fontLookup(newFont);
     majorScrollFontChange = true;
 }
 
-template <typename RGB>
-void SMLayerForeground<RGB>::drawForegroundChar(int16_t x, int16_t y, char character, bool opaque) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerForeground<RGB, optionFlags>::drawForegroundChar(int16_t x, int16_t y, char character, bool opaque) {
     uint8_t tempBitmask;
     int k;
 
@@ -208,8 +208,8 @@ void SMLayerForeground<RGB>::drawForegroundChar(int16_t x, int16_t y, char chara
     }
 }
 
-template <typename RGB>
-void SMLayerForeground<RGB>::drawForegroundString(int16_t x, int16_t y, const char text [], bool opaque) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerForeground<RGB, optionFlags>::drawForegroundString(int16_t x, int16_t y, const char text [], bool opaque) {
     // limit text to 10 chars, why?
     for (int i = 0; i < 10; i++) {
         char character = text[i];
@@ -220,8 +220,8 @@ void SMLayerForeground<RGB>::drawForegroundString(int16_t x, int16_t y, const ch
     }
 }
 
-template <typename RGB>
-void SMLayerForeground<RGB>::drawForegroundMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, uint8_t *bitmap, bool opaque) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerForeground<RGB, optionFlags>::drawForegroundMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, uint8_t *bitmap, bool opaque) {
     int xcnt, ycnt;
 
     for (ycnt = 0; ycnt < height; ycnt++) {
@@ -236,13 +236,13 @@ void SMLayerForeground<RGB>::drawForegroundMonoBitmap(int16_t x, int16_t y, uint
 // returns 0 if stopped
 // returns positive number indicating number of loops left if running
 // returns -1 if continuously scrolling
-template <typename RGB>
-int SMLayerForeground<RGB>::getScrollStatus(void) const {
+template <typename RGB, unsigned int optionFlags>
+int SMLayerForeground<RGB, optionFlags>::getScrollStatus(void) const {
     return scrollcounter;
 }
 
-template <typename RGB>
-void SMLayerForeground<RGB>::setScrollMinMax(void) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerForeground<RGB, optionFlags>::setScrollMinMax(void) {
    switch (scrollmode) {
     case wrapForward:
     case bounceForward:
@@ -270,8 +270,8 @@ void SMLayerForeground<RGB>::setScrollMinMax(void) {
 
 }
 
-template <typename RGB>
-void SMLayerForeground<RGB>::scrollText(const char inputtext[], int numScrolls) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerForeground<RGB, optionFlags>::scrollText(const char inputtext[], int numScrolls) {
     int length = strlen((const char *)inputtext);
     if (length > textLayerMaxStringLength)
         length = textLayerMaxStringLength;
@@ -286,8 +286,8 @@ void SMLayerForeground<RGB>::scrollText(const char inputtext[], int numScrolls) 
 
 //Updates the text that is currently scrolling to the new value
 //Useful for a clock display where the time changes.
-template <typename RGB>
-void SMLayerForeground<RGB>::updateScrollText(const char inputtext[]){
+template <typename RGB, unsigned int optionFlags>
+void SMLayerForeground<RGB, optionFlags>::updateScrollText(const char inputtext[]){
     int length = strlen((const char *)inputtext);
     if (length > textLayerMaxStringLength)
         length = textLayerMaxStringLength;
@@ -300,8 +300,8 @@ void SMLayerForeground<RGB>::updateScrollText(const char inputtext[]){
 
 // called once per frame to update foreground (virtual) bitmap
 // function needs major efficiency improvments
-template <typename RGB>
-void SMLayerForeground<RGB>::updateForeground(void) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerForeground<RGB, optionFlags>::updateForeground(void) {
     bool resetScrolls = false;
 
     // return if not ready to update
@@ -357,38 +357,38 @@ void SMLayerForeground<RGB>::updateForeground(void) {
 }
 
 // TODO: recompute stuff after changing mode, font, etc
-template <typename RGB>
-void SMLayerForeground<RGB>::setScrollMode(ScrollMode mode) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerForeground<RGB, optionFlags>::setScrollMode(ScrollMode mode) {
     scrollmode = mode;
 }
 
 // TODO:need to get refresh rate from main class
 
 
-template <typename RGB>
-void SMLayerForeground<RGB>::setScrollSpeed(unsigned char pixels_per_second) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerForeground<RGB, optionFlags>::setScrollSpeed(unsigned char pixels_per_second) {
     framesperscroll = (this->refreshRate * 1.0) / pixels_per_second;
 }
 
-template <typename RGB>
-void SMLayerForeground<RGB>::setScrollFont(fontChoices newFont) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerForeground<RGB, optionFlags>::setScrollFont(fontChoices newFont) {
     scrollFont = fontLookup(newFont);
 }
 
-template <typename RGB>
-void SMLayerForeground<RGB>::setScrollOffsetFromTop(int offset) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerForeground<RGB, optionFlags>::setScrollOffsetFromTop(int offset) {
     fontTopOffset = offset;
     majorScrollFontChange = true;
 }
 
-template <typename RGB>
-void SMLayerForeground<RGB>::setScrollStartOffsetFromLeft(int offset) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerForeground<RGB, optionFlags>::setScrollStartOffsetFromLeft(int offset) {
     fontLeftOffset = offset;
 }
 
 // if font size or position changed since the last call, redraw the whole frame
-template <typename RGB>
-void SMLayerForeground<RGB>::redrawForeground(void) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerForeground<RGB, optionFlags>::redrawForeground(void) {
     int j, k;
     int charPosition, textPosition;
     uint8_t charY0, charY1;
@@ -460,8 +460,8 @@ void SMLayerForeground<RGB>::redrawForeground(void) {
     }
 }
 
-template <typename RGB>
-bool SMLayerForeground<RGB>::getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap) {
+template <typename RGB, unsigned int optionFlags>
+bool SMLayerForeground<RGB, optionFlags>::getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap) {
     int cell = (y * ((width / 8) + 1)) + (x / 8);
 
     uint8_t mask = 0x80 >> (x % 8);

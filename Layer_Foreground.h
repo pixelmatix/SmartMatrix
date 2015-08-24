@@ -21,7 +21,7 @@ typedef enum ScrollMode {
 // font
 #include "MatrixFontCommon.h"
 
-template <typename RGB>
+template <typename RGB, unsigned int optionFlags>
 class SMLayerForeground : public SM_Layer {
     public:
         SMLayerForeground(uint8_t * bitmap, uint8_t width, uint8_t height);

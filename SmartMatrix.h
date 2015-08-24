@@ -128,12 +128,12 @@ private:
 #define SMARTMATRIX_ALLOCATE_FOREGROUND_LAYER(layer_name, width, height, storage_depth, foreground_options) \
     typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
     static uint8_t foregroundBitmap[2 * width * (height / 8)];                                              \
-    static SMLayerForeground<RGB_TYPE(storage_depth)> layer_name(foregroundBitmap, width, height)  
+    static SMLayerForeground<RGB_TYPE(storage_depth), foreground_options> layer_name(foregroundBitmap, width, height)  
 
 #define SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(layer_name, width, height, storage_depth, background_options) \
     typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
     static RGB_TYPE(storage_depth) backgroundBitmap[2*width*height];                                        \
-    static SMLayerBackground<RGB_TYPE(storage_depth)> layer_name(backgroundBitmap, width, height)  
+    static SMLayerBackground<RGB_TYPE(storage_depth), background_options> layer_name(backgroundBitmap, width, height)  
 
 
 #include "MatrixConfiguration_Impl.h"

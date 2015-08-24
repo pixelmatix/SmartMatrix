@@ -6,20 +6,20 @@ static color_chan_t backgroundColorCorrectionLUT[256];
 
 #ifdef SMARTMATRIX_TRIPLEBUFFER
 RGB *previousRefreshBufferPtr;
-template <typename RGB>
-unsigned char SMLayerBackground<RGB>::previousRefreshBuffer = 2;
+template <typename RGB, unsigned int optionFlags>
+unsigned char SMLayerBackground<RGB, optionFlags>::previousRefreshBuffer = 2;
 #endif
-template <typename RGB>
-unsigned char SMLayerBackground<RGB>::currentDrawBuffer = 0;
-template <typename RGB>
-unsigned char SMLayerBackground<RGB>::currentRefreshBuffer = 1;
-template <typename RGB>
-volatile bool SMLayerBackground<RGB>::swapPending = false;
+template <typename RGB, unsigned int optionFlags>
+unsigned char SMLayerBackground<RGB, optionFlags>::currentDrawBuffer = 0;
+template <typename RGB, unsigned int optionFlags>
+unsigned char SMLayerBackground<RGB, optionFlags>::currentRefreshBuffer = 1;
+template <typename RGB, unsigned int optionFlags>
+volatile bool SMLayerBackground<RGB, optionFlags>::swapPending = false;
 static bitmap_font *font = (bitmap_font *) &apple3x5;
 
 
-template <typename RGB>
-SMLayerBackground<RGB>::SMLayerBackground(RGB * buffer, uint8_t width, uint8_t height) {
+template <typename RGB, unsigned int optionFlags>
+SMLayerBackground<RGB, optionFlags>::SMLayerBackground(RGB * buffer, uint8_t width, uint8_t height) {
     backgroundBuffer = buffer;
     this->matrixWidth = width;
     this->matrixHeight = height;
@@ -31,8 +31,8 @@ SMLayerBackground<RGB>::SMLayerBackground(RGB * buffer, uint8_t width, uint8_t h
 #endif
 }
 
-template <typename RGB>
-void SMLayerBackground<RGB>::frameRefreshCallback(void) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::frameRefreshCallback(void) {
     handleBufferSwap();
 
     calculateBackgroundLUT(backgroundColorCorrectionLUT, backgroundBrightness);
@@ -44,8 +44,8 @@ void SMLayerBackground<RGB>::frameRefreshCallback(void) {
 #endif
 }
 
-template <typename RGB>
-void SMLayerBackground<RGB>::getRefreshPixel(uint8_t hardwareX, uint8_t hardwareY, rgb48 &xyPixel) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::getRefreshPixel(uint8_t hardwareX, uint8_t hardwareY, rgb48 &xyPixel) {
     RGB currentPixel = currentRefreshBufferPtr[(hardwareY * this->matrixWidth) + hardwareX];
 
 #ifdef SMARTMATRIX_TRIPLEBUFFER
@@ -67,8 +67,8 @@ void SMLayerBackground<RGB>::getRefreshPixel(uint8_t hardwareX, uint8_t hardware
 #endif
 }
 
-template <typename RGB>
-void SMLayerBackground<RGB>::fillRefreshRow(uint8_t hardwareY, rgb48 refreshRow[]) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::fillRefreshRow(uint8_t hardwareY, rgb48 refreshRow[]) {
     RGB currentPixel;
     int i;
 
@@ -89,8 +89,8 @@ void SMLayerBackground<RGB>::fillRefreshRow(uint8_t hardwareY, rgb48 refreshRow[
     }
 }
 
-template <typename RGB>
-void SMLayerBackground<RGB>::fillRefreshRow(uint8_t hardwareY, rgb24 refreshRow[]) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::fillRefreshRow(uint8_t hardwareY, rgb24 refreshRow[]) {
     RGB currentPixel;
     int i;
 
@@ -116,8 +116,8 @@ extern volatile int framesInterpolated;
 
 #ifdef SMARTMATRIX_TRIPLEBUFFER
 // function from fadecandy
-template <typename RGB>
-uint32_t SMLayerBackground<RGB>::calculateFcInterpCoefficient()
+template <typename RGB, unsigned int optionFlags>
+uint32_t SMLayerBackground<RGB, optionFlags>::calculateFcInterpCoefficient()
 {
     /*
      * Calculate our interpolation coefficient. This is a value between
@@ -138,8 +138,8 @@ uint32_t SMLayerBackground<RGB>::calculateFcInterpCoefficient()
     return (0x10000 * framesInterpolated) / totalFramesToInterpolate;
 }
 
-template <typename RGB>
-RGB *SMLayerBackground<RGB>::getPreviousRefreshRow(uint8_t y) {
+template <typename RGB, unsigned int optionFlags>
+RGB *SMLayerBackground<RGB, optionFlags>::getPreviousRefreshRow(uint8_t y) {
   return &previousRefreshBufferPtr[y*this->matrixWidth];
 }
 #endif
@@ -252,8 +252,8 @@ uint32_t lutInterpolate(const uint16_t *lut, uint32_t arg)
 
 
 
-template <typename RGB>
-void SMLayerBackground<RGB>::drawPixel(int16_t x, int16_t y, const RGB& color) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::drawPixel(int16_t x, int16_t y, const RGB& color) {
     int hwx, hwy;
 
     // check for out of bounds coordinates
@@ -285,8 +285,8 @@ void SMLayerBackground<RGB>::drawPixel(int16_t x, int16_t y, const RGB& color) {
     }
 
 // x0, x1, and y must be in bounds (0-this->localWidth/Height), x1 > x0
-template <typename RGB>
-void SMLayerBackground<RGB>::drawHardwareHLine(uint8_t x0, uint8_t x1, uint8_t y, const RGB& color) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::drawHardwareHLine(uint8_t x0, uint8_t x1, uint8_t y, const RGB& color) {
     int i;
 
     for (i = x0; i <= x1; i++) {
@@ -295,8 +295,8 @@ void SMLayerBackground<RGB>::drawHardwareHLine(uint8_t x0, uint8_t x1, uint8_t y
 }
 
 // x, y0, and y1 must be in bounds (0-this->localWidth/Height), y1 > y0
-template <typename RGB>
-void SMLayerBackground<RGB>::drawHardwareVLine(uint8_t x, uint8_t y0, uint8_t y1, const RGB& color) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::drawHardwareVLine(uint8_t x, uint8_t y0, uint8_t y1, const RGB& color) {
     int i;
 
     for (i = y0; i <= y1; i++) {
@@ -304,8 +304,8 @@ void SMLayerBackground<RGB>::drawHardwareVLine(uint8_t x, uint8_t y0, uint8_t y1
     }
 }
 
-template <typename RGB>
-void SMLayerBackground<RGB>::drawFastHLine(int16_t x0, int16_t x1, int16_t y, const RGB& color) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::drawFastHLine(int16_t x0, int16_t x1, int16_t y, const RGB& color) {
     // make sure line goes from x0 to x1
     if (x1 < x0)
         SWAPint(x1, x0);
@@ -333,8 +333,8 @@ void SMLayerBackground<RGB>::drawFastHLine(int16_t x0, int16_t x1, int16_t y, co
     }
 }
 
-template <typename RGB>
-void SMLayerBackground<RGB>::drawFastVLine(int16_t x, int16_t y0, int16_t y1, const RGB& color) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::drawFastVLine(int16_t x, int16_t y0, int16_t y1, const RGB& color) {
     // make sure line goes from y0 to y1
     if (y1 < y0)
         SWAPint(y1, y0);
@@ -362,8 +362,8 @@ void SMLayerBackground<RGB>::drawFastVLine(int16_t x, int16_t y0, int16_t y1, co
     }
 }
 
-template <typename RGB>
-void SMLayerBackground<RGB>::bresteepline(int16_t x3, int16_t y3, int16_t x4, int16_t y4, const RGB& color) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::bresteepline(int16_t x3, int16_t y3, int16_t x4, int16_t y4, const RGB& color) {
     // if point x3, y3 is on the right side of point x4, y4, change them
     if ((x3 - x4) > 0) {
         bresteepline(x4, y4, x3, y3, color);
@@ -385,8 +385,8 @@ void SMLayerBackground<RGB>::bresteepline(int16_t x3, int16_t y3, int16_t x4, in
 }
 
 // algorithm from http://www.netgraphics.sk/bresenham-algorithm-for-a-line
-template <typename RGB>
-void SMLayerBackground<RGB>::drawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, const RGB& color) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::drawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, const RGB& color) {
     // if point x1, y1 is on the right side of point x2, y2, change them
     if ((x1 - x2) > 0) {
         drawLine(x2, y2, x1, y1, color);
@@ -416,8 +416,8 @@ void SMLayerBackground<RGB>::drawLine(int16_t x1, int16_t y1, int16_t x2, int16_
 }
 
 // algorithm from http://en.wikipedia.org/wiki/Midpoint_circle_algorithm
-template <typename RGB>
-void SMLayerBackground<RGB>::drawCircle(int16_t x0, int16_t y0, uint16_t radius, const RGB& color)
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::drawCircle(int16_t x0, int16_t y0, uint16_t radius, const RGB& color)
 {
     int a = radius, b = 0;
     int radiusError = 1 - a;
@@ -450,8 +450,8 @@ void SMLayerBackground<RGB>::drawCircle(int16_t x0, int16_t y0, uint16_t radius,
 }
 
 // algorithm from drawCircle rearranged with hlines drawn between points on the radius
-template <typename RGB>
-void SMLayerBackground<RGB>::fillCircle(int16_t x0, int16_t y0, uint16_t radius, const RGB& outlineColor, const RGB& fillColor)
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::fillCircle(int16_t x0, int16_t y0, uint16_t radius, const RGB& outlineColor, const RGB& fillColor)
 {
     int a = radius, b = 0;
     int radiusError = 1 - a;
@@ -500,8 +500,8 @@ void SMLayerBackground<RGB>::fillCircle(int16_t x0, int16_t y0, uint16_t radius,
 }
 
 // algorithm from drawCircle rearranged with hlines drawn between points on the raidus
-template <typename RGB>
-void SMLayerBackground<RGB>::fillCircle(int16_t x0, int16_t y0, uint16_t radius, const RGB& fillColor)
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::fillCircle(int16_t x0, int16_t y0, uint16_t radius, const RGB& fillColor)
 {
     int a = radius, b = 0;
     int radiusError = 1 - a;
@@ -538,8 +538,8 @@ void SMLayerBackground<RGB>::fillCircle(int16_t x0, int16_t y0, uint16_t radius,
 }
 
 // from https://web.archive.org/web/20120225095359/http://homepage.smc.edu/kennedy_john/belipse.pdf
-template <typename RGB>
-void SMLayerBackground<RGB>::drawEllipse(int16_t x0, int16_t y0, uint16_t radiusX, uint16_t radiusY, const RGB& color) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::drawEllipse(int16_t x0, int16_t y0, uint16_t radiusX, uint16_t radiusY, const RGB& color) {
     int16_t twoASquare = 2 * radiusX * radiusX;
     int16_t twoBSquare = 2 * radiusY * radiusY;
     
@@ -600,14 +600,14 @@ void SMLayerBackground<RGB>::drawEllipse(int16_t x0, int16_t y0, uint16_t radius
     }
 }
 
-template <typename RGB>
-void SMLayerBackground<RGB>::fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
   uint16_t radius, const RGB& fillColor) {
     fillRoundRectangle(x0, y0, x1, y1, radius, fillColor, fillColor);
 }
 
-template <typename RGB>
-void SMLayerBackground<RGB>::fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
   uint16_t radius, const RGB& outlineColor, const RGB& fillColor) {
     if (x1 < x0)
         SWAPint(x1, x0);
@@ -689,8 +689,8 @@ void SMLayerBackground<RGB>::fillRoundRectangle(int16_t x0, int16_t y0, int16_t 
     fillRectangle(x0 - a, y0 - a, x1 + a, y1 + a, fillColor);
 }
 
-template <typename RGB>
-void SMLayerBackground<RGB>::drawRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::drawRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
   uint16_t radius, const RGB& outlineColor) {
     if (x1 < x0)
         SWAPint(x1, x0);
@@ -748,8 +748,8 @@ void SMLayerBackground<RGB>::drawRoundRectangle(int16_t x0, int16_t y0, int16_t 
 }
 
 // Code from http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html
-template <typename RGB>
-void SMLayerBackground<RGB>::fillFlatSideTriangleInt(int16_t x1, int16_t y1, int16_t x2, int16_t y2,
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::fillFlatSideTriangleInt(int16_t x1, int16_t y1, int16_t x2, int16_t y2,
   int16_t x3, int16_t y3, const RGB& color) {
     int16_t t1x, t2x, t1y, t2y;
     bool changed1 = false;
@@ -835,8 +835,8 @@ void SMLayerBackground<RGB>::fillFlatSideTriangleInt(int16_t x1, int16_t y1, int
 }
 
 // Code from http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html
-template <typename RGB>
-void SMLayerBackground<RGB>::fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const RGB& fillColor) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const RGB& fillColor) {
     // Sort vertices
     if (y1 > y2) {
         SWAPint(y1, y2);
@@ -871,30 +871,30 @@ void SMLayerBackground<RGB>::fillTriangle(int16_t x1, int16_t y1, int16_t x2, in
     }
 }
 
-template <typename RGB>
-void SMLayerBackground<RGB>::fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3,
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3,
   const RGB& outlineColor, const RGB& fillColor) {
     fillTriangle(x1, y1, x2, y2, x3, y3, fillColor);
     drawTriangle(x1, y1, x2, y2, x3, y3, outlineColor);
 }
 
-template <typename RGB>
-void SMLayerBackground<RGB>::drawTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const RGB& color) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::drawTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const RGB& color) {
     drawLine(x1, y1, x2, y2, color);
     drawLine(x2, y2, x3, y3, color);
     drawLine(x1, y1, x3, y3, color);
 }
 
-template <typename RGB>
-void SMLayerBackground<RGB>::drawRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& color) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::drawRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& color) {
     drawFastHLine(x0, x1, y0, color);
     drawFastHLine(x0, x1, y1, color);
     drawFastVLine(x0, y0, y1, color);
     drawFastVLine(x1, y0, y1, color);
 }
 
-template <typename RGB>
-void SMLayerBackground<RGB>::fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& color) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& color) {
     int i;
 // Loop only works if y1 > y0
     if (y0 > y1) {
@@ -910,32 +910,32 @@ void SMLayerBackground<RGB>::fillRectangle(int16_t x0, int16_t y0, int16_t x1, i
     }
 }
 
-template <typename RGB>
-void SMLayerBackground<RGB>::fillScreen(const RGB& color) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::fillScreen(const RGB& color) {
     fillRectangle(0, 0, this->localWidth, this->localHeight, color);
 }
 
-template <typename RGB>
-void SMLayerBackground<RGB>::fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& outlineColor, const RGB& fillColor) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& outlineColor, const RGB& fillColor) {
     fillRectangle(x0, y0, x1, y1, fillColor);
     drawRectangle(x0, y0, x1, y1, outlineColor);
 }
 
-template <typename RGB>
-bool SMLayerBackground<RGB>::getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap) {
+template <typename RGB, unsigned int optionFlags>
+bool SMLayerBackground<RGB, optionFlags>::getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap) {
     int cell = (y * ((width / 8) + 1)) + (x / 8);
 
     uint8_t mask = 0x80 >> (x % 8);
     return (mask & bitmap[cell]);
 }
 
-template <typename RGB>
-void SMLayerBackground<RGB>::setFont(fontChoices newFont) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::setFont(fontChoices newFont) {
     font = (bitmap_font *)fontLookup(newFont);
 }
 
-template <typename RGB>
-void SMLayerBackground<RGB>::drawChar(int16_t x, int16_t y, const RGB& charColor, char character) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::drawChar(int16_t x, int16_t y, const RGB& charColor, char character) {
     int xcnt, ycnt;
 
     for (ycnt = 0; ycnt < font->Height; ycnt++) {
@@ -947,8 +947,8 @@ void SMLayerBackground<RGB>::drawChar(int16_t x, int16_t y, const RGB& charColor
     }
 }
 
-template <typename RGB>
-void SMLayerBackground<RGB>::drawString(int16_t x, int16_t y, const RGB& charColor, const char text[]) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::drawString(int16_t x, int16_t y, const RGB& charColor, const char text[]) {
     int xcnt, ycnt, i = 0, offset = 0;
     char character;
 
@@ -970,8 +970,8 @@ void SMLayerBackground<RGB>::drawString(int16_t x, int16_t y, const RGB& charCol
 }
 
 // draw string while clearing background
-template <typename RGB>
-void SMLayerBackground<RGB>::drawString(int16_t x, int16_t y, const RGB& charColor, const RGB& backColor, const char text[]) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::drawString(int16_t x, int16_t y, const RGB& charColor, const RGB& backColor, const char text[]) {
     int xcnt, ycnt, i = 0, offset = 0;
     char character;
 
@@ -994,8 +994,8 @@ void SMLayerBackground<RGB>::drawString(int16_t x, int16_t y, const RGB& charCol
     }
 }
 
-template <typename RGB>
-void SMLayerBackground<RGB>::drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height,
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height,
   const RGB& bitmapColor, const uint8_t *bitmap) {
     int xcnt, ycnt;
 
@@ -1012,8 +1012,8 @@ void SMLayerBackground<RGB>::drawMonoBitmap(int16_t x, int16_t y, uint8_t width,
 int newFramesToInterpolate;
 #endif
 
-template <typename RGB>
-void SMLayerBackground<RGB>::handleBufferSwap(void) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::handleBufferSwap(void) {
 #ifdef SMARTMATRIX_TRIPLEBUFFER
     if(framesInterpolated < totalFramesToInterpolate)
         framesInterpolated++;
@@ -1050,8 +1050,8 @@ void SMLayerBackground<RGB>::handleBufferSwap(void) {
 
 // waits until previous swap is complete
 // waits until current swap is complete if copy is enabled
-template <typename RGB>
-void SMLayerBackground<RGB>::swapBuffers(bool copy) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::swapBuffers(bool copy) {
     while (swapPending);
 
 #ifdef SMARTMATRIX_TRIPLEBUFFER
@@ -1068,8 +1068,8 @@ void SMLayerBackground<RGB>::swapBuffers(bool copy) {
 
 #ifdef SMARTMATRIX_TRIPLEBUFFER
 // waits until previous swap and previous interpolation span is complete
-template <typename RGB>
-void SMLayerBackground<RGB>::swapBuffersWithInterpolation_frames(int framesToInterpolate, bool copy) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::swapBuffersWithInterpolation_frames(int framesToInterpolate, bool copy) {
     while (swapPending);
     while (framesInterpolated < totalFramesToInterpolate);
 
@@ -1083,8 +1083,8 @@ void SMLayerBackground<RGB>::swapBuffersWithInterpolation_frames(int framesToInt
 }
 
 // waits until previous swap and previous interpolation span is complete
-template <typename RGB>
-void SMLayerBackground<RGB>::swapBuffersWithInterpolation_ms(int interpolationSpan_ms, bool copy) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::swapBuffersWithInterpolation_ms(int interpolationSpan_ms, bool copy) {
     while (swapPending);
     while (framesInterpolated < totalFramesToInterpolate);
 
@@ -1099,29 +1099,29 @@ void SMLayerBackground<RGB>::swapBuffersWithInterpolation_ms(int interpolationSp
 #endif
 
 // return pointer to start of currentDrawBuffer, so application can do efficient loading of bitmaps
-template <typename RGB>
-RGB *SMLayerBackground<RGB>::backBuffer(void) {
+template <typename RGB, unsigned int optionFlags>
+RGB *SMLayerBackground<RGB, optionFlags>::backBuffer(void) {
     return currentDrawBufferPtr;
 }
 
-template<typename RGB>
-void SMLayerBackground<RGB>::setBackBuffer(RGB *newBuffer) {
+template<typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::setBackBuffer(RGB *newBuffer) {
   currentDrawBufferPtr = newBuffer;
 }
 
-template<typename RGB>
-void SMLayerBackground<RGB>::setBrightness(uint8_t brightness) {
+template<typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::setBrightness(uint8_t brightness) {
     backgroundBrightness = brightness;
 }
 
-template<typename RGB>
-void SMLayerBackground<RGB>::enableColorCorrection(bool enabled) {
+template<typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::enableColorCorrection(bool enabled) {
     this->ccEnabled = sizeof(RGB) <= 3 ? enabled : false;
 }
 
 // reads pixel from drawing buffer, not refresh buffer
-template<typename RGB>
-const RGB SMLayerBackground<RGB>::readPixel(int16_t x, int16_t y) {
+template<typename RGB, unsigned int optionFlags>
+const RGB SMLayerBackground<RGB, optionFlags>::readPixel(int16_t x, int16_t y) {
     int hwx, hwy;
 
     // check for out of bounds coordinates
@@ -1146,13 +1146,13 @@ const RGB SMLayerBackground<RGB>::readPixel(int16_t x, int16_t y) {
     return currentDrawBufferPtr[(hwy * this->matrixWidth) + hwx];
 }
 
-template<typename RGB>
-RGB *SMLayerBackground<RGB>::getRealBackBuffer() {
+template<typename RGB, unsigned int optionFlags>
+RGB *SMLayerBackground<RGB, optionFlags>::getRealBackBuffer() {
   return &backgroundBuffer[currentDrawBuffer * (this->matrixWidth * this->matrixHeight)];
 }
 
-template<typename RGB>
-RGB *SMLayerBackground<RGB>::getCurrentRefreshRow(uint8_t y) {
+template<typename RGB, unsigned int optionFlags>
+RGB *SMLayerBackground<RGB, optionFlags>::getCurrentRefreshRow(uint8_t y) {
   return &currentRefreshBufferPtr[y*this->matrixWidth];
 }
 

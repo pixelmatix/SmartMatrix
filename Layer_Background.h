@@ -7,7 +7,7 @@
 
 #define SMARTMATRIX_BACKGROUND_OPTIONS_NONE     0
 
-template <typename RGB>
+template <typename RGB, unsigned int optionFlags>
 class SMLayerBackground : public SM_Layer {
     public:
         SMLayerBackground(RGB * buffer, uint8_t width, uint8_t height);
