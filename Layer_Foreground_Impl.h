@@ -1,7 +1,11 @@
 #include <string.h>
 
+#ifdef FOREGROUND_DRAWING_ENABLED
 const unsigned char foregroundDrawBuffer = 0;
 const unsigned char foregroundRefreshBuffer = 1;
+#else
+const unsigned char foregroundRefreshBuffer = 0;
+#endif
 
 #define FOREGROUND_ROW_SIZE     (this->localWidth / 8)
 #define FOREGROUND_BUFFER_SIZE  (FOREGROUND_ROW_SIZE * this->localHeight)
@@ -16,7 +20,9 @@ SMLayerForeground<RGB, optionFlags>::SMLayerForeground(uint8_t * bitmap, uint8_t
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerForeground<RGB, optionFlags>::frameRefreshCallback(void) {
+#ifdef FOREGROUND_DRAWING_ENABLED
     handleForegroundDrawingCopy();
+#endif
     updateForeground();
 }
 
@@ -135,6 +141,7 @@ void SMLayerForeground<RGB, optionFlags>::stopScrollText(void) {
     scrollPosition = scrollMin;
 }
 
+#ifdef FOREGROUND_DRAWING_ENABLED
 template <typename RGB, unsigned int optionFlags>
 void SMLayerForeground<RGB, optionFlags>::clearForeground(void) {
     memset(&foregroundBitmap[foregroundDrawBuffer*FOREGROUND_BUFFER_SIZE], 0x00, FOREGROUND_BUFFER_SIZE);
@@ -232,6 +239,7 @@ void SMLayerForeground<RGB, optionFlags>::drawForegroundMonoBitmap(int16_t x, in
         }
     }
 }
+#endif
 
 // returns 0 if stopped
 // returns positive number indicating number of loops left if running
