@@ -53,7 +53,7 @@ typedef struct matrixUpdateBlock {
     addresspair addressValues;
 } matrixUpdateBlock;
 
-template <int refreshDepth>
+template <int refreshDepth, unsigned char optionFlags>
 class SmartMatrix3 {
 public:
     SmartMatrix3(uint8_t width, uint8_t height, uint8_t depth, uint8_t bufferrows, uint32_t * dataBuffer, uint8_t * blockBuffer);
@@ -76,9 +76,9 @@ public:
 
 private:
     // enable ISR access to private member variables
-    template <int refreshDepth1>
+    template <int refreshDepth1, unsigned char optionFlags1>
     friend void rowCalculationISR(void);
-    template <int refreshDepth1>
+    template <int refreshDepth1, unsigned char optionFlags1>
     friend void rowShiftCompleteISR(void);
 
     // functions called by ISR
@@ -113,7 +113,7 @@ private:
     static addresspair * addressLUT;
     static timerpair * timerLUT;
 
-    static SmartMatrix3<refreshDepth>* globalinstance;
+    static SmartMatrix3<refreshDepth, optionFlags>* globalinstance;
 };
 
 // single matrixUpdateBlocks buffer is divided up to hold matrixUpdateBlocks, addressLUT, timerLUT to simplify user sketch code and reduce constructor parameters
@@ -121,7 +121,7 @@ private:
     typedef RGB_TYPE(storage_depth) SM_RGB; \
     static DMAMEM uint32_t matrixUpdateData[rows * width * (pwm_depth/COLOR_CHANNELS_PER_PIXEL / sizeof(uint32_t)) * DMA_UPDATES_PER_CLOCK]; \
     static DMAMEM uint8_t matrixUpdateBlocks[(sizeof(matrixUpdateBlock) * rows * pwm_depth/COLOR_CHANNELS_PER_PIXEL) + (sizeof(addresspair) * height/PIXELS_UPDATED_PER_CLOCK) + (sizeof(timerpair) * pwm_depth/COLOR_CHANNELS_PER_PIXEL)]; \
-    SmartMatrix3<pwm_depth> matrix(width, height, pwm_depth, rows, matrixUpdateData, matrixUpdateBlocks)
+    SmartMatrix3<pwm_depth, 0> matrix(width, height, pwm_depth, rows, matrixUpdateData, matrixUpdateBlocks)
 
 #define SMARTMATRIX_ALLOCATE_DEFAULT_LAYERS(width, height, storage_depth) \
     static RGB_TYPE(storage_depth) backgroundBitmap[2*width*height];                              \

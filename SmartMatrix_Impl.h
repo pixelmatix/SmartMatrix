@@ -46,41 +46,41 @@ extern DMAChannel dmaUpdateAddress;
 extern DMAChannel dmaUpdateTimer;
 extern DMAChannel dmaClockOutData;
 
-template <int refreshDepth>
+template <int refreshDepth, unsigned char optionFlags>
 void rowShiftCompleteISR(void);
-template <int refreshDepth>
+template <int refreshDepth, unsigned char optionFlags>
 void rowCalculationISR(void);
 
 
 extern CircularBuffer dmaBuffer;
 
-template <int refreshDepth>
-SmartMatrix3<refreshDepth>* SmartMatrix3<refreshDepth>::globalinstance;
-template <int refreshDepth>
-uint8_t SmartMatrix3<refreshDepth>::matrixWidth;
-template <int refreshDepth>
-uint8_t SmartMatrix3<refreshDepth>::matrixHeight;
+template <int refreshDepth, unsigned char optionFlags>
+SmartMatrix3<refreshDepth, optionFlags>* SmartMatrix3<refreshDepth, optionFlags>::globalinstance;
+template <int refreshDepth, unsigned char optionFlags>
+uint8_t SmartMatrix3<refreshDepth, optionFlags>::matrixWidth;
+template <int refreshDepth, unsigned char optionFlags>
+uint8_t SmartMatrix3<refreshDepth, optionFlags>::matrixHeight;
 // dmaBufferNumRows = the size of the buffer that DMA pulls from to refresh the display
 // must be minimum 2 rows so one can be updated while the other is refreshed
 // increase beyond two to give more time for the update routine to complete
 // (increase this number if non-DMA interrupts are causing display problems)
-template <int refreshDepth>
-uint8_t SmartMatrix3<refreshDepth>::dmaBufferNumRows;
-template <int refreshDepth>
-uint8_t SmartMatrix3<refreshDepth>::dmaBufferBytesPerPixel;
-template <int refreshDepth>
-uint16_t SmartMatrix3<refreshDepth>::dmaBufferBytesPerRow;
-template <int refreshDepth>
-uint8_t SmartMatrix3<refreshDepth>::refreshRate = 135;
+template <int refreshDepth, unsigned char optionFlags>
+uint8_t SmartMatrix3<refreshDepth, optionFlags>::dmaBufferNumRows;
+template <int refreshDepth, unsigned char optionFlags>
+uint8_t SmartMatrix3<refreshDepth, optionFlags>::dmaBufferBytesPerPixel;
+template <int refreshDepth, unsigned char optionFlags>
+uint16_t SmartMatrix3<refreshDepth, optionFlags>::dmaBufferBytesPerRow;
+template <int refreshDepth, unsigned char optionFlags>
+uint8_t SmartMatrix3<refreshDepth, optionFlags>::refreshRate = 135;
 
 
 // todo: just use a single buffer for Blocks/LUT/Data?
-template <int refreshDepth>
-matrixUpdateBlock * SmartMatrix3<refreshDepth>::matrixUpdateBlocks;    // array is size dmaBufferNumRows * latchesPerRow
-template <int refreshDepth>
-addresspair * SmartMatrix3<refreshDepth>::addressLUT;      // array is size rowsPerFrame
-template <int refreshDepth>
-timerpair * SmartMatrix3<refreshDepth>::timerLUT;          // array is size latchesPerRow
+template <int refreshDepth, unsigned char optionFlags>
+matrixUpdateBlock * SmartMatrix3<refreshDepth, optionFlags>::matrixUpdateBlocks;    // array is size dmaBufferNumRows * latchesPerRow
+template <int refreshDepth, unsigned char optionFlags>
+addresspair * SmartMatrix3<refreshDepth, optionFlags>::addressLUT;      // array is size rowsPerFrame
+template <int refreshDepth, unsigned char optionFlags>
+timerpair * SmartMatrix3<refreshDepth, optionFlags>::timerLUT;          // array is size latchesPerRow
 
 /*
   buffer contains:
@@ -103,8 +103,8 @@ timerpair * SmartMatrix3<refreshDepth>::timerLUT;          // array is size latc
     [pixel pair 15 - clk - MSB][pixel pair 15 - clk - MSB-1]...[pixel pair 15 - clk - LSB+1][pixel pair 15 - clk - LSB]
     [pixel pair 15 - CLK - MSB][pixel pair 15 - CLK - MSB-1]...[pixel pair 15 - CLK - LSB+1][pixel pair 15 - CLK - LSB]
  */
-template <int refreshDepth>
-uint32_t * SmartMatrix3<refreshDepth>::matrixUpdateData;
+template <int refreshDepth, unsigned char optionFlags>
+uint32_t * SmartMatrix3<refreshDepth, optionFlags>::matrixUpdateData;
 
 #define ADDRESS_ARRAY_REGISTERS_TO_UPDATE   2
 
@@ -117,9 +117,9 @@ typedef struct gpiopair {
 static gpiopair gpiosync;
 
 
-template <int refreshDepth>
-SmartMatrix3<refreshDepth>::SmartMatrix3(uint8_t width, uint8_t height, uint8_t depth, uint8_t bufferrows, uint32_t * dataBuffer, uint8_t * blockBuffer) {
-    SmartMatrix3<refreshDepth>::globalinstance = this;
+template <int refreshDepth, unsigned char optionFlags>
+SmartMatrix3<refreshDepth, optionFlags>::SmartMatrix3(uint8_t width, uint8_t height, uint8_t depth, uint8_t bufferrows, uint32_t * dataBuffer, uint8_t * blockBuffer) {
+    SmartMatrix3<refreshDepth, optionFlags>::globalinstance = this;
     matrixWidth = width;
     matrixHeight = height;
     dmaBufferNumRows = bufferrows;
@@ -135,8 +135,8 @@ SmartMatrix3<refreshDepth>::SmartMatrix3(uint8_t width, uint8_t height, uint8_t 
     timerLUT = (timerpair*)blockBuffer;
 }
 
-template <int refreshDepth>
-void SmartMatrix3<refreshDepth>::addLayer(SM_Layer * newlayer) {
+template <int refreshDepth, unsigned char optionFlags>
+void SmartMatrix3<refreshDepth, optionFlags>::addLayer(SM_Layer * newlayer) {
     if(baseLayer) {
         SM_Layer * templayer = baseLayer;
         while(templayer->nextLayer)
@@ -147,8 +147,8 @@ void SmartMatrix3<refreshDepth>::addLayer(SM_Layer * newlayer) {
     }
 }
 
-template <int refreshDepth>
-void SmartMatrix3<refreshDepth>::countFPS(void) {
+template <int refreshDepth, unsigned char optionFlags>
+void SmartMatrix3<refreshDepth, optionFlags>::countFPS(void) {
   static long loops = 0;
   static long lastMillis = 0;
   long currentMillis = millis();
@@ -163,8 +163,8 @@ void SmartMatrix3<refreshDepth>::countFPS(void) {
   }
 }
 
-template <int refreshDepth>
-INLINE void SmartMatrix3<refreshDepth>::matrixCalculations(void) {
+template <int refreshDepth, unsigned char optionFlags>
+INLINE void SmartMatrix3<refreshDepth, optionFlags>::matrixCalculations(void) {
     static unsigned char currentRow = 0;
 
     // only run the loop if there is free space, and fill the entire buffer before returning
@@ -207,13 +207,13 @@ INLINE void SmartMatrix3<refreshDepth>::matrixCalculations(void) {
         if (++currentRow >= MATRIX_ROWS_PER_FRAME)
             currentRow = 0;
 
-        SmartMatrix3<refreshDepth>::loadMatrixBuffers(currentRow);
+        SmartMatrix3<refreshDepth, optionFlags>::loadMatrixBuffers(currentRow);
         cbWrite(&dmaBuffer);
     }
 }
 
-template <int refreshDepth>
-void SmartMatrix3<refreshDepth>::calculateTimerLut(void) {
+template <int refreshDepth, unsigned char optionFlags>
+void SmartMatrix3<refreshDepth, optionFlags>::calculateTimerLut(void) {
     int i;
 
     for (i = 0; i < latchesPerRow; i++) {
@@ -238,8 +238,8 @@ void SmartMatrix3<refreshDepth>::calculateTimerLut(void) {
     }
 }
 
-template <int refreshDepth>
-void SmartMatrix3<refreshDepth>::begin(void)
+template <int refreshDepth, unsigned char optionFlags>
+void SmartMatrix3<refreshDepth, optionFlags>::begin(void)
 {
     int i;
     cbInit(&dmaBuffer, dmaBufferNumRows);
@@ -420,11 +420,11 @@ void SmartMatrix3<refreshDepth>::begin(void)
     //dmaClockOutData.TCD->CSR |= (0x02 << 14);
 
     // enable a done interrupt when all DMA operations are complete
-    dmaClockOutData.attachInterrupt(rowShiftCompleteISR<refreshDepth>);
+    dmaClockOutData.attachInterrupt(rowShiftCompleteISR<refreshDepth, optionFlags>);
 
     // enable additional dma interrupt used as software interrupt
     NVIC_SET_PRIORITY(IRQ_DMA_CH0 + dmaUpdateAddress.channel, ROW_CALCULATION_ISR_PRIORITY);
-    dmaUpdateAddress.attachInterrupt(rowCalculationISR<refreshDepth>);
+    dmaUpdateAddress.attachInterrupt(rowCalculationISR<refreshDepth, optionFlags>);
 
     dmaOutputAddress.enable();
     dmaUpdateAddress.enable();
@@ -435,8 +435,8 @@ void SmartMatrix3<refreshDepth>::begin(void)
     FTM1_SC = FTM_SC_CLKS(1) | FTM_SC_PS(LATCH_TIMER_PRESCALE);
 }
 
-template <int refreshDepth>
-INLINE void SmartMatrix3<refreshDepth>::loadMatrixBuffers48(unsigned char currentRow, unsigned char freeRowBuffer) {
+template <int refreshDepth, unsigned char optionFlags>
+INLINE void SmartMatrix3<refreshDepth, optionFlags>::loadMatrixBuffers48(unsigned char currentRow, unsigned char freeRowBuffer) {
     int i;
 
     rgb48 tempRow0[matrixWidth];
@@ -687,8 +687,8 @@ INLINE void SmartMatrix3<refreshDepth>::loadMatrixBuffers48(unsigned char curren
     }
 }
 
-template <int refreshDepth>
-INLINE void SmartMatrix3<refreshDepth>::loadMatrixBuffers36(unsigned char currentRow, unsigned char freeRowBuffer) {
+template <int refreshDepth, unsigned char optionFlags>
+INLINE void SmartMatrix3<refreshDepth, optionFlags>::loadMatrixBuffers36(unsigned char currentRow, unsigned char freeRowBuffer) {
     int i;
 
     rgb48 tempRow0[matrixWidth];
@@ -941,8 +941,8 @@ INLINE void SmartMatrix3<refreshDepth>::loadMatrixBuffers36(unsigned char curren
     }
 }
 
-template <int refreshDepth>
-INLINE void SmartMatrix3<refreshDepth>::loadMatrixBuffers24(unsigned char currentRow, unsigned char freeRowBuffer) {
+template <int refreshDepth, unsigned char optionFlags>
+INLINE void SmartMatrix3<refreshDepth, optionFlags>::loadMatrixBuffers24(unsigned char currentRow, unsigned char freeRowBuffer) {
     int i;
 
     rgb24 tempRow0[matrixWidth];
@@ -1069,8 +1069,8 @@ INLINE void SmartMatrix3<refreshDepth>::loadMatrixBuffers24(unsigned char curren
     }
 }
 
-template <int refreshDepth>
-INLINE void SmartMatrix3<refreshDepth>::loadMatrixBuffers(unsigned char currentRow) {
+template <int refreshDepth, unsigned char optionFlags>
+INLINE void SmartMatrix3<refreshDepth, optionFlags>::loadMatrixBuffers(unsigned char currentRow) {
     int i;
 
     addresspair rowAddressPair;
@@ -1098,13 +1098,13 @@ INLINE void SmartMatrix3<refreshDepth>::loadMatrixBuffers(unsigned char currentR
         loadMatrixBuffers24(currentRow, freeRowBuffer);
 }
 
-template <int refreshDepth>
+template <int refreshDepth, unsigned char optionFlags>
 void rowCalculationISR(void) {
 #ifdef DEBUG_PINS_ENABLED
     digitalWriteFast(DEBUG_PIN_2, HIGH); // oscilloscope trigger
 #endif
 
-    SmartMatrix3<refreshDepth>::matrixCalculations();
+    SmartMatrix3<refreshDepth, optionFlags>::matrixCalculations();
 
 #ifdef DEBUG_PINS_ENABLED
     digitalWriteFast(DEBUG_PIN_2, LOW);
@@ -1113,7 +1113,7 @@ void rowCalculationISR(void) {
 
 // DMA transfer done (meaning data was shifted and timer value for MSB on current row just got loaded)
 // set DMA up for loading the next row, triggered from the next timer latch
-template <int refreshDepth>
+template <int refreshDepth, unsigned char optionFlags>
 void rowShiftCompleteISR(void) {
 #ifdef DEBUG_PINS_ENABLED
     digitalWriteFast(DEBUG_PIN_1, HIGH); // oscilloscope trigger
@@ -1123,9 +1123,9 @@ void rowShiftCompleteISR(void) {
 
     // get next row to draw to display and update DMA pointers
     int currentRow = cbGetNextRead(&dmaBuffer);
-    dmaUpdateAddress.TCD->SADDR = &((matrixUpdateBlock*)SmartMatrix3<refreshDepth>::matrixUpdateBlocks + (currentRow * SmartMatrix3<refreshDepth>::latchesPerRow))->addressValues;
-    dmaUpdateTimer.TCD->SADDR = &((matrixUpdateBlock*)SmartMatrix3<refreshDepth>::matrixUpdateBlocks + (currentRow * SmartMatrix3<refreshDepth>::latchesPerRow))->timerValues.timer_oe;
-    dmaClockOutData.TCD->SADDR = (uint8_t*)SmartMatrix3<refreshDepth>::matrixUpdateData + (currentRow * SmartMatrix3<refreshDepth>::dmaBufferBytesPerRow);
+    dmaUpdateAddress.TCD->SADDR = &((matrixUpdateBlock*)SmartMatrix3<refreshDepth, optionFlags>::matrixUpdateBlocks + (currentRow * SmartMatrix3<refreshDepth, optionFlags>::latchesPerRow))->addressValues;
+    dmaUpdateTimer.TCD->SADDR = &((matrixUpdateBlock*)SmartMatrix3<refreshDepth, optionFlags>::matrixUpdateBlocks + (currentRow * SmartMatrix3<refreshDepth, optionFlags>::latchesPerRow))->timerValues.timer_oe;
+    dmaClockOutData.TCD->SADDR = (uint8_t*)SmartMatrix3<refreshDepth, optionFlags>::matrixUpdateData + (currentRow * SmartMatrix3<refreshDepth, optionFlags>::dmaBufferBytesPerRow);
 
     // clear pending GPIO int for PORTA before enabling DMA again
     CORE_PIN3_CONFIG |= (1 << 24);
