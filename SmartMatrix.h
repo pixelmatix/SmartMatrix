@@ -116,12 +116,15 @@ private:
     static SmartMatrix3<refreshDepth, optionFlags>* globalinstance;
 };
 
+#define SMARTMATRIX_OPTIONS_NONE            0
+
+
 // single matrixUpdateBlocks buffer is divided up to hold matrixUpdateBlocks, addressLUT, timerLUT to simplify user sketch code and reduce constructor parameters
-#define SMARTMATRIX_ALLOCATE_BUFFERS(width, height, storage_depth, pwm_depth, rows) \
+#define SMARTMATRIX_ALLOCATE_BUFFERS(width, height, storage_depth, pwm_depth, rows, option_flags) \
     typedef RGB_TYPE(storage_depth) SM_RGB; \
     static DMAMEM uint32_t matrixUpdateData[rows * width * (pwm_depth/COLOR_CHANNELS_PER_PIXEL / sizeof(uint32_t)) * DMA_UPDATES_PER_CLOCK]; \
     static DMAMEM uint8_t matrixUpdateBlocks[(sizeof(matrixUpdateBlock) * rows * pwm_depth/COLOR_CHANNELS_PER_PIXEL) + (sizeof(addresspair) * height/PIXELS_UPDATED_PER_CLOCK) + (sizeof(timerpair) * pwm_depth/COLOR_CHANNELS_PER_PIXEL)]; \
-    SmartMatrix3<pwm_depth, 0> matrix(width, height, pwm_depth, rows, matrixUpdateData, matrixUpdateBlocks)
+    SmartMatrix3<pwm_depth, option_flags> matrix(width, height, pwm_depth, rows, matrixUpdateData, matrixUpdateBlocks)
 
 #define SMARTMATRIX_ALLOCATE_DEFAULT_LAYERS(width, height, storage_depth) \
     static RGB_TYPE(storage_depth) backgroundBitmap[2*width*height];                              \
