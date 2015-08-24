@@ -155,8 +155,10 @@ void SmartMatrix3<refreshDepth, optionFlags>::countFPS(void) {
 
   loops++;
   if(currentMillis - lastMillis >= 1000){
-    Serial.print("Loops last second:");
-    Serial.println(loops);
+    if(Serial) {
+        Serial.print("Loops last second:");
+        Serial.println(loops);
+    }
     
     lastMillis = currentMillis;
     loops = 0;
