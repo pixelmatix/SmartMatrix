@@ -69,7 +69,7 @@ class SMLayerForeground : public SM_Layer {
         template <typename RGB_OUT>
         bool getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, RGB_OUT &xyPixel);
 
-        RGB textcolor = rgb24(0xff, 0xff, 0xff);
+        RGB textcolor = RGB(0xffff, 0xffff, 0xffff);
         unsigned char currentframe = 0;
         char text[textLayerMaxStringLength];
 
