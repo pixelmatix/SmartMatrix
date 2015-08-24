@@ -17,13 +17,17 @@
 #define kMatrixWidth  MATRIX_WIDTH
 #define kMatrixHeight MATRIX_HEIGHT
 
+#define COLOR_DEPTH 24                  // known working: 24, 48 - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
 const uint8_t kMatrixHeight = 32;       // known working: 16, 32
 const uint8_t kMatrixWidth = 32;        // known working: 32, 64
 const uint8_t kDmaBufferRows = 4;       // known working: 4
-#define COLOR_DEPTH 24                  // If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
-#define REFRESH_DEPTH 36                // known working: 24, 36, 48
-SMARTMATRIX_ALLOCATE_BUFFERS(kMatrixWidth, kMatrixHeight, COLOR_DEPTH, REFRESH_DEPTH, kDmaBufferRows, SMARTMATRIX_OPTIONS_NONE);
-SMARTMATRIX_ALLOCATE_DEFAULT_LAYERS(kMatrixWidth, kMatrixHeight, COLOR_DEPTH);
+const uint8_t kRefreshDepth = 36;       // known working: 24, 36, 48
+const uint8_t kMatrixOptions = (SMARTMATRIX_OPTIONS_NONE);
+const uint8_t kBackgroundOptions = (SMARTMATRIX_BACKGROUND_OPTIONS_NONE);
+const uint8_t kForegroundOptions = (SMARTMATRIX_BACKGROUND_OPTIONS_NONE);
+SMARTMATRIX_ALLOCATE_BUFFERS(matrix, kMatrixWidth, kMatrixHeight, kRefreshDepth, kDmaBufferRows, kMatrixOptions);
+SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kBackgroundOptions);
+SMARTMATRIX_ALLOCATE_FOREGROUND_LAYER(foregroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kForegroundOptions);
 
 // The 32bit version of our coordinates
 static uint16_t x;
@@ -57,7 +61,9 @@ void setup() {
   // Serial.println("resetting!");
   delay(3000);
 
-  SMARTMATRIX_MIN_SETUP_DEFAULT_LAYERS();
+  matrix.addLayer(&backgroundLayer); 
+  matrix.addLayer(&foregroundLayer); 
+  matrix.begin();
 
   backgroundLayer.setBrightness(96);
 

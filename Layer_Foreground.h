@@ -16,6 +16,7 @@ typedef enum ScrollMode {
     wrapForwardFromLeft,
 } ScrollMode;
 
+#define SMARTMATRIX_FOREGROUND_OPTIONS_NONE     0
 
 // font
 #include "MatrixFontCommon.h"

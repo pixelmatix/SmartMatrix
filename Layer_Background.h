@@ -5,6 +5,8 @@
 #include "MatrixCommon.h"
 #include "MatrixFontCommon.h"
 
+#define SMARTMATRIX_BACKGROUND_OPTIONS_NONE     0
+
 template <typename RGB>
 class SMLayerBackground : public SM_Layer {
     public:
