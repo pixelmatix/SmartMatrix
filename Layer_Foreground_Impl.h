@@ -424,16 +424,14 @@ void SMLayerForeground<RGB, optionFlags>::redrawForeground(void) {
          * then scrolling text change before displayForegroundDrawing() call would show drawing before intended
          */
         if(majorScrollFontChange) {
-            // clear full refresh buffer and copy background over
-            // why clear before copy?
+            // clear full refresh buffer before copying background over, size or position may have changed, can't just clear rows used by font
             memset(&foregroundBitmap[foregroundRefreshBuffer*FOREGROUND_BUFFER_SIZE], 0x00, FOREGROUND_BUFFER_SIZE);
-            //memcpy(&foregroundBitmap[foregroundRefreshBuffer*FOREGROUND_BUFFER_SIZE], &foregroundBitmap[foregroundDrawBuffer*FOREGROUND_BUFFER_SIZE], FOREGROUND_BUFFER_SIZE);
             majorScrollFontChange = false;
+        } else {
+            // clear rows used by font before drawing on top
+            for (k = 0; k < charY1 - charY0; k++)
+                memset(&foregroundBitmap[foregroundRefreshBuffer*FOREGROUND_BUFFER_SIZE + ((j + k) * FOREGROUND_ROW_SIZE)], 0x00, FOREGROUND_ROW_SIZE);
         }
-
-        // clear rows used by font before drawing on top
-        for (k = 0; k < charY1 - charY0; k++)
-            memset(&foregroundBitmap[foregroundRefreshBuffer*FOREGROUND_BUFFER_SIZE + ((j + k) * FOREGROUND_ROW_SIZE)], 0x00, FOREGROUND_ROW_SIZE);
 
         while (textPosition < textlen && charPosition < this->localWidth) {
             uint8_t tempBitmask;
