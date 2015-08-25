@@ -18,8 +18,6 @@ typedef enum ScrollMode {
 
 #define SM_SCROLLING_OPTIONS_NONE     0
 
-//#define FOREGROUND_DRAWING_ENABLED
-
 // font
 #include "MatrixFontCommon.h"
 
@@ -34,12 +32,10 @@ class SMLayerScrolling : public SM_Layer {
 
         void setScrollColor(const RGB & newColor);
 
-        // bitmap size is 32 rows (supporting maximum dimension of screen height in all rotations), by 32 bits
-        // double buffered to prevent flicker while drawing
-        uint8_t * foregroundBitmap;
+        // size of bitmap is 1 bit per pixel for width*height (no need for double buffering)
+        uint8_t * scrollingBitmap;
 
         void stopScrollText(void);
-        void setForegroundFont(fontChoices newFont);
         int getScrollStatus(void) const;
         void setScrollMinMax(void);
         void scrollText(const char inputtext[], int numScrolls);
@@ -51,23 +47,14 @@ class SMLayerScrolling : public SM_Layer {
         void setScrollStartOffsetFromLeft(int offset);
         void enableColorCorrection(bool enabled);
 
-#ifdef FOREGROUND_DRAWING_ENABLED
-        void clearForeground(void);
-        void displayForegroundDrawing(bool waitUntilComplete);
-        void handleForegroundDrawingCopy(void);
-        void drawForegroundPixel(int16_t x, int16_t y, bool opaque);
-        void drawForegroundChar(int16_t x, int16_t y, char character, bool opaque = true);
-        void drawForegroundString(int16_t x, int16_t y, const char text [], bool opaque = true);
-        void drawForegroundMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, uint8_t *bitmap, bool opaque = true);
-#endif
     private:
-        void redrawForeground(void);
+        void redrawScrollingText(void);
         // todo: move somewhere else
         static bool getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap);
-        void updateForeground(void);
+        void updateScrollingText(void);
 
         template <typename RGB_OUT>
-        bool getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, RGB_OUT &xyPixel);
+        bool getPixel(uint8_t hardwareX, uint8_t hardwareY, RGB_OUT &xyPixel);
 
         RGB textcolor = RGB(0xffff, 0xffff, 0xffff);
         unsigned char currentframe = 0;
@@ -89,14 +76,6 @@ class SMLayerScrolling : public SM_Layer {
         unsigned int textWidth;
         int scrollMin, scrollMax;
         int scrollPosition;
-
-
-#ifdef FOREGROUND_DRAWING_ENABLED
-        volatile bool foregroundCopyPending = false;
-
-
-        bitmap_font *foregroundfont = (bitmap_font *) &apple3x5;
-#endif
 };
 
 #include "Layer_Scrolling_Impl.h"

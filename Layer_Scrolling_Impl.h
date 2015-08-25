@@ -1,34 +1,23 @@
 #include <string.h>
 
-#ifdef FOREGROUND_DRAWING_ENABLED
-const unsigned char foregroundDrawBuffer = 0;
-const unsigned char foregroundRefreshBuffer = 1;
-#else
-const unsigned char foregroundRefreshBuffer = 0;
-#endif
-
-#define FOREGROUND_ROW_SIZE     (this->localWidth / 8)
-#define FOREGROUND_BUFFER_SIZE  (FOREGROUND_ROW_SIZE * this->localHeight)
+#define SCROLLING_BUFFER_ROW_SIZE   (this->localWidth / 8)
+#define SCROLLING_BUFFER_SIZE       (SCROLLING_BUFFER_ROW_SIZE * this->localHeight)
 
 template <typename RGB, unsigned int optionFlags>
 SMLayerScrolling<RGB, optionFlags>::SMLayerScrolling(uint8_t * bitmap, uint8_t width, uint8_t height) {
-    // size of bitmap is 2 * FOREGROUND_BUFFER_SIZE
-    foregroundBitmap = bitmap;
+    scrollingBitmap = bitmap;
     this->matrixWidth = width;
     this->matrixHeight = height;
 }
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerScrolling<RGB, optionFlags>::frameRefreshCallback(void) {
-#ifdef FOREGROUND_DRAWING_ENABLED
-    handleForegroundDrawingCopy();
-#endif
-    updateForeground();
+    updateScrollingText();
 }
 
 // returns true and copies color to xyPixel if pixel is opaque, returns false if not
 template<typename RGB, unsigned int optionFlags> template <typename RGB_OUT>
-bool SMLayerScrolling<RGB, optionFlags>::getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, RGB_OUT &xyPixel) {
+bool SMLayerScrolling<RGB, optionFlags>::getPixel(uint8_t hardwareX, uint8_t hardwareY, RGB_OUT &xyPixel) {
     uint8_t localScreenX, localScreenY;
 
     // convert hardware x/y to the pixel in the local screen
@@ -56,7 +45,7 @@ bool SMLayerScrolling<RGB, optionFlags>::getForegroundPixel(uint8_t hardwareX, u
 
     uint8_t bitmask = 0x80 >> (localScreenX % 8);
 
-    if (foregroundBitmap[(foregroundRefreshBuffer * FOREGROUND_BUFFER_SIZE) + (localScreenY * FOREGROUND_ROW_SIZE) + (localScreenX/8)] & bitmask) {
+    if (scrollingBitmap[(localScreenY * SCROLLING_BUFFER_ROW_SIZE) + (localScreenX/8)] & bitmask) {
         xyPixel = textcolor;
         return true;
     }
@@ -67,7 +56,7 @@ bool SMLayerScrolling<RGB, optionFlags>::getForegroundPixel(uint8_t hardwareX, u
 template <typename RGB, unsigned int optionFlags>
 void SMLayerScrolling<RGB, optionFlags>::getRefreshPixel(uint8_t x, uint8_t y, rgb48 &xyPixel) {
     RGB tempPixel;
-    if(getForegroundPixel(x, y, tempPixel)) {
+    if(getPixel(x, y, tempPixel)) {
         if(this->ccEnabled)
             colorCorrection(tempPixel, xyPixel);
         else
@@ -82,14 +71,14 @@ void SMLayerScrolling<RGB, optionFlags>::fillRefreshRow(uint8_t hardwareY, rgb48
 
     if(this->ccEnabled) {
         for(i=0; i<this->matrixWidth; i++) {
-            if(!getForegroundPixel(i, hardwareY, currentPixel))
+            if(!getPixel(i, hardwareY, currentPixel))
                 continue;
 
             colorCorrection(currentPixel, refreshRow[i]);
         }
     } else {
         for(i=0; i<this->matrixWidth; i++) {
-            if(!getForegroundPixel(i, hardwareY, currentPixel))
+            if(!getPixel(i, hardwareY, currentPixel))
                 continue;
 
             // load background pixel without color correction
@@ -105,14 +94,14 @@ void SMLayerScrolling<RGB, optionFlags>::fillRefreshRow(uint8_t hardwareY, rgb24
 
     if(this->ccEnabled) {
         for(i=0; i<this->matrixWidth; i++) {
-            if(!getForegroundPixel(i, hardwareY, currentPixel))
+            if(!getPixel(i, hardwareY, currentPixel))
                 continue;
 
             colorCorrection(currentPixel, refreshRow[i]);
         }
     } else {
         for(i=0; i<this->matrixWidth; i++) {
-            if(!getForegroundPixel(i, hardwareY, currentPixel))
+            if(!getPixel(i, hardwareY, currentPixel))
                 continue;
 
             // load background pixel without color correction
@@ -140,106 +129,6 @@ void SMLayerScrolling<RGB, optionFlags>::stopScrollText(void) {
     // position text at the end of the cycle
     scrollPosition = scrollMin;
 }
-
-#ifdef FOREGROUND_DRAWING_ENABLED
-template <typename RGB, unsigned int optionFlags>
-void SMLayerScrolling<RGB, optionFlags>::clearForeground(void) {
-    memset(&foregroundBitmap[foregroundDrawBuffer*FOREGROUND_BUFFER_SIZE], 0x00, FOREGROUND_BUFFER_SIZE);
-}
-
-template <typename RGB, unsigned int optionFlags>
-void SMLayerScrolling<RGB, optionFlags>::displayForegroundDrawing(bool waitUntilComplete) {
-    while (foregroundCopyPending);
-
-    foregroundCopyPending = true;
-
-    while (waitUntilComplete && foregroundCopyPending);
-}
-
-template <typename RGB, unsigned int optionFlags>
-void SMLayerScrolling<RGB, optionFlags>::handleForegroundDrawingCopy(void) {
-    if (!foregroundCopyPending)
-        return;
-
-    memcpy(&foregroundBitmap[foregroundRefreshBuffer*FOREGROUND_BUFFER_SIZE], &foregroundBitmap[foregroundDrawBuffer*FOREGROUND_BUFFER_SIZE], FOREGROUND_BUFFER_SIZE);
-    redrawForeground();
-    foregroundCopyPending = false;
-}
-
-template <typename RGB, unsigned int optionFlags>
-void SMLayerScrolling<RGB, optionFlags>::drawForegroundPixel(int16_t x, int16_t y, bool opaque) {
-    uint8_t tempBitmask;
-
-    if(x < 0 || x >= this->localWidth || y < 0 || y >= this->localWidth)
-        return;
-
-    if(opaque) {
-        tempBitmask = 0x80 >> (x%8);
-        foregroundBitmap[foregroundDrawBuffer*FOREGROUND_BUFFER_SIZE + (y * FOREGROUND_ROW_SIZE) + (x/8)] |= tempBitmask;
-    } else {
-        tempBitmask = ~(0x80 >> (x%8));
-        foregroundBitmap[foregroundDrawBuffer*FOREGROUND_BUFFER_SIZE + (y * FOREGROUND_ROW_SIZE) + (x/8)] &= tempBitmask;
-    }
-}
-
-template <typename RGB, unsigned int optionFlags>
-void SMLayerScrolling<RGB, optionFlags>::setForegroundFont(fontChoices newFont) {
-    foregroundfont = (bitmap_font *)fontLookup(newFont);
-    majorScrollFontChange = true;
-}
-
-template <typename RGB, unsigned int optionFlags>
-void SMLayerScrolling<RGB, optionFlags>::drawForegroundChar(int16_t x, int16_t y, char character, bool opaque) {
-    uint8_t tempBitmask;
-    int k;
-
-    // only draw if character is on the screen
-    if (x + scrollFont->Width < 0 || x >= this->localWidth) {
-        return;
-    }
-
-    for (k = y; k < y+foregroundfont->Height; k++) {
-        // ignore rows that are not on the screen
-        if(k < 0) continue;
-        if (k >= this->localHeight) return;
-
-        tempBitmask = getBitmapFontRowAtXY(character, k - y, foregroundfont);
-        if (x < 0) {
-            foregroundBitmap[foregroundDrawBuffer*FOREGROUND_BUFFER_SIZE + (k * FOREGROUND_ROW_SIZE) + 0] |= tempBitmask << -x;
-        } else {
-            foregroundBitmap[foregroundDrawBuffer*FOREGROUND_BUFFER_SIZE + (k * FOREGROUND_ROW_SIZE) + (x/8)] |= tempBitmask >> (x%8);
-            // do two writes if the shifted 8-bit wide bitmask is still on the screen
-            if(x + 8 < this->localWidth && x % 8)
-                foregroundBitmap[foregroundDrawBuffer*FOREGROUND_BUFFER_SIZE + (k * FOREGROUND_ROW_SIZE) + (x/8) + 1] |= tempBitmask << (8-(x%8));
-        }
-    }
-}
-
-template <typename RGB, unsigned int optionFlags>
-void SMLayerScrolling<RGB, optionFlags>::drawForegroundString(int16_t x, int16_t y, const char text [], bool opaque) {
-    // limit text to 10 chars, why?
-    for (int i = 0; i < 10; i++) {
-        char character = text[i];
-        if (character == '\0')
-            return;
-
-        drawForegroundChar(i * foregroundfont->Width + x, y, character, opaque);
-    }
-}
-
-template <typename RGB, unsigned int optionFlags>
-void SMLayerScrolling<RGB, optionFlags>::drawForegroundMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, uint8_t *bitmap, bool opaque) {
-    int xcnt, ycnt;
-
-    for (ycnt = 0; ycnt < height; ycnt++) {
-        for (xcnt = 0; xcnt < width; xcnt++) {
-            if (getBitmapPixelAtXY(xcnt, ycnt, width, height, bitmap)) {
-                drawForegroundPixel(x + xcnt, y + ycnt, opaque);
-            }
-        }
-    }
-}
-#endif
 
 // returns 0 if stopped
 // returns positive number indicating number of loops left if running
@@ -306,10 +195,10 @@ void SMLayerScrolling<RGB, optionFlags>::updateScrollText(const char inputtext[]
     setScrollMinMax();
 }
 
-// called once per frame to update foreground (virtual) bitmap
+// called once per frame to update (virtual) bitmap
 // function needs major efficiency improvments
 template <typename RGB, unsigned int optionFlags>
-void SMLayerScrolling<RGB, optionFlags>::updateForeground(void) {
+void SMLayerScrolling<RGB, optionFlags>::updateScrollingText(void) {
     bool resetScrolls = false;
 
     // return if not ready to update
@@ -360,7 +249,7 @@ void SMLayerScrolling<RGB, optionFlags>::updateForeground(void) {
     // TODO: reset only when necessary, and update just the pixels that need it
     resetScrolls = true;
     if (resetScrolls) {
-        redrawForeground();
+        redrawScrollingText();
     }
 }
 
@@ -396,7 +285,7 @@ void SMLayerScrolling<RGB, optionFlags>::setScrollStartOffsetFromLeft(int offset
 
 // if font size or position changed since the last call, redraw the whole frame
 template <typename RGB, unsigned int optionFlags>
-void SMLayerScrolling<RGB, optionFlags>::redrawForeground(void) {
+void SMLayerScrolling<RGB, optionFlags>::redrawScrollingText(void) {
     int j, k;
     int charPosition, textPosition;
     uint8_t charY0, charY1;
@@ -428,17 +317,14 @@ void SMLayerScrolling<RGB, optionFlags>::redrawForeground(void) {
             charY1 = scrollFont->Height;
         }
 
-        /* TODO: some edge cases could end up with unwanted drawing to the screen, e.g. foregrounddrawing call,
-         * then scrolling text change before displayForegroundDrawing() call would show drawing before intended
-         */
         if(majorScrollFontChange) {
             // clear full refresh buffer before copying background over, size or position may have changed, can't just clear rows used by font
-            memset(&foregroundBitmap[foregroundRefreshBuffer*FOREGROUND_BUFFER_SIZE], 0x00, FOREGROUND_BUFFER_SIZE);
+            memset(scrollingBitmap, 0x00, SCROLLING_BUFFER_SIZE);
             majorScrollFontChange = false;
         } else {
             // clear rows used by font before drawing on top
             for (k = 0; k < charY1 - charY0; k++)
-                memset(&foregroundBitmap[foregroundRefreshBuffer*FOREGROUND_BUFFER_SIZE + ((j + k) * FOREGROUND_ROW_SIZE)], 0x00, FOREGROUND_ROW_SIZE);
+                memset(&scrollingBitmap[((j + k) * SCROLLING_BUFFER_ROW_SIZE)], 0x00, SCROLLING_BUFFER_ROW_SIZE);
         }
 
         while (textPosition < textlen && charPosition < this->localWidth) {
@@ -448,12 +334,12 @@ void SMLayerScrolling<RGB, optionFlags>::redrawForeground(void) {
                 tempBitmask = getBitmapFontRowAtXY(text[textPosition], k, scrollFont);
                 //tempBitmask = 0xAA;
                 if (charPosition < 0) {
-                    foregroundBitmap[foregroundRefreshBuffer*FOREGROUND_BUFFER_SIZE + ((j + k - charY0) * FOREGROUND_ROW_SIZE) + 0] |= tempBitmask << -charPosition;
+                    scrollingBitmap[((j + k - charY0) * SCROLLING_BUFFER_ROW_SIZE) + 0] |= tempBitmask << -charPosition;
                 } else {
-                    foregroundBitmap[foregroundRefreshBuffer*FOREGROUND_BUFFER_SIZE + ((j + k - charY0) * FOREGROUND_ROW_SIZE) + (charPosition/8)] |= tempBitmask >> (charPosition%8);
+                    scrollingBitmap[((j + k - charY0) * SCROLLING_BUFFER_ROW_SIZE) + (charPosition/8)] |= tempBitmask >> (charPosition%8);
                     // do two writes if the shifted 8-bit wide bitmask is still on the screen
                     if(charPosition + 8 < this->localWidth && charPosition % 8)
-                        foregroundBitmap[foregroundRefreshBuffer*FOREGROUND_BUFFER_SIZE + ((j + k - charY0) * FOREGROUND_ROW_SIZE) + (charPosition/8) + 1] |= tempBitmask << (8-(charPosition%8));
+                        scrollingBitmap[((j + k - charY0) * SCROLLING_BUFFER_ROW_SIZE) + (charPosition/8) + 1] |= tempBitmask << (8-(charPosition%8));
                 }
             }
 
