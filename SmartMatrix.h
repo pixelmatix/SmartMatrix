@@ -128,7 +128,7 @@ private:
 
 #define SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(layer_name, width, height, storage_depth, scrolling_options) \
     typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
-    static uint8_t layer_name##Bitmap[2 * width * (height / 8)];                                              \
+    static uint8_t layer_name##Bitmap[width * (height / 8)];                                              \
     static SMLayerScrolling<RGB_TYPE(storage_depth), scrolling_options> layer_name(layer_name##Bitmap, width, height)  
 
 #define SMARTMATRIX_ALLOCATE_INDEXED_LAYER(layer_name, width, height, storage_depth, indexed_options) \
