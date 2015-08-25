@@ -41,7 +41,7 @@ class SMLayerIndexed : public SM_Layer {
 
         // bitmap size is 32 rows (supporting maximum dimension of screen height in all rotations), by 32 bits
         // double buffered to prevent flicker while drawing
-        uint8_t * bitmap;
+        uint8_t * indexedBitmap;
 
         void handleBufferCopy(void);
 
