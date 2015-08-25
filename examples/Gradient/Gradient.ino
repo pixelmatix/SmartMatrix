@@ -19,6 +19,7 @@ void setup() {
   //Serial.begin(115200);
   matrix.addLayer(&backgroundLayer); 
   matrix.begin();
+  backgroundLayer.enableColorCorrection(false);
 }
 
 void loop() {
