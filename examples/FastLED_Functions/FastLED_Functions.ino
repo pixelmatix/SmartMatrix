@@ -24,12 +24,12 @@ const uint8_t kDmaBufferRows = 4;       // known working: 4
 const uint8_t kRefreshDepth = 36;       // known working: 24, 36, 48
 const uint8_t kMatrixOptions = (SMARTMATRIX_OPTIONS_NONE);
 const uint8_t kBackgroundOptions = (SMARTMATRIX_BACKGROUND_OPTIONS_NONE);
-const uint8_t kForegroundOptions = (SMARTMATRIX_FOREGROUND_OPTIONS_NONE);
+const uint8_t kScrollingLayerOptions = (SMARTMATRIX_SCROLLING_OPTIONS_NONE);
 const uint8_t kIndexedLayerOptions = (SMARTMATRIX_INDEXED_OPTIONS_NONE);
 
 SMARTMATRIX_ALLOCATE_BUFFERS(matrix, kMatrixWidth, kMatrixHeight, kRefreshDepth, kDmaBufferRows, kMatrixOptions);
 SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kBackgroundOptions);
-SMARTMATRIX_ALLOCATE_FOREGROUND_LAYER(foregroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kForegroundOptions);
+SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(foregroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
 SMARTMATRIX_ALLOCATE_INDEXED_LAYER(foregroundLayer2, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kIndexedLayerOptions);
 
 // The 32bit version of our coordinates

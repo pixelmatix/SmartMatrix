@@ -30,7 +30,7 @@
 
 #include "MatrixCommon.h"
 
-#include "Layer_Foreground.h"
+#include "Layer_Scrolling.h"
 #include "Layer_Indexed.h"
 #include "Layer_Background.h"
 
@@ -126,10 +126,10 @@ private:
     static DMAMEM uint8_t matrixUpdateBlocks[(sizeof(matrixUpdateBlock) * rows * pwm_depth/COLOR_CHANNELS_PER_PIXEL) + (sizeof(addresspair) * height/PIXELS_UPDATED_PER_CLOCK) + (sizeof(timerpair) * pwm_depth/COLOR_CHANNELS_PER_PIXEL)]; \
     SmartMatrix3<pwm_depth, option_flags> matrix_name(width, height, pwm_depth, rows, matrixUpdateData, matrixUpdateBlocks)
 
-#define SMARTMATRIX_ALLOCATE_FOREGROUND_LAYER(layer_name, width, height, storage_depth, foreground_options) \
+#define SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(layer_name, width, height, storage_depth, scrolling_options) \
     typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
     static uint8_t layer_name##Bitmap[2 * width * (height / 8)];                                              \
-    static SMLayerForeground<RGB_TYPE(storage_depth), foreground_options> layer_name(layer_name##Bitmap, width, height)  
+    static SMLayerScrolling<RGB_TYPE(storage_depth), scrolling_options> layer_name(layer_name##Bitmap, width, height)  
 
 #define SMARTMATRIX_ALLOCATE_INDEXED_LAYER(layer_name, width, height, storage_depth, indexed_options) \
     typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
