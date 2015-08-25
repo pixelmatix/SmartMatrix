@@ -1389,6 +1389,8 @@ void loop() {
             else
                 refreshRate = minRefreshRate + ((maxRefreshRate-minRefreshRate) * (fraction - 1.0));
             matrix.setRefreshRate(refreshRate);
+            // scrolling speed is calculated based on refresh rate, update after refresh rate change
+            scrollingLayer.setSpeed(40);
 
             char value[] = "000";
             value[0] = '0' + refreshRate / 100;
