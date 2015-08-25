@@ -29,7 +29,7 @@ const uint8_t kIndexedLayerOptions = (SM_INDEXED_OPTIONS_NONE);
 
 SMARTMATRIX_ALLOCATE_BUFFERS(matrix, kMatrixWidth, kMatrixHeight, kRefreshDepth, kDmaBufferRows, kMatrixOptions);
 SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kBackgroundLayerOptions);
-SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(foregroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
+SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
 SMARTMATRIX_ALLOCATE_INDEXED_LAYER(foregroundLayer2, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kIndexedLayerOptions);
 
 // The 32bit version of our coordinates
@@ -65,7 +65,7 @@ void setup() {
   delay(3000);
 
   matrix.addLayer(&backgroundLayer); 
-  matrix.addLayer(&foregroundLayer); 
+  matrix.addLayer(&scrollingLayer); 
   matrix.addLayer(&foregroundLayer2); 
   matrix.begin();
 
@@ -77,12 +77,12 @@ void setup() {
   z = random16();
 
   // Show off smart matrix scrolling text
-  foregroundLayer.setMode(wrapForward);
-  foregroundLayer.setColor({0xff, 0xff, 0xff});
-  foregroundLayer.setSpeed(15);
-  foregroundLayer.setFont(font6x10);
-  foregroundLayer.start("SmartMatrix & FastLED", -1);
-  foregroundLayer.setOffsetFromTop((kMatrixHeight/2) - 5);
+  scrollingLayer.setMode(wrapForward);
+  scrollingLayer.setColor({0xff, 0xff, 0xff});
+  scrollingLayer.setSpeed(15);
+  scrollingLayer.setFont(font6x10);
+  scrollingLayer.start("SmartMatrix & FastLED", -1);
+  scrollingLayer.setOffsetFromTop((kMatrixHeight/2) - 5);
 
   // Show off smart matrix scrolling text
   foregroundLayer2.setScrollMode(wrapForward);
