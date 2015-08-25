@@ -7,12 +7,20 @@
 #include "colorwheel.c"
 #include "gimpbitmap.h"
 
+#define COLOR_DEPTH 24                  // known working: 24, 48 - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
 const uint8_t kMatrixHeight = 32;       // known working: 16, 32
 const uint8_t kMatrixWidth = 32;        // known working: 32, 64
 const uint8_t kDmaBufferRows = 4;       // known working: 4
-#define COLOR_DEPTH 24                  // If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
-#define REFRESH_DEPTH 48                // known working: 24, 36, 48
-SMARTMATRIX_ALLOCATE_BUFFERS(kMatrixWidth, kMatrixHeight, COLOR_DEPTH, REFRESH_DEPTH, kDmaBufferRows);
+const uint8_t kRefreshDepth = 36;       // known working: 24, 36, 48
+const uint8_t kMatrixOptions = (SMARTMATRIX_OPTIONS_NONE);
+const uint8_t kBackgroundLayerOptions = (SM_BACKGROUND_OPTIONS_NONE);
+const uint8_t kScrollingLayerOptions = (SM_SCROLLING_OPTIONS_NONE);
+const uint8_t kIndexedLayerOptions = (SM_INDEXED_OPTIONS_NONE);
+
+SMARTMATRIX_ALLOCATE_BUFFERS(matrix, kMatrixWidth, kMatrixHeight, kRefreshDepth, kDmaBufferRows, kMatrixOptions);
+SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kBackgroundLayerOptions);
+SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
+SMARTMATRIX_ALLOCATE_INDEXED_LAYER(indexedLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kIndexedLayerOptions);
 
 const int defaultBrightness = 100*(255/100);    // full brightness
 //const int defaultBrightness = 15*(255/100);    // dim: 15% brightness
@@ -29,53 +37,56 @@ void drawBitmap(int16_t x, int16_t y, const gimp32x32bitmap* bitmap) {
                       bitmap->pixel_data[(i*bitmap->width + j)*3 + 1],
                       bitmap->pixel_data[(i*bitmap->width + j)*3 + 2] };
 
-      matrix.drawPixel(x + j, y + i, pixel);
+      backgroundLayer.drawPixel(x + j, y + i, pixel);
     }
   }
 }
 
 // the setup() method runs once, when the sketch starts
 void setup() {
-    // initialize the digital pin as an output.
-    pinMode(ledPin, OUTPUT);
+  // initialize the digital pin as an output.
+  pinMode(ledPin, OUTPUT);
 
-    Serial.begin(38400);
+  Serial.begin(38400);
 
-    SMARTMATRIX_SETUP_DEFAULT_LAYERS(kMatrixWidth, kMatrixHeight, COLOR_DEPTH);
+  matrix.addLayer(&backgroundLayer); 
+  matrix.addLayer(&scrollingLayer); 
+  matrix.addLayer(&indexedLayer); 
+  matrix.begin();
 
-    matrix.setBrightness(defaultBrightness);
+  matrix.setBrightness(defaultBrightness);
 
-    matrix.setScrollOffsetFromTop(defaultScrollOffset);
+  scrollingLayer.setOffsetFromTop(defaultScrollOffset);
 
-    matrix.enableColorCorrection(true);
+  backgroundLayer.enableColorCorrection(true);
 }
 
 #define DEMO_INTRO              1
-#define DEMO_DRAWING_INTRO      1
-#define DEMO_DRAWING_PIXELS     1
-#define DEMO_DRAWING_LINES      1
-#define DEMO_DRAWING_TRIANGLES  1
-#define DEMO_DRAWING_CIRCLES    1
-#define DEMO_DRAWING_RECTANGLES 1
-#define DEMO_DRAWING_ROUNDRECT  1
-#define DEMO_DRAWING_FILLED     1
-#define DEMO_FILL_SCREEN        1
-#define DEMO_DRAW_CHARACTERS    1
-#define DEMO_FONT_OPTIONS       1
-#define DEMO_MONO_BITMAP        1
-#define DEMO_SCROLL_COLOR       1
-#define DEMO_SCROLL_MODES       1
-#define DEMO_SCROLL_SPEED       1
-#define DEMO_SCROLL_FONTS       1
-#define DEMO_SCROLL_POSITION    1
-#define DEMO_SCROLL_ROTATION    1
-#define DEMO_BRIGHTNESS         1
-#define DEMO_RAW_BITMAP         1
-#define DEMO_COLOR_CORRECTION   1
-#define DEMO_BACKGND_BRIGHTNESS 1
-#define DEMO_FOREGROUND_DRAWING 1
-#define DEMO_REFRESH_RATE       1
-#define DEMO_READ_PIXEL         1
+#define DEMO_DRAWING_INTRO      0
+#define DEMO_DRAWING_PIXELS     0
+#define DEMO_DRAWING_LINES      0
+#define DEMO_DRAWING_TRIANGLES  0
+#define DEMO_DRAWING_CIRCLES    0
+#define DEMO_DRAWING_RECTANGLES 0
+#define DEMO_DRAWING_ROUNDRECT  0
+#define DEMO_DRAWING_FILLED     0
+#define DEMO_FILL_SCREEN        0
+#define DEMO_DRAW_CHARACTERS    0
+#define DEMO_FONT_OPTIONS       0
+#define DEMO_MONO_BITMAP        0
+#define DEMO_SCROLL_COLOR       0
+#define DEMO_SCROLL_MODES       0
+#define DEMO_SCROLL_SPEED       0
+#define DEMO_SCROLL_FONTS       0
+#define DEMO_SCROLL_POSITION    0
+#define DEMO_SCROLL_ROTATION    0
+#define DEMO_BRIGHTNESS         0
+#define DEMO_RAW_BITMAP         0
+#define DEMO_COLOR_CORRECTION   0
+#define DEMO_BACKGND_BRIGHTNESS 0
+#define DEMO_FOREGROUND_DRAWING 0
+#define DEMO_REFRESH_RATE       0
+#define DEMO_READ_PIXEL         0
 
 // the loop() method runs over and over again,
 // as long as the board has power
@@ -84,16 +95,16 @@ void loop() {
     unsigned long currentMillis;
 
     // clear screen
-    matrix.fillScreen(defaultBackgroundColor);
-    matrix.swapBuffers();
+    backgroundLayer.fillScreen(defaultBackgroundColor);
+    backgroundLayer.swapBuffers();
 
 #if (DEMO_INTRO == 1)
     // "SmartMatrix Demo"
-    matrix.setScrollColor({0xff, 0xff, 0xff});
-    matrix.setScrollMode(wrapForward);
-    matrix.setScrollSpeed(40);
-    matrix.setScrollFont(font6x10);
-    matrix.scrollText("SmartMatrix Demo", 1);
+    scrollingLayer.setColor({0xff, 0xff, 0xff});
+    scrollingLayer.setMode(wrapForward);
+    scrollingLayer.setSpeed(40);
+    scrollingLayer.setFont(font6x10);
+    scrollingLayer.start("SmartMatrix Demo", 1);
 
     delay(5000);
 #endif
@@ -101,11 +112,11 @@ void loop() {
 #if (DEMO_DRAWING_INTRO == 1)
     {
         // "Drawing Functions"
-        matrix.setScrollColor({0xff, 0xff, 0xff});
-        matrix.setScrollMode(wrapForward);
-        matrix.setScrollSpeed(40);
-        matrix.setScrollFont(font6x10);
-        matrix.scrollText("Drawing Functions", 1);
+        scrollingLayer.setColor({0xff, 0xff, 0xff});
+        scrollingLayer.setMode(wrapForward);
+        scrollingLayer.setSpeed(40);
+        scrollingLayer.setFont(font6x10);
+        scrollingLayer.start("Drawing Functions", 1);
 
         const int delayBetweenShapes = 250;
 
@@ -138,7 +149,7 @@ void loop() {
 
             switch (random(15)) {
             case 0:
-                matrix.drawPixel(x0, y0, outlineColor);
+                backgroundLayer.drawPixel(x0, y0, outlineColor);
                 break;
 
             case 1:
@@ -199,8 +210,8 @@ void loop() {
             default:
                 break;
             }
-            matrix.swapBuffers();
-            //matrix.fillScreen({0,0,0});
+            backgroundLayer.swapBuffers();
+            //backgroundLayer.fillScreen({0,0,0});
             while (millis() < currentMillis + delayBetweenShapes);
         }
     }
@@ -210,16 +221,16 @@ void loop() {
 #if (DEMO_DRAWING_PIXELS == 1)
     {
         // "Drawing Functions"
-        matrix.setScrollColor({0xff, 0xff, 0xff});
-        matrix.setScrollMode(wrapForward);
-        matrix.setScrollSpeed(40);
-        matrix.setScrollFont(font6x10);
-        matrix.scrollText("Pixels", 1);
+        scrollingLayer.setColor({0xff, 0xff, 0xff});
+        scrollingLayer.setMode(wrapForward);
+        scrollingLayer.setSpeed(40);
+        scrollingLayer.setFont(font6x10);
+        scrollingLayer.start("Pixels", 1);
 
         const uint transitionTime = 3000;
 
-        matrix.fillScreen({0, 0, 0});
-        matrix.swapBuffers();
+        backgroundLayer.fillScreen({0, 0, 0});
+        backgroundLayer.swapBuffers();
 
         currentMillis = millis();
 
@@ -244,25 +255,25 @@ void loop() {
                 x0 = random(matrix.getScreenWidth());
                 y0 = random(matrix.getScreenHeight());
 
-                matrix.drawPixel(x0, y0, color);
+                backgroundLayer.drawPixel(x0, y0, color);
             }
-            matrix.swapBuffers();
+            backgroundLayer.swapBuffers();
         }
     }
 #endif
     // "Drawing Lines"
 #if (DEMO_DRAWING_LINES == 1)
     {
-        matrix.setScrollColor({0xff, 0xff, 0xff});
-        matrix.setScrollMode(wrapForward);
-        matrix.setScrollSpeed(40);
-        matrix.setScrollFont(font6x10);
-        matrix.scrollText("Horizontal and Vertical Lines", 1);
+        scrollingLayer.setColor({0xff, 0xff, 0xff});
+        scrollingLayer.setMode(wrapForward);
+        scrollingLayer.setSpeed(40);
+        scrollingLayer.setFont(font6x10);
+        scrollingLayer.start("Horizontal and Vertical Lines", 1);
 
         int transitionTime = 6000;
 
-        //matrix.fillScreen({0, 0, 0});
-        //matrix.swapBuffers();
+        //backgroundLayer.fillScreen({0, 0, 0});
+        //backgroundLayer.swapBuffers();
 
         currentMillis = millis();
         unsigned long delayCounter = currentMillis;
@@ -276,7 +287,7 @@ void loop() {
             color.blue = 0;
 
             matrix.drawFastVLine(i, 0, matrix.getScreenHeight(), color);
-            matrix.swapBuffers();
+            backgroundLayer.swapBuffers();
             delayCounter += transitionTime / 2 / matrix.getScreenWidth();
             while (millis() < delayCounter);
         }
@@ -292,12 +303,12 @@ void loop() {
             color.blue = 255.0 * (fraction);
 
             matrix.drawFastHLine(0, matrix.getScreenWidth(), i, color);
-            matrix.swapBuffers();
+            backgroundLayer.swapBuffers();
             delayCounter += transitionTime / 2 / matrix.getScreenHeight();
             while (millis() < delayCounter);
         }
 
-        matrix.scrollText("Diagonal Lines", 1);
+        scrollingLayer.start("Diagonal Lines", 1);
 
         transitionTime = 4000;
         currentMillis = millis();
@@ -312,7 +323,7 @@ void loop() {
             color.blue = 0;
 
             matrix.drawLine(i, 0, 0, i, color);
-            matrix.swapBuffers();
+            backgroundLayer.swapBuffers();
             delayCounter += transitionTime / 2 / (matrix.getScreenWidth() * 2);
             while (millis() < delayCounter);
         }
@@ -328,7 +339,7 @@ void loop() {
             color.blue = 255.0 * (fraction);
 
             matrix.drawLine(0, matrix.getScreenHeight() - i, matrix.getScreenWidth(), i, color);
-            matrix.swapBuffers();
+            backgroundLayer.swapBuffers();
             delayCounter += transitionTime / 2 / (matrix.getScreenWidth() * 2);
             while (millis() < delayCounter);
         }
@@ -337,16 +348,16 @@ void loop() {
     // "Drawing Triangles"
 #if (DEMO_DRAWING_TRIANGLES == 1)
     {
-        matrix.setScrollColor({0xff, 0xff, 0xff});
-        matrix.setScrollMode(wrapForward);
-        matrix.setScrollSpeed(40);
-        matrix.setScrollFont(font6x10);
-        matrix.scrollText("Triangles", 1);
+        scrollingLayer.setColor({0xff, 0xff, 0xff});
+        scrollingLayer.setMode(wrapForward);
+        scrollingLayer.setSpeed(40);
+        scrollingLayer.setFont(font6x10);
+        scrollingLayer.start("Triangles", 1);
 
         int transitionTime = 3000;
 
-        //matrix.fillScreen({0, 0, 0});
-        //matrix.swapBuffers();
+        //backgroundLayer.fillScreen({0, 0, 0});
+        //backgroundLayer.swapBuffers();
 
         currentMillis = millis();
         unsigned long delayCounter = currentMillis;
@@ -360,7 +371,7 @@ void loop() {
             color.blue = 0;
 
             matrix.drawTriangle(i, 0, matrix.getScreenWidth(), i, matrix.getScreenWidth() - i, matrix.getScreenHeight(), color);
-            matrix.swapBuffers();
+            backgroundLayer.swapBuffers();
             delayCounter += transitionTime / 2 / matrix.getScreenWidth();
             while (millis() < delayCounter);
         }
@@ -376,7 +387,7 @@ void loop() {
             color.blue = 255.0 * (fraction);
 
             matrix.drawTriangle(matrix.getScreenWidth() - i, matrix.getScreenHeight(), 0, matrix.getScreenHeight() - i, matrix.getScreenWidth(), i, color);
-            matrix.swapBuffers();
+            backgroundLayer.swapBuffers();
             delayCounter += transitionTime / 2 / matrix.getScreenHeight();
             while (millis() < delayCounter);
         }
@@ -385,16 +396,16 @@ void loop() {
     // "Drawing Circles"
 #if (DEMO_DRAWING_CIRCLES == 1)
     {
-        matrix.setScrollColor({0xff, 0xff, 0xff});
-        matrix.setScrollMode(wrapForward);
-        matrix.setScrollSpeed(40);
-        matrix.setScrollFont(font6x10);
-        matrix.scrollText("Circles", 1);
+        scrollingLayer.setColor({0xff, 0xff, 0xff});
+        scrollingLayer.setMode(wrapForward);
+        scrollingLayer.setSpeed(40);
+        scrollingLayer.setFont(font6x10);
+        scrollingLayer.start("Circles", 1);
 
         int transitionTime = 6000;
 
-        //matrix.fillScreen({0, 0, 0});
-        //matrix.swapBuffers();
+        //backgroundLayer.fillScreen({0, 0, 0});
+        //backgroundLayer.swapBuffers();
 
         currentMillis = millis();
         unsigned long delayCounter = currentMillis;
@@ -412,7 +423,7 @@ void loop() {
                 radius = matrix.getScreenWidth();
 
             matrix.drawCircle(i, matrix.getScreenHeight() / 2, radius, color);
-            matrix.swapBuffers();
+            backgroundLayer.swapBuffers();
             delayCounter += transitionTime / 2 / (matrix.getScreenWidth() * 2);
             while (millis() < delayCounter);
         }
@@ -428,7 +439,7 @@ void loop() {
             color.blue = 255.0 * (fraction);
 
             matrix.drawCircle(matrix.getScreenWidth() / 2, matrix.getScreenHeight() / 2, i, color);
-            matrix.swapBuffers();
+            backgroundLayer.swapBuffers();
             delayCounter += transitionTime / 2 / (matrix.getScreenWidth() * 2 / 3);
             while (millis() < delayCounter);
         }
@@ -438,16 +449,16 @@ void loop() {
     // "Drawing Rectangles"
 #if (DEMO_DRAWING_RECTANGLES == 1)
     {
-        matrix.setScrollColor({0xff, 0xff, 0xff});
-        matrix.setScrollMode(wrapForward);
-        matrix.setScrollSpeed(40);
-        matrix.setScrollFont(font6x10);
-        matrix.scrollText("Rectangles", 1);
+        scrollingLayer.setColor({0xff, 0xff, 0xff});
+        scrollingLayer.setMode(wrapForward);
+        scrollingLayer.setSpeed(40);
+        scrollingLayer.setFont(font6x10);
+        scrollingLayer.start("Rectangles", 1);
 
         int transitionTime = 3000;
 
-        //matrix.fillScreen({0, 0, 0});
-        //matrix.swapBuffers();
+        //backgroundLayer.fillScreen({0, 0, 0});
+        //backgroundLayer.swapBuffers();
 
         currentMillis = millis();
         unsigned long delayCounter = currentMillis;
@@ -461,7 +472,7 @@ void loop() {
             color.blue = 0;
 
             matrix.drawRectangle(matrix.getScreenWidth() / 2 - i - 1, matrix.getScreenHeight() / 2 - i - 1, matrix.getScreenWidth() / 2 + i, matrix.getScreenHeight() / 2 + i, color);
-            matrix.swapBuffers();
+            backgroundLayer.swapBuffers();
             delayCounter += transitionTime / 2 / (matrix.getScreenWidth() / 2);
             while (millis() < delayCounter);
         }
@@ -476,7 +487,7 @@ void loop() {
             color.blue = 255.0 * (fraction);
 
             matrix.drawRectangle(i / 4, i / 2, i, i, color);
-            matrix.swapBuffers();
+            backgroundLayer.swapBuffers();
             delayCounter += transitionTime / 2 / matrix.getScreenHeight();
             while (millis() < delayCounter);
         }
@@ -485,16 +496,16 @@ void loop() {
     // "Drawing Round Rectangles"
 #if (DEMO_DRAWING_ROUNDRECT == 1)
     {
-        matrix.setScrollColor({0xff, 0xff, 0xff});
-        matrix.setScrollMode(wrapForward);
-        matrix.setScrollSpeed(40);
-        matrix.setScrollFont(font6x10);
-        matrix.scrollText("Round Rectangles", 1);
+        scrollingLayer.setColor({0xff, 0xff, 0xff});
+        scrollingLayer.setMode(wrapForward);
+        scrollingLayer.setSpeed(40);
+        scrollingLayer.setFont(font6x10);
+        scrollingLayer.start("Round Rectangles", 1);
 
         int transitionTime = 4000;
 
-        //matrix.fillScreen({0, 0, 0});
-        //matrix.swapBuffers();
+        //backgroundLayer.fillScreen({0, 0, 0});
+        //backgroundLayer.swapBuffers();
 
         currentMillis = millis();
         unsigned long delayCounter = currentMillis;
@@ -508,7 +519,7 @@ void loop() {
             color.blue = 0;
 
             matrix.drawRoundRectangle(matrix.getScreenWidth() / 2 - i - 1, matrix.getScreenHeight() / 2 - i - 1, matrix.getScreenWidth() / 2 + i, matrix.getScreenHeight() / 2 + i, i / 2, color);
-            matrix.swapBuffers();
+            backgroundLayer.swapBuffers();
             delayCounter += transitionTime / 2 / (matrix.getScreenWidth() / 2);
             while (millis() < delayCounter);
         }
@@ -523,7 +534,7 @@ void loop() {
             color.blue = 255.0 * (fraction);
 
             matrix.drawRoundRectangle(i / 4, i / 2, i, i, i / 2, color);
-            matrix.swapBuffers();
+            backgroundLayer.swapBuffers();
             delayCounter += transitionTime / 2 / matrix.getScreenHeight();
             while (millis() < delayCounter);
         }
@@ -533,17 +544,17 @@ void loop() {
     // Filled shapes with outline
 #if (DEMO_DRAWING_FILLED == 1)
     {
-        matrix.setScrollColor({0xff, 0xff, 0xff});
-        matrix.setScrollMode(wrapForward);
-        matrix.setScrollSpeed(40);
-        matrix.setScrollFont(font6x10);
-        matrix.scrollText("Draw Outline, Filled, or Filled with Outline", 1);
+        scrollingLayer.setColor({0xff, 0xff, 0xff});
+        scrollingLayer.setMode(wrapForward);
+        scrollingLayer.setSpeed(40);
+        scrollingLayer.setFont(font6x10);
+        scrollingLayer.start("Draw Outline, Filled, or Filled with Outline", 1);
 
         uint transitionTime = 8500;
         int delayBetweenShapes = 200;
 
-        //matrix.fillScreen({0, 0, 0});
-        //matrix.swapBuffers();
+        //backgroundLayer.fillScreen({0, 0, 0});
+        //backgroundLayer.swapBuffers();
 
         currentMillis = millis();
         unsigned long delayCounter = currentMillis;
@@ -597,7 +608,7 @@ void loop() {
                 {0, 0, 0xff}, color);
             }
 
-            matrix.swapBuffers();
+            backgroundLayer.swapBuffers();
             delayCounter += delayBetweenShapes;
             while (millis() < delayCounter);
         }
@@ -608,16 +619,16 @@ void loop() {
 #if (DEMO_FILL_SCREEN == 1)
     {
         // "Drawing Functions"
-        matrix.setScrollColor({0xff, 0xff, 0xff});
-        matrix.setScrollMode(wrapForward);
-        matrix.setScrollSpeed(40);
-        matrix.setScrollFont(font6x10);
-        matrix.scrollText("Fill Screen", 1);
+        scrollingLayer.setColor({0xff, 0xff, 0xff});
+        scrollingLayer.setMode(wrapForward);
+        scrollingLayer.setSpeed(40);
+        scrollingLayer.setFont(font6x10);
+        scrollingLayer.start("Fill Screen", 1);
 
         const uint transitionTime = 3000;
 
-        matrix.fillScreen({0, 0, 0});
-        matrix.swapBuffers();
+        backgroundLayer.fillScreen({0, 0, 0});
+        backgroundLayer.swapBuffers();
 
         currentMillis = millis();
 
@@ -637,9 +648,9 @@ void loop() {
             }
 
             for (i = 0; i < 20; i++) {
-                matrix.fillScreen(color);
+                backgroundLayer.fillScreen(color);
             }
-            matrix.swapBuffers();
+            backgroundLayer.swapBuffers();
         }
     }
 #endif
@@ -647,11 +658,11 @@ void loop() {
 #if (DEMO_DRAW_CHARACTERS == 1)
     {
         // "Drawing Functions"
-        matrix.setScrollColor({0xff, 0xff, 0xff});
-        matrix.setScrollMode(wrapForward);
-        matrix.setScrollSpeed(40);
-        matrix.setScrollFont(font6x10);
-        matrix.scrollText("Draw Characters or String", 1);
+        scrollingLayer.setColor({0xff, 0xff, 0xff});
+        scrollingLayer.setMode(wrapForward);
+        scrollingLayer.setSpeed(40);
+        scrollingLayer.setFont(font6x10);
+        scrollingLayer.start("Draw Characters or String", 1);
 
         const uint transitionTime = 5500;
         const int delayBetweenCharacters = 500;
@@ -661,42 +672,42 @@ void loop() {
 
         currentMillis = millis();
 
-        matrix.fillScreen({0, 0x80, 0x80});
-        matrix.swapBuffers();
+        backgroundLayer.fillScreen({0, 0x80, 0x80});
+        backgroundLayer.swapBuffers();
 
 
         matrix.setFont(font5x7);
         matrix.drawChar(leftEdgeOffset + 0 * spaceBetweenCharacters, matrix.getScreenHeight() / 2, {0xff, 0, 0}, 'H');
         delay(delayBetweenCharacters);
-        matrix.swapBuffers();
+        backgroundLayer.swapBuffers();
         matrix.drawChar(leftEdgeOffset + 1 * spaceBetweenCharacters, matrix.getScreenHeight() / 2, {0xff, 0, 0}, 'E');
         delay(delayBetweenCharacters);
-        matrix.swapBuffers();
+        backgroundLayer.swapBuffers();
         matrix.drawChar(leftEdgeOffset + 2 * spaceBetweenCharacters, matrix.getScreenHeight() / 2, {0xff, 0, 0}, 'L');
         delay(delayBetweenCharacters);
-        matrix.swapBuffers();
+        backgroundLayer.swapBuffers();
         matrix.drawChar(leftEdgeOffset + 3 * spaceBetweenCharacters, matrix.getScreenHeight() / 2, {0xff, 0, 0}, 'L');
         delay(delayBetweenCharacters);
-        matrix.swapBuffers();
+        backgroundLayer.swapBuffers();
         matrix.drawChar(leftEdgeOffset + 4 * spaceBetweenCharacters, matrix.getScreenHeight() / 2, {0xff, 0, 0}, 'O');
         delay(delayBetweenCharacters);
-        matrix.swapBuffers();
+        backgroundLayer.swapBuffers();
 
         delay(delayBetweenCharacters);
 
-        matrix.fillScreen({0, 0x80, 0x80});
-        matrix.swapBuffers();
+        backgroundLayer.fillScreen({0, 0x80, 0x80});
+        backgroundLayer.swapBuffers();
 
         matrix.drawString(leftEdgeOffset, matrix.getScreenHeight() / 2, {0, 0xff, 0}, "Hello!");
 
         delay(delayBetweenCharacters);
-        matrix.swapBuffers();
+        backgroundLayer.swapBuffers();
 
         // draw string but clear the background
         matrix.drawString(leftEdgeOffset, matrix.getScreenHeight() / 2, {0, 0xff, 0}, {0,0,0}, "Hello!");
 
         delay(delayBetweenCharacters * 2);
-        matrix.swapBuffers();
+        backgroundLayer.swapBuffers();
 
         while (millis() < currentMillis + transitionTime);
     }
@@ -706,11 +717,11 @@ void loop() {
 #if (DEMO_FONT_OPTIONS == 1)
     {
         // "Drawing Functions"
-        matrix.setScrollColor({0xff, 0xff, 0xff});
-        matrix.setScrollMode(wrapForward);
-        matrix.setScrollSpeed(40);
-        matrix.setScrollFont(font6x10);
-        matrix.scrollText("Built In Fonts", 1);
+        scrollingLayer.setColor({0xff, 0xff, 0xff});
+        scrollingLayer.setMode(wrapForward);
+        scrollingLayer.setSpeed(40);
+        scrollingLayer.setFont(font6x10);
+        scrollingLayer.start("Built In Fonts", 1);
 
         const uint transitionTime = 5500;
         const int delayBetweenCharacters = 1000;
@@ -718,33 +729,33 @@ void loop() {
 
         currentMillis = millis();
 
-        matrix.fillScreen({0, 0x80, 0x80});
-        matrix.swapBuffers();
+        backgroundLayer.fillScreen({0, 0x80, 0x80});
+        backgroundLayer.swapBuffers();
 
 
         matrix.setFont(font3x5);
-        matrix.fillScreen({0, 0x80, 0x80});
+        backgroundLayer.fillScreen({0, 0x80, 0x80});
         matrix.drawString(leftEdgeOffset, matrix.getScreenHeight() / 2, {0xff, 0, 0}, "3x5");
         delay(delayBetweenCharacters);
-        matrix.swapBuffers();
+        backgroundLayer.swapBuffers();
 
         matrix.setFont(font5x7);
-        matrix.fillScreen({0, 0x80, 0x80});
+        backgroundLayer.fillScreen({0, 0x80, 0x80});
         matrix.drawString(leftEdgeOffset, matrix.getScreenHeight() / 2, {0xff, 0, 0}, "5x7");
         delay(delayBetweenCharacters);
-        matrix.swapBuffers();
+        backgroundLayer.swapBuffers();
 
         matrix.setFont(font6x10);
-        matrix.fillScreen({0, 0x80, 0x80});
+        backgroundLayer.fillScreen({0, 0x80, 0x80});
         matrix.drawString(leftEdgeOffset, matrix.getScreenHeight() / 2, {0xff, 0, 0}, "6x10");
         delay(delayBetweenCharacters);
-        matrix.swapBuffers();
+        backgroundLayer.swapBuffers();
 
         matrix.setFont(font8x13);
-        matrix.fillScreen({0, 0x80, 0x80});
+        backgroundLayer.fillScreen({0, 0x80, 0x80});
         matrix.drawString(leftEdgeOffset, matrix.getScreenHeight() / 2, {0xff, 0, 0}, "8x13");
         delay(delayBetweenCharacters);
-        matrix.swapBuffers();
+        backgroundLayer.swapBuffers();
 
         while (millis() < currentMillis + transitionTime);
     }
@@ -773,23 +784,23 @@ void loop() {
         };
 
         // "Drawing Functions"
-        matrix.setScrollColor({0xff, 0xff, 0xff});
-        matrix.setScrollMode(wrapForward);
-        matrix.setScrollSpeed(40);
-        matrix.setScrollFont(font6x10);
-        matrix.scrollText("Mono Bitmaps", 1);
+        scrollingLayer.setColor({0xff, 0xff, 0xff});
+        scrollingLayer.setMode(wrapForward);
+        scrollingLayer.setSpeed(40);
+        scrollingLayer.setFont(font6x10);
+        scrollingLayer.start("Mono Bitmaps", 1);
 
         const uint transitionTime = 5500;
         currentMillis = millis();
 
-        matrix.fillScreen({0, 0x80, 0x80});
-        matrix.swapBuffers();
+        backgroundLayer.fillScreen({0, 0x80, 0x80});
+        backgroundLayer.swapBuffers();
 
         while (millis() < currentMillis + transitionTime) {
             matrix.drawMonoBitmap(random(matrix.getScreenWidth() + testBitmapWidth) - testBitmapWidth,
                                   random(matrix.getScreenHeight() + testBitmapHeight) - testBitmapHeight,
                                   testBitmapWidth, testBitmapHeight, {(uint8_t)random(256), (uint8_t)random(256), 0}, testBitmap);
-            matrix.swapBuffers();
+            backgroundLayer.swapBuffers();
             delay(100);
         }
     }
@@ -801,14 +812,14 @@ void loop() {
 #if (DEMO_SCROLL_COLOR == 1)
     {
         // "Drawing Functions"
-        matrix.setScrollColor({0xff, 0xff, 0xff});
-        matrix.setScrollMode(wrapForward);
-        matrix.setScrollSpeed(40);
-        matrix.setScrollFont(font6x10);
-        matrix.scrollText("Scroll text above bitmap in any color", 1);
+        scrollingLayer.setColor({0xff, 0xff, 0xff});
+        scrollingLayer.setMode(wrapForward);
+        scrollingLayer.setSpeed(40);
+        scrollingLayer.setFont(font6x10);
+        scrollingLayer.start("Scroll text above bitmap in any color", 1);
 
-        matrix.fillScreen(defaultBackgroundColor);
-        matrix.swapBuffers();
+        backgroundLayer.fillScreen(defaultBackgroundColor);
+        backgroundLayer.swapBuffers();
 
         const uint transitionTime = 8000;
 
@@ -829,7 +840,7 @@ void loop() {
                 color.blue = 255.0 * (fraction - 1.0);
             }
 
-            matrix.setScrollColor(color);
+            scrollingLayer.setColor(color);
         }
     }
 #endif
@@ -838,53 +849,53 @@ void loop() {
     {
         uint transitionTime;
 
-        matrix.fillScreen(defaultBackgroundColor);
-        matrix.swapBuffers();
+        backgroundLayer.fillScreen(defaultBackgroundColor);
+        backgroundLayer.swapBuffers();
 
-        matrix.setScrollColor({0xff, 0xff, 0xff});
+        scrollingLayer.setColor({0xff, 0xff, 0xff});
         matrix.setFont(font3x5);
-        matrix.setScrollSpeed(40);
+        scrollingLayer.setSpeed(40);
         matrix.drawString(0, matrix.getScreenHeight() / 2, {0xff, 0xff, 0xff}, "Modes");
-        matrix.swapBuffers();
+        backgroundLayer.swapBuffers();
 
-        matrix.setScrollMode(wrapForward);
-        matrix.scrollText("Wrap Forward", 2);
+        scrollingLayer.setMode(wrapForward);
+        scrollingLayer.start("Wrap Forward", 2);
         while(matrix.getScrollStatus());
 
         // use this mode to start the scrolling from any position, instead of the right edge
-        matrix.setScrollMode(wrapForwardFromLeft);
+        scrollingLayer.setMode(wrapForwardFromLeft);
         matrix.setScrollStartOffsetFromLeft(matrix.getScreenWidth()/2);
-        matrix.scrollText("Wrap Forward From Left", 1);
+        scrollingLayer.start("Wrap Forward From Left", 1);
         while(matrix.getScrollStatus());
 
-        matrix.setScrollMode(bounceForward);
-        matrix.scrollText("Bounce", 2);
+        scrollingLayer.setMode(bounceForward);
+        scrollingLayer.start("Bounce", 2);
         while(matrix.getScrollStatus());
 
-        matrix.setScrollMode(bounceReverse);
-        matrix.scrollText("Bounce (rev)", 2);
+        scrollingLayer.setMode(bounceReverse);
+        scrollingLayer.start("Bounce (rev)", 2);
         while(matrix.getScrollStatus());
 
         // this mode doesn't scroll, and the position is set through setScrollStartOffsetFromLeft()
-        matrix.setScrollMode(stopped);
-        matrix.scrollText("Stopped", 1);
+        scrollingLayer.setMode(stopped);
+        scrollingLayer.start("Stopped", 1);
         matrix.setScrollStartOffsetFromLeft(0);
         transitionTime = 3000;
         currentMillis = millis();
         // "stopped" will always have getScrollStatus() > 0, use time to transition)
         while(millis() - currentMillis < transitionTime);
 
-        matrix.setScrollMode(bounceReverse);
-        matrix.scrollText("Update Text", 2);
+        scrollingLayer.setMode(bounceReverse);
+        scrollingLayer.start("Update Text", 2);
 
         while(matrix.getScrollStatus() > 1);
         matrix.updateScrollText("Update Text While Scrolling");
 
         while(matrix.getScrollStatus());
 
-        matrix.setScrollMode(wrapForward);
+        scrollingLayer.setMode(wrapForward);
         // setup text to scroll infinitely
-        matrix.scrollText("Stop Scrolling", -1);
+        scrollingLayer.start("Stop Scrolling", -1);
         
         transitionTime = 4500;
         currentMillis = millis();
@@ -896,27 +907,27 @@ void loop() {
         while(millis() - currentMillis < transitionTime);
 
 
-        matrix.fillScreen(defaultBackgroundColor);
-        matrix.swapBuffers();
+        backgroundLayer.fillScreen(defaultBackgroundColor);
+        backgroundLayer.swapBuffers();
     }
 #endif
 
     // speeds
 #if (DEMO_SCROLL_SPEED == 1)
     {
-        matrix.setScrollColor({0xff, 0xff, 0xff});
-        matrix.setScrollMode(wrapForward);
-        matrix.setScrollSpeed(1);
+        scrollingLayer.setColor({0xff, 0xff, 0xff});
+        scrollingLayer.setMode(wrapForward);
+        scrollingLayer.setSpeed(1);
 
-        matrix.scrollText("Scroll Speed", 3);
-        matrix.swapBuffers();
+        scrollingLayer.start("Scroll Speed", 3);
+        backgroundLayer.swapBuffers();
 
         const int maxScrollSpeed = 100;
 
         uint transitionTime = 7500;
         currentMillis = millis();
         while (millis() - currentMillis < transitionTime) {
-            matrix.setScrollSpeed(/*maxScrollSpeed -*/ maxScrollSpeed * ((float)millis() - currentMillis) / transitionTime);
+            scrollingLayer.setSpeed(/*maxScrollSpeed -*/ maxScrollSpeed * ((float)millis() - currentMillis) / transitionTime);
         }
     }
 #endif
@@ -924,45 +935,45 @@ void loop() {
     // fonts
 #if (DEMO_SCROLL_FONTS == 1)
     {
-        matrix.setScrollColor({0xff, 0xff, 0xff});
-        matrix.setScrollMode(wrapForward);
-        matrix.setScrollSpeed(40);
-        matrix.setScrollOffsetFromTop(1);
+        scrollingLayer.setColor({0xff, 0xff, 0xff});
+        scrollingLayer.setMode(wrapForward);
+        scrollingLayer.setSpeed(40);
+        scrollingLayer.setOffsetFromTop(1);
 
-        matrix.setScrollFont(font3x5);
-        matrix.scrollText("All Fonts", 1);
+        scrollingLayer.setFont(font3x5);
+        scrollingLayer.start("All Fonts", 1);
         while (matrix.getScrollStatus());
 
-        matrix.setScrollFont(font5x7);
-        matrix.scrollText("Can Be", 1);
+        scrollingLayer.setFont(font5x7);
+        scrollingLayer.start("Can Be", 1);
         while (matrix.getScrollStatus());
 
-        matrix.setScrollFont(font6x10);
-        matrix.scrollText("Used For", 1);
+        scrollingLayer.setFont(font6x10);
+        scrollingLayer.start("Used For", 1);
         while (matrix.getScrollStatus());
 
-        matrix.setScrollFont(font8x13);
-        matrix.scrollText("Scrolling", 1);
+        scrollingLayer.setFont(font8x13);
+        scrollingLayer.start("Scrolling", 1);
         while (matrix.getScrollStatus());
 
-        matrix.setScrollOffsetFromTop(defaultScrollOffset);
+        scrollingLayer.setOffsetFromTop(defaultScrollOffset);
     }
 #endif
     // position
 #if (DEMO_SCROLL_POSITION == 1)
     {
-        matrix.setScrollColor({0xff, 0xff, 0xff});
-        matrix.setScrollMode(wrapForward);
-        matrix.setScrollSpeed(40);
+        scrollingLayer.setColor({0xff, 0xff, 0xff});
+        scrollingLayer.setMode(wrapForward);
+        scrollingLayer.setSpeed(40);
 
-        matrix.setScrollFont(font5x7);
-        matrix.scrollText("Position Scrolling Text Anywhere", 1);
+        scrollingLayer.setFont(font5x7);
+        scrollingLayer.start("Position Scrolling Text Anywhere", 1);
 
         for (i = 0; i < 6; i++) {
-            matrix.setScrollOffsetFromTop(i * (matrix.getScreenHeight() / 6));
+            scrollingLayer.setOffsetFromTop(i * (matrix.getScreenHeight() / 6));
             delay(1000);
         }
-        matrix.setScrollOffsetFromTop(defaultScrollOffset);
+        scrollingLayer.setOffsetFromTop(defaultScrollOffset);
     }
 #endif
 
@@ -970,44 +981,44 @@ void loop() {
 #if (DEMO_SCROLL_ROTATION == 1)
     {
         matrix.setFont(font3x5);
-        matrix.setScrollFont(font5x7);
+        scrollingLayer.setFont(font5x7);
 
-        matrix.setScrollColor({0xff, 0xff, 0xff});
-        matrix.setScrollMode(wrapForward);
-        matrix.setScrollSpeed(40);
+        scrollingLayer.setColor({0xff, 0xff, 0xff});
+        scrollingLayer.setMode(wrapForward);
+        scrollingLayer.setSpeed(40);
 
         // rotate 90
         matrix.setRotation(rotation90);
         // delay after rotation to make sure the rotation propogates to the background layer before drawing (1/framerate is probably long enough)
         delay(40);
-        matrix.scrollText("Rotation 90", 1);
-        matrix.fillScreen(defaultBackgroundColor);
+        scrollingLayer.start("Rotation 90", 1);
+        backgroundLayer.fillScreen(defaultBackgroundColor);
         matrix.drawString(1, matrix.getScreenHeight()/2, {0xff, 0xff, 0xff}, "BACKGND");
-        matrix.swapBuffers();
+        backgroundLayer.swapBuffers();
         while(matrix.getScrollStatus());
 
         matrix.setRotation(rotation180);
         delay(40);
-        matrix.scrollText("Rotation 180", 1);
-        matrix.fillScreen(defaultBackgroundColor);
+        scrollingLayer.start("Rotation 180", 1);
+        backgroundLayer.fillScreen(defaultBackgroundColor);
         matrix.drawString(1, matrix.getScreenHeight()/2, {0xff, 0xff, 0xff}, "BACKGND");
-        matrix.swapBuffers(false);
+        backgroundLayer.swapBuffers(false);
         while(matrix.getScrollStatus());
 
         matrix.setRotation(rotation270);
         delay(40);
-        matrix.scrollText("Rotation 270", 1);
-        matrix.fillScreen(defaultBackgroundColor);
+        scrollingLayer.start("Rotation 270", 1);
+        backgroundLayer.fillScreen(defaultBackgroundColor);
         matrix.drawString(1, matrix.getScreenHeight()/2, {0xff, 0xff, 0xff}, "BACKGND");
-        matrix.swapBuffers(false);
+        backgroundLayer.swapBuffers(false);
         while(matrix.getScrollStatus());
 
         matrix.setRotation(rotation0);
         delay(40);
-        matrix.scrollText("Rotation 0", 1);
-        matrix.fillScreen(defaultBackgroundColor);
+        scrollingLayer.start("Rotation 0", 1);
+        backgroundLayer.fillScreen(defaultBackgroundColor);
         matrix.drawString(1, matrix.getScreenHeight()/2, {0xff, 0xff, 0xff}, "BACKGND");
-        matrix.swapBuffers(false);
+        backgroundLayer.swapBuffers(false);
         while(matrix.getScrollStatus());
     }
 #endif
@@ -1015,22 +1026,22 @@ void loop() {
 #if (DEMO_SCROLL_RESET == 1)
     {
         matrix.setFont(font3x5);
-        matrix.setScrollFont(font5x7);
+        scrollingLayer.setFont(font5x7);
 
-        matrix.setScrollColor({0xff, 0xff, 0xff});
-        matrix.setScrollMode(wrapForward);
-        matrix.setScrollSpeed(40);
+        scrollingLayer.setColor({0xff, 0xff, 0xff});
+        scrollingLayer.setMode(wrapForward);
+        scrollingLayer.setSpeed(40);
 
         matrix.drawString(0, 0, {0xff, 0xff, 0xff}, "Stop");
         matrix.drawString(0, 6, {0xff, 0xff, 0xff}, "Scroll");
-        matrix.swapBuffers();
+        backgroundLayer.swapBuffers();
 
         // rotate 90
         for(i=3; i>=0; i--) {
             char number = '0' + i%10;
             char numberString[] = "0...";
             numberString[0] = number;
-            matrix.scrollText(numberString, 1);
+            scrollingLayer.start(numberString, 1);
             delay(500);
             matrix.stopScrollText();
             delay(500);
@@ -1042,16 +1053,16 @@ void loop() {
 #if (DEMO_BRIGHTNESS == 1)
     {
         // "Drawing Functions"
-        matrix.setScrollColor({0, 0, 0});
-        matrix.setScrollMode(wrapForward);
-        matrix.setScrollSpeed(40);
-        matrix.setScrollFont(font6x10);
-        matrix.scrollText("Brightness Control", 1);
+        scrollingLayer.setColor({0, 0, 0});
+        scrollingLayer.setMode(wrapForward);
+        scrollingLayer.setSpeed(40);
+        scrollingLayer.setFont(font6x10);
+        scrollingLayer.start("Brightness Control", 1);
 
         const uint transitionTime = 6000;
 
-        matrix.fillScreen({0xff, 0xff, 0xff});
-        matrix.swapBuffers();
+        backgroundLayer.fillScreen({0xff, 0xff, 0xff});
+        backgroundLayer.swapBuffers();
 
         matrix.setFont(font5x7);
 
@@ -1074,10 +1085,10 @@ void loop() {
             percent[1] = '0' + (int)(brightness * 100.0 / 255) % 100 / 10;
             percent[2] = '0' + (int)(brightness * 100.0 / 255) % 10;
 
-            matrix.fillScreen({0xff, 0xff, 0xff});
+            backgroundLayer.fillScreen({0xff, 0xff, 0xff});
             matrix.drawString(0, 16, {0, 0, 0}, value);
             matrix.drawString(0, 24, {0, 0, 0}, percent);
-            matrix.swapBuffers();
+            backgroundLayer.swapBuffers();
         }
 
         matrix.setBrightness(defaultBrightness);
@@ -1087,11 +1098,11 @@ void loop() {
 #if (DEMO_RAW_BITMAP == 1)
     {
         // "Drawing Functions"
-        matrix.setScrollColor({0xff, 0, 0});
-        matrix.setScrollMode(wrapForward);
-        matrix.setScrollSpeed(40);
-        matrix.setScrollFont(font6x10);
-        matrix.scrollText("24-bit Color, even with low brightness", 1);
+        scrollingLayer.setColor({0xff, 0, 0});
+        scrollingLayer.setMode(wrapForward);
+        scrollingLayer.setSpeed(40);
+        scrollingLayer.setFont(font6x10);
+        scrollingLayer.start("24-bit Color, even with low brightness", 1);
 
         const uint transitionTime = 7000;
 
@@ -1116,12 +1127,12 @@ void loop() {
             percent[1] = '0' + (int)(brightness * 100.0 / 255) % 100 / 10;
             percent[2] = '0' + (int)(brightness * 100.0 / 255) % 10;
 
-            matrix.fillScreen({0,0,0});
+            backgroundLayer.fillScreen({0,0,0});
             drawBitmap(0,0,&colorwheel);
 
             matrix.drawString(12, 16, {0xff, 0, 0}, value);
             matrix.drawString(12, 24, {0xff, 0, 0}, percent);
-            matrix.swapBuffers();
+            backgroundLayer.swapBuffers();
         }
 
         matrix.setBrightness(defaultBrightness);
@@ -1130,11 +1141,11 @@ void loop() {
     // color correction options
 #if (DEMO_COLOR_CORRECTION == 1)
     {
-        matrix.setScrollColor({0xff, 0, 0});
-        matrix.setScrollMode(wrapForward);
-        matrix.setScrollSpeed(40);
-        matrix.setScrollFont(font6x10);
-        matrix.scrollText("Color correction", 1);
+        scrollingLayer.setColor({0xff, 0, 0});
+        scrollingLayer.setMode(wrapForward);
+        scrollingLayer.setSpeed(40);
+        scrollingLayer.setFont(font6x10);
+        scrollingLayer.start("Color correction", 1);
 
         const uint transitionTime = 10000;
 
@@ -1143,33 +1154,33 @@ void loop() {
         currentMillis = millis();
 
         for (j = 0; j < 4; j++) {
-            matrix.fillScreen({0,0,0});
+            backgroundLayer.fillScreen({0,0,0});
             drawBitmap(0,0,&colorwheel);
             if (j%2) {
                 matrix.drawString(1, 16, {0xff, 0, 0}, "CC:ON");
-                matrix.enableColorCorrection(true);
+                backgroundLayer.enableColorCorrection(true);
             } else {
                 matrix.drawString(1, 16, {0xff, 0, 0}, "CC:OFF");
-                matrix.enableColorCorrection(false);
+                backgroundLayer.enableColorCorrection(false);
             }
             // use swapBuffers(false) as background bitmap is fully drawn each time, no need to copy buffer to drawing layer after swap
-            matrix.swapBuffers(false);
+            backgroundLayer.swapBuffers(false);
             delay(transitionTime/4);
         }
-        matrix.enableColorCorrection(true);
+        backgroundLayer.enableColorCorrection(true);
     }
 #endif
 #if (DEMO_BACKGND_BRIGHTNESS == 1)
     {
-        matrix.setScrollColor({0xff, 0xff, 0xff});
-        matrix.setScrollMode(wrapForward);
-        matrix.setScrollSpeed(40);
-        matrix.setScrollFont(font6x10);
-        matrix.scrollText("Change Background Brightness", 1);
+        scrollingLayer.setColor({0xff, 0xff, 0xff});
+        scrollingLayer.setMode(wrapForward);
+        scrollingLayer.setSpeed(40);
+        scrollingLayer.setFont(font6x10);
+        scrollingLayer.start("Change Background Brightness", 1);
 
-        matrix.fillScreen({0,0,0});
+        backgroundLayer.fillScreen({0,0,0});
         drawBitmap(0,0,&colorwheel);
-        matrix.swapBuffers();
+        backgroundLayer.swapBuffers();
 
         const uint transitionTime = 7000;
 
@@ -1190,10 +1201,10 @@ void loop() {
 #endif
 #if (DEMO_FOREGROUND_DRAWING == 1)
     {
-        matrix.fillScreen({0,0,0});
+        backgroundLayer.fillScreen({0,0,0});
         drawBitmap(0,0,&colorwheel);
         matrix.setBackgroundBrightness(50);
-        matrix.swapBuffers();
+        backgroundLayer.swapBuffers();
 
         const uint transitionTime = 3000;
 
@@ -1220,10 +1231,10 @@ void loop() {
 
         // scrolling text interferes with the foreground drawing even when not actively scrolling
         // move the scrolling text off of the screen
-        matrix.setScrollOffsetFromTop(matrix.getScreenHeight());
+        scrollingLayer.setOffsetFromTop(matrix.getScreenHeight());
 
         matrix.setForegroundFont(font3x5);
-        matrix.setScrollColor({0xff, 0xff, 0xff});
+        scrollingLayer.setColor({0xff, 0xff, 0xff});
         matrix.clearForeground();
 
         matrix.drawForegroundChar(0, 0,'D', true);
@@ -1263,23 +1274,23 @@ void loop() {
         }
 
         matrix.clearForeground();
-        matrix.setScrollOffsetFromTop(defaultScrollOffset);
+        scrollingLayer.setOffsetFromTop(defaultScrollOffset);
         matrix.displayForegroundDrawing();
         matrix.setBackgroundBrightness(255);
     }
 #endif
 #if (DEMO_READ_PIXEL == 1)
     {
-        matrix.setScrollColor({0xff, 0xff, 0xff});
-        matrix.setScrollMode(wrapForward);
-        matrix.setScrollSpeed(40);
-        matrix.setScrollFont(font6x10);
-        matrix.setScrollOffsetFromTop(0);
-        matrix.scrollText("Read Pixel From Background", 1);
+        scrollingLayer.setColor({0xff, 0xff, 0xff});
+        scrollingLayer.setMode(wrapForward);
+        scrollingLayer.setSpeed(40);
+        scrollingLayer.setFont(font6x10);
+        scrollingLayer.setOffsetFromTop(0);
+        scrollingLayer.start("Read Pixel From Background", 1);
 
-        matrix.fillScreen({0,0,0});
+        backgroundLayer.fillScreen({0,0,0});
         drawBitmap(0,0,&colorwheel);
-        matrix.swapBuffers();
+        backgroundLayer.swapBuffers();
         matrix.setBackgroundBrightness(50);
 
         const uint transitionTime = 9000;
@@ -1320,7 +1331,7 @@ void loop() {
 
             matrix.fillRectangle(matrix.getScreenWidth() - 5, matrix.getScreenHeight() - 5,
                 matrix.getScreenWidth(), matrix.getScreenHeight(), color);
-            matrix.swapBuffers();
+            backgroundLayer.swapBuffers();
 
             matrix.displayForegroundDrawing();
             matrix.clearForeground();
@@ -1328,7 +1339,7 @@ void loop() {
         }
 
         matrix.displayForegroundDrawing();
-        matrix.setScrollOffsetFromTop(defaultScrollOffset);
+        scrollingLayer.setOffsetFromTop(defaultScrollOffset);
         matrix.setBackgroundBrightness(255);        
     }
 #endif
@@ -1337,16 +1348,16 @@ void loop() {
         const int minRefreshRate = 20;
         const int maxRefreshRate = 120;
 
-        matrix.setScrollColor({0xff, 0xff, 0xff});
-        matrix.setScrollMode(wrapForward);
-        matrix.setScrollSpeed(40);
-        matrix.setScrollFont(font6x10);
-        matrix.setScrollOffsetFromTop(0);
-        matrix.scrollText("Change Refresh Rate", 1);
+        scrollingLayer.setColor({0xff, 0xff, 0xff});
+        scrollingLayer.setMode(wrapForward);
+        scrollingLayer.setSpeed(40);
+        scrollingLayer.setFont(font6x10);
+        scrollingLayer.setOffsetFromTop(0);
+        scrollingLayer.start("Change Refresh Rate", 1);
 
-        matrix.fillScreen({0,0,0});
+        backgroundLayer.fillScreen({0,0,0});
         drawBitmap(0,0,&colorwheel);
-        matrix.swapBuffers();
+        backgroundLayer.swapBuffers();
         matrix.setBackgroundBrightness(50);
 
         const uint transitionTime = 9000;
@@ -1375,7 +1386,7 @@ void loop() {
         }
 
         matrix.displayForegroundDrawing();
-        matrix.setScrollOffsetFromTop(defaultScrollOffset);
+        scrollingLayer.setOffsetFromTop(defaultScrollOffset);
         matrix.setBackgroundBrightness(255);
     }
 #endif
