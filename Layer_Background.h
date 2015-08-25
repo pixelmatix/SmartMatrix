@@ -5,7 +5,7 @@
 #include "MatrixCommon.h"
 #include "MatrixFontCommon.h"
 
-#define SMARTMATRIX_BACKGROUND_OPTIONS_NONE     0
+#define SM_BACKGROUND_OPTIONS_NONE     0
 
 template <typename RGB, unsigned int optionFlags>
 class SMLayerBackground : public SM_Layer {
@@ -15,6 +15,7 @@ class SMLayerBackground : public SM_Layer {
         void getRefreshPixel(uint8_t hardwareX, uint8_t hardwareY, rgb48 &xyPixel);
         void fillRefreshRow(uint8_t hardwareY, rgb48 refreshRow[]);
         void fillRefreshRow(uint8_t hardwareY, rgb24 refreshRow[]);
+
         void swapBuffers(bool copy = true);
     #ifdef SMARTMATRIX_TRIPLEBUFFER
         void swapBuffersWithInterpolation_frames(int framesToInterpolate, bool copy = false);

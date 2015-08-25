@@ -16,7 +16,7 @@ typedef enum ScrollMode {
     wrapForwardFromLeft,
 } ScrollMode;
 
-#define SMARTMATRIX_SCROLLING_OPTIONS_NONE     0
+#define SM_SCROLLING_OPTIONS_NONE     0
 
 //#define FOREGROUND_DRAWING_ENABLED
 

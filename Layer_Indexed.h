@@ -6,7 +6,7 @@
 
 //#define FOREGROUND_DRAWING_ENABLED
 
-#define SMARTMATRIX_INDEXED_OPTIONS_NONE     0
+#define SM_INDEXED_OPTIONS_NONE     0
 
 // font
 #include "MatrixFontCommon.h"
