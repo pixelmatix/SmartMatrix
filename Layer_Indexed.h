@@ -3,9 +3,10 @@
 
 #include "Layer.h"
 #include "MatrixCommon.h"
-#include "Layer_Indexed.h"
 
 //#define FOREGROUND_DRAWING_ENABLED
+
+#define SMARTMATRIX_INDEXED_OPTIONS_NONE     0
 
 // font
 #include "MatrixFontCommon.h"
