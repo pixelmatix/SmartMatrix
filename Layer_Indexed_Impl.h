@@ -1,27 +1,27 @@
 #include <string.h>
 
-const unsigned char foregroundDrawBuffer2 = 0;
-const unsigned char foregroundRefreshBuffer2 = 1;
+const unsigned char indexedDrawBuffer = 0;
+const unsigned char indexedRefreshBuffer = 1;
 
-#define FOREGROUND_ROW_SIZE     (this->localWidth / 8)
-#define FOREGROUND_BUFFER_SIZE  (FOREGROUND_ROW_SIZE * this->localHeight)
+#define INDEXED_BUFFER_ROW_SIZE     (this->localWidth / 8)
+#define INDEXED_BUFFER_SIZE         (INDEXED_BUFFER_ROW_SIZE * this->localHeight)
 
 template <typename RGB, unsigned int optionFlags>
 SMLayerIndexed<RGB, optionFlags>::SMLayerIndexed(uint8_t * bitmap, uint8_t width, uint8_t height) {
-    // size of bitmap is 2 * FOREGROUND_BUFFER_SIZE
-    foregroundBitmap = bitmap;
+    // size of bitmap is 2 * INDEXED_BUFFER_SIZE
+    bitmap = bitmap;
     this->matrixWidth = width;
     this->matrixHeight = height;
 }
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerIndexed<RGB, optionFlags>::frameRefreshCallback(void) {
-    handleForegroundDrawingCopy();
+    handleBufferCopy();
 }
 
 // returns true and copies color to xyPixel if pixel is opaque, returns false if not
 template<typename RGB, unsigned int optionFlags> template <typename RGB_OUT>
-bool SMLayerIndexed<RGB, optionFlags>::getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, RGB_OUT &xyPixel) {
+bool SMLayerIndexed<RGB, optionFlags>::getPixel(uint8_t hardwareX, uint8_t hardwareY, RGB_OUT &xyPixel) {
     uint8_t localScreenX, localScreenY;
 
     // convert hardware x/y to the pixel in the local screen
@@ -49,8 +49,8 @@ bool SMLayerIndexed<RGB, optionFlags>::getForegroundPixel(uint8_t hardwareX, uin
 
     uint8_t bitmask = 0x80 >> (localScreenX % 8);
 
-    if (foregroundBitmap[(foregroundRefreshBuffer2 * FOREGROUND_BUFFER_SIZE) + (localScreenY * FOREGROUND_ROW_SIZE) + (localScreenX/8)] & bitmask) {
-        xyPixel = textcolor;
+    if (bitmap[(indexedRefreshBuffer * INDEXED_BUFFER_SIZE) + (localScreenY * INDEXED_BUFFER_ROW_SIZE) + (localScreenX/8)] & bitmask) {
+        xyPixel = color;
         return true;
     }
 
@@ -60,7 +60,7 @@ bool SMLayerIndexed<RGB, optionFlags>::getForegroundPixel(uint8_t hardwareX, uin
 template <typename RGB, unsigned int optionFlags>
 void SMLayerIndexed<RGB, optionFlags>::getRefreshPixel(uint8_t x, uint8_t y, rgb48 &xyPixel) {
     RGB tempPixel;
-    if(getForegroundPixel(x, y, tempPixel)) {
+    if(getPixel(x, y, tempPixel)) {
         if(this->ccEnabled)
             colorCorrection(tempPixel, xyPixel);
         else
@@ -75,14 +75,14 @@ void SMLayerIndexed<RGB, optionFlags>::fillRefreshRow(uint8_t hardwareY, rgb48 r
 
     if(this->ccEnabled) {
         for(i=0; i<this->matrixWidth; i++) {
-            if(!getForegroundPixel(i, hardwareY, currentPixel))
+            if(!getPixel(i, hardwareY, currentPixel))
                 continue;
 
             colorCorrection(currentPixel, refreshRow[i]);
         }
     } else {
         for(i=0; i<this->matrixWidth; i++) {
-            if(!getForegroundPixel(i, hardwareY, currentPixel))
+            if(!getPixel(i, hardwareY, currentPixel))
                 continue;
 
             // load background pixel without color correction
@@ -98,14 +98,14 @@ void SMLayerIndexed<RGB, optionFlags>::fillRefreshRow(uint8_t hardwareY, rgb24 r
 
     if(this->ccEnabled) {
         for(i=0; i<this->matrixWidth; i++) {
-            if(!getForegroundPixel(i, hardwareY, currentPixel))
+            if(!getPixel(i, hardwareY, currentPixel))
                 continue;
 
             colorCorrection(currentPixel, refreshRow[i]);
         }
     } else {
         for(i=0; i<this->matrixWidth; i++) {
-            if(!getForegroundPixel(i, hardwareY, currentPixel))
+            if(!getPixel(i, hardwareY, currentPixel))
                 continue;
 
             // load background pixel without color correction
@@ -115,8 +115,8 @@ void SMLayerIndexed<RGB, optionFlags>::fillRefreshRow(uint8_t hardwareY, rgb24 r
 }
 
 template<typename RGB, unsigned int optionFlags>
-void SMLayerIndexed<RGB, optionFlags>::setScrollColor(const RGB & newColor) {
-    textcolor = newColor;
+void SMLayerIndexed<RGB, optionFlags>::setIndexedColor(uint8_t index, const RGB & newColor) {
+    color = newColor;
 }
 
 template<typename RGB, unsigned int optionFlags>
@@ -125,52 +125,58 @@ void SMLayerIndexed<RGB, optionFlags>::enableColorCorrection(bool enabled) {
 }
 
 template <typename RGB, unsigned int optionFlags>
-void SMLayerIndexed<RGB, optionFlags>::clearForeground(void) {
-    memset(&foregroundBitmap[foregroundDrawBuffer2*FOREGROUND_BUFFER_SIZE], 0x00, FOREGROUND_BUFFER_SIZE);
+void SMLayerIndexed<RGB, optionFlags>::fillScreen(uint8_t index) {
+    uint8_t fillValue;
+    if(index)
+        fillValue = 0xFF;
+    else
+        fillValue = 0x00;
+
+    memset(&bitmap[indexedDrawBuffer*INDEXED_BUFFER_SIZE], fillValue, INDEXED_BUFFER_SIZE);
 }
 
 template <typename RGB, unsigned int optionFlags>
-void SMLayerIndexed<RGB, optionFlags>::displayForegroundDrawing(bool waitUntilComplete) {
-    while (foregroundCopyPending);
+void SMLayerIndexed<RGB, optionFlags>::swapBuffers(bool copy) {
+    while (copyPending);
 
-    foregroundCopyPending = true;
+    copyPending = true;
 
-    while (waitUntilComplete && foregroundCopyPending);
+    while (copy && copyPending);
 }
 
 template <typename RGB, unsigned int optionFlags>
-void SMLayerIndexed<RGB, optionFlags>::handleForegroundDrawingCopy(void) {
-    if (!foregroundCopyPending)
+void SMLayerIndexed<RGB, optionFlags>::handleBufferCopy(void) {
+    if (!copyPending)
         return;
 
-    memcpy(&foregroundBitmap[foregroundRefreshBuffer2*FOREGROUND_BUFFER_SIZE], &foregroundBitmap[foregroundDrawBuffer2*FOREGROUND_BUFFER_SIZE], FOREGROUND_BUFFER_SIZE);
-    foregroundCopyPending = false;
+    memcpy(&bitmap[indexedRefreshBuffer*INDEXED_BUFFER_SIZE], &bitmap[indexedDrawBuffer*INDEXED_BUFFER_SIZE], INDEXED_BUFFER_SIZE);
+    copyPending = false;
 }
 
 template <typename RGB, unsigned int optionFlags>
-void SMLayerIndexed<RGB, optionFlags>::drawForegroundPixel(int16_t x, int16_t y, bool opaque) {
+void SMLayerIndexed<RGB, optionFlags>::drawPixel(int16_t x, int16_t y, uint8_t index) {
     uint8_t tempBitmask;
 
     if(x < 0 || x >= this->localWidth || y < 0 || y >= this->localWidth)
         return;
 
-    if(opaque) {
+    if(index) {
         tempBitmask = 0x80 >> (x%8);
-        foregroundBitmap[foregroundDrawBuffer2*FOREGROUND_BUFFER_SIZE + (y * FOREGROUND_ROW_SIZE) + (x/8)] |= tempBitmask;
+        bitmap[indexedDrawBuffer*INDEXED_BUFFER_SIZE + (y * INDEXED_BUFFER_ROW_SIZE) + (x/8)] |= tempBitmask;
     } else {
         tempBitmask = ~(0x80 >> (x%8));
-        foregroundBitmap[foregroundDrawBuffer2*FOREGROUND_BUFFER_SIZE + (y * FOREGROUND_ROW_SIZE) + (x/8)] &= tempBitmask;
+        bitmap[indexedDrawBuffer*INDEXED_BUFFER_SIZE + (y * INDEXED_BUFFER_ROW_SIZE) + (x/8)] &= tempBitmask;
     }
 }
 
 template <typename RGB, unsigned int optionFlags>
-void SMLayerIndexed<RGB, optionFlags>::setForegroundFont(fontChoices newFont) {
-    foregroundfont = (bitmap_font *)fontLookup(newFont);
+void SMLayerIndexed<RGB, optionFlags>::setFont(fontChoices newFont) {
+    layerFont = (bitmap_font *)fontLookup(newFont);
     majorScrollFontChange = true;
 }
 
 template <typename RGB, unsigned int optionFlags>
-void SMLayerIndexed<RGB, optionFlags>::drawForegroundChar(int16_t x, int16_t y, char character, bool opaque) {
+void SMLayerIndexed<RGB, optionFlags>::drawChar(int16_t x, int16_t y, uint8_t index, char character) {
     uint8_t tempBitmask;
     int k;
 
@@ -179,43 +185,43 @@ void SMLayerIndexed<RGB, optionFlags>::drawForegroundChar(int16_t x, int16_t y, 
         return;
     }
 
-    for (k = y; k < y+foregroundfont->Height; k++) {
+    for (k = y; k < y+layerFont->Height; k++) {
         // ignore rows that are not on the screen
         if(k < 0) continue;
         if (k >= this->localHeight) return;
 
-        tempBitmask = getBitmapFontRowAtXY(character, k - y, foregroundfont);
+        tempBitmask = getBitmapFontRowAtXY(character, k - y, layerFont);
         if (x < 0) {
-            foregroundBitmap[foregroundDrawBuffer2*FOREGROUND_BUFFER_SIZE + (k * FOREGROUND_ROW_SIZE) + 0] |= tempBitmask << -x;
+            bitmap[indexedDrawBuffer*INDEXED_BUFFER_SIZE + (k * INDEXED_BUFFER_ROW_SIZE) + 0] |= tempBitmask << -x;
         } else {
-            foregroundBitmap[foregroundDrawBuffer2*FOREGROUND_BUFFER_SIZE + (k * FOREGROUND_ROW_SIZE) + (x/8)] |= tempBitmask >> (x%8);
+            bitmap[indexedDrawBuffer*INDEXED_BUFFER_SIZE + (k * INDEXED_BUFFER_ROW_SIZE) + (x/8)] |= tempBitmask >> (x%8);
             // do two writes if the shifted 8-bit wide bitmask is still on the screen
             if(x + 8 < this->localWidth && x % 8)
-                foregroundBitmap[foregroundDrawBuffer2*FOREGROUND_BUFFER_SIZE + (k * FOREGROUND_ROW_SIZE) + (x/8) + 1] |= tempBitmask << (8-(x%8));
+                bitmap[indexedDrawBuffer*INDEXED_BUFFER_SIZE + (k * INDEXED_BUFFER_ROW_SIZE) + (x/8) + 1] |= tempBitmask << (8-(x%8));
         }
     }
 }
 
 template <typename RGB, unsigned int optionFlags>
-void SMLayerIndexed<RGB, optionFlags>::drawForegroundString(int16_t x, int16_t y, const char text [], bool opaque) {
+void SMLayerIndexed<RGB, optionFlags>::drawString(int16_t x, int16_t y, uint8_t index, const char text []) {
     // limit text to 10 chars, why?
     for (int i = 0; i < 10; i++) {
         char character = text[i];
         if (character == '\0')
             return;
 
-        drawForegroundChar(i * foregroundfont->Width + x, y, character, opaque);
+        drawChar(i * layerFont->Width + x, y, index, character);
     }
 }
 
 template <typename RGB, unsigned int optionFlags>
-void SMLayerIndexed<RGB, optionFlags>::drawForegroundMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, uint8_t *bitmap, bool opaque) {
+void SMLayerIndexed<RGB, optionFlags>::drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, uint8_t index, uint8_t *bitmap) {
     int xcnt, ycnt;
 
     for (ycnt = 0; ycnt < height; ycnt++) {
         for (xcnt = 0; xcnt < width; xcnt++) {
             if (getBitmapPixelAtXY(xcnt, ycnt, width, height, bitmap)) {
-                drawForegroundPixel(x + xcnt, y + ycnt, opaque);
+                drawPixel(x + xcnt, y + ycnt, index);
             }
         }
     }

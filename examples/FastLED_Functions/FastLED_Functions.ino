@@ -85,10 +85,10 @@ void setup() {
   scrollingLayer.setOffsetFromTop((kMatrixHeight/2) - 5);
 
   // draw bitmap to indexed layer
-  indexedLayer.setScrollColor({0xff, 0, 0});
-  indexedLayer.setForegroundFont(font3x5);
-  indexedLayer.drawForegroundString(0,0,"Second Layer");
-  indexedLayer.displayForegroundDrawing(true);
+  indexedLayer.setIndexedColor(1, {0xff, 0, 0});
+  indexedLayer.setFont(font3x5);
+  indexedLayer.drawString(0,0,1,"Second Layer");
+  indexedLayer.swapBuffers(true);
 }
 
 // Fill the x/y array of 8-bit noise values using the inoise8 function.
