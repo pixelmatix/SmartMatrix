@@ -1141,11 +1141,20 @@ void loop() {
     // color correction options
 #if (DEMO_COLOR_CORRECTION == 1)
     {
-        scrollingLayer.setColor({0xff, 0, 0});
+        scrollingLayer.setColor({0x80, 0, 0});
         scrollingLayer.setMode(wrapForward);
         scrollingLayer.setSpeed(40);
         scrollingLayer.setFont(font6x10);
         scrollingLayer.start("Color correction", 1);
+
+        // draw color box to indexed layer (50% green)
+        indexedLayer.setIndexedColor(1, {0, 0x80, 0});
+        for(i=matrix.getScreenHeight() - 5; i<matrix.getScreenHeight(); i++) {
+          for(j=matrix.getScreenWidth() - 5; j<matrix.getScreenWidth(); j++) {
+            indexedLayer.drawPixel(i,j,1);
+          }
+        }
+        indexedLayer.swapBuffers();
 
         const uint transitionTime = 10000;
 
@@ -1159,15 +1168,25 @@ void loop() {
             if (j%2) {
                 backgroundLayer.drawString(1, 16, {0xff, 0, 0}, "CC:ON");
                 backgroundLayer.enableColorCorrection(true);
+                scrollingLayer.enableColorCorrection(true);
+                indexedLayer.enableColorCorrection(true);
             } else {
                 backgroundLayer.drawString(1, 16, {0xff, 0, 0}, "CC:OFF");
                 backgroundLayer.enableColorCorrection(false);
+                scrollingLayer.enableColorCorrection(false);
+                indexedLayer.enableColorCorrection(false);
             }
             // use swapBuffers(false) as background bitmap is fully drawn each time, no need to copy buffer to drawing layer after swap
             backgroundLayer.swapBuffers(false);
             delay(transitionTime/4);
         }
         backgroundLayer.enableColorCorrection(true);
+        scrollingLayer.enableColorCorrection(true);
+        indexedLayer.enableColorCorrection(true);
+
+        indexedLayer.fillScreen(0);
+        indexedLayer.swapBuffers();
+
     }
 #endif
 #if (DEMO_BACKGND_BRIGHTNESS == 1)
