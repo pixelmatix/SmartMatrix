@@ -35,7 +35,6 @@ class SMLayerScrolling : public SM_Layer {
 
         void stop(void);
         int getStatus(void) const;
-        void setMinMax(void);
         void start(const char inputtext[], int numScrolls);
         void update(const char inputtext[]);
         void setMode(ScrollMode mode);
@@ -48,6 +47,8 @@ class SMLayerScrolling : public SM_Layer {
 
     private:
         void redrawScrollingText(void);
+        void setMinMax(void);
+
         // todo: move somewhere else
         static bool getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap);
         void updateScrollingText(void);
