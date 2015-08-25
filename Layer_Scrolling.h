@@ -30,21 +30,20 @@ class SMLayerScrolling : public SM_Layer {
         void fillRefreshRow(uint8_t hardwareY, rgb48 refreshRow[]);
         void fillRefreshRow(uint8_t hardwareY, rgb24 refreshRow[]);
 
-        void setScrollColor(const RGB & newColor);
-
         // size of bitmap is 1 bit per pixel for width*height (no need for double buffering)
         uint8_t * scrollingBitmap;
 
-        void stopScrollText(void);
-        int getScrollStatus(void) const;
-        void setScrollMinMax(void);
-        void scrollText(const char inputtext[], int numScrolls);
-        void updateScrollText(const char inputtext[]);
-        void setScrollMode(ScrollMode mode);
-        void setScrollSpeed(unsigned char pixels_per_second);
-        void setScrollFont(fontChoices newFont);
-        void setScrollOffsetFromTop(int offset);
-        void setScrollStartOffsetFromLeft(int offset);
+        void stop(void);
+        int getStatus(void) const;
+        void setMinMax(void);
+        void start(const char inputtext[], int numScrolls);
+        void update(const char inputtext[]);
+        void setMode(ScrollMode mode);
+        void setColor(const RGB & newColor);
+        void setSpeed(unsigned char pixels_per_second);
+        void setFont(fontChoices newFont);
+        void setOffsetFromTop(int offset);
+        void setStartOffsetFromLeft(int offset);
         void enableColorCorrection(bool enabled);
 
     private:

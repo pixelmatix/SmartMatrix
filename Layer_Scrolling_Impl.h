@@ -111,7 +111,7 @@ void SMLayerScrolling<RGB, optionFlags>::fillRefreshRow(uint8_t hardwareY, rgb24
 }
 
 template<typename RGB, unsigned int optionFlags>
-void SMLayerScrolling<RGB, optionFlags>::setScrollColor(const RGB & newColor) {
+void SMLayerScrolling<RGB, optionFlags>::setColor(const RGB & newColor) {
     textcolor = newColor;
 }
 
@@ -122,7 +122,7 @@ void SMLayerScrolling<RGB, optionFlags>::enableColorCorrection(bool enabled) {
 
 // stops the scrolling text on the next refresh
 template <typename RGB, unsigned int optionFlags>
-void SMLayerScrolling<RGB, optionFlags>::stopScrollText(void) {
+void SMLayerScrolling<RGB, optionFlags>::stop(void) {
     // setup conditions for ending scrolling:
     // scrollcounter is next to zero
     scrollcounter = 1;
@@ -134,12 +134,12 @@ void SMLayerScrolling<RGB, optionFlags>::stopScrollText(void) {
 // returns positive number indicating number of loops left if running
 // returns -1 if continuously scrolling
 template <typename RGB, unsigned int optionFlags>
-int SMLayerScrolling<RGB, optionFlags>::getScrollStatus(void) const {
+int SMLayerScrolling<RGB, optionFlags>::getStatus(void) const {
     return scrollcounter;
 }
 
 template <typename RGB, unsigned int optionFlags>
-void SMLayerScrolling<RGB, optionFlags>::setScrollMinMax(void) {
+void SMLayerScrolling<RGB, optionFlags>::setMinMax(void) {
    switch (scrollmode) {
     case wrapForward:
     case bounceForward:
@@ -168,7 +168,7 @@ void SMLayerScrolling<RGB, optionFlags>::setScrollMinMax(void) {
 }
 
 template <typename RGB, unsigned int optionFlags>
-void SMLayerScrolling<RGB, optionFlags>::scrollText(const char inputtext[], int numScrolls) {
+void SMLayerScrolling<RGB, optionFlags>::start(const char inputtext[], int numScrolls) {
     int length = strlen((const char *)inputtext);
     if (length > textLayerMaxStringLength)
         length = textLayerMaxStringLength;
@@ -178,13 +178,13 @@ void SMLayerScrolling<RGB, optionFlags>::scrollText(const char inputtext[], int 
 
     textWidth = (textlen * scrollFont->Width) - 1;
 
-    setScrollMinMax();
+    setMinMax();
  }
 
 //Updates the text that is currently scrolling to the new value
 //Useful for a clock display where the time changes.
 template <typename RGB, unsigned int optionFlags>
-void SMLayerScrolling<RGB, optionFlags>::updateScrollText(const char inputtext[]){
+void SMLayerScrolling<RGB, optionFlags>::update(const char inputtext[]){
     int length = strlen((const char *)inputtext);
     if (length > textLayerMaxStringLength)
         length = textLayerMaxStringLength;
@@ -192,7 +192,7 @@ void SMLayerScrolling<RGB, optionFlags>::updateScrollText(const char inputtext[]
     textlen = length;
     textWidth = (textlen * scrollFont->Width) - 1;
 
-    setScrollMinMax();
+    setMinMax();
 }
 
 // called once per frame to update (virtual) bitmap
@@ -255,7 +255,7 @@ void SMLayerScrolling<RGB, optionFlags>::updateScrollingText(void) {
 
 // TODO: recompute stuff after changing mode, font, etc
 template <typename RGB, unsigned int optionFlags>
-void SMLayerScrolling<RGB, optionFlags>::setScrollMode(ScrollMode mode) {
+void SMLayerScrolling<RGB, optionFlags>::setMode(ScrollMode mode) {
     scrollmode = mode;
 }
 
@@ -263,23 +263,23 @@ void SMLayerScrolling<RGB, optionFlags>::setScrollMode(ScrollMode mode) {
 
 
 template <typename RGB, unsigned int optionFlags>
-void SMLayerScrolling<RGB, optionFlags>::setScrollSpeed(unsigned char pixels_per_second) {
+void SMLayerScrolling<RGB, optionFlags>::setSpeed(unsigned char pixels_per_second) {
     framesperscroll = (this->refreshRate * 1.0) / pixels_per_second;
 }
 
 template <typename RGB, unsigned int optionFlags>
-void SMLayerScrolling<RGB, optionFlags>::setScrollFont(fontChoices newFont) {
+void SMLayerScrolling<RGB, optionFlags>::setFont(fontChoices newFont) {
     scrollFont = fontLookup(newFont);
 }
 
 template <typename RGB, unsigned int optionFlags>
-void SMLayerScrolling<RGB, optionFlags>::setScrollOffsetFromTop(int offset) {
+void SMLayerScrolling<RGB, optionFlags>::setOffsetFromTop(int offset) {
     fontTopOffset = offset;
     majorScrollFontChange = true;
 }
 
 template <typename RGB, unsigned int optionFlags>
-void SMLayerScrolling<RGB, optionFlags>::setScrollStartOffsetFromLeft(int offset) {
+void SMLayerScrolling<RGB, optionFlags>::setStartOffsetFromLeft(int offset) {
     fontLeftOffset = offset;
 }
 

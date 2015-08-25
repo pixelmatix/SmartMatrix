@@ -77,12 +77,12 @@ void setup() {
   z = random16();
 
   // Show off smart matrix scrolling text
-  foregroundLayer.setScrollMode(wrapForward);
-  foregroundLayer.setScrollColor({0xff, 0xff, 0xff});
-  foregroundLayer.setScrollSpeed(15);
-  foregroundLayer.setScrollFont(font6x10);
-  foregroundLayer.scrollText("SmartMatrix & FastLED", -1);
-  foregroundLayer.setScrollOffsetFromTop((kMatrixHeight/2) - 5);
+  foregroundLayer.setMode(wrapForward);
+  foregroundLayer.setColor({0xff, 0xff, 0xff});
+  foregroundLayer.setSpeed(15);
+  foregroundLayer.setFont(font6x10);
+  foregroundLayer.start("SmartMatrix & FastLED", -1);
+  foregroundLayer.setOffsetFromTop((kMatrixHeight/2) - 5);
 
   // Show off smart matrix scrolling text
   foregroundLayer2.setScrollMode(wrapForward);
