@@ -4,8 +4,6 @@
 #include "Layer.h"
 #include "MatrixCommon.h"
 
-//#define FOREGROUND_DRAWING_ENABLED
-
 #define SM_INDEXED_OPTIONS_NONE     0
 
 // font
@@ -20,39 +18,25 @@ class SMLayerIndexed : public SM_Layer {
         void fillRefreshRow(uint8_t hardwareY, rgb48 refreshRow[]);
         void fillRefreshRow(uint8_t hardwareY, rgb24 refreshRow[]);
 
-        void setScrollColor(const RGB & newColor);
-
         // bitmap size is 32 rows (supporting maximum dimension of screen height in all rotations), by 32 bits
         // double buffered to prevent flicker while drawing
         uint8_t * foregroundBitmap;
 
-        void stopScrollText(void);
-        void setForegroundFont(fontChoices newFont);
-        int getScrollStatus(void) const;
-        void setScrollMinMax(void);
-        void scrollText(const char inputtext[], int numScrolls);
-        void updateScrollText(const char inputtext[]);
-        void setScrollMode(ScrollMode mode);
-        void setScrollSpeed(unsigned char pixels_per_second);
-        void setScrollFont(fontChoices newFont);
-        void setScrollOffsetFromTop(int offset);
-        void setScrollStartOffsetFromLeft(int offset);
         void enableColorCorrection(bool enabled);
 
-#ifdef FOREGROUND_DRAWING_ENABLED
+        void setScrollColor(const RGB & newColor);
         void clearForeground(void);
         void displayForegroundDrawing(bool waitUntilComplete);
         void handleForegroundDrawingCopy(void);
         void drawForegroundPixel(int16_t x, int16_t y, bool opaque);
+        void setForegroundFont(fontChoices newFont);
         void drawForegroundChar(int16_t x, int16_t y, char character, bool opaque = true);
         void drawForegroundString(int16_t x, int16_t y, const char text [], bool opaque = true);
         void drawForegroundMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, uint8_t *bitmap, bool opaque = true);
-#endif
+
     private:
-        void redrawForeground(void);
         // todo: move somewhere else
         static bool getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap);
-        void updateForeground(void);
 
         template <typename RGB_OUT>
         bool getForegroundPixel(uint8_t hardwareX, uint8_t hardwareY, RGB_OUT &xyPixel);
@@ -78,13 +62,9 @@ class SMLayerIndexed : public SM_Layer {
         int scrollMin, scrollMax;
         int scrollPosition;
 
-
-#ifdef FOREGROUND_DRAWING_ENABLED
         volatile bool foregroundCopyPending = false;
 
-
         bitmap_font *foregroundfont = (bitmap_font *) &apple3x5;
-#endif
 };
 
 #include "Layer_Indexed_Impl.h"

@@ -1,11 +1,7 @@
 #include <string.h>
 
-#ifdef FOREGROUND_DRAWING_ENABLED
 const unsigned char foregroundDrawBuffer2 = 0;
 const unsigned char foregroundRefreshBuffer2 = 1;
-#else
-const unsigned char foregroundRefreshBuffer2 = 0;
-#endif
 
 #define FOREGROUND_ROW_SIZE     (this->localWidth / 8)
 #define FOREGROUND_BUFFER_SIZE  (FOREGROUND_ROW_SIZE * this->localHeight)
@@ -20,10 +16,7 @@ SMLayerIndexed<RGB, optionFlags>::SMLayerIndexed(uint8_t * bitmap, uint8_t width
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerIndexed<RGB, optionFlags>::frameRefreshCallback(void) {
-#ifdef FOREGROUND_DRAWING_ENABLED
     handleForegroundDrawingCopy();
-#endif
-    updateForeground();
 }
 
 // returns true and copies color to xyPixel if pixel is opaque, returns false if not
@@ -131,17 +124,6 @@ void SMLayerIndexed<RGB, optionFlags>::enableColorCorrection(bool enabled) {
     this->ccEnabled = sizeof(RGB) <= 3 ? enabled : false;
 }
 
-// stops the scrolling text on the next refresh
-template <typename RGB, unsigned int optionFlags>
-void SMLayerIndexed<RGB, optionFlags>::stopScrollText(void) {
-    // setup conditions for ending scrolling:
-    // scrollcounter is next to zero
-    scrollcounter = 1;
-    // position text at the end of the cycle
-    scrollPosition = scrollMin;
-}
-
-#ifdef FOREGROUND_DRAWING_ENABLED
 template <typename RGB, unsigned int optionFlags>
 void SMLayerIndexed<RGB, optionFlags>::clearForeground(void) {
     memset(&foregroundBitmap[foregroundDrawBuffer2*FOREGROUND_BUFFER_SIZE], 0x00, FOREGROUND_BUFFER_SIZE);
@@ -162,7 +144,6 @@ void SMLayerIndexed<RGB, optionFlags>::handleForegroundDrawingCopy(void) {
         return;
 
     memcpy(&foregroundBitmap[foregroundRefreshBuffer2*FOREGROUND_BUFFER_SIZE], &foregroundBitmap[foregroundDrawBuffer2*FOREGROUND_BUFFER_SIZE], FOREGROUND_BUFFER_SIZE);
-    redrawForeground();
     foregroundCopyPending = false;
 }
 
@@ -237,232 +218,6 @@ void SMLayerIndexed<RGB, optionFlags>::drawForegroundMonoBitmap(int16_t x, int16
                 drawForegroundPixel(x + xcnt, y + ycnt, opaque);
             }
         }
-    }
-}
-#endif
-
-// returns 0 if stopped
-// returns positive number indicating number of loops left if running
-// returns -1 if continuously scrolling
-template <typename RGB, unsigned int optionFlags>
-int SMLayerIndexed<RGB, optionFlags>::getScrollStatus(void) const {
-    return scrollcounter;
-}
-
-template <typename RGB, unsigned int optionFlags>
-void SMLayerIndexed<RGB, optionFlags>::setScrollMinMax(void) {
-   switch (scrollmode) {
-    case wrapForward:
-    case bounceForward:
-    case bounceReverse:
-    case wrapForwardFromLeft:
-        scrollMin = -textWidth;
-        scrollMax = this->localWidth;
-
-        scrollPosition = scrollMax;
-
-        if (scrollmode == bounceReverse)
-            scrollPosition = scrollMin;
-        else if(scrollmode == wrapForwardFromLeft)
-            scrollPosition = fontLeftOffset;
-
-        // TODO: handle special case - put content in fixed location if wider than window
-
-        break;
-
-    case stopped:
-    case off:
-        scrollMin = scrollMax = scrollPosition = 0;
-        break;
-    }
-
-}
-
-template <typename RGB, unsigned int optionFlags>
-void SMLayerIndexed<RGB, optionFlags>::scrollText(const char inputtext[], int numScrolls) {
-    int length = strlen((const char *)inputtext);
-    if (length > textLayerMaxStringLength)
-        length = textLayerMaxStringLength;
-    strncpy(text, (const char *)inputtext, length);
-    textlen = length;
-    scrollcounter = numScrolls;
-
-    textWidth = (textlen * scrollFont->Width) - 1;
-
-    setScrollMinMax();
- }
-
-//Updates the text that is currently scrolling to the new value
-//Useful for a clock display where the time changes.
-template <typename RGB, unsigned int optionFlags>
-void SMLayerIndexed<RGB, optionFlags>::updateScrollText(const char inputtext[]){
-    int length = strlen((const char *)inputtext);
-    if (length > textLayerMaxStringLength)
-        length = textLayerMaxStringLength;
-    strncpy(text, (const char *)inputtext, length);
-    textlen = length;
-    textWidth = (textlen * scrollFont->Width) - 1;
-
-    setScrollMinMax();
-}
-
-// called once per frame to update foreground (virtual) bitmap
-// function needs major efficiency improvments
-template <typename RGB, unsigned int optionFlags>
-void SMLayerIndexed<RGB, optionFlags>::updateForeground(void) {
-    bool resetScrolls = false;
-
-    // return if not ready to update
-    if (!scrollcounter || ++currentframe <= framesperscroll)
-        return;
-
-    currentframe = 0;
-
-    switch (scrollmode) {
-    case wrapForward:
-    case wrapForwardFromLeft:
-        scrollPosition--;
-        if (scrollPosition <= scrollMin) {
-            scrollPosition = scrollMax;
-            if (scrollcounter > 0) scrollcounter--;
-        }
-        break;
-
-    case bounceForward:
-        scrollPosition--;
-        if (scrollPosition <= scrollMin) {
-            scrollmode = bounceReverse;
-            if (scrollcounter > 0) scrollcounter--;
-        }
-        break;
-
-    case bounceReverse:
-        scrollPosition++;
-        if (scrollPosition >= scrollMax) {
-            scrollmode = bounceForward;
-            if (scrollcounter > 0) scrollcounter--;
-        }
-        break;
-
-    default:
-    case stopped:
-        scrollPosition = fontLeftOffset;
-        resetScrolls = true;
-        break;
-    }
-
-    // done scrolling - move text off screen and disable
-    if (!scrollcounter) {
-        resetScrolls = true;
-    }
-
-    // for now, fill the bitmap fresh with each update
-    // TODO: reset only when necessary, and update just the pixels that need it
-    resetScrolls = true;
-    if (resetScrolls) {
-        redrawForeground();
-    }
-}
-
-// TODO: recompute stuff after changing mode, font, etc
-template <typename RGB, unsigned int optionFlags>
-void SMLayerIndexed<RGB, optionFlags>::setScrollMode(ScrollMode mode) {
-    scrollmode = mode;
-}
-
-// TODO:need to get refresh rate from main class
-
-
-template <typename RGB, unsigned int optionFlags>
-void SMLayerIndexed<RGB, optionFlags>::setScrollSpeed(unsigned char pixels_per_second) {
-    framesperscroll = (this->refreshRate * 1.0) / pixels_per_second;
-}
-
-template <typename RGB, unsigned int optionFlags>
-void SMLayerIndexed<RGB, optionFlags>::setScrollFont(fontChoices newFont) {
-    scrollFont = fontLookup(newFont);
-}
-
-template <typename RGB, unsigned int optionFlags>
-void SMLayerIndexed<RGB, optionFlags>::setScrollOffsetFromTop(int offset) {
-    fontTopOffset = offset;
-    majorScrollFontChange = true;
-}
-
-template <typename RGB, unsigned int optionFlags>
-void SMLayerIndexed<RGB, optionFlags>::setScrollStartOffsetFromLeft(int offset) {
-    fontLeftOffset = offset;
-}
-
-// if font size or position changed since the last call, redraw the whole frame
-template <typename RGB, unsigned int optionFlags>
-void SMLayerIndexed<RGB, optionFlags>::redrawForeground(void) {
-    int j, k;
-    int charPosition, textPosition;
-    uint8_t charY0, charY1;
-
-
-    for (j = 0; j < this->localHeight; j++) {
-
-        // skip rows without text
-        if (j < fontTopOffset || j >= fontTopOffset + scrollFont->Height)
-            continue;
-
-        // now in row with text
-        // find the position of the first char
-        charPosition = scrollPosition;
-        textPosition = 0;
-
-        // move to first character at least partially on screen
-        while (charPosition + scrollFont->Width < 0 ) {
-            charPosition += scrollFont->Width;
-            textPosition++;
-        }
-
-        // find rows within character bitmap that will be drawn (0-font->height unless text is partially off screen)
-        charY0 = j - fontTopOffset;
-
-        if (this->localHeight < fontTopOffset + scrollFont->Height) {
-            charY1 = this->localHeight - fontTopOffset;
-        } else {
-            charY1 = scrollFont->Height;
-        }
-
-        /* TODO: some edge cases could end up with unwanted drawing to the screen, e.g. foregrounddrawing call,
-         * then scrolling text change before displayForegroundDrawing() call would show drawing before intended
-         */
-        if(majorScrollFontChange) {
-            // clear full refresh buffer before copying background over, size or position may have changed, can't just clear rows used by font
-            memset(&foregroundBitmap[foregroundRefreshBuffer2*FOREGROUND_BUFFER_SIZE], 0x00, FOREGROUND_BUFFER_SIZE);
-            majorScrollFontChange = false;
-        } else {
-            // clear rows used by font before drawing on top
-            for (k = 0; k < charY1 - charY0; k++)
-                memset(&foregroundBitmap[foregroundRefreshBuffer2*FOREGROUND_BUFFER_SIZE + ((j + k) * FOREGROUND_ROW_SIZE)], 0x00, FOREGROUND_ROW_SIZE);
-        }
-
-        while (textPosition < textlen && charPosition < this->localWidth) {
-            uint8_t tempBitmask;
-            // draw character from top to bottom
-            for (k = charY0; k < charY1; k++) {
-                tempBitmask = getBitmapFontRowAtXY(text[textPosition], k, scrollFont);
-                //tempBitmask = 0xAA;
-                if (charPosition < 0) {
-                    foregroundBitmap[foregroundRefreshBuffer2*FOREGROUND_BUFFER_SIZE + ((j + k - charY0) * FOREGROUND_ROW_SIZE) + 0] |= tempBitmask << -charPosition;
-                } else {
-                    foregroundBitmap[foregroundRefreshBuffer2*FOREGROUND_BUFFER_SIZE + ((j + k - charY0) * FOREGROUND_ROW_SIZE) + (charPosition/8)] |= tempBitmask >> (charPosition%8);
-                    // do two writes if the shifted 8-bit wide bitmask is still on the screen
-                    if(charPosition + 8 < this->localWidth && charPosition % 8)
-                        foregroundBitmap[foregroundRefreshBuffer2*FOREGROUND_BUFFER_SIZE + ((j + k - charY0) * FOREGROUND_ROW_SIZE) + (charPosition/8) + 1] |= tempBitmask << (8-(charPosition%8));
-                }
-            }
-
-            // get set up for next character
-            charPosition += scrollFont->Width;
-            textPosition++;
-        }
-
-        j += (charY1 - charY0) - 1;
     }
 }
 
