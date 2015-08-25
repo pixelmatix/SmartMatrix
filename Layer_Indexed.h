@@ -1,9 +1,9 @@
-#ifndef _LAYER_FOREGROUND2_H_
-#define _LAYER_FOREGROUND2_H_
+#ifndef _LAYER_INDEXED_H_
+#define _LAYER_INDEXED_H_
 
 #include "Layer.h"
 #include "MatrixCommon.h"
-#include "Layer_Foreground.h"
+#include "Layer_Indexed.h"
 
 //#define FOREGROUND_DRAWING_ENABLED
 
@@ -11,9 +11,9 @@
 #include "MatrixFontCommon.h"
 
 template <typename RGB, unsigned int optionFlags>
-class SMLayerForeground2 : public SM_Layer {
+class SMLayerIndexed : public SM_Layer {
     public:
-        SMLayerForeground2(uint8_t * bitmap, uint8_t width, uint8_t height);
+        SMLayerIndexed(uint8_t * bitmap, uint8_t width, uint8_t height);
         void frameRefreshCallback();
         void getRefreshPixel(uint8_t x, uint8_t y, rgb48 &xyPixel);
         void fillRefreshRow(uint8_t hardwareY, rgb48 refreshRow[]);
@@ -86,7 +86,7 @@ class SMLayerForeground2 : public SM_Layer {
 #endif
 };
 
-#include "Layer_Foreground2_Impl.h"
+#include "Layer_Indexed_Impl.h"
 
 #endif
 
