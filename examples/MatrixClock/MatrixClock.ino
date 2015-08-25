@@ -15,12 +15,16 @@
 #include <DS1307RTC.h>
 #include <SmartMatrix3.h>
 
+#define COLOR_DEPTH 24                  // known working: 24, 48 - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
 const uint8_t kMatrixHeight = 32;       // known working: 16, 32
 const uint8_t kMatrixWidth = 32;        // known working: 32, 64
 const uint8_t kDmaBufferRows = 4;       // known working: 4
-#define COLOR_DEPTH 24                  // If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
-#define REFRESH_DEPTH 48                // known working: 24, 36, 48
-SMARTMATRIX_ALLOCATE_BUFFERS(kMatrixWidth, kMatrixHeight, COLOR_DEPTH, REFRESH_DEPTH, kDmaBufferRows);
+const uint8_t kRefreshDepth = 36;       // known working: 24, 36, 48
+const uint8_t kMatrixOptions = (SMARTMATRIX_OPTIONS_NONE);
+const uint8_t kIndexedLayerOptions = (SM_INDEXED_OPTIONS_NONE);
+
+SMARTMATRIX_ALLOCATE_BUFFERS(matrix, kMatrixWidth, kMatrixHeight, kRefreshDepth, kDmaBufferRows, kMatrixOptions);
+SMARTMATRIX_ALLOCATE_INDEXED_LAYER(indexedLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kIndexedLayerOptions);
 
 const int defaultBrightness = 100*(255/100);    // full brightness
 //const int defaultBrightness = 15*(255/100);    // dim: 15% brightness
@@ -41,10 +45,10 @@ void setup() {
   CORE_PIN17_CONFIG = (PORT_PCR_MUX(2) | PORT_PCR_PE | PORT_PCR_PS);
 
   // setup matrix
+  matrix.addLayer(&indexedLayer); 
+  matrix.begin();
 
-  SMARTMATRIX_SETUP_DEFAULT_LAYERS(kMatrixWidth, kMatrixHeight, COLOR_DEPTH);
   matrix.setBrightness(defaultBrightness);
-  matrix.setScrollFont(font3x5);
 }
 
 void loop() {
@@ -53,7 +57,7 @@ void loop() {
     char timeBuffer[9];
 
   // clear screen before writing new text
-  matrix.fillScreen({0,0,0});
+  indexedLayer.fillScreen(0);
 
   if (RTC.read(tm)) {
     Serial.print("Ok, Time = ");
@@ -77,9 +81,9 @@ void loop() {
     sprintf(timeBuffer, "%d:%02d", hour, tm.Minute);
     if (hour < 10)
         x = 4;
-    matrix.setFont(gohufont11b);
-    matrix.drawString(x, kMatrixHeight / 2 - 6, clockColor, timeBuffer);
-    matrix.swapBuffers();
+    indexedLayer.setFont(gohufont11b);
+    indexedLayer.drawString(x, kMatrixHeight / 2 - 6, 1, timeBuffer);
+    indexedLayer.swapBuffers();
   } else {
     if (RTC.chipPresent()) {
       Serial.println("The DS1307 is stopped.  Please run the SetTime");
@@ -87,18 +91,18 @@ void loop() {
       Serial.println();
 
       /* Draw Error Message to SmartMatrix */
-      matrix.setFont(font3x5);
+      indexedLayer.setFont(font3x5);
       sprintf(timeBuffer, "Stopped");
-      matrix.drawString(x, kMatrixHeight / 2 - 3, clockColor, "Stopped");
+      indexedLayer.drawString(x, kMatrixHeight / 2 - 3, 1, "Stopped");
     } else {
       Serial.println("DS1307 read error!  Please check the circuitry.");
       Serial.println();
 
       /* Draw Error Message to SmartMatrix */
-      matrix.setFont(font3x5);
-      matrix.drawString(x, kMatrixHeight / 2 - 3, clockColor, "No Clock");
+      indexedLayer.setFont(font3x5);
+      indexedLayer.drawString(x, kMatrixHeight / 2 - 3, 1, "No Clock");
     }
-    matrix.swapBuffers();
+    indexedLayer.swapBuffers();
     delay(9000);
   }
   delay(1000);

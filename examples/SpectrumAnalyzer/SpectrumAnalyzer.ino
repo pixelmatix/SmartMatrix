@@ -29,15 +29,16 @@
 #include <SmartMatrix3.h>
 #include <FastLED.h>
 
+#define COLOR_DEPTH 24                  // known working: 24, 48 - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
 const uint8_t kMatrixHeight = 32;       // known working: 16, 32
 const uint8_t kMatrixWidth = 32;        // known working: 32, 64
 const uint8_t kDmaBufferRows = 4;       // known working: 4
-#define COLOR_DEPTH 24                  // If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
-#define REFRESH_DEPTH 48                // known working: 24, 36, 48
-SMARTMATRIX_ALLOCATE_BUFFERS(kMatrixWidth, kMatrixHeight, COLOR_DEPTH, REFRESH_DEPTH, kDmaBufferRows);
+const uint8_t kRefreshDepth = 36;       // known working: 24, 36, 48
+const uint8_t kMatrixOptions = (SMARTMATRIX_OPTIONS_NONE);
+const uint8_t kBackgroundLayerOptions = (SM_BACKGROUND_OPTIONS_NONE);
 
-#define MATRIX_HEIGHT kMatrixHeight
-#define MATRIX_WIDTH kMatrixWidth
+SMARTMATRIX_ALLOCATE_BUFFERS(matrix, kMatrixWidth, kMatrixHeight, kRefreshDepth, kDmaBufferRows, kMatrixOptions);
+SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kBackgroundLayerOptions);
 
 #define ADC_INPUT_PIN   A2
 
@@ -66,7 +67,8 @@ void setup()
     Serial.begin(9600);
 
     // Initialize Matrix
-    SMARTMATRIX_SETUP_DEFAULT_LAYERS(kMatrixWidth, kMatrixHeight, COLOR_DEPTH);
+    matrix.addLayer(&backgroundLayer); 
+    matrix.begin();
 
     matrix.setBrightness(255);
 
@@ -102,7 +104,7 @@ void loop()
         level[14] = fft.read(83, 103);
         level[15] = fft.read(104, 127);
 
-        matrix.fillScreen(black);
+        backgroundLayer.fillScreen(black);
 
         for (int i = 0; i < 16; i++) {
             // TODO: conversion from FFT data to display bars should be
@@ -110,7 +112,7 @@ void loop()
             int val = level[i] * scale;
 
             // trim the bars vertically to fill the matrix height
-            if (val >= MATRIX_HEIGHT) val = MATRIX_HEIGHT - 1;
+            if (val >= kMatrixHeight) val = kMatrixHeight - 1;
 
             if (val >= shown[i]) {
                 shown[i] = val;
@@ -126,14 +128,12 @@ void loop()
             // draw the levels on the matrix
             if (shown[i] >= 0) {
                 // scale the bars horizontally to fill the matrix width
-                for (int j = 0; j < MATRIX_WIDTH / 16; j++) {
-                    matrix.drawPixel(i * 2 + j, (MATRIX_HEIGHT - 1) - val, color);
+                for (int j = 0; j < kMatrixWidth / 16; j++) {
+                    backgroundLayer.drawPixel(i * 2 + j, (kMatrixHeight - 1) - val, color);
                 }
             }
         }
 
-        matrix.swapBuffers();
-
-        FastLED.countFPS();
+        backgroundLayer.swapBuffers();
     }
 }

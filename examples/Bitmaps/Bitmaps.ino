@@ -18,12 +18,16 @@
 // chrome16 is a 16x16 pixel bitmap, exported from GIMP without modification
 #include "chrome16.c"
 
+#define COLOR_DEPTH 24                  // known working: 24, 48 - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
 const uint8_t kMatrixHeight = 32;       // known working: 16, 32
 const uint8_t kMatrixWidth = 32;        // known working: 32, 64
 const uint8_t kDmaBufferRows = 4;       // known working: 4
-#define COLOR_DEPTH 24                  // If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
-#define REFRESH_DEPTH 48                // known working: 24, 36, 48
-SMARTMATRIX_ALLOCATE_BUFFERS(kMatrixWidth, kMatrixHeight, COLOR_DEPTH, REFRESH_DEPTH, kDmaBufferRows);
+const uint8_t kRefreshDepth = 36;       // known working: 24, 36, 48
+const uint8_t kMatrixOptions = (SMARTMATRIX_OPTIONS_NONE);
+const uint8_t kBackgroundLayerOptions = (SM_BACKGROUND_OPTIONS_NONE);
+
+SMARTMATRIX_ALLOCATE_BUFFERS(matrix, kMatrixWidth, kMatrixHeight, kRefreshDepth, kDmaBufferRows, kMatrixOptions);
+SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kBackgroundLayerOptions);
 
 int led = 13;
 
@@ -34,13 +38,14 @@ void drawBitmap(int16_t x, int16_t y, const gimp32x32bitmap* bitmap) {
                       bitmap->pixel_data[(i*bitmap->width + j)*3 + 1],
                       bitmap->pixel_data[(i*bitmap->width + j)*3 + 2] };
 
-      matrix.drawPixel(x + j, y + i, pixel);
+      backgroundLayer.drawPixel(x + j, y + i, pixel);
     }
   }
 }
 
 void setup() {
-  SMARTMATRIX_SETUP_DEFAULT_LAYERS(kMatrixWidth, kMatrixHeight, COLOR_DEPTH);
+  matrix.addLayer(&backgroundLayer); 
+  matrix.begin();
 
   matrix.setBrightness(128);
 
@@ -48,20 +53,20 @@ void setup() {
 }
 
 void loop() {
-  matrix.fillScreen({0,0,0});
+  backgroundLayer.fillScreen({0,0,0});
   // to use drawBitmap, must cast the pointer to pixelmatixlogo as (const gimp32x32bitmap*)
   drawBitmap(0,0,(const gimp32x32bitmap*)&pixelmatixlogo);
-  matrix.swapBuffers();
+  backgroundLayer.swapBuffers();
 
   digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
   delay(1000);
   digitalWrite(led, LOW);    // turn the LED off by making the voltage LOW
   delay(1000);
 
-  matrix.fillScreen({0,0,0});
+  backgroundLayer.fillScreen({0,0,0});
   // can pass &colorwheel in directly as the bitmap source is already gimp32x32bitmap
   drawBitmap(0,0,&colorwheel);
-  matrix.swapBuffers();
+  backgroundLayer.swapBuffers();
 
   digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
   delay(1000);
@@ -69,12 +74,12 @@ void loop() {
   delay(1000);
 
 
-  matrix.fillScreen({0,0,0});
+  backgroundLayer.fillScreen({0,0,0});
   // draw this smaller bitmap centered
   int x = (kMatrixWidth / 2) - (chrome16.width/2);
   int y = (kMatrixHeight / 2) - (chrome16.height/2);
   drawBitmap(x, y, (const gimp32x32bitmap*)&chrome16);
-  matrix.swapBuffers();
+  backgroundLayer.swapBuffers();
 
   digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
   delay(1000);
