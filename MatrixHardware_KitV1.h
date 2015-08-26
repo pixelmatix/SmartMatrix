@@ -36,11 +36,13 @@
 // increase this value if DMA use is causing address updates to take longer
 #define LATCH_TIMER_PULSE_WIDTH_NS  438
 
-// set this by triggering scope on latch rising edge, and with persistence enabled,
-// look for the last clock pulse after the latch.  set the min block period to be beyond this last pulse
-// default (10us/32pixels) is a generous minimum that should work with all Teensy 3.x devices at 48MHz and above
-#define MIN_BLOCK_PERIOD_PER_PIXEL_NS    (10000/32)
+// max delay from rising edge of latch pulse to falling edge of clock
+// increase this value if DMA use is delaying clock
+// using largest delay seen at slowest supported clock speed (48MHz) 1400ns, saw 916ns at 96MHz
+#define LATCH_TO_CLK_DELAY_NS       1400
 
+// measured <3400ns to transfer 32 pixels at 96MHz, <6600ns to transfer 32 pixels at 48MHz
+#define PANEL_32_PIXELDATA_TRANSFER_MAXIMUM_NS  (uint32_t)((3400 * 96000000.0) / F_CPU)
 
 /* this section describes how the microcontroller is attached to the display */
 

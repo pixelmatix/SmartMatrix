@@ -39,7 +39,8 @@
 #define LATCH_TIMER_PULSE_WIDTH_TICKS   NS_TO_TICKS(LATCH_TIMER_PULSE_WIDTH_NS)
 #define TICKS_PER_ROW   (F_BUS/refreshRate/MATRIX_ROWS_PER_FRAME)
 #define MSB_BLOCK_TICKS     (TICKS_PER_ROW/2)
-#define MIN_BLOCK_PERIOD_PER_PIXEL_TICKS  NS_TO_TICKS(MIN_BLOCK_PERIOD_PER_PIXEL_NS)
+#define MIN_BLOCK_PERIOD_NS (LATCH_TO_CLK_DELAY_NS + ((PANEL_32_PIXELDATA_TRANSFER_MAXIMUM_NS*matrixWidth)/32))
+#define MIN_BLOCK_PERIOD_TICKS NS_TO_TICKS(MIN_BLOCK_PERIOD_NS)
 
 extern DMAChannel dmaOutputAddress;
 extern DMAChannel dmaUpdateAddress;
@@ -229,8 +230,8 @@ void SmartMatrix3<refreshDepth, optionFlags>::calculateTimerLut(void) {
         // on-time is the max on-time * dimming factor, plus the dead time while the latch is high
         uint16_t ontime = (((MSB_BLOCK_TICKS >> (latchesPerRow - i - 1)) * dimmingFactor) / dimmingMaximum) + LATCH_TIMER_PULSE_WIDTH_TICKS;
 
-        if (period < MIN_BLOCK_PERIOD_PER_PIXEL_TICKS * matrixWidth) {
-            uint16_t padding = (MIN_BLOCK_PERIOD_PER_PIXEL_TICKS * matrixWidth) - period;
+        if (period < MIN_BLOCK_PERIOD_TICKS) {
+            uint16_t padding = (MIN_BLOCK_PERIOD_TICKS) - period;
             period += padding;
             ontime += padding;
         }
