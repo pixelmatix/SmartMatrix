@@ -189,14 +189,6 @@ INLINE void SmartMatrix3<refreshDepth, optionFlags>::matrixCalculations(void) {
                 templayer->frameRefreshCallback();
                 templayer = templayer->nextLayer;
             }
-
-#ifdef DEBUG_PINS_ENABLED
-    digitalWriteFast(DEBUG_PIN_3, HIGH); // oscilloscope trigger
-#endif
-#ifdef DEBUG_PINS_ENABLED
-    digitalWriteFast(DEBUG_PIN_3, LOW);
-#endif
-
             if (brightnessChange) {
                 calculateTimerLut();
                 brightnessChange = false;
@@ -708,6 +700,10 @@ INLINE void SmartMatrix3<refreshDepth, optionFlags>::loadMatrixBuffers36(unsigne
     for (i = 0; i < matrixWidth; i++) {
         uint16_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;
 
+#ifdef DEBUG_PINS_ENABLED
+    digitalWriteFast(DEBUG_PIN_3, HIGH); // oscilloscope trigger
+#endif
+
         temp0red = tempRow0[i].red;
         temp0green = tempRow0[i].green;
         temp0blue = tempRow0[i].blue;
@@ -888,6 +884,9 @@ INLINE void SmartMatrix3<refreshDepth, optionFlags>::loadMatrixBuffers36(unsigne
             *(++tempptr) = o2.word;
             *(tempptr + latchesPerRow/sizeof(uint32_t)) = o2.word | clkset.word;
         //}
+#ifdef DEBUG_PINS_ENABLED
+    digitalWriteFast(DEBUG_PIN_3, LOW); // oscilloscope trigger
+#endif
 
 #if 0
         if(latchesPerRow == 16) {
