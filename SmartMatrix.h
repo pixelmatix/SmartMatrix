@@ -97,6 +97,7 @@ private:
     // configuration
     static volatile bool brightnessChange;
     static volatile bool rotationChange;
+    static volatile bool dmaBufferUnderrun;
     static int dimmingFactor;
     static const int dimmingMaximum;
     static rotationDegrees rotation;
@@ -113,6 +114,7 @@ private:
     static matrixUpdateBlock * matrixUpdateBlocks;
     static addresspair * addressLUT;
     static timerpair * timerLUT;
+    static timerpair timerPairIdle;
 
     static SmartMatrix3<refreshDepth, matrixWidth, optionFlags>* globalinstance;
 };

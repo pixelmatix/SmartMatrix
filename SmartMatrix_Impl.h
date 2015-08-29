@@ -42,6 +42,8 @@
 #define MIN_BLOCK_PERIOD_NS (LATCH_TO_CLK_DELAY_NS + ((PANEL_32_PIXELDATA_TRANSFER_MAXIMUM_NS*matrixWidth)/32))
 #define MIN_BLOCK_PERIOD_TICKS NS_TO_TICKS(MIN_BLOCK_PERIOD_NS)
 
+#define TIMER_REGISTERS_TO_UPDATE   2
+
 extern DMAChannel dmaOutputAddress;
 extern DMAChannel dmaUpdateAddress;
 extern DMAChannel dmaUpdateTimer;
@@ -80,6 +82,12 @@ template <int refreshDepth, int matrixWidth, unsigned char optionFlags>
 addresspair * SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::addressLUT;      // array is size rowsPerFrame
 template <int refreshDepth, int matrixWidth, unsigned char optionFlags>
 timerpair * SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::timerLUT;          // array is size latchesPerRow
+
+template <int refreshDepth, int matrixWidth, unsigned char optionFlags>
+timerpair SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::timerPairIdle = {MIN_BLOCK_PERIOD_TICKS, MIN_BLOCK_PERIOD_TICKS};
+
+template <int refreshDepth, int matrixWidth, unsigned char optionFlags>
+volatile bool SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::dmaBufferUnderrun = false;
 
 /*
   buffer contains:
@@ -201,6 +209,34 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::matrixCalculat
 
         SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::loadMatrixBuffers(currentRow);
         cbWrite(&dmaBuffer);
+
+        if(dmaBufferUnderrun) {
+            // if refreshrate is too high, lower - minimum set to avoid overflowing timer at low refresh rates
+            if(refreshRate > 10) {
+                refreshRate--;
+                calculateTimerLut();
+            }
+
+            // stop timer
+            FTM1_SC = FTM_SC_CLKS(0) | FTM_SC_PS(LATCH_TIMER_PRESCALE);
+
+            // point DMA addresses to the next buffer
+            int currentRow = cbGetNextRead(&dmaBuffer);
+            dmaUpdateAddress.TCD->SADDR = &((matrixUpdateBlock*)SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::matrixUpdateBlocks + (currentRow * SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::latchesPerRow))->addressValues;
+            dmaUpdateTimer.TCD->SADDR = &((matrixUpdateBlock*)SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::matrixUpdateBlocks + (currentRow * SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::latchesPerRow))->timerValues.timer_oe;
+            dmaClockOutData.TCD->SADDR = (uint8_t*)SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::matrixUpdateData + (currentRow * SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::dmaBufferBytesPerRow);
+
+            // enable channel-to-channel linking so data will be shifted out
+            dmaUpdateTimer.TCD->CSR &= ~(1 << 7);  // must clear DONE flag before enabling
+            dmaUpdateTimer.TCD->CSR |= (1 << 5);
+            // set timer increment back to read from matrixUpdateBlocks
+            dmaUpdateTimer.TCD->SLAST = sizeof(matrixUpdateBlock) - (TIMER_REGISTERS_TO_UPDATE * sizeof(uint16_t));
+
+            dmaBufferUnderrun = false;
+
+            // start timer again - next timer period is MIN_BLOCK_PERIOD_TICKS with OE disabled, period after that will be loaded from matrixUpdateBlock
+            FTM1_SC = FTM_SC_CLKS(1) | FTM_SC_PS(LATCH_TIMER_PRESCALE);
+        }
     }
 }
 
@@ -259,8 +295,9 @@ void SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::begin(void)
     // fill timerLUT
     calculateTimerLut();
 
-    // fill buffer with data before enabling DMA
-    matrixCalculations();
+    // completely fill buffer with data before enabling DMA
+    while(!cbIsFull(&dmaBuffer))
+        matrixCalculations();
 
     // setup debug output
 #ifdef DEBUG_PINS_ENABLED
@@ -371,7 +408,6 @@ void SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::begin(void)
     // dmaUpdateTimer - on latch falling edge, load FTM1_CV1 and FTM1_MOD with with next values from current block
     // only use single major loop, never disable channel
     // link to dmaClockOutData channel when complete
-#define TIMER_REGISTERS_TO_UPDATE   2
     dmaUpdateTimer.TCD->SADDR = &((matrixUpdateBlock*)matrixUpdateBlocks)->timerValues.timer_oe;
     dmaUpdateTimer.TCD->SOFF = sizeof(uint16_t);
     dmaUpdateTimer.TCD->SLAST = sizeof(matrixUpdateBlock) - (TIMER_REGISTERS_TO_UPDATE * sizeof(uint16_t));
@@ -1100,6 +1136,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::loadMatrixBuff
         loadMatrixBuffers24(currentRow, freeRowBuffer);
 }
 
+// low priority ISR triggered by software interrupt on a DMA channel that doesn't need interrupts otherwise
 template <int refreshDepth, int matrixWidth, unsigned char optionFlags>
 void rowCalculationISR(void) {
 #ifdef DEBUG_PINS_ENABLED
@@ -1123,14 +1160,30 @@ void rowShiftCompleteISR(void) {
     // done with previous row, mark it as read
     cbRead(&dmaBuffer);
 
-    // get next row to draw to display and update DMA pointers
-    int currentRow = cbGetNextRead(&dmaBuffer);
-    dmaUpdateAddress.TCD->SADDR = &((matrixUpdateBlock*)SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::matrixUpdateBlocks + (currentRow * SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::latchesPerRow))->addressValues;
-    dmaUpdateTimer.TCD->SADDR = &((matrixUpdateBlock*)SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::matrixUpdateBlocks + (currentRow * SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::latchesPerRow))->timerValues.timer_oe;
-    dmaClockOutData.TCD->SADDR = (uint8_t*)SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::matrixUpdateData + (currentRow * SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::dmaBufferBytesPerRow);
+    if(cbIsEmpty(&dmaBuffer)) {
+#ifdef DEBUG_PINS_ENABLED
+    digitalWriteFast(DEBUG_PIN_1, LOW); // oscilloscope trigger
+#endif
+        // point dmaUpdateTimer to repeatedly load from values that set mod to MIN_BLOCK_PERIOD_TICKS and disable OE
+        dmaUpdateTimer.TCD->SADDR = &SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::timerPairIdle;
+        // set timer increment to repeat timerPairIdle
+        dmaUpdateTimer.TCD->SLAST = -(TIMER_REGISTERS_TO_UPDATE*sizeof(uint16_t));
+        // disable channel-to-channel linking - don't link dmaClockOutData until buffer is ready
+        dmaUpdateTimer.TCD->CSR &= ~(1 << 5);
 
-    // clear pending GPIO int for PORTA before enabling DMA again
-    CORE_PIN3_CONFIG |= (1 << 24);
+        // set flag so other ISR can enable DMA again when data is ready
+        SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::dmaBufferUnderrun = true;
+
+#ifdef DEBUG_PINS_ENABLED
+    digitalWriteFast(DEBUG_PIN_1, HIGH); // oscilloscope trigger
+#endif
+    } else {
+        // get next row to draw to display and update DMA pointers
+        int currentRow = cbGetNextRead(&dmaBuffer);
+        dmaUpdateAddress.TCD->SADDR = &((matrixUpdateBlock*)SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::matrixUpdateBlocks + (currentRow * SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::latchesPerRow))->addressValues;
+        dmaUpdateTimer.TCD->SADDR = &((matrixUpdateBlock*)SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::matrixUpdateBlocks + (currentRow * SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::latchesPerRow))->timerValues.timer_oe;
+        dmaClockOutData.TCD->SADDR = (uint8_t*)SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::matrixUpdateData + (currentRow * SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::dmaBufferBytesPerRow);
+    }
 
     // trigger software interrupt (DMA channel interrupt used instead of actual softint)
     NVIC_SET_PENDING(IRQ_DMA_CH0 + dmaUpdateAddress.channel);
