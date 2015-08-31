@@ -27,9 +27,8 @@
 
 #define INLINE __attribute__( ( always_inline ) ) inline
 
-// these definitions may change if switching major display type
-#define MATRIX_ROWS_PER_FRAME           (matrixHeight/2)
-#define MATRIX_ROW_PAIR_OFFSET          (matrixHeight/2)
+#define MATRIX_STACK_HEIGHT (matrixHeight / MATRIX_PANEL_HEIGHT)
+
 #define ROW_CALCULATION_ISR_PRIORITY   0xFE // 0xFF = lowest priority
 
 // hardware-specific definitions
@@ -39,7 +38,7 @@
 #define LATCH_TIMER_PULSE_WIDTH_TICKS   NS_TO_TICKS(LATCH_TIMER_PULSE_WIDTH_NS)
 #define TICKS_PER_ROW   (F_BUS/refreshRate/MATRIX_ROWS_PER_FRAME)
 #define MSB_BLOCK_TICKS     (TICKS_PER_ROW/2)
-#define MIN_BLOCK_PERIOD_NS (LATCH_TO_CLK_DELAY_NS + ((PANEL_32_PIXELDATA_TRANSFER_MAXIMUM_NS*matrixWidth)/32))
+#define MIN_BLOCK_PERIOD_NS (LATCH_TO_CLK_DELAY_NS + ((PANEL_32_PIXELDATA_TRANSFER_MAXIMUM_NS*PIXELS_PER_LATCH)/32))
 #define MIN_BLOCK_PERIOD_TICKS NS_TO_TICKS(MIN_BLOCK_PERIOD_NS)
 
 #define TIMER_REGISTERS_TO_UPDATE   2
@@ -127,7 +126,7 @@ SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::S
     SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::globalinstance = this;
     dmaBufferNumRows = bufferrows;
     dmaBufferBytesPerPixel = latchesPerRow * DMA_UPDATES_PER_CLOCK;
-    dmaBufferBytesPerRow = dmaBufferBytesPerPixel * matrixWidth;
+    dmaBufferBytesPerRow = dmaBufferBytesPerPixel * PIXELS_PER_LATCH;
 
     matrixUpdateData = dataBuffer;
     // single buffer is divided up to hold matrixUpdateBlocks, addressLUT, timerLUT to simplify user sketch code and reduce constructor parameters
@@ -432,8 +431,8 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     // after each minor loop, set source to point back to the beginning of this set of data,
     // but advance by 1 byte to get the next significant bits data
     dmaClockOutData.TCD->NBYTES_MLOFFYES = DMA_TCD_NBYTES_SMLOE |
-                               (((1 - (dmaBufferBytesPerPixel * matrixWidth)) << 10) & DMA_TCD_MLOFF_MASK) |
-                               (matrixWidth * DMA_UPDATES_PER_CLOCK);
+                               (((1 - (dmaBufferBytesPerPixel * PIXELS_PER_LATCH)) << 10) & DMA_TCD_MLOFF_MASK) |
+                               (PIXELS_PER_LATCH * DMA_UPDATES_PER_CLOCK);
     dmaClockOutData.TCD->DADDR = &GPIOD_PDOR;
     dmaClockOutData.TCD->DOFF = 0;
     dmaClockOutData.TCD->DLASTSGA = 0;
@@ -465,18 +464,21 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     int i;
 
     // static to avoid putting large buffer on the stack
-    static rgb48 tempRow0[matrixWidth];
-    static rgb48 tempRow1[matrixWidth];
+    static rgb48 tempRow0[PIXELS_PER_LATCH];
+    static rgb48 tempRow1[PIXELS_PER_LATCH];
 
     // get pixel data from layers
     SM_Layer * templayer = globalinstance->baseLayer;
     while(templayer) {
-        templayer->fillRefreshRow(currentRow, tempRow0);
-        templayer->fillRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET, tempRow1);
+        for(i=0; i<MATRIX_STACK_HEIGHT; i++) {
+            // fill data from top to bottom, so top panel is the one closest to Teensy
+            templayer->fillRefreshRow(currentRow + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+            templayer->fillRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+        }
         templayer = templayer->nextLayer;        
     }
 
-    for (i = 0; i < matrixWidth; i++) {
+    for (i = 0; i < PIXELS_PER_LATCH; i++) {
         uint16_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;
 
         temp0red = tempRow0[i].red;
@@ -718,18 +720,21 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     int i;
 
     // static to avoid putting large buffer on the stack
-    static rgb48 tempRow0[matrixWidth];
-    static rgb48 tempRow1[matrixWidth];
+    static rgb48 tempRow0[PIXELS_PER_LATCH];
+    static rgb48 tempRow1[PIXELS_PER_LATCH];
 
     // get pixel data from layers
     SM_Layer * templayer = globalinstance->baseLayer;
     while(templayer) {
-        templayer->fillRefreshRow(currentRow, tempRow0);
-        templayer->fillRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET, tempRow1);
+        for(i=0; i<MATRIX_STACK_HEIGHT; i++) {
+            // fill data from top to bottom, so top panel is the one closest to Teensy
+            templayer->fillRefreshRow(currentRow + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+            templayer->fillRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+        }
         templayer = templayer->nextLayer;        
     }
 
-    for (i = 0; i < matrixWidth; i++) {
+    for (i = 0; i < PIXELS_PER_LATCH; i++) {
         uint16_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;
 
 #ifdef DEBUG_PINS_ENABLED
@@ -980,18 +985,21 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     int i;
 
     // static to avoid putting large buffer on the stack
-    static rgb24 tempRow0[matrixWidth];
-    static rgb24 tempRow1[matrixWidth];
+    static rgb24 tempRow0[PIXELS_PER_LATCH];
+    static rgb24 tempRow1[PIXELS_PER_LATCH];
 
     // get pixel data from layers
     SM_Layer * templayer = globalinstance->baseLayer;
     while(templayer) {
-        templayer->fillRefreshRow(currentRow, tempRow0);
-        templayer->fillRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET, tempRow1);
+        for(i=0; i<MATRIX_STACK_HEIGHT; i++) {
+            // fill data from top to bottom, so top panel is the one closest to Teensy
+            templayer->fillRefreshRow(currentRow + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+            templayer->fillRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+        }
         templayer = templayer->nextLayer;        
     }
 
-    for (i = 0; i < matrixWidth; i++) {
+    for (i = 0; i < PIXELS_PER_LATCH; i++) {
         uint8_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;
 
         temp0red = tempRow0[i].red;
