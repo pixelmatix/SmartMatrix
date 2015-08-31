@@ -125,7 +125,7 @@ static gpiopair gpiosync;
 
 
 template <int refreshDepth, int matrixWidth, unsigned char optionFlags>
-SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::SmartMatrix3(uint8_t height, uint8_t depth, uint8_t bufferrows, uint32_t * dataBuffer, uint8_t * blockBuffer) {
+SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::SmartMatrix3(uint8_t height, uint8_t bufferrows, uint32_t * dataBuffer, uint8_t * blockBuffer) {
     SmartMatrix3<refreshDepth, matrixWidth, optionFlags>::globalinstance = this;
     matrixHeight = height;
     dmaBufferNumRows = bufferrows;

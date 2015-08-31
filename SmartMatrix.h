@@ -57,7 +57,7 @@ typedef struct matrixUpdateBlock {
 template <int refreshDepth, int matrixWidth, unsigned char optionFlags>
 class SmartMatrix3 {
 public:
-    SmartMatrix3(uint8_t height, uint8_t depth, uint8_t bufferrows, uint32_t * dataBuffer, uint8_t * blockBuffer);
+    SmartMatrix3(uint8_t height, uint8_t bufferrows, uint32_t * dataBuffer, uint8_t * blockBuffer);
     void begin(void);
 
     // configuration
@@ -126,7 +126,7 @@ private:
 #define SMARTMATRIX_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, rows, option_flags) \
     static DMAMEM uint32_t matrixUpdateData[rows * width * (pwm_depth/COLOR_CHANNELS_PER_PIXEL / sizeof(uint32_t)) * DMA_UPDATES_PER_CLOCK]; \
     static DMAMEM uint8_t matrixUpdateBlocks[(sizeof(matrixUpdateBlock) * rows * pwm_depth/COLOR_CHANNELS_PER_PIXEL) + (sizeof(addresspair) * height/PIXELS_UPDATED_PER_CLOCK) + (sizeof(timerpair) * pwm_depth/COLOR_CHANNELS_PER_PIXEL)]; \
-    SmartMatrix3<pwm_depth, width, option_flags> matrix_name(height, pwm_depth, rows, matrixUpdateData, matrixUpdateBlocks)
+    SmartMatrix3<pwm_depth, width, option_flags> matrix_name(height, rows, matrixUpdateData, matrixUpdateBlocks)
 
 #define SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(layer_name, width, height, storage_depth, scrolling_options) \
     typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
