@@ -21,14 +21,14 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char optionFlags>
-void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, optionFlags>::setRotation(rotationDegrees newrotation) {
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRotation(rotationDegrees newrotation) {
     rotation = newrotation;
     rotationChange = true;
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char optionFlags>
-uint16_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, optionFlags>::getScreenWidth(void) const {
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+uint16_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getScreenWidth(void) const {
     if (rotation == rotation0 || rotation == rotation180) {
         return matrixWidth;
     } else {
@@ -36,8 +36,8 @@ uint16_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, optionFlags>::get
     }
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char optionFlags>
-uint16_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, optionFlags>::getScreenHeight(void) const {
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+uint16_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getScreenHeight(void) const {
     if (rotation == rotation0 || rotation == rotation180) {
         return matrixHeight;
     } else {
@@ -45,27 +45,27 @@ uint16_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, optionFlags>::get
     }
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char optionFlags>
-volatile bool SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, optionFlags>::brightnessChange = false;
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char optionFlags>
-volatile bool SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, optionFlags>::rotationChange = true;
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char optionFlags>
-rotationDegrees SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, optionFlags>::rotation = rotation0;
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+volatile bool SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::brightnessChange = false;
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+volatile bool SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rotationChange = true;
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+rotationDegrees SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rotation = rotation0;
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char optionFlags>
-const int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, optionFlags>::dimmingMaximum = 255;
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+const int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dimmingMaximum = 255;
 // large factor = more dim, default is full brightness
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char optionFlags>
-int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, optionFlags>::dimmingFactor = dimmingMaximum - (100 * 255)/100;
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dimmingFactor = dimmingMaximum - (100 * 255)/100;
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char optionFlags>
-void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, optionFlags>::setBrightness(uint8_t brightness) {
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setBrightness(uint8_t brightness) {
     dimmingFactor = dimmingMaximum - brightness;
     brightnessChange = true;
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char optionFlags>
-void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, optionFlags>::setRefreshRate(uint8_t newRefreshRate) {
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRefreshRate(uint8_t newRefreshRate) {
     refreshRate = newRefreshRate;
     calculateTimerLut();
 }

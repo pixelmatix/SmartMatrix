@@ -54,7 +54,7 @@ typedef struct matrixUpdateBlock {
     addresspair addressValues;
 } matrixUpdateBlock;
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 class SmartMatrix3 {
 public:
     SmartMatrix3(uint8_t bufferrows, uint32_t * dataBuffer, uint8_t * blockBuffer);
@@ -77,9 +77,9 @@ public:
 
 private:
     // enable ISR access to private member variables
-    template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char optionFlags1>
+    template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
     friend void rowCalculationISR(void);
-    template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char optionFlags1>
+    template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
     friend void rowShiftCompleteISR(void);
 
     // functions called by ISR
@@ -115,17 +115,20 @@ private:
     static timerpair * timerLUT;
     static timerpair timerPairIdle;
 
-    static SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, optionFlags>* globalinstance;
+    static SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>* globalinstance;
 };
+
+#define SMARTMATRIX_HUB75_MOD16             0
+#define SMARTMATRIX_HUB75_MOD8              0
 
 #define SMARTMATRIX_OPTIONS_NONE            0
 
 
 // single matrixUpdateBlocks buffer is divided up to hold matrixUpdateBlocks, addressLUT, timerLUT to simplify user sketch code and reduce constructor parameters
-#define SMARTMATRIX_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, option_flags) \
+#define SMARTMATRIX_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
     static DMAMEM uint32_t matrixUpdateData[buffer_rows * width * (pwm_depth/COLOR_CHANNELS_PER_PIXEL / sizeof(uint32_t)) * DMA_UPDATES_PER_CLOCK]; \
     static DMAMEM uint8_t matrixUpdateBlocks[(sizeof(matrixUpdateBlock) * buffer_rows * pwm_depth/COLOR_CHANNELS_PER_PIXEL) + (sizeof(addresspair) * height/PIXELS_UPDATED_PER_CLOCK) + (sizeof(timerpair) * pwm_depth/COLOR_CHANNELS_PER_PIXEL)]; \
-    SmartMatrix3<pwm_depth, width, height, option_flags> matrix_name(buffer_rows, matrixUpdateData, matrixUpdateBlocks)
+    SmartMatrix3<pwm_depth, width, height, panel_type, option_flags> matrix_name(buffer_rows, matrixUpdateData, matrixUpdateBlocks)
 
 #define SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(layer_name, width, height, storage_depth, scrolling_options) \
     typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \

@@ -20,8 +20,9 @@
 #define COLOR_DEPTH 24                  // known working: 24, 48 - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
 const uint8_t kMatrixHeight = 32;       // known working: 16, 32
 const uint8_t kMatrixWidth = 32;        // known working: 32, 64
-const uint8_t kDmaBufferRows = 4;       // known working: 4
+const uint8_t kDmaBufferRows = 2;       // known working: 4
 const uint8_t kRefreshDepth = 36;       // known working: 24, 36, 48
+const uint8_t kPanelType = SMARTMATRIX_HUB75_MOD16;
 const uint8_t kMatrixOptions = (SMARTMATRIX_OPTIONS_NONE);
 const uint8_t kBackgroundLayerOptions = (SM_BACKGROUND_OPTIONS_NONE);
 const uint8_t kScrollingLayerOptions = (SM_SCROLLING_OPTIONS_NONE);
