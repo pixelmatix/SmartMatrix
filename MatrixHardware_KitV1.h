@@ -52,6 +52,13 @@
     p2r1:1, p2clk:1, p2g2:1, p2pad:1, p2b1:1, p2b2:1, p2r2:1, p2g1:1, \
     p3r1:1, p3clk:1, p3g2:1, p3pad:1, p3b1:1, p3b2:1, p3r2:1, p3g1:1
 
+
+//#define DEBUG_PINS_ENABLED
+#define DEBUG_PIN_1 17
+#define DEBUG_PIN_2 18
+#define DEBUG_PIN_3 19
+
+
 #define GPIO_PIN_CLK_TEENSY_PIN     14
 #define GPIO_PIN_B0_TEENSY_PIN      6
 #define GPIO_PIN_R0_TEENSY_PIN      2
