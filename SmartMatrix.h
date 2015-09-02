@@ -136,7 +136,9 @@ private:
 
 
 
-#define SMARTMATRIX_OPTIONS_NONE            0
+#define SMARTMATRIX_OPTIONS_NONE                    0
+#define SMARTMATRIX_OPTIONS_C_SHAPE_STACKING        (1 << 0)
+#define SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING  (1 << 1)
 
 
 // single matrixUpdateBlocks buffer is divided up to hold matrixUpdateBlocks, addressLUT, timerLUT to simplify user sketch code and reduce constructor parameters

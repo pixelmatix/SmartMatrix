@@ -482,9 +482,20 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     SM_Layer * templayer = globalinstance->baseLayer;
     while(templayer) {
         for(i=0; i<MATRIX_STACK_HEIGHT; i++) {
-            // fill data from top to bottom, so top panel is the one closest to Teensy
-            templayer->fillRefreshRow(currentRow + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
-            templayer->fillRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+            // Z-shape, bottom to top
+            if(!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
+                (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
+                // fill data from bottom to top, so bottom panel is the one closest to Teensy
+                templayer->fillRefreshRow(currentRow + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                templayer->fillRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+            // Z-shape, top to bottom
+            } else if(!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
+                !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
+                // fill data from top to bottom, so top panel is the one closest to Teensy
+                templayer->fillRefreshRow(currentRow + i*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                templayer->fillRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET + i*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+
+            }
         }
         templayer = templayer->nextLayer;        
     }
@@ -738,9 +749,20 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     SM_Layer * templayer = globalinstance->baseLayer;
     while(templayer) {
         for(i=0; i<MATRIX_STACK_HEIGHT; i++) {
-            // fill data from top to bottom, so top panel is the one closest to Teensy
-            templayer->fillRefreshRow(currentRow + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
-            templayer->fillRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+            // Z-shape, bottom to top
+            if(!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
+                (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
+                // fill data from bottom to top, so bottom panel is the one closest to Teensy
+                templayer->fillRefreshRow(currentRow + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                templayer->fillRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+            // Z-shape, top to bottom
+            } else if(!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
+                !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
+                // fill data from top to bottom, so top panel is the one closest to Teensy
+                templayer->fillRefreshRow(currentRow + i*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                templayer->fillRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET + i*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+
+            }
         }
         templayer = templayer->nextLayer;        
     }
@@ -1003,9 +1025,19 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     SM_Layer * templayer = globalinstance->baseLayer;
     while(templayer) {
         for(i=0; i<MATRIX_STACK_HEIGHT; i++) {
-            // fill data from top to bottom, so top panel is the one closest to Teensy
-            templayer->fillRefreshRow(currentRow + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
-            templayer->fillRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+            // Z-shape, bottom to top
+            if(!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
+                (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
+                // fill data from bottom to top, so bottom panel is the one closest to Teensy
+                templayer->fillRefreshRow(currentRow + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                templayer->fillRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+            // Z-shape, top to bottom
+            } else if(!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
+                !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
+                // fill data from top to bottom, so top panel is the one closest to Teensy
+                templayer->fillRefreshRow(currentRow + i*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                templayer->fillRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET + i*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+            }
         }
         templayer = templayer->nextLayer;        
     }
