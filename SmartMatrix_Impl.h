@@ -37,7 +37,7 @@
 #define NS_TO_TICKS(X)      (uint32_t)(F_BUS * ((X) / 1000000000.0))
 #define LATCH_TIMER_PULSE_WIDTH_TICKS   NS_TO_TICKS(LATCH_TIMER_PULSE_WIDTH_NS)
 #define TICKS_PER_ROW   (F_BUS/refreshRate/MATRIX_ROWS_PER_FRAME)
-#define MSB_BLOCK_TICKS     (TICKS_PER_ROW/2)
+#define IDEAL_MSB_BLOCK_TICKS     (TICKS_PER_ROW/2)
 #define MIN_BLOCK_PERIOD_NS (LATCH_TO_CLK_DELAY_NS + ((PANEL_32_PIXELDATA_TRANSFER_MAXIMUM_NS*PIXELS_PER_LATCH)/32))
 #define MIN_BLOCK_PERIOD_TICKS NS_TO_TICKS(MIN_BLOCK_PERIOD_NS)
 
@@ -69,7 +69,7 @@ uint8_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionF
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 uint16_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBufferBytesPerRow;
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-uint8_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refreshRate = 135;
+uint8_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refreshRate = 120;
 
 
 // todo: just use a single buffer for Blocks/LUT/Data?
@@ -247,9 +247,27 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     }
 }
 
+#define MSB_BLOCK_TICKS_ADJUSTMENT_INCREMENT    10
+
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::calculateTimerLut(void) {
     int i;
+    uint16_t ticksUsed;
+    uint16_t msbBlockTicks = IDEAL_MSB_BLOCK_TICKS + MSB_BLOCK_TICKS_ADJUSTMENT_INCREMENT;
+
+    // start with ideal width of the MSB, and keep lowering until the width of all bits fits within TICKS_PER_ROW
+    do {
+        ticksUsed = 0;
+        msbBlockTicks -= MSB_BLOCK_TICKS_ADJUSTMENT_INCREMENT;
+        for (i = 0; i < latchesPerRow; i++) {
+            uint16_t blockTicks = (msbBlockTicks >> (latchesPerRow - i - 1)) + LATCH_TIMER_PULSE_WIDTH_TICKS;
+
+            if (blockTicks < MIN_BLOCK_PERIOD_TICKS)
+                blockTicks = MIN_BLOCK_PERIOD_TICKS;
+
+            ticksUsed += blockTicks;
+        }
+    } while (ticksUsed > TICKS_PER_ROW);
 
     for (i = 0; i < latchesPerRow; i++) {
         // set period and OE values for current block - going from smallest timer values to largest
@@ -258,9 +276,9 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
         // updates the row in this time
 
         // period is max on time for this block, plus the dead time while the latch is high
-        uint16_t period = (MSB_BLOCK_TICKS >> (latchesPerRow - i - 1)) + LATCH_TIMER_PULSE_WIDTH_TICKS;
+        uint16_t period = (msbBlockTicks >> (latchesPerRow - i - 1)) + LATCH_TIMER_PULSE_WIDTH_TICKS;
         // on-time is the max on-time * dimming factor, plus the dead time while the latch is high
-        uint16_t ontime = (((MSB_BLOCK_TICKS >> (latchesPerRow - i - 1)) * dimmingFactor) / dimmingMaximum) + LATCH_TIMER_PULSE_WIDTH_TICKS;
+        uint16_t ontime = (((msbBlockTicks >> (latchesPerRow - i - 1)) * dimmingFactor) / dimmingMaximum) + LATCH_TIMER_PULSE_WIDTH_TICKS;
 
         if (period < MIN_BLOCK_PERIOD_TICKS) {
             uint16_t padding = (MIN_BLOCK_PERIOD_TICKS) - period;
@@ -268,6 +286,14 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
             ontime += padding;
         }
 
+        // add extra padding once per latch to match refreshRate exactly?  Doesn't seem to make a big difference
+#if 0        
+        if(!i) {
+            uint16_t padding = TICKS_PER_ROW/2 - msbBlockTicks;
+            period += padding;
+            ontime += padding;
+        }
+#endif
         timerLUT[i].timer_period = period;
         timerLUT[i].timer_oe = ontime;
     }
@@ -339,13 +365,13 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     // setup FTM1
     FTM1_SC = 0;
     FTM1_CNT = 0;
-    FTM1_MOD = MSB_BLOCK_TICKS;
+    FTM1_MOD = IDEAL_MSB_BLOCK_TICKS;
 
     // setup FTM1 compares:
     // latch pulse width set based on max time to update address pins
     FTM1_C0V = LATCH_TIMER_PULSE_WIDTH_TICKS;
     // output OE signal - set to max at first to disable OE
-    FTM1_C1V = MSB_BLOCK_TICKS;
+    FTM1_C1V = IDEAL_MSB_BLOCK_TICKS;
 
     // setup PWM outputs
     ENABLE_LATCH_PWM_OUTPUT();
