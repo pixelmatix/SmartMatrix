@@ -167,12 +167,23 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
   }
 }
 
+#define MAX_MATRIXCALCULATIONS_LOOPS_WITHOUT_EXIT  5
+
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalculations(void) {
     static unsigned char currentRow = 0;
+    unsigned char numLoopsWithoutExit = 0;
 
     // only run the loop if there is free space, and fill the entire buffer before returning
     while (!cbIsFull(&dmaBuffer)) {
+        if(++numLoopsWithoutExit > MAX_MATRIXCALCULATIONS_LOOPS_WITHOUT_EXIT) {
+            // the refresh rate is too high, and the application doesn't have time to run
+            // minimum set to avoid overflowing timer at low refresh rates
+            if(refreshRate > 10) {
+                refreshRate--;
+                calculateTimerLut();
+            }
+        }
         // do once-per-frame updates
         if (!currentRow) {
             if (rotationChange) {
