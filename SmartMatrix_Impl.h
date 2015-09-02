@@ -494,7 +494,28 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 // fill data from top to bottom, so top panel is the one closest to Teensy
                 templayer->fillRefreshRow(currentRow + i*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
                 templayer->fillRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET + i*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
-
+            // C-shape, bottom to top
+            } else if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
+                (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
+                // alternate direction of filling (or loading) for each matrixwidth
+                // swap row order from top to bottom for each stack (tempRow1 filled with top half of panel, tempRow0 filled with bottom half)
+                if((MATRIX_STACK_HEIGHT-i+1)%2) {
+                    templayer->fillRefreshRow((MATRIX_ROWS_PER_FRAME-currentRow-1) + MATRIX_ROW_PAIR_OFFSET + (i)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                    templayer->fillRefreshRow((MATRIX_ROWS_PER_FRAME-currentRow-1) + (i)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+                } else {
+                    templayer->fillRefreshRow(currentRow + (i)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                    templayer->fillRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET + (i)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+                }
+            // C-shape, top to bottom
+            } else if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && 
+                !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
+                if((MATRIX_STACK_HEIGHT-i)%2) {
+                    templayer->fillRefreshRow(currentRow + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                    templayer->fillRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+                } else {
+                    templayer->fillRefreshRow((MATRIX_ROWS_PER_FRAME-currentRow-1) + MATRIX_ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                    templayer->fillRefreshRow((MATRIX_ROWS_PER_FRAME-currentRow-1) + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+                }
             }
         }
         templayer = templayer->nextLayer;        
@@ -503,12 +524,24 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     for (i = 0; i < PIXELS_PER_LATCH; i++) {
         uint16_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;
 
-        temp0red = tempRow0[i].red;
-        temp0green = tempRow0[i].green;
-        temp0blue = tempRow0[i].blue;
-        temp1red = tempRow1[i].red;
-        temp1green = tempRow1[i].green;
-        temp1blue = tempRow1[i].blue;
+        // for upside down stacks, flip order
+        if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && ((PIXELS_PER_LATCH-i-1)/matrixWidth)) {
+            int tempPosition = ((i/matrixWidth) * matrixWidth) + matrixWidth - i%matrixWidth - 1;
+            temp0red = tempRow0[tempPosition].red;
+            temp0green = tempRow0[tempPosition].green;
+            temp0blue = tempRow0[tempPosition].blue;
+            temp1red = tempRow1[tempPosition].red;
+            temp1green = tempRow1[tempPosition].green;
+            temp1blue = tempRow1[tempPosition].blue;
+        } else {
+            temp0red = tempRow0[i].red;
+            temp0green = tempRow0[i].green;
+            temp0blue = tempRow0[i].blue;
+            temp1red = tempRow1[i].red;
+            temp1green = tempRow1[i].green;
+            temp1blue = tempRow1[i].blue;
+        }
+
 
 #if 0
         if(latchesPerRow == 12) {
@@ -761,7 +794,28 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 // fill data from top to bottom, so top panel is the one closest to Teensy
                 templayer->fillRefreshRow(currentRow + i*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
                 templayer->fillRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET + i*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
-
+            // C-shape, bottom to top
+            } else if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
+                (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
+                // alternate direction of filling (or loading) for each matrixwidth
+                // swap row order from top to bottom for each stack (tempRow1 filled with top half of panel, tempRow0 filled with bottom half)
+                if((MATRIX_STACK_HEIGHT-i+1)%2) {
+                    templayer->fillRefreshRow((MATRIX_ROWS_PER_FRAME-currentRow-1) + MATRIX_ROW_PAIR_OFFSET + (i)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                    templayer->fillRefreshRow((MATRIX_ROWS_PER_FRAME-currentRow-1) + (i)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+                } else {
+                    templayer->fillRefreshRow(currentRow + (i)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                    templayer->fillRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET + (i)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+                }
+            // C-shape, top to bottom
+            } else if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && 
+                !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
+                if((MATRIX_STACK_HEIGHT-i)%2) {
+                    templayer->fillRefreshRow(currentRow + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                    templayer->fillRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+                } else {
+                    templayer->fillRefreshRow((MATRIX_ROWS_PER_FRAME-currentRow-1) + MATRIX_ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                    templayer->fillRefreshRow((MATRIX_ROWS_PER_FRAME-currentRow-1) + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+                }
             }
         }
         templayer = templayer->nextLayer;        
@@ -774,12 +828,23 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     digitalWriteFast(DEBUG_PIN_3, HIGH); // oscilloscope trigger
 #endif
 
-        temp0red = tempRow0[i].red;
-        temp0green = tempRow0[i].green;
-        temp0blue = tempRow0[i].blue;
-        temp1red = tempRow1[i].red;
-        temp1green = tempRow1[i].green;
-        temp1blue = tempRow1[i].blue;
+        // for upside down stacks, flip order
+        if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && ((PIXELS_PER_LATCH-i-1)/matrixWidth)) {
+            int tempPosition = ((i/matrixWidth) * matrixWidth) + matrixWidth - i%matrixWidth - 1;
+            temp0red = tempRow0[tempPosition].red;
+            temp0green = tempRow0[tempPosition].green;
+            temp0blue = tempRow0[tempPosition].blue;
+            temp1red = tempRow1[tempPosition].red;
+            temp1green = tempRow1[tempPosition].green;
+            temp1blue = tempRow1[tempPosition].blue;
+        } else {
+            temp0red = tempRow0[i].red;
+            temp0green = tempRow0[i].green;
+            temp0blue = tempRow0[i].blue;
+            temp1red = tempRow1[i].red;
+            temp1green = tempRow1[i].green;
+            temp1blue = tempRow1[i].blue;
+        }
 
         //if(latchesPerRow == 12) {
             temp0red >>= 4;
@@ -1037,6 +1102,28 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 // fill data from top to bottom, so top panel is the one closest to Teensy
                 templayer->fillRefreshRow(currentRow + i*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
                 templayer->fillRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET + i*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+            // C-shape, bottom to top
+            } else if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
+                (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
+                // alternate direction of filling (or loading) for each matrixwidth
+                // swap row order from top to bottom for each stack (tempRow1 filled with top half of panel, tempRow0 filled with bottom half)
+                if((MATRIX_STACK_HEIGHT-i+1)%2) {
+                    templayer->fillRefreshRow((MATRIX_ROWS_PER_FRAME-currentRow-1) + MATRIX_ROW_PAIR_OFFSET + (i)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                    templayer->fillRefreshRow((MATRIX_ROWS_PER_FRAME-currentRow-1) + (i)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+                } else {
+                    templayer->fillRefreshRow(currentRow + (i)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                    templayer->fillRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET + (i)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+                }
+            // C-shape, top to bottom
+            } else if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && 
+                !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
+                if((MATRIX_STACK_HEIGHT-i)%2) {
+                    templayer->fillRefreshRow(currentRow + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                    templayer->fillRefreshRow(currentRow + MATRIX_ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+                } else {
+                    templayer->fillRefreshRow((MATRIX_ROWS_PER_FRAME-currentRow-1) + MATRIX_ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                    templayer->fillRefreshRow((MATRIX_ROWS_PER_FRAME-currentRow-1) + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+                }
             }
         }
         templayer = templayer->nextLayer;        
@@ -1045,12 +1132,23 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     for (i = 0; i < PIXELS_PER_LATCH; i++) {
         uint8_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;
 
-        temp0red = tempRow0[i].red;
-        temp0green = tempRow0[i].green;
-        temp0blue = tempRow0[i].blue;
-        temp1red = tempRow1[i].red;
-        temp1green = tempRow1[i].green;
-        temp1blue = tempRow1[i].blue;
+        // for upside down stacks, flip order
+        if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && ((PIXELS_PER_LATCH-i-1)/matrixWidth)) {
+            int tempPosition = ((i/matrixWidth) * matrixWidth) + matrixWidth - i%matrixWidth - 1;
+            temp0red = tempRow0[tempPosition].red;
+            temp0green = tempRow0[tempPosition].green;
+            temp0blue = tempRow0[tempPosition].blue;
+            temp1red = tempRow1[tempPosition].red;
+            temp1green = tempRow1[tempPosition].green;
+            temp1blue = tempRow1[tempPosition].blue;
+        } else {
+            temp0red = tempRow0[i].red;
+            temp0green = tempRow0[i].green;
+            temp0blue = tempRow0[i].blue;
+            temp1red = tempRow1[i].red;
+            temp1green = tempRow1[i].green;
+            temp1blue = tempRow1[i].blue;
+        }
 
         // this technique is from Fadecandy
         union {
