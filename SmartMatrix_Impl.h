@@ -42,6 +42,9 @@
 #define MIN_BLOCK_PERIOD_NS (LATCH_TO_CLK_DELAY_NS + ((PANEL_32_PIXELDATA_TRANSFER_MAXIMUM_NS*PIXELS_PER_LATCH)/32))
 #define MIN_BLOCK_PERIOD_TICKS NS_TO_TICKS(MIN_BLOCK_PERIOD_NS)
 
+// slower refresh rates require larger timer values - get the min refresh rate from the largest MSB value that will fit in the timer (round up)
+#define MIN_REFRESH_RATE    (((TIMER_FREQUENCY/65535)/16/2) + 1)
+
 #define TIMER_REGISTERS_TO_UPDATE   2
 
 extern DMAChannel dmaOutputAddress;
@@ -188,7 +191,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         if(++numLoopsWithoutExit > MAX_MATRIXCALCULATIONS_LOOPS_WITHOUT_EXIT) {
 
             // minimum set to avoid overflowing timer at low refresh rates
-            if(!initial && refreshRate > 10) {
+            if(!initial && refreshRate > MIN_REFRESH_RATE) {
                 refreshRate--;
                 calculateTimerLut();
                 refreshRateLowered = true;
@@ -233,7 +236,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 
         if(dmaBufferUnderrun) {
             // if refreshrate is too high, lower - minimum set to avoid overflowing timer at low refresh rates
-            if(refreshRate > 10) {
+            if(refreshRate > MIN_REFRESH_RATE) {
                 refreshRate--;
                 calculateTimerLut();
                 refreshRateLowered = true;
@@ -360,7 +363,10 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRefreshRate(uint8_t newRefreshRate) {
+    if(newRefreshRate > MIN_REFRESH_RATE)
         refreshRate = newRefreshRate;
+    else
+        refreshRate = MIN_REFRESH_RATE;
     calculateTimerLut();
 }
 
