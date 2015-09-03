@@ -107,6 +107,9 @@ private:
     static rotationDegrees rotation;
     static uint8_t colorDepthRgb;
     static uint8_t refreshRate;
+    static const int matrixPanelHeight;    
+    static const int matrixRowPairOffset;    
+    static const int matrixRowsPerFrame;    
 
     const static uint8_t latchesPerRow = refreshDepth/COLOR_CHANNELS_PER_PIXEL;
     static uint8_t dmaBufferNumRows;
@@ -129,20 +132,14 @@ private:
 #define SMARTMATRIX_HUB75_32ROW_MOD16SCAN             0
 #define SMARTMATRIX_HUB75_16ROW_MOD8SCAN              1
 
-#if (panelType == SMARTMATRIX_HUB75_32ROW_MOD16SCAN)
-    #define MATRIX_ROW_PAIR_OFFSET          16
-    #define MATRIX_ROWS_PER_FRAME           16
-    #define MATRIX_PANEL_HEIGHT             32
-#endif
-#if (panelType == SMARTMATRIX_HUB75_16ROW_MOD8SCAN)
-    #define MATRIX_ROW_PAIR_OFFSET          8
-    #define MATRIX_ROWS_PER_FRAME           8
-    #define MATRIX_PANEL_HEIGHT             16
-#endif
+#define CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT(x)   ((x == SMARTMATRIX_HUB75_32ROW_MOD16SCAN ? 32 : 0) | \
+                                                     (x == SMARTMATRIX_HUB75_16ROW_MOD8SCAN ? 16 : 0))
 
-#define PIXELS_PER_LATCH    ((matrixWidth * matrixHeight) / MATRIX_PANEL_HEIGHT)
+#define CONVERT_PANELTYPE_TO_MATRIXROWPAIROFFSET(x)   ((x == SMARTMATRIX_HUB75_32ROW_MOD16SCAN ? 16 : 0) | \
+                                                     (x == SMARTMATRIX_HUB75_16ROW_MOD8SCAN ? 8 : 0))
 
-
+#define CONVERT_PANELTYPE_TO_MATRIXROWSPERFRAME(x)   ((x == SMARTMATRIX_HUB75_32ROW_MOD16SCAN ? 16 : 0) | \
+                                                     (x == SMARTMATRIX_HUB75_16ROW_MOD8SCAN ? 8 : 0))
 
 #define SMARTMATRIX_OPTIONS_NONE                    0
 #define SMARTMATRIX_OPTIONS_C_SHAPE_STACKING        (1 << 0)
@@ -151,7 +148,7 @@ private:
 
 // single matrixUpdateBlocks buffer is divided up to hold matrixUpdateBlocks, addressLUT, timerLUT to simplify user sketch code and reduce constructor parameters
 #define SMARTMATRIX_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
-    static DMAMEM uint32_t matrixUpdateData[buffer_rows * ((width * height) / MATRIX_PANEL_HEIGHT) * (pwm_depth/COLOR_CHANNELS_PER_PIXEL / sizeof(uint32_t)) * DMA_UPDATES_PER_CLOCK]; \
+    static DMAMEM uint32_t matrixUpdateData[buffer_rows * ((width * height) / CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT(panel_type)) * (pwm_depth/COLOR_CHANNELS_PER_PIXEL / sizeof(uint32_t)) * DMA_UPDATES_PER_CLOCK]; \
     static DMAMEM uint8_t matrixUpdateBlocks[(sizeof(matrixUpdateBlock) * buffer_rows * pwm_depth/COLOR_CHANNELS_PER_PIXEL) + (sizeof(addresspair) * height/PIXELS_UPDATED_PER_CLOCK) + (sizeof(timerpair) * pwm_depth/COLOR_CHANNELS_PER_PIXEL)]; \
     SmartMatrix3<pwm_depth, width, height, panel_type, option_flags> matrix_name(buffer_rows, matrixUpdateData, matrixUpdateBlocks)
 
