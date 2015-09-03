@@ -129,12 +129,12 @@ private:
 #define SMARTMATRIX_HUB75_32ROW_MOD16SCAN             0
 #define SMARTMATRIX_HUB75_16ROW_MOD8SCAN              1
 
-#if 0//(panelType == SMARTMATRIX_HUB75_32ROW_MOD16SCAN)
+#if (panelType == SMARTMATRIX_HUB75_32ROW_MOD16SCAN)
     #define MATRIX_ROW_PAIR_OFFSET          16
     #define MATRIX_ROWS_PER_FRAME           16
     #define MATRIX_PANEL_HEIGHT             32
 #endif
-#if 1//(panelType == SMARTMATRIX_HUB75_16ROW_MOD8SCAN)
+#if (panelType == SMARTMATRIX_HUB75_16ROW_MOD8SCAN)
     #define MATRIX_ROW_PAIR_OFFSET          8
     #define MATRIX_ROWS_PER_FRAME           8
     #define MATRIX_PANEL_HEIGHT             16
