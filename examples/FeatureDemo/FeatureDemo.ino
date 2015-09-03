@@ -1361,8 +1361,8 @@ void loop() {
 #endif
 #if (DEMO_REFRESH_RATE == 1)
     {
-        const int minRefreshRate = 20;
-        const int maxRefreshRate = 120;
+        const int minRefreshRate = 5;
+        const int maxRefreshRate = matrix.getRefreshRate();
 
         scrollingLayer.setColor({0xff, 0xff, 0xff});
         scrollingLayer.setMode(wrapForward);
@@ -1390,19 +1390,23 @@ void loop() {
             else
                 refreshRate = minRefreshRate + ((maxRefreshRate-minRefreshRate) * (fraction - 1.0));
             matrix.setRefreshRate(refreshRate);
+            delay(50);
+            uint8_t gotRefreshRate = matrix.getRefreshRate();
+
             // scrolling speed is calculated based on refresh rate, update after refresh rate change
             scrollingLayer.setSpeed(40);
 
             char value[] = "000";
-            value[0] = '0' + refreshRate / 100;
-            value[1] = '0' + (refreshRate % 100) / 10;
-            value[2] = '0' + refreshRate % 10;
+            value[0] = '0' + gotRefreshRate / 100;
+            value[1] = '0' + (gotRefreshRate % 100) / 10;
+            value[2] = '0' + gotRefreshRate % 10;
 
             indexedLayer.drawString(12, matrix.getScreenHeight()-1 -5, 1, value);
             indexedLayer.swapBuffers();
             indexedLayer.fillScreen(0);
         }
 
+        matrix.setRefreshRate(maxRefreshRate);
         indexedLayer.swapBuffers();
         scrollingLayer.setOffsetFromTop(defaultScrollOffset);
         backgroundLayer.setBrightness(255);
