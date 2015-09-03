@@ -271,7 +271,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::calculateTimerLut(void) {
     int i;
-    uint16_t ticksUsed;
+    uint32_t ticksUsed;
     uint16_t msbBlockTicks = IDEAL_MSB_BLOCK_TICKS + MSB_BLOCK_TICKS_ADJUSTMENT_INCREMENT;
 
     // start with ideal width of the MSB, and keep lowering until the width of all bits fits within TICKS_PER_ROW
