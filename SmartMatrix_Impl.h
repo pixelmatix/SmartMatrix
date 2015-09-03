@@ -170,20 +170,25 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 #define MAX_MATRIXCALCULATIONS_LOOPS_WITHOUT_EXIT  5
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalculations(void) {
+INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalculations(bool initial) {
     static unsigned char currentRow = 0;
     unsigned char numLoopsWithoutExit = 0;
 
     // only run the loop if there is free space, and fill the entire buffer before returning
     while (!cbIsFull(&dmaBuffer)) {
+        // check to see if the refresh rate is too high, and the application doesn't have time to run
         if(++numLoopsWithoutExit > MAX_MATRIXCALCULATIONS_LOOPS_WITHOUT_EXIT) {
-            // the refresh rate is too high, and the application doesn't have time to run
+
             // minimum set to avoid overflowing timer at low refresh rates
-            if(refreshRate > 10) {
+            if(!initial && refreshRate > 10) {
                 refreshRate--;
                 calculateTimerLut();
             }
+
+            initial = false;
+            numLoopsWithoutExit = 0;
         }
+
         // do once-per-frame updates
         if (!currentRow) {
             if (rotationChange) {
@@ -329,8 +334,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     calculateTimerLut();
 
     // completely fill buffer with data before enabling DMA
-    while(!cbIsFull(&dmaBuffer))
-        matrixCalculations();
+    matrixCalculations(true);
 
     // setup debug output
 #ifdef DEBUG_PINS_ENABLED

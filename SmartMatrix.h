@@ -83,7 +83,7 @@ private:
     friend void rowShiftCompleteISR(void);
 
     // functions called by ISR
-    static void matrixCalculations(void);
+    static void matrixCalculations(bool initial = false);
 
     // functions for refreshing
     static void loadMatrixBuffers(unsigned char currentRow);
