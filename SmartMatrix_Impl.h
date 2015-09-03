@@ -191,6 +191,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
             if(!initial && refreshRate > 10) {
                 refreshRate--;
                 calculateTimerLut();
+                refreshRateLowered = true;
             }
 
             initial = false;
@@ -235,6 +236,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
             if(refreshRate > 10) {
                 refreshRate--;
                 calculateTimerLut();
+                refreshRateLowered = true;
             }
 
             // stop timer
