@@ -57,29 +57,29 @@ typedef struct matrixUpdateBlock {
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 class SmartMatrix3 {
 public:
+    // init
     SmartMatrix3(uint8_t bufferrows, uint32_t * dataBuffer, uint8_t * blockBuffer);
     void begin(void);
+    void addLayer(SM_Layer * newlayer);
 
     // configuration
     void setRotation(rotationDegrees rotation);
-    uint16_t getScreenWidth(void) const;
-    uint16_t getScreenHeight(void) const;
     void setBrightness(uint8_t brightness);
-    void enableColorCorrection(bool enabled);
-    void setFont(fontChoices newFont);
     void setRefreshRate(uint8_t newRefreshRate);
 
-    void addLayer(SM_Layer * newlayer);
-
+    // get info
+    uint16_t getScreenWidth(void) const;
+    uint16_t getScreenHeight(void) const;
     uint8_t getRefreshRate(void);
     bool getdmaBufferUnderrunFlag(void);
     bool getRefreshRateLoweredFlag(void);
 
-    SM_Layer * baseLayer;
-
+    // debug
     void countFPS(void);
 
 private:
+    SM_Layer * baseLayer;
+
     // enable ISR access to private member variables
     template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
     friend void rowCalculationISR(void);
