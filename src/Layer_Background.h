@@ -17,10 +17,6 @@ class SMLayerBackground : public SM_Layer {
         void fillRefreshRow(uint8_t hardwareY, rgb24 refreshRow[]);
 
         void swapBuffers(bool copy = true);
-    #ifdef SMARTMATRIX_TRIPLEBUFFER
-        void swapBuffersWithInterpolation_frames(int framesToInterpolate, bool copy = false);
-        void swapBuffersWithInterpolation_ms(int interpolationSpan_ms, bool copy = false);
-    #endif
         void drawPixel(int16_t x, int16_t y, const RGB& color);
         void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& color);
         void drawFastVLine(int16_t x, int16_t y0, int16_t y1, const RGB& color);
@@ -68,10 +64,6 @@ class SMLayerBackground : public SM_Layer {
 
         RGB *getCurrentRefreshRow(uint8_t y);
 
-    #ifdef SMARTMATRIX_TRIPLEBUFFER
-        RGB *getPreviousRefreshRow(uint8_t y);
-        static uint32_t calculateFcInterpCoefficient();
-    #endif
         void getBackgroundRefreshPixel(uint8_t x, uint8_t y, RGB &refreshPixel);
         bool getForegroundRefreshPixel(uint8_t x, uint8_t y, RGB &xyPixel);
 
@@ -88,9 +80,6 @@ class SMLayerBackground : public SM_Layer {
         // keeping track of drawing buffers
         static unsigned char currentDrawBuffer;
         static unsigned char currentRefreshBuffer;
-    #ifdef SMARTMATRIX_TRIPLEBUFFER    
-        static unsigned char previousRefreshBuffer;
-    #endif
         static volatile bool swapPending;
         static bool swapWithCopy;
         void handleBufferSwap(void);

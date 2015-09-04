@@ -34,11 +34,6 @@
 #include "Layer_Indexed.h"
 #include "Layer_Background.h"
 
-#define ENABLE_FADECANDY_GAMMA_CORRECTION               1
-
-// enable true triple buffering and interpolation
-//#define SMARTMATRIX_TRIPLEBUFFER
-
 typedef struct timerpair {
     uint16_t timer_oe;
     uint16_t timer_period;
