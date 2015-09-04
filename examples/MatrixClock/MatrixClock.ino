@@ -49,6 +49,12 @@ void setup() {
   matrix.addLayer(&indexedLayer); 
   matrix.begin();
 
+  // display a simple message - will stay on the screen if calls to the RTC library fail later
+  indexedLayer.fillScreen(0);
+  indexedLayer.setFont(gohufont11b);
+  indexedLayer.drawString(0, kMatrixHeight / 2 - 6, 1, "CLOCK");
+  indexedLayer.swapBuffers(false);
+
   matrix.setBrightness(defaultBrightness);
 }
 
