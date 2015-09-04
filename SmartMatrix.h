@@ -115,16 +115,14 @@ private:
     static uint8_t dmaBufferNumRows;
     static uint8_t dmaBufferBytesPerPixel;
     static uint16_t dmaBufferBytesPerRow;
+    static bool dmaBufferUnderrunSinceLastCheck;
+    static bool refreshRateLowered;
 
     static uint32_t * matrixUpdateData;
     static matrixUpdateBlock * matrixUpdateBlocks;
     static addresspair * addressLUT;
     static timerpair * timerLUT;
     static timerpair timerPairIdle;
-
-    static bool dmaBufferUnderrunSinceLastCheck;
-    static bool refreshRateLowered;
-
 
     static SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>* globalinstance;
 };
