@@ -14,7 +14,6 @@ class SMLayerIndexed : public SM_Layer {
     public:
         SMLayerIndexed(uint8_t * bitmap, uint8_t width, uint8_t height);
         void frameRefreshCallback();
-        void getRefreshPixel(uint8_t x, uint8_t y, rgb48 &xyPixel);
         void fillRefreshRow(uint8_t hardwareY, rgb48 refreshRow[]);
         void fillRefreshRow(uint8_t hardwareY, rgb24 refreshRow[]);
 

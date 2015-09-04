@@ -6,13 +6,16 @@
 class SM_Layer {
     public:
         virtual void frameRefreshCallback();
-        virtual void getRefreshPixel(uint8_t x, uint8_t y, rgb48 &xyPixel);
+
+        // fills refreshRow with matrixWidth values - hardwareY is < matrixHeight, not localHeight
         virtual void fillRefreshRow(uint8_t hardwareY, rgb48 refreshRow[]);
         virtual void fillRefreshRow(uint8_t hardwareY, rgb24 refreshRow[]);
+
         void setRotation(rotationDegrees newrotation);
         void setRefreshRate(uint8_t newRefreshRate);
-        void addLayer(SM_Layer * newlayer);
+
         SM_Layer * nextLayer;
+
     protected:
         rotationDegrees rotation;
         uint8_t matrixWidth, matrixHeight;

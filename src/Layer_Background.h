@@ -12,7 +12,6 @@ class SMLayerBackground : public SM_Layer {
     public:
         SMLayerBackground(RGB * buffer, uint8_t width, uint8_t height);
         void frameRefreshCallback();
-        void getRefreshPixel(uint8_t hardwareX, uint8_t hardwareY, rgb48 &xyPixel);
         void fillRefreshRow(uint8_t hardwareY, rgb48 refreshRow[]);
         void fillRefreshRow(uint8_t hardwareY, rgb24 refreshRow[]);
 

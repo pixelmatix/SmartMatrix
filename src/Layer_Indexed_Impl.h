@@ -58,17 +58,6 @@ bool SMLayerIndexed<RGB, optionFlags>::getPixel(uint8_t hardwareX, uint8_t hardw
 }
 
 template <typename RGB, unsigned int optionFlags>
-void SMLayerIndexed<RGB, optionFlags>::getRefreshPixel(uint8_t x, uint8_t y, rgb48 &xyPixel) {
-    RGB tempPixel;
-    if(getPixel(x, y, tempPixel)) {
-        if(this->ccEnabled)
-            colorCorrection(tempPixel, xyPixel);
-        else
-            xyPixel = tempPixel;
-    }
-}
-
-template <typename RGB, unsigned int optionFlags>
 void SMLayerIndexed<RGB, optionFlags>::fillRefreshRow(uint8_t hardwareY, rgb48 refreshRow[]) {
     RGB currentPixel;
     int i;
