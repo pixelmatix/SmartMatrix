@@ -606,6 +606,10 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     static rgb48 tempRow0[PIXELS_PER_LATCH];
     static rgb48 tempRow1[PIXELS_PER_LATCH];
 
+    // clear buffer to prevent garbage data showing through transparent layers
+    memset(tempRow0, 0x00, sizeof(tempRow0));
+    memset(tempRow1, 0x00, sizeof(tempRow1));
+
     // get pixel data from layers
     SM_Layer * templayer = globalinstance->baseLayer;
     while(templayer) {
@@ -905,6 +909,10 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     // static to avoid putting large buffer on the stack
     static rgb48 tempRow0[PIXELS_PER_LATCH];
     static rgb48 tempRow1[PIXELS_PER_LATCH];
+
+    // clear buffer to prevent garbage data showing through transparent layers
+    memset(tempRow0, 0x00, sizeof(tempRow0));
+    memset(tempRow1, 0x00, sizeof(tempRow1));
 
     // get pixel data from layers
     SM_Layer * templayer = globalinstance->baseLayer;
@@ -1213,6 +1221,10 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     // static to avoid putting large buffer on the stack
     static rgb24 tempRow0[PIXELS_PER_LATCH];
     static rgb24 tempRow1[PIXELS_PER_LATCH];
+
+    // clear buffer to prevent garbage data showing through transparent layers
+    memset(tempRow0, 0x00, sizeof(tempRow0));
+    memset(tempRow1, 0x00, sizeof(tempRow1));
 
     // get pixel data from layers
     SM_Layer * templayer = globalinstance->baseLayer;
