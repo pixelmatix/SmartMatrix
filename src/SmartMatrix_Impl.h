@@ -94,7 +94,7 @@ template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char pan
 timerpair * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::timerLUT;          // array is size latchesPerRow
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-timerpair SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::timerPairIdle = {MIN_BLOCK_PERIOD_TICKS, MIN_BLOCK_PERIOD_TICKS};
+timerpair * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::timerPairIdle;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 volatile bool SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBufferUnderrun = false;
@@ -155,6 +155,10 @@ SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::S
     addressLUT = (addresspair*)blockBuffer;
     blockBuffer += sizeof(addresspair) * matrixRowsPerFrame;
     timerLUT = (timerpair*)blockBuffer;
+    blockBuffer += sizeof(timerpair) * latchesPerRow;
+    timerPairIdle = (timerpair*)blockBuffer;
+    timerPairIdle->timer_period = MIN_BLOCK_PERIOD_TICKS;
+    timerPairIdle->timer_oe = MIN_BLOCK_PERIOD_TICKS;
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
@@ -1451,7 +1455,7 @@ void rowShiftCompleteISR(void) {
     digitalWriteFast(DEBUG_PIN_1, LOW); // oscilloscope trigger
 #endif
         // point dmaUpdateTimer to repeatedly load from values that set mod to MIN_BLOCK_PERIOD_TICKS and disable OE
-        dmaUpdateTimer.TCD->SADDR = &SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::timerPairIdle;
+        dmaUpdateTimer.TCD->SADDR = SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::timerPairIdle;
         // set timer increment to repeat timerPairIdle
         dmaUpdateTimer.TCD->SLAST = -(TIMER_REGISTERS_TO_UPDATE*sizeof(uint16_t));
         // disable channel-to-channel linking - don't link dmaClockOutData until buffer is ready
