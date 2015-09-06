@@ -863,6 +863,11 @@ void SMLayerBackground<RGB, optionFlags>::swapBuffers(bool copy) {
     }
 }
 
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::copyRefreshToDrawing() {
+    memcpy(currentDrawBufferPtr, currentRefreshBufferPtr, sizeof(currentDrawBufferPtr[0]) * (this->matrixWidth * this->matrixHeight));
+}
+
 // return pointer to start of currentDrawBuffer, so application can do efficient loading of bitmaps
 template <typename RGB, unsigned int optionFlags>
 RGB *SMLayerBackground<RGB, optionFlags>::backBuffer(void) {
