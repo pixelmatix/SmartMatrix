@@ -109,7 +109,7 @@ void SMLayerBackground<RGB, optionFlags>::drawPixel(int16_t x, int16_t y, const 
         Y = temp ; \
     }
 
-// x0, x1, and y must be in bounds (0-this->localWidth/Height), x1 > x0
+// x0, x1, and y must be in bounds (0-this->localWidth/Height-1), x1 > x0
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackground<RGB, optionFlags>::drawHardwareHLine(uint8_t x0, uint8_t x1, uint8_t y, const RGB& color) {
     int i;
@@ -119,7 +119,7 @@ void SMLayerBackground<RGB, optionFlags>::drawHardwareHLine(uint8_t x0, uint8_t 
     }
 }
 
-// x, y0, and y1 must be in bounds (0-this->localWidth/Height), y1 > y0
+// x, y0, and y1 must be in bounds (0-this->localWidth/Height-1), y1 > y0
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackground<RGB, optionFlags>::drawHardwareVLine(uint8_t x, uint8_t y0, uint8_t y1, const RGB& color) {
     int i;
@@ -737,7 +737,7 @@ void SMLayerBackground<RGB, optionFlags>::fillRectangle(int16_t x0, int16_t y0, 
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackground<RGB, optionFlags>::fillScreen(const RGB& color) {
-    fillRectangle(0, 0, this->localWidth, this->localHeight, color);
+    fillRectangle(0, 0, this->localWidth - 1, this->localHeight - 1, color);
 }
 
 template <typename RGB, unsigned int optionFlags>
