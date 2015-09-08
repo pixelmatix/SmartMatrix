@@ -53,49 +53,75 @@ bool SMLayerScrolling<RGB, optionFlags>::getPixel(uint8_t hardwareX, uint8_t har
     return false;
 }
 
+template<typename RGB, unsigned int optionFlags>
+bool SMLayerScrolling<RGB, optionFlags>::getPixel(uint8_t hardwareX, uint8_t hardwareY) {
+    uint8_t localScreenX, localScreenY;
+
+    // convert hardware x/y to the pixel in the local screen
+    switch( this->rotation ) {
+      case rotation0 :
+        localScreenX = hardwareX;
+        localScreenY = hardwareY;
+        break;
+      case rotation180 :
+        localScreenX = (this->matrixWidth - 1) - hardwareX;
+        localScreenY = (this->matrixHeight - 1) - hardwareY;
+        break;
+      case  rotation90 :
+        localScreenX = hardwareY;
+        localScreenY = (this->matrixWidth - 1) - hardwareX;
+        break;
+      case  rotation270 :
+        localScreenX = (this->matrixHeight - 1) - hardwareY;
+        localScreenY = hardwareX;
+        break;
+      default:
+        // TODO: Should throw an error
+        return false;
+    };
+
+    uint8_t bitmask = 0x80 >> (localScreenX % 8);
+
+    if (scrollingBitmap[(localScreenY * SCROLLING_BUFFER_ROW_SIZE) + (localScreenX/8)] & bitmask) {
+        return true;
+    }
+
+    return false;
+}
+
 template <typename RGB, unsigned int optionFlags>
 void SMLayerScrolling<RGB, optionFlags>::fillRefreshRow(uint8_t hardwareY, rgb48 refreshRow[]) {
-    RGB currentPixel;
+    rgb48 currentPixel;
     int i;
 
-    if(this->ccEnabled) {
-        for(i=0; i<this->matrixWidth; i++) {
-            if(!getPixel(i, hardwareY, currentPixel))
-                continue;
+    if(this->ccEnabled)
+        colorCorrection(textcolor, currentPixel);
+    else
+        currentPixel = textcolor;
 
-            colorCorrection(currentPixel, refreshRow[i]);
-        }
-    } else {
-        for(i=0; i<this->matrixWidth; i++) {
-            if(!getPixel(i, hardwareY, currentPixel))
-                continue;
+    for(i=0; i<this->matrixWidth; i++) {
+        if(!getPixel(i, hardwareY))
+            continue;
 
-            // load background pixel without color correction
-            refreshRow[i] = currentPixel;
-        }
+        refreshRow[i] = currentPixel;
     }
 }
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerScrolling<RGB, optionFlags>::fillRefreshRow(uint8_t hardwareY, rgb24 refreshRow[]) {
-    RGB currentPixel;
+    rgb24 currentPixel;
     int i;
 
-    if(this->ccEnabled) {
-        for(i=0; i<this->matrixWidth; i++) {
-            if(!getPixel(i, hardwareY, currentPixel))
-                continue;
+    if(this->ccEnabled)
+        colorCorrection(textcolor, currentPixel);
+    else
+        currentPixel = textcolor;
 
-            colorCorrection(currentPixel, refreshRow[i]);
-        }
-    } else {
-        for(i=0; i<this->matrixWidth; i++) {
-            if(!getPixel(i, hardwareY, currentPixel))
-                continue;
+    for(i=0; i<this->matrixWidth; i++) {
+        if(!getPixel(i, hardwareY))
+            continue;
 
-            // load background pixel without color correction
-            refreshRow[i] = currentPixel;
-        }
+        refreshRow[i] = currentPixel;
     }
 }
 

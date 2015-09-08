@@ -54,6 +54,7 @@ class SMLayerScrolling : public SM_Layer {
 
         template <typename RGB_OUT>
         bool getPixel(uint8_t hardwareX, uint8_t hardwareY, RGB_OUT &xyPixel);
+        bool getPixel(uint8_t hardwareX, uint8_t hardwareY);
 
         RGB textcolor = RGB(0xffff, 0xffff, 0xffff);
         unsigned char currentframe = 0;
