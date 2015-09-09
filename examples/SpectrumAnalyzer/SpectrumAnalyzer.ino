@@ -18,6 +18,8 @@
  * There are no dedicated ADC pins brought out on the SmartMatrix Shield,
  * but even if you've used all the pins on the SmartMatrix expansion header,
  * you can use solder pins directly to the Teensy to use A14/DAC, A11, or A10
+ * 
+ * This SmartMatrix example uses just the background layer
  */
 
 // all these libraries are required for the Teensy Audio Library
@@ -30,12 +32,12 @@
 #include <FastLED.h>
 
 #define COLOR_DEPTH 24                  // known working: 24, 48 - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
-const uint8_t kMatrixHeight = 32;       // known working: 16, 32
-const uint8_t kMatrixWidth = 32;        // known working: 32, 64
-const uint8_t kDmaBufferRows = 4;       // known working: 4
+const uint8_t kMatrixHeight = 32;       // known working: 32, 64, 96, 128
+const uint8_t kMatrixWidth = 32;        // known working: 16, 32, 48, 64
 const uint8_t kRefreshDepth = 36;       // known working: 24, 36, 48
-const uint8_t kPanelType = SMARTMATRIX_HUB75_32ROW_MOD16SCAN; // use SMARTMATRIX_HUB75_16ROW_MOD8SCAN for common 16x32 panels
-const uint8_t kMatrixOptions = (SMARTMATRIX_OPTIONS_NONE);
+const uint8_t kDmaBufferRows = 4;       // known working: 2-4, use 2 to save memory, more to keep from dropping frames and automatically lowering refresh rate
+const uint8_t kPanelType = SMARTMATRIX_HUB75_32ROW_MOD16SCAN;   // use SMARTMATRIX_HUB75_16ROW_MOD8SCAN for common 16x32 panels
+const uint8_t kMatrixOptions = (SMARTMATRIX_OPTIONS_NONE);      // see http://docs.pixelmatix.com/SmartMatrix for options
 const uint8_t kBackgroundLayerOptions = (SM_BACKGROUND_OPTIONS_NONE);
 
 SMARTMATRIX_ALLOCATE_BUFFERS(matrix, kMatrixWidth, kMatrixHeight, kRefreshDepth, kDmaBufferRows, kPanelType, kMatrixOptions);
