@@ -18,6 +18,7 @@ typedef struct rgb24 {
     rgb24(uint8_t r, uint8_t g, uint8_t b) {
         red = r; green = g; blue = b;
     }
+    rgb24& operator=(const rgb24& col);
     rgb24& operator=(const rgb48& col);
 
     uint8_t red;
@@ -37,6 +38,14 @@ typedef struct rgb48 {
     uint16_t blue;
 } rgb48;
 
+// todo: why is this assignment operator needed?  Implicitly defined assignment operator causes crashes when drawing to last pixel of last buffer of background bitmap
+inline rgb24& rgb24::operator=(const rgb24& col) {
+    red = col.red;
+    green = col.green;
+    blue = col.blue;
+    return *this;
+}
+
 inline rgb24& rgb24::operator=(const rgb48& col) {
     red = col.red >> 8;
     green = col.green >> 8;
@@ -50,7 +59,6 @@ inline rgb48& rgb48::operator=(const rgb24& col) {
     blue = col.blue << 8;
     return *this;
 }
-
 
 #define NAME2(fun,suffix) fun ## suffix
 #define NAME1(fun,suffix) NAME2(fun,suffix)
