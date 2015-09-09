@@ -1,10 +1,13 @@
+/*
+  Note: This example currently has very low performance on large displays (~38FPS refresh rate on 64x64)
+  The Scrolling Layer refresh code will be optimized in a future release 
+*/
 
 #include <SmartMatrix3.h>
 
-
 #define COLOR_DEPTH 24                  // known working: 24, 48 - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
-const uint8_t kMatrixWidth = 32*2;        // known working: 32, 64, 96, 128
-const uint8_t kMatrixHeight = 32*2;       // known working: 16, 32, 48, 64
+const uint8_t kMatrixWidth = 32;        // known working: 32, 64, 96, 128
+const uint8_t kMatrixHeight = 32;       // known working: 16, 32, 48, 64
 const uint8_t kRefreshDepth = 36;       // known working: 24, 36, 48
 const uint8_t kDmaBufferRows = 4;       // known working: 4
 const uint8_t kPanelType = SMARTMATRIX_HUB75_32ROW_MOD16SCAN; // use SMARTMATRIX_HUB75_16ROW_MOD8SCAN for common 16x32 panels
@@ -24,8 +27,6 @@ void setup() {
   matrix.addLayer(&scrollingLayer3); 
   matrix.addLayer(&scrollingLayer4); 
   matrix.addLayer(&scrollingLayer5); 
-
-//  matrix.setRefreshRate(80);
   matrix.begin();
 
   scrollingLayer1.setMode(wrapForward);
@@ -40,11 +41,11 @@ void setup() {
   scrollingLayer4.setColor({0x00, 0x00, 0xff});
   scrollingLayer5.setColor({0xff, 0x00, 0x00});
 
-  scrollingLayer1.setSpeed(40);
-  scrollingLayer2.setSpeed(60);
-  scrollingLayer3.setSpeed(70);
+  scrollingLayer1.setSpeed(10);
+  scrollingLayer2.setSpeed(20);
+  scrollingLayer3.setSpeed(40);
   scrollingLayer4.setSpeed(80);
-  scrollingLayer5.setSpeed(100);
+  scrollingLayer5.setSpeed(120);
 
   scrollingLayer1.setFont(gohufont11b);
   scrollingLayer2.setFont(gohufont11);
@@ -61,11 +62,11 @@ void setup() {
   scrollingLayer4.setOffsetFromTop((kMatrixWidth/2 + kMatrixWidth/4) - 5);
   scrollingLayer5.setOffsetFromTop((kMatrixWidth/2 + kMatrixWidth/4) - 5);
 
+  scrollingLayer1.start("Layer 1", -1);
   scrollingLayer2.start("Layer 2", -1);
   scrollingLayer3.start("Layer 3", -1);
   scrollingLayer4.start("Layer 4", -1);
   scrollingLayer5.start("Layer 5", -1);
-  scrollingLayer1.start("Layer 1", -1);
 }
 
 void loop() {
