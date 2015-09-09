@@ -1,8 +1,10 @@
 /*
- * This demo shows how to display bitmaps that are exported from GIMP and
+ * This example shows how to display bitmaps that are exported from GIMP and
  * compiled into the sketch and stored in the Teensy's Flash memory
  * See more details here:
  * http://docs.pixelmatix.com/SmartMatrix/library.html#drawing-raw-bitmaps
+ *
+ * This example uses only the SmartMatrix Background layer
  */
 
 #include <SmartMatrix3.h>
@@ -19,14 +21,15 @@
 #include "chrome16.c"
 
 #define COLOR_DEPTH 24                  // known working: 24, 48 - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
-const uint8_t kMatrixHeight = 32;       // known working: 16, 32
-const uint8_t kMatrixWidth = 32;        // known working: 32, 64
-const uint8_t kDmaBufferRows = 4;       // known working: 4
+const uint8_t kMatrixWidth = 32;        // known working: 32, 64, 96, 128
+const uint8_t kMatrixHeight = 32;       // known working: 16, 32, 48, 64
 const uint8_t kRefreshDepth = 36;       // known working: 24, 36, 48
-const uint8_t kMatrixOptions = (SMARTMATRIX_OPTIONS_NONE);
+const uint8_t kDmaBufferRows = 4;       // known working: 4
+const uint8_t kPanelType = SMARTMATRIX_HUB75_32ROW_MOD16SCAN; // use SMARTMATRIX_HUB75_16ROW_MOD8SCAN for common 16x32 panels
+const uint8_t kMatrixOptions = (SMARTMATRIX_OPTIONS_NONE);    // see http://docs.pixelmatix.com/SmartMatrix for options
 const uint8_t kBackgroundLayerOptions = (SM_BACKGROUND_OPTIONS_NONE);
 
-SMARTMATRIX_ALLOCATE_BUFFERS(matrix, kMatrixWidth, kMatrixHeight, kRefreshDepth, kDmaBufferRows, kMatrixOptions);
+SMARTMATRIX_ALLOCATE_BUFFERS(matrix, kMatrixWidth, kMatrixHeight, kRefreshDepth, kDmaBufferRows, kPanelType, kMatrixOptions);
 SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kBackgroundLayerOptions);
 
 int led = 13;
@@ -53,9 +56,12 @@ void setup() {
 }
 
 void loop() {
+  int x, y;
   backgroundLayer.fillScreen({0,0,0});
+  x = (kMatrixWidth / 2) - (pixelmatixlogo.width/2);
+  y = (kMatrixHeight / 2) - (pixelmatixlogo.height/2);
   // to use drawBitmap, must cast the pointer to pixelmatixlogo as (const gimp32x32bitmap*)
-  drawBitmap(0,0,(const gimp32x32bitmap*)&pixelmatixlogo);
+  drawBitmap(x,y,(const gimp32x32bitmap*)&pixelmatixlogo);
   backgroundLayer.swapBuffers();
 
   digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
@@ -64,8 +70,10 @@ void loop() {
   delay(1000);
 
   backgroundLayer.fillScreen({0,0,0});
+  x = (kMatrixWidth / 2) - (colorwheel.width/2);
+  y = (kMatrixHeight / 2) - (colorwheel.height/2);
   // can pass &colorwheel in directly as the bitmap source is already gimp32x32bitmap
-  drawBitmap(0,0,&colorwheel);
+  drawBitmap(x,y,&colorwheel);
   backgroundLayer.swapBuffers();
 
   digitalWrite(led, HIGH);   // turn the LED on (HIGH is the voltage level)
@@ -73,11 +81,9 @@ void loop() {
   digitalWrite(led, LOW);    // turn the LED off by making the voltage LOW
   delay(1000);
 
-
   backgroundLayer.fillScreen({0,0,0});
-  // draw this smaller bitmap centered
-  int x = (kMatrixWidth / 2) - (chrome16.width/2);
-  int y = (kMatrixHeight / 2) - (chrome16.height/2);
+  x = (kMatrixWidth / 2) - (chrome16.width/2);
+  y = (kMatrixHeight / 2) - (chrome16.height/2);
   drawBitmap(x, y, (const gimp32x32bitmap*)&chrome16);
   backgroundLayer.swapBuffers();
 
