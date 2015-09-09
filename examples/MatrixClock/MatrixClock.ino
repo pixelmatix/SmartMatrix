@@ -38,16 +38,16 @@ void setup() {
   Serial.println("DS1307RTC Read Test");
   Serial.println("-------------------");
 
+  // setup matrix
+  matrix.addLayer(&indexedLayer); 
+  matrix.begin();
+
   /* I2C Changes Needed for SmartMatrix Shield */
-  // switch pins to use 16/17 for I2C instead of 18/19
+  // switch pins to use 16/17 for I2C instead of 18/19, after calling matrix.begin()//
   pinMode(18, INPUT);
   pinMode(19, INPUT);
   CORE_PIN16_CONFIG = (PORT_PCR_MUX(2) | PORT_PCR_PE | PORT_PCR_PS);
   CORE_PIN17_CONFIG = (PORT_PCR_MUX(2) | PORT_PCR_PE | PORT_PCR_PS);
-
-  // setup matrix
-  matrix.addLayer(&indexedLayer); 
-  matrix.begin();
 
   // display a simple message - will stay on the screen if calls to the RTC library fail later
   indexedLayer.fillScreen(0);
@@ -60,7 +60,7 @@ void setup() {
 
 void loop() {
   tmElements_t tm;
-    int x=1;
+    int x = kMatrixWidth/2-15;
     char timeBuffer[9];
 
   // clear screen before writing new text
@@ -87,7 +87,7 @@ void loop() {
         hour -= 12;
     sprintf(timeBuffer, "%d:%02d", hour, tm.Minute);
     if (hour < 10)
-        x = 4;
+        x += 3;
     indexedLayer.setFont(gohufont11b);
     indexedLayer.drawString(x, kMatrixHeight / 2 - 6, 1, timeBuffer);
     indexedLayer.swapBuffers();
