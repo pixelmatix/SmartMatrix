@@ -48,6 +48,4 @@ class SM_Layer {
     private:
 };
 
-#include "Layer_Impl.h"
-
 #endif

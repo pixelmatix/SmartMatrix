@@ -162,7 +162,6 @@ private:
     static SMLayerBackground<RGB_TYPE(storage_depth), background_options> layer_name(backgroundBitmap, width, height)  
 
 
-#include "MatrixConfiguration_Impl.h"
 #include "SmartMatrix_Impl.h"
 
 /* this dummy class and enum is for FastLED backwards compatibility */
