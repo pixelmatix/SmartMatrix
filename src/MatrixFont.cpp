@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "SmartMatrix.h"
+#include "SmartMatrix3.h"
 
 // depends on letters in font->Index table being arranged in ascending order
 // save location of last lookup to speed up repeated lookups of the same letter

@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "SmartMatrix.h"
+#include "SmartMatrix3.h"
 #include "CircularBuffer.h"
 #include "DMAChannel.h"
 
