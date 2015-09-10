@@ -105,6 +105,10 @@ bool SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 bool SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refreshRateLowered = false;
 
+// set to true initially so all layers get the initial refresh rate
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+bool SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refreshRateChanged = true;
+
 
 /*
   buffer contains:
@@ -208,6 +212,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 refreshRate--;
                 calculateTimerLut();
                 refreshRateLowered = true;
+                refreshRateChanged = true;
             }
 
             initial = false;
@@ -227,10 +232,13 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 
             SM_Layer * templayer = globalinstance->baseLayer;
             while(templayer) {
-                templayer->setRefreshRate(refreshRate);
+                if(refreshRateChanged) {
+                    templayer->setRefreshRate(refreshRate);
+                }
                 templayer->frameRefreshCallback();
                 templayer = templayer->nextLayer;
             }
+            refreshRateChanged = false;
             if (brightnessChange) {
                 calculateTimerLut();
                 brightnessChange = false;
@@ -253,6 +261,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 refreshRate--;
                 calculateTimerLut();
                 refreshRateLowered = true;
+                refreshRateChanged = true;
             }
 
             // stop timer
@@ -380,6 +389,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
         refreshRate = newRefreshRate;
     else
         refreshRate = MIN_REFRESH_RATE;
+    refreshRateChanged = true;
     calculateTimerLut();
 }
 

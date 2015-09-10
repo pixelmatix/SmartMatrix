@@ -274,12 +274,16 @@ void SMLayerScrolling<RGB, optionFlags>::setMode(ScrollMode mode) {
     scrollmode = mode;
 }
 
-// TODO:need to get refresh rate from main class
-
+template <typename RGB, unsigned int optionFlags>
+void SMLayerScrolling<RGB, optionFlags>::setRefreshRate(uint8_t newRefreshRate) {
+    this->refreshRate = newRefreshRate;
+    framesperscroll = (this->refreshRate * 1.0) / pixelsPerSecond;
+}
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerScrolling<RGB, optionFlags>::setSpeed(unsigned char pixels_per_second) {
-    framesperscroll = (this->refreshRate * 1.0) / pixels_per_second;
+    pixelsPerSecond = pixels_per_second;
+    framesperscroll = (this->refreshRate * 1.0) / pixelsPerSecond;
 }
 
 template <typename RGB, unsigned int optionFlags>

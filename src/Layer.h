@@ -12,7 +12,7 @@ class SM_Layer {
         virtual void fillRefreshRow(uint8_t hardwareY, rgb24 refreshRow[]);
 
         void setRotation(rotationDegrees newrotation);
-        void setRefreshRate(uint8_t newRefreshRate);
+        virtual void setRefreshRate(uint8_t newRefreshRate);
 
         SM_Layer * nextLayer;
 

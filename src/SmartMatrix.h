@@ -112,6 +112,7 @@ private:
     static uint16_t dmaBufferBytesPerRow;
     static bool dmaBufferUnderrunSinceLastCheck;
     static bool refreshRateLowered;
+    static bool refreshRateChanged;
 
     static uint32_t * matrixUpdateData;
     static matrixUpdateBlock * matrixUpdateBlocks;

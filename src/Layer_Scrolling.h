@@ -29,6 +29,8 @@ class SMLayerScrolling : public SM_Layer {
         void fillRefreshRow(uint8_t hardwareY, rgb48 refreshRow[]);
         void fillRefreshRow(uint8_t hardwareY, rgb24 refreshRow[]);
 
+        void setRefreshRate(uint8_t newRefreshRate);
+
         // size of bitmap is 1 bit per pixel for width*height (no need for double buffering)
         uint8_t * scrollingBitmap;
 
@@ -59,6 +61,7 @@ class SMLayerScrolling : public SM_Layer {
         RGB textcolor = RGB(0xffff, 0xffff, 0xffff);
         unsigned char currentframe = 0;
         char text[textLayerMaxStringLength];
+        unsigned char pixelsPerSecond = 30;
 
         unsigned char textlen;
         volatile int scrollcounter = 0;
