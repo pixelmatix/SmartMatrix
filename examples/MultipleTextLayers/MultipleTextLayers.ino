@@ -1,6 +1,6 @@
 /*
   Note: This example currently has very low performance on large displays (~38FPS refresh rate on 64x64)
-  The Scrolling Layer refresh code will be optimized in a future release 
+  The Scrolling Layer refresh code will be optimized in a future SmartMatrix Library release 
 */
 
 #include <SmartMatrix3.h>
