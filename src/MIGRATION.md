@@ -1,5 +1,5 @@
 # Migrating from SmartMatrix 2.x to SmartMatrix 3
-SmartMatrix3 has separated out the single SmartMatrix class into a core class for refreshing the display, and separate layer classes for storing data.  If you get an error like this, you need to use find+replace to update your code to use the new class and method names.
+SmartMatrix3 has separated out the single SmartMatrix class into a core class for refreshing the display, and separate layer classes for storing data.  The library is not backwards compatible with sketches created for SmartMatrix 2.x, but by following this document it should be relatively easy to update your sketches to get access to the new features.
 
 ## Updating Normal SmartMatrix Sketch
 
@@ -18,6 +18,11 @@ replace with:
 At this point if you try to compile you'll get a lot of errors like this:
 ```
 'class SmartMatrix' has no member named 'setScrollOffsetFromEdge'
+```
+
+or like this:
+```
+'MATRIX_WIDTH' was not declared in this scope
 ```
 
 ### Allocation
@@ -50,7 +55,7 @@ SMARTMATRIX_ALLOCATE_INDEXED_LAYER(indexedLayer, kMatrixWidth, kMatrixHeight, CO
 
 The options are the defaults for a 32x32 pixel panel, similar defaults to the SmartMatrix_32x32 library.  If you are using a 16x32 panel, change `kMatrixHeight` to 16, and `kPanelType` to `SMARTMATRIX_HUB75_16ROW_MOD8SCAN`.  
 
-At this point if you try to compile, you'll get a lot of messages like:
+At this point if you try to compile, you'll get a lot of errors like:
 
 ```
 'class SmartMatrix3<36, 32, 32, 0u, 0u>' has no member named 'setScrollOffsetFromEdge'
@@ -72,158 +77,215 @@ replace with:
   matrix.begin();
 ```
 
+If you don't need all the layers, delete the `addLayer` call for the ones you don't need, and delete the corresponding `SMARTMATRIX_ALLOCATE` macros for the layers you don't need at the top of the sketch.
+
 ### Background Layer
 The methods for drawing to the background layer were moved from the SmartMatrix class to the background layer class, called `backgroundLayer` by default.  Do find-replace in your text editor, finding the text on the first line of each pair, and replacing with the text from the second line.
 
+```
 matrix.setBackgroundBrightness
 backgroundLayer.setBrightness
-
+```
+```
 matrix.swapBuffers
 backgroundLayer.swapBuffers
-
+```
+```
 matrix.drawPixel
 backgroundLayer.drawPixel
-
+```
+```
 matrix.fillScreen
 backgroundLayer.fillScreen
-
+```
+```
 matrix.setColorCorrection
 backgroundLayer.enableColorCorrection
-
+```
+```
 matrix.drawLine
 backgroundLayer.drawLine
-
+```
+```
 matrix.drawCircle
 backgroundLayer.drawCircle
-
+```
+```
 matrix.drawTriangle
 backgroundLayer.drawTriangle
-
+```
+```
 matrix.drawRectangle
 backgroundLayer.drawRectangle
-
+```
+```
 matrix.drawRoundRectangle
 backgroundLayer.drawRoundRectangle
-
+```
+```
 matrix.fillCircle
 backgroundLayer.fillCircle
-
+```
+```
 matrix.fillTriangle
 backgroundLayer.fillTriangle
-
+```
+```
 matrix.fillRectangle
 backgroundLayer.fillRectangle
-
+```
+```
 matrix.fillRoundRectangle
 backgroundLayer.fillRoundRectangle
-
+```
+```
 matrix.fillCircle
 backgroundLayer.fillCircle
-
+```
+```
 matrix.drawEllipse
 backgroundLayer.drawEllipse
-
+```
+```
 matrix.drawFastVLine
 backgroundLayer.drawFastVLine
-
+```
+```
 matrix.drawFastHLine
 backgroundLayer.drawFastHLine
-
+```
+```
 matrix.drawString
 backgroundLayer.drawString
-
+```
+```
 matrix.setFont
 backgroundLayer.setFont
-
+```
+```
 matrix.drawChar
 backgroundLayer.drawChar
-
+```
+```
 matrix.drawMonoBitmap
 backgroundLayer.drawMonoBitmap
-
+```
+```
 matrix.setBackgroundBrightness
 backgroundLayer.setBrightness
-
+```
+```
 matrix.readPixel
 backgroundLayer.readPixel
-
+```
+```
 matrix.backBuffer
 backgroundLayer.backBuffer
+```
 
 ### Scrolling layer (formerly "Foreground")
 The methods for drawing to the scrolling text layer (formerly called "Foreground" when there were only two layers possible) were moved from the SmartMatrix class to the scrolling layer class, called `scrollingLayer` by default.  Do find-replace in your text editor, finding the text on the first line of each pair, and replacing with the text from the second line.
 
+```
 matrix.getScrollStatus
 scrollingLayer.getStatus
-
+```
+```
 matrix.setScrollStartOffsetFromLeft
 scrollingLayer.setStartOffsetFromLeft
-
+```
+```
 matrix.updateScrollText
 scrollingLayer.update
-
+```
+```
 matrix.stopScrollText
 scrollingLayer.stop
-
+```
+```
 matrix.setScrollOffsetFromTop
 scrollingLayer.setOffsetFromTop
-
+```
+```
 matrix.setScrollOffsetFromEdge
 scrollingLayer.setOffsetFromTop
-
+```
+```
 matrix.scrollText
 scrollingLayer.start
-
+```
+```
 matrix.setScrollColor
 scrollingLayer.setColor
-
+```
+```
 matrix.setScrollMode
 scrollingLayer.setMode
-
+```
+```
 matrix.setScrollSpeed
 scrollingLayer.setSpeed
-
+```
+```
 matrix.setScrollFont
 scrollingLayer.setFont
-
+```
 
 ### Indexed Layer (formerly part of Foreground)
 It's unlikely you used these methods as they were not documented or included in examples.
 
-It's more complicated to update these than just find and replace to update these as the order and number of some of the arguments changed.
+It's more complicated than using find and replace to update these as the order and number of some of the arguments changed.
 
 **Find/Replace**
+
+```
 matrix.setForegroundFont
 indexedLayer.setFont
-
+```
+```
 matrix.displayForegroundDrawing
 indexedLayer.swapBuffers
-
+```
+```
 matrix.drawForegroundPixel
 indexedLayer.drawPixel
+```
 
 **Update more carefully, see notes**
-fillScreen(index) replaces clearForeground() - use 0 to fill with transparent (clear)
+
+fillScreen(index) replaces clearForeground() - use 0 to fill with transparent (equivalent to clearing the screen):
+```
 matrix.clearForeground()
 indexedLayer.fillScreen(0)
+```
 
-new function to set color of layer (before was setForegroundColor which is now used by scrolling layer), use 1 for index
+new function to set color of layer (before was setForegroundColor which is now used by scrolling layer), use 1 for index:
+```
 setIndexedColor(1, RGB)
+```
 
-order of arguments changed, swap `char` and `opaque`, optionally replace `true` with 1 for index
+order of arguments changed, swap `char` and `opaque`, optionally replace `true` with 1 for index:
+
+```
 matrix.drawForegroundChar
 indexedLayer.drawChar
+```
 
-order changed, swap `string` and `opaque`, optionally replace `true` with 1 for index
+order changed, swap `string` and `opaque`, optionally replace `true` with 1 for index:
+```
 matrix.drawForegroundString
 indexedLayer.drawString
+```
 
-order changed, swap `bitmap` and `opaque`, optionally replace `true` with 1 for index
+order changed, swap `bitmap` and `opaque`, optionally replace `true` with 1 for index:
+```
 matrix.drawForegroundMonoBitmap
 indexedLayer.drawMonoBitmap
+```
 
 ## Troubleshooting
 **Code Compiles and runs but the screen is blank**
+
 Make sure the calls to matrix.addLayers() before matrix.begin() are added
 
 
@@ -256,12 +318,9 @@ SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeig
 SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
 ```
 
-If your sketch includes `#define`s for kMatrixWidth and kMatrixHeight, remove them as they are now a constant in the allocation section.
 
-Find the `CRGB leds` array and delete it (backgroundLayer will hold the pixel data now)
-```
-CRGB leds[kMatrixWidth * kMatrixHeight];
-```
+
+If your sketch includes `#define`s for kMatrixWidth and kMatrixHeight, remove them as they are now a constant in the allocation section.
 
 ### Setup
 ```
@@ -274,6 +333,8 @@ replace with:
   matrix.addLayer(&scrollingLayer); 
   matrix.begin();
 ```
+
+At a minimum you just need `backgroundLayer`.  FastLED_Functions adds scrolling text on top of the FastLED graphics.  If you don't need scrolling text, delete the `addLayer` call for scrollingLayer, and delete the corresponding `SMARTMATRIX_ALLOCATE_SCROLLING_LAYER` macro at the top of the sketch.
 
 ### Replace `LEDS` Methods
 Find any code refering to `LEDS` and replace it.
@@ -314,7 +375,7 @@ matrix.countFPS();
 ```
 
 ### Use SmartMatrix Methods Directly
-For any code that starts with `pSmartMatrix->`, search for the same function beginning with `matrix.` in the sections above and replace.  e.g. 
+For any code that starts with `pSmartMatrix->`, search for the same function beginning with "matrix." in the sections above and replace.  e.g. 
 ```
 pSmartMatrix->setScrollMode
 ```
@@ -325,14 +386,36 @@ scrollingLayer.setMode
 ```
 
 ### Update leds
+Find the `CRGB leds` array and delete it (backgroundLayer will hold the pixel data now)
+```
+CRGB leds[kMatrixWidth * kMatrixHeight];
+```
 
-Find the code that is updating `leds` and use `backgroundLayer.drawPixel(x,y,color)` instead.  DrawPixel can't read from a CHSV value directly, is help it out by wrapping any CHSV values in `CRGB()`
+Add this line at the top of `loop()` to get a pointer to the current draw buffer in the background layer:
+
+```
+  rgb24 *buffer = backgroundLayer.backBuffer();
+```
+
+Now `buffer` can be used like the `leds` array.  For example:
+
 ```
       leds[XY(i,j)] = CHSV(noise[j][i],255,noise[i][j]);
 ```
 
-Replace with:
+replace with:
 ```
-      backgroundLayer.drawPixel(i, j, CRGB(CHSV(noise[j][i],255,noise[i][j])));
+      buffer[XY(i,j)] = CHSV(noise[j][i],255,noise[i][j]);
 ```
 
+This won't work quite yet, you'll get an error like:
+```
+no known conversion for argument 1 from 'CHSV' to 'const rgb24&'
+```
+
+There's no automatic conversion from FastLED's CHSV to rgb24, so help the compiler out by wrapping any CHSV values in `CRGB()`.
+```
+      buffer[XY(i,j)] = CRGB(CHSV(noise[j][i],255,noise[i][j]));
+```
+
+Keep in mind that you need to get an updated pointer from `backBuffer()` after every call to `swapBuffers()`.  If you call `swapBuffers()` more than once per pass through `loop()`, make sure to update the `buffer` pointer by calling `backBuffer()` after each swap, not just at the top of `loop()`.
