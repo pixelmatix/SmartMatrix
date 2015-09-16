@@ -1,5 +1,5 @@
-# Migrating from SmartMatrix 2.x to SmartMatrix 3
-SmartMatrix3 has separated out the single SmartMatrix class into a core class for refreshing the display, and separate layer classes for storing data.  The library is not backwards compatible with sketches created for SmartMatrix 2.x, but by following this document it should be relatively easy to update your sketches to get access to the new features.
+# Migrating from SmartMatrix 2.x to SmartMatrix 3.0
+SmartMatrix 3.0 has separated out the single SmartMatrix class into a core class for refreshing the display, and separate layer classes for storing data.  The library is not backwards compatible with sketches created for SmartMatrix 2.x, but by following this document it should be relatively easy to update your sketches to get access to the new features.
 
 ## Updating Normal SmartMatrix Sketch
 
@@ -50,7 +50,6 @@ SMARTMATRIX_ALLOCATE_BUFFERS(matrix, kMatrixWidth, kMatrixHeight, kRefreshDepth,
 SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kBackgroundLayerOptions);
 SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
 SMARTMATRIX_ALLOCATE_INDEXED_LAYER(indexedLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kIndexedLayerOptions);
-
 ```
 
 The options are the defaults for a 32x32 pixel panel, similar defaults to the SmartMatrix_32x32 library.  If you are using a 16x32 panel, change `kMatrixHeight` to 16, and `kPanelType` to `SMARTMATRIX_HUB75_16ROW_MOD8SCAN`.  
@@ -77,7 +76,7 @@ replace with:
   matrix.begin();
 ```
 
-If you don't need all the layers, delete the `addLayer` call for the ones you don't need, and delete the corresponding `SMARTMATRIX_ALLOCATE` macros for the layers you don't need at the top of the sketch.
+If you don't need all the layers, delete the `addLayer` call for the ones you don't need, and delete the corresponding `SMARTMATRIX_ALLOCATE` macros at the top of the sketch.
 
 ### Background Layer
 The methods for drawing to the background layer were moved from the SmartMatrix class to the background layer class, called `backgroundLayer` by default.  Do find-replace in your text editor, finding the text on the first line of each pair, and replacing with the text from the second line.
@@ -184,7 +183,7 @@ backgroundLayer.backBuffer
 ```
 
 ### Scrolling layer (formerly "Foreground")
-The methods for drawing to the scrolling text layer (formerly called "Foreground" when there were only two layers possible) were moved from the SmartMatrix class to the scrolling layer class, called `scrollingLayer` by default.  Do find-replace in your text editor, finding the text on the first line of each pair, and replacing with the text from the second line.
+The methods for drawing to the scrolling text layer (formerly called "Foreground" when only two layers were possible) were moved from the SmartMatrix class to the scrolling layer class, called `scrollingLayer` by default.  Do find-replace in your text editor, finding the text on the first line of each pair, and replacing with the text from the second line.
 
 ```
 matrix.getScrollStatus
@@ -234,7 +233,7 @@ scrollingLayer.setFont
 ### Indexed Layer (formerly part of Foreground)
 It's unlikely you used these methods as they were not documented or included in examples.
 
-It's more complicated than using find and replace to update these as the order and number of some of the arguments changed.
+It's more complicated than using find and replace to update these as the order and number of some of the arguments changed.  Use the class definition in Layer_Indexed.h as a reference.
 
 **Find/Replace**
 
@@ -290,7 +289,7 @@ Make sure the calls to matrix.addLayers() before matrix.begin() are added
 
 
 ## Update FastLED Sketch
-FastLED's `SMART_MATRIX` controller was based on SmartMatrix 2.x, and is incompatible with SmartMatrix 3.  You can get similar features by using FastLED's helper functions but drawing to the SmartMatrix background layer directly instead of through FastLED.  [Let us know](http://community.pixelmatix.com) if you want to see support for the FastLED `SMART_MATRIX` controller in the future.
+FastLED's `SMART_MATRIX` controller was based on SmartMatrix 2.x, and is incompatible with SmartMatrix 3.0.  You can get similar features by using FastLED's helper functions but drawing to the SmartMatrix background layer directly instead of through FastLED.  [Let us know](http://community.pixelmatix.com) if you want to see support for the FastLED `SMART_MATRIX` controller in the future.
 
 ### `#Include`
 Start by updating the #include to `<SmartMatrix3.h>`
@@ -320,7 +319,7 @@ SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer, kMatrixWidth, kMatrixHeight
 
 
 
-If your sketch includes `#define`s for kMatrixWidth and kMatrixHeight, remove them as they are now a constant in the allocation section.
+If your sketch has a `#define` for `kMatrixWidth` and `kMatrixHeight`, remove those definitions as they are now a constant in the allocation section.
 
 ### Setup
 ```
@@ -334,7 +333,7 @@ replace with:
   matrix.begin();
 ```
 
-At a minimum you just need `backgroundLayer`.  FastLED_Functions adds scrolling text on top of the FastLED graphics.  If you don't need scrolling text, delete the `addLayer` call for scrollingLayer, and delete the corresponding `SMARTMATRIX_ALLOCATE_SCROLLING_LAYER` macro at the top of the sketch.
+At a minimum you just need `backgroundLayer` for sketches using FastLED.  The FastLED_Functions example adds scrolling text on top of the FastLED graphics.  If you don't need scrolling text, delete the `addLayer` call for scrollingLayer, and delete the corresponding `SMARTMATRIX_ALLOCATE_SCROLLING_LAYER` macro at the top of the sketch.
 
 ### Replace `LEDS` Methods
 Find any code refering to `LEDS` and replace it.
@@ -413,7 +412,7 @@ This won't work quite yet, you'll get an error like:
 no known conversion for argument 1 from 'CHSV' to 'const rgb24&'
 ```
 
-There's no automatic conversion from FastLED's CHSV to rgb24, so help the compiler out by wrapping any CHSV values in `CRGB()`.
+There's no automatic conversion from FastLED's `CHSV` to `rgb24`, so help the compiler out by wrapping any `CHSV` values in `CRGB()`.
 ```
       buffer[XY(i,j)] = CRGB(CHSV(noise[j][i],255,noise[i][j]));
 ```
