@@ -33,10 +33,10 @@
 template <typename RGB, unsigned int optionFlags>
 class SMLayerBackground : public SM_Layer {
     public:
-        SMLayerBackground(RGB * buffer, uint8_t width, uint8_t height);
+        SMLayerBackground(RGB * buffer, uint16_t width, uint16_t height);
         void frameRefreshCallback();
-        void fillRefreshRow(uint8_t hardwareY, rgb48 refreshRow[]);
-        void fillRefreshRow(uint8_t hardwareY, rgb24 refreshRow[]);
+        void fillRefreshRow(uint16_t hardwareY, rgb48 refreshRow[]);
+        void fillRefreshRow(uint16_t hardwareY, rgb24 refreshRow[]);
 
         void swapBuffers(bool copy = true);
         void copyRefreshToDrawing(void);
@@ -85,14 +85,14 @@ class SMLayerBackground : public SM_Layer {
 
         RGB *backgroundBuffer;
 
-        RGB *getCurrentRefreshRow(uint8_t y);
+        RGB *getCurrentRefreshRow(uint16_t y);
 
-        void getBackgroundRefreshPixel(uint8_t x, uint8_t y, RGB &refreshPixel);
-        bool getForegroundRefreshPixel(uint8_t x, uint8_t y, RGB &xyPixel);
+        void getBackgroundRefreshPixel(uint16_t x, uint16_t y, RGB &refreshPixel);
+        bool getForegroundRefreshPixel(uint16_t x, uint16_t y, RGB &xyPixel);
 
         // drawing functions not meant for user
-        void drawHardwareHLine(uint8_t x0, uint8_t x1, uint8_t y, const RGB& color);
-        void drawHardwareVLine(uint8_t x, uint8_t y0, uint8_t y1, const RGB& color);
+        void drawHardwareHLine(uint16_t x0, uint16_t x1, uint16_t y, const RGB& color);
+        void drawHardwareVLine(uint16_t x, uint16_t y0, uint16_t y1, const RGB& color);
         void bresteepline(int16_t x3, int16_t y3, int16_t x4, int16_t y4, const RGB& color);
         void fillFlatSideTriangleInt(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const RGB& color);
         // todo: move somewhere else

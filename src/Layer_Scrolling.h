@@ -47,10 +47,10 @@ typedef enum ScrollMode {
 template <typename RGB, unsigned int optionFlags>
 class SMLayerScrolling : public SM_Layer {
     public:
-        SMLayerScrolling(uint8_t * bitmap, uint8_t width, uint8_t height);
+        SMLayerScrolling(uint8_t * bitmap, uint16_t width, uint16_t height);
         void frameRefreshCallback();
-        void fillRefreshRow(uint8_t hardwareY, rgb48 refreshRow[]);
-        void fillRefreshRow(uint8_t hardwareY, rgb24 refreshRow[]);
+        void fillRefreshRow(uint16_t hardwareY, rgb48 refreshRow[]);
+        void fillRefreshRow(uint16_t hardwareY, rgb24 refreshRow[]);
 
         void setRefreshRate(uint8_t newRefreshRate);
 
@@ -78,8 +78,8 @@ class SMLayerScrolling : public SM_Layer {
         void updateScrollingText(void);
 
         template <typename RGB_OUT>
-        bool getPixel(uint8_t hardwareX, uint8_t hardwareY, RGB_OUT &xyPixel);
-        bool getPixel(uint8_t hardwareX, uint8_t hardwareY);
+        bool getPixel(uint16_t hardwareX, uint16_t hardwareY, RGB_OUT &xyPixel);
+        bool getPixel(uint16_t hardwareX, uint16_t hardwareY);
 
         RGB textcolor = RGB(0xffff, 0xffff, 0xffff);
         unsigned char currentframe = 0;

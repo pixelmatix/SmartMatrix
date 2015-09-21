@@ -35,10 +35,10 @@
 template <typename RGB, unsigned int optionFlags>
 class SMLayerIndexed : public SM_Layer {
     public:
-        SMLayerIndexed(uint8_t * bitmap, uint8_t width, uint8_t height);
+        SMLayerIndexed(uint8_t * bitmap, uint16_t width, uint16_t height);
         void frameRefreshCallback();
-        void fillRefreshRow(uint8_t hardwareY, rgb48 refreshRow[]);
-        void fillRefreshRow(uint8_t hardwareY, rgb24 refreshRow[]);
+        void fillRefreshRow(uint16_t hardwareY, rgb48 refreshRow[]);
+        void fillRefreshRow(uint16_t hardwareY, rgb24 refreshRow[]);
 
 
         void enableColorCorrection(bool enabled);
@@ -59,7 +59,7 @@ class SMLayerIndexed : public SM_Layer {
         static bool getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap);
 
         template <typename RGB_OUT>
-        bool getPixel(uint8_t hardwareX, uint8_t hardwareY, RGB_OUT &xyPixel);
+        bool getPixel(uint16_t hardwareX, uint16_t hardwareY, RGB_OUT &xyPixel);
 
         // bitmap size is 32 rows (supporting maximum dimension of screen height in all rotations), by 32 bits
         // double buffered to prevent flicker while drawing

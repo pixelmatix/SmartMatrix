@@ -33,7 +33,7 @@ static bitmap_font *font = (bitmap_font *) &apple3x5;
 
 
 template <typename RGB, unsigned int optionFlags>
-SMLayerBackground<RGB, optionFlags>::SMLayerBackground(RGB * buffer, uint8_t width, uint8_t height) {
+SMLayerBackground<RGB, optionFlags>::SMLayerBackground(RGB * buffer, uint16_t width, uint16_t height) {
     backgroundBuffer = buffer;
     this->matrixWidth = width;
     this->matrixHeight = height;
@@ -50,7 +50,7 @@ void SMLayerBackground<RGB, optionFlags>::frameRefreshCallback(void) {
 }
 
 template <typename RGB, unsigned int optionFlags>
-void SMLayerBackground<RGB, optionFlags>::fillRefreshRow(uint8_t hardwareY, rgb48 refreshRow[]) {
+void SMLayerBackground<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb48 refreshRow[]) {
     RGB currentPixel;
     int i;
 
@@ -72,7 +72,7 @@ void SMLayerBackground<RGB, optionFlags>::fillRefreshRow(uint8_t hardwareY, rgb4
 }
 
 template <typename RGB, unsigned int optionFlags>
-void SMLayerBackground<RGB, optionFlags>::fillRefreshRow(uint8_t hardwareY, rgb24 refreshRow[]) {
+void SMLayerBackground<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb24 refreshRow[]) {
     RGB currentPixel;
     int i;
 
@@ -130,7 +130,7 @@ void SMLayerBackground<RGB, optionFlags>::drawPixel(int16_t x, int16_t y, const 
 
 // x0, x1, and y must be in bounds (0-this->localWidth/Height-1), x1 > x0
 template <typename RGB, unsigned int optionFlags>
-void SMLayerBackground<RGB, optionFlags>::drawHardwareHLine(uint8_t x0, uint8_t x1, uint8_t y, const RGB& color) {
+void SMLayerBackground<RGB, optionFlags>::drawHardwareHLine(uint16_t x0, uint16_t x1, uint16_t y, const RGB& color) {
     int i;
 
     for (i = x0; i <= x1; i++) {
@@ -140,7 +140,7 @@ void SMLayerBackground<RGB, optionFlags>::drawHardwareHLine(uint8_t x0, uint8_t 
 
 // x, y0, and y1 must be in bounds (0-this->localWidth/Height-1), y1 > y0
 template <typename RGB, unsigned int optionFlags>
-void SMLayerBackground<RGB, optionFlags>::drawHardwareVLine(uint8_t x, uint8_t y0, uint8_t y1, const RGB& color) {
+void SMLayerBackground<RGB, optionFlags>::drawHardwareVLine(uint16_t x, uint16_t y0, uint16_t y1, const RGB& color) {
     int i;
 
     for (i = y0; i <= y1; i++) {
@@ -941,7 +941,7 @@ RGB *SMLayerBackground<RGB, optionFlags>::getRealBackBuffer() {
 }
 
 template<typename RGB, unsigned int optionFlags>
-RGB *SMLayerBackground<RGB, optionFlags>::getCurrentRefreshRow(uint8_t y) {
+RGB *SMLayerBackground<RGB, optionFlags>::getCurrentRefreshRow(uint16_t y) {
   return &currentRefreshBufferPtr[y*this->matrixWidth];
 }
 

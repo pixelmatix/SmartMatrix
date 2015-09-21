@@ -30,7 +30,7 @@ const unsigned char indexedRefreshBuffer = 1;
 #define INDEXED_BUFFER_SIZE         (INDEXED_BUFFER_ROW_SIZE * this->localHeight)
 
 template <typename RGB, unsigned int optionFlags>
-SMLayerIndexed<RGB, optionFlags>::SMLayerIndexed(uint8_t * bitmap, uint8_t width, uint8_t height) {
+SMLayerIndexed<RGB, optionFlags>::SMLayerIndexed(uint8_t * bitmap, uint16_t width, uint16_t height) {
     // size of bitmap is 2 * INDEXED_BUFFER_SIZE
     indexedBitmap = bitmap;
     this->matrixWidth = width;
@@ -44,8 +44,8 @@ void SMLayerIndexed<RGB, optionFlags>::frameRefreshCallback(void) {
 
 // returns true and copies color to xyPixel if pixel is opaque, returns false if not
 template<typename RGB, unsigned int optionFlags> template <typename RGB_OUT>
-bool SMLayerIndexed<RGB, optionFlags>::getPixel(uint8_t hardwareX, uint8_t hardwareY, RGB_OUT &xyPixel) {
-    uint8_t localScreenX, localScreenY;
+bool SMLayerIndexed<RGB, optionFlags>::getPixel(uint16_t hardwareX, uint16_t hardwareY, RGB_OUT &xyPixel) {
+    uint16_t localScreenX, localScreenY;
 
     // convert hardware x/y to the pixel in the local screen
     switch( this->rotation ) {
@@ -81,7 +81,7 @@ bool SMLayerIndexed<RGB, optionFlags>::getPixel(uint8_t hardwareX, uint8_t hardw
 }
 
 template <typename RGB, unsigned int optionFlags>
-void SMLayerIndexed<RGB, optionFlags>::fillRefreshRow(uint8_t hardwareY, rgb48 refreshRow[]) {
+void SMLayerIndexed<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb48 refreshRow[]) {
     RGB currentPixel;
     int i;
 
@@ -104,7 +104,7 @@ void SMLayerIndexed<RGB, optionFlags>::fillRefreshRow(uint8_t hardwareY, rgb48 r
 }
 
 template <typename RGB, unsigned int optionFlags>
-void SMLayerIndexed<RGB, optionFlags>::fillRefreshRow(uint8_t hardwareY, rgb24 refreshRow[]) {
+void SMLayerIndexed<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb24 refreshRow[]) {
     RGB currentPixel;
     int i;
 
