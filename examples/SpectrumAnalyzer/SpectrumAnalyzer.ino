@@ -5,11 +5,10 @@
  * Also requires FastLED 3.0 or higher
  * If you are having trouble compiling, see
  * the troubleshooting instructions here:
- * http://docs.pixelmatix.com/SmartMatrix/#external-libraries
+ * https://github.com/pixelmatix/SmartMatrix/#external-libraries
  *
  * Requires the following libraries:
  * Teensy Audio Library: https://github.com/PaulStoffregen/Audio
- * Smartmatrix Library for Teensy 3: https://github.com/pixelmatix/smartmatrix/releases
  * FastLED v3.0 or higher: https://github.com/FastLED/FastLED/releases
  *
  * Uses line in on pin A2.  For more information, and a recommended analog input circuit, see: http://www.pjrc.com/teensy/gui/?info=AudioInputAnalog

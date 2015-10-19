@@ -2,7 +2,7 @@
  * This example shows how to display bitmaps that are exported from GIMP and
  * compiled into the sketch and stored in the Teensy's Flash memory
  * See more details here:
- * http://docs.pixelmatix.com/SmartMatrix/library.html#drawing-raw-bitmaps
+ * http://docs.pixelmatix.com/SmartMatrix/library.html#smartmatrix-library-how-to-use-the-library-drawing-raw-bitmaps
  *
  * This example uses only the SmartMatrix Background layer
  */

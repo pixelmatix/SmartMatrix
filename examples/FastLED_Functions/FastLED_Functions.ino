@@ -8,7 +8,7 @@
  *
  * This example requires FastLED 3.0 or higher.  If you are having trouble compiling, see
  * the troubleshooting instructions here:
- * http://docs.pixelmatix.com/SmartMatrix/#external-libraries
+ * https://github.com/pixelmatix/SmartMatrix/#external-libraries
  */
 
 #include <SmartMatrix3.h>
