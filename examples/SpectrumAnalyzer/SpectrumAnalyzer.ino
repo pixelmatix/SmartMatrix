@@ -5,11 +5,10 @@
  * Also requires FastLED 3.0 or higher
  * If you are having trouble compiling, see
  * the troubleshooting instructions here:
- * http://docs.pixelmatix.com/SmartMatrix/#external-libraries
+ * https://github.com/pixelmatix/SmartMatrix/#external-libraries
  *
  * Requires the following libraries:
  * Teensy Audio Library: https://github.com/PaulStoffregen/Audio
- * Smartmatrix Library for Teensy 3: https://github.com/pixelmatix/smartmatrix/releases
  * FastLED v3.0 or higher: https://github.com/FastLED/FastLED/releases
  *
  * Uses line in on pin A2.  For more information, and a recommended analog input circuit, see: http://www.pjrc.com/teensy/gui/?info=AudioInputAnalog
@@ -18,6 +17,8 @@
  * There are no dedicated ADC pins brought out on the SmartMatrix Shield,
  * but even if you've used all the pins on the SmartMatrix expansion header,
  * you can use solder pins directly to the Teensy to use A14/DAC, A11, or A10
+ * 
+ * This SmartMatrix example uses just the background layer
  */
 
 // all these libraries are required for the Teensy Audio Library
@@ -26,10 +27,20 @@
 #include <SPI.h>
 #include <SD.h>
 
-#include <SmartMatrix_32x32.h>
+#include <SmartMatrix3.h>
 #include <FastLED.h>
 
-SmartMatrix matrix;
+#define COLOR_DEPTH 24                  // known working: 24, 48 - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
+const uint8_t kMatrixWidth = 32;        // known working: 32, 64, 96, 128
+const uint8_t kMatrixHeight = 32;       // known working: 16, 32, 48, 64
+const uint8_t kRefreshDepth = 36;       // known working: 24, 36, 48
+const uint8_t kDmaBufferRows = 4;       // known working: 2-4, use 2 to save memory, more to keep from dropping frames and automatically lowering refresh rate
+const uint8_t kPanelType = SMARTMATRIX_HUB75_32ROW_MOD16SCAN;   // use SMARTMATRIX_HUB75_16ROW_MOD8SCAN for common 16x32 panels
+const uint8_t kMatrixOptions = (SMARTMATRIX_OPTIONS_NONE);      // see http://docs.pixelmatix.com/SmartMatrix for options
+const uint8_t kBackgroundLayerOptions = (SM_BACKGROUND_OPTIONS_NONE);
+
+SMARTMATRIX_ALLOCATE_BUFFERS(matrix, kMatrixWidth, kMatrixHeight, kRefreshDepth, kDmaBufferRows, kPanelType, kMatrixOptions);
+SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kBackgroundLayerOptions);
 
 #define ADC_INPUT_PIN   A2
 
@@ -49,7 +60,7 @@ float level[16];
 // looks more pleasing to corresponds to human sound perception.
 int shown[16];
 
-const rgb24 black = CRGB(0, 0, 0);
+const SM_RGB black = CRGB(0, 0, 0);
 
 byte status = 0;
 
@@ -57,8 +68,10 @@ void setup()
 {
     Serial.begin(9600);
 
-    // Initialize 32x32 LED Matrix
+    // Initialize Matrix
+    matrix.addLayer(&backgroundLayer); 
     matrix.begin();
+
     matrix.setBrightness(255);
 
     // Audio requires memory to work.
@@ -93,7 +106,7 @@ void loop()
         level[14] = fft.read(83, 103);
         level[15] = fft.read(104, 127);
 
-        matrix.fillScreen(black);
+        backgroundLayer.fillScreen(black);
 
         for (int i = 0; i < 16; i++) {
             // TODO: conversion from FFT data to display bars should be
@@ -101,7 +114,7 @@ void loop()
             int val = level[i] * scale;
 
             // trim the bars vertically to fill the matrix height
-            if (val >= MATRIX_HEIGHT) val = MATRIX_HEIGHT - 1;
+            if (val >= kMatrixHeight) val = kMatrixHeight - 1;
 
             if (val >= shown[i]) {
                 shown[i] = val;
@@ -112,19 +125,17 @@ void loop()
             }
 
             // color hue based on band
-            rgb24 color = CRGB(CHSV(i * 15, 255, 255));
+            SM_RGB color = CRGB(CHSV(i * 15, 255, 255));
 
             // draw the levels on the matrix
             if (shown[i] >= 0) {
                 // scale the bars horizontally to fill the matrix width
-                for (int j = 0; j < MATRIX_WIDTH / 16; j++) {
-                    matrix.drawPixel(i * 2 + j, (MATRIX_HEIGHT - 1) - val, color);
+                for (int j = 0; j < kMatrixWidth / 16; j++) {
+                    backgroundLayer.drawPixel(i * 2 + j, (kMatrixHeight - 1) - val, color);
                 }
             }
         }
 
-        matrix.swapBuffers();
-
-        FastLED.countFPS();
+        backgroundLayer.swapBuffers();
     }
 }

@@ -1,7 +1,7 @@
 /*
  * SmartMatrix Library - Hardware-Specific Header File
  *
- * Copyright (c) 2014 Louis Beaudoin (Pixelmatix)
+ * Copyright (c) 2015 Louis Beaudoin (Pixelmatix)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -26,34 +26,38 @@
 #ifndef MATRIX_HARDWARE_H
 #define MATRIX_HARDWARE_H
 
-// basic display size (32x32 1/16 refresh and 16x32 1/8 refresh display supported)
-#define MATRIX_HEIGHT       16
-#define MATRIX_WIDTH        32
+#define COLOR_CHANNELS_PER_PIXEL        3
+#define PIXELS_UPDATED_PER_CLOCK        2
+#define DMA_UPDATES_PER_CLOCK           2
 
-// an advanced user may need to tweak these values
-#define MATRIX_REFRESH_RATE         120
-// only 24-bit color supported
-#define COLOR_DEPTH_RGB             24
-// DMA_BUFFER_NUMBER_OF_ROWS = the size of the buffer that DMA pulls from to refresh the display
-// must be minimum 2 rows so one can be updated while the otehr is refreshed
-// increase beyond two to give more time for the update routine to complete
-// (increase this number if non-DMA interrupts are causing display problems)
-#define DMA_BUFFER_NUMBER_OF_ROWS   4
+/* an advanced user may need to tweak these values */
+
 // size of latch pulse - all address updates must fit inside high portion of latch pulse
 // increase this value if DMA use is causing address updates to take longer
 #define LATCH_TIMER_PULSE_WIDTH_NS  438
-// set this by triggering scope on latch rising edge, and with persistence enabled,
-// look for the last clock pulse after the latch.  set the min block period to be beyond this last pulse
-// default (10us) is a generous minimum that should work with all Teensy 3.x devices at 48MHz and above
-#define MIN_BLOCK_PERIOD_NS     10000
 
-// this section describes how the microcontroller is attached to the display
+// max delay from rising edge of latch pulse to falling edge of clock
+// increase this value if DMA use is delaying clock
+// using largest delay seen at slowest supported clock speed (48MHz) 1400ns, saw 916ns at 96MHz
+#define LATCH_TO_CLK_DELAY_NS       1400
+
+// measured <3400ns to transfer 32 pixels at 96MHz, <6600ns to transfer 32 pixels at 48MHz
+#define PANEL_32_PIXELDATA_TRANSFER_MAXIMUM_NS  (uint32_t)((3400 * 96000000.0) / F_CPU)
+
+/* this section describes how the microcontroller is attached to the display */
 
 // defines data bit order from bit 0-7, four times to fit in uint32_t
 #define GPIO_WORD_ORDER p0r1:1, p0clk:1, p0g2:1, p0pad:1, p0b1:1, p0b2:1, p0r2:1, p0g1:1, \
     p1r1:1, p1clk:1, p1g2:1, p1pad:1, p1b1:1, p1b2:1, p1r2:1, p1g1:1, \
     p2r1:1, p2clk:1, p2g2:1, p2pad:1, p2b1:1, p2b2:1, p2r2:1, p2g1:1, \
     p3r1:1, p3clk:1, p3g2:1, p3pad:1, p3b1:1, p3b2:1, p3r2:1, p3g1:1
+
+
+//#define DEBUG_PINS_ENABLED
+#define DEBUG_PIN_1 17
+#define DEBUG_PIN_2 18
+#define DEBUG_PIN_3 19
+
 
 #define GPIO_PIN_CLK_TEENSY_PIN     14
 #define GPIO_PIN_B0_TEENSY_PIN      6
@@ -63,7 +67,6 @@
 #define GPIO_PIN_G1_TEENSY_PIN      7
 #define GPIO_PIN_B1_TEENSY_PIN      20
 
-// only 3-bit address supported right now
 #define ADDX_PIN_0  3
 #define ADDX_PIN_1  4
 #define ADDX_PIN_2  1

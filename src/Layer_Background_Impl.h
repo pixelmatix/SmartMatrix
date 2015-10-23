@@ -1,7 +1,7 @@
 /*
- * SmartMatrix Library - Methods for interacting with background layer
+ * SmartMatrix Library - Background Layer Class
  *
- * Copyright (c) 2014 Louis Beaudoin (Pixelmatix)
+ * Copyright (c) 2015 Louis Beaudoin (Pixelmatix)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,76 +21,105 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include <stdlib.h>
-#include "SmartMatrix.h"
+static color_chan_t backgroundColorCorrectionLUT[256];
 
-static rgb24 backgroundBuffer[2][MATRIX_HEIGHT][MATRIX_WIDTH];
-
-static rgb24 (*currentDrawBufferPtr)[MATRIX_WIDTH] = backgroundBuffer[0];
-static rgb24 (*currentRefreshBufferPtr)[MATRIX_WIDTH] = backgroundBuffer[1];
-unsigned char SmartMatrix::currentDrawBuffer = 0;
-unsigned char SmartMatrix::currentRefreshBuffer = 1;
-volatile bool SmartMatrix::swapPending = false;
+template <typename RGB, unsigned int optionFlags>
+unsigned char SMLayerBackground<RGB, optionFlags>::currentDrawBuffer = 0;
+template <typename RGB, unsigned int optionFlags>
+unsigned char SMLayerBackground<RGB, optionFlags>::currentRefreshBuffer = 1;
+template <typename RGB, unsigned int optionFlags>
+volatile bool SMLayerBackground<RGB, optionFlags>::swapPending = false;
 static bitmap_font *font = (bitmap_font *) &apple3x5;
 
-// coordinates based on screen position, which is between 0-localWidth/localHeight
-void SmartMatrix::getPixel(uint8_t x, uint8_t y, rgb24 *xyPixel) {
-    copyRgb24(*xyPixel, currentRefreshBufferPtr[y][x]);
+
+template <typename RGB, unsigned int optionFlags>
+SMLayerBackground<RGB, optionFlags>::SMLayerBackground(RGB * buffer, uint16_t width, uint16_t height) {
+    backgroundBuffer = buffer;
+    this->matrixWidth = width;
+    this->matrixHeight = height;
+
+    currentDrawBufferPtr = &backgroundBuffer[0 * (this->matrixWidth * this->matrixHeight)];
+    currentRefreshBufferPtr = &backgroundBuffer[1 * (this->matrixWidth * this->matrixHeight)];
 }
 
-rgb24 *SmartMatrix::getRefreshRow(uint8_t y) {
-  return currentRefreshBufferPtr[y];
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::frameRefreshCallback(void) {
+    handleBufferSwap();
+
+    calculateBackgroundLUT(backgroundColorCorrectionLUT, backgroundBrightness);
 }
 
-// reads pixel from drawing buffer, not refresh buffer
-const rgb24 SmartMatrix::readPixel(int16_t x, int16_t y) const {
-    int hwx, hwy;
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb48 refreshRow[]) {
+    RGB currentPixel;
+    int i;
 
-    // check for out of bounds coordinates
-    if (x < 0 || y < 0 || x >= screenConfig.localWidth || y >= screenConfig.localHeight)
-        return (rgb24){0, 0, 0};
-
-    // map pixel into hardware buffer before writing
-    if (screenConfig.rotation == rotation0) {
-        hwx = x;
-        hwy = y;
-    } else if (screenConfig.rotation == rotation180) {
-        hwx = (MATRIX_WIDTH - 1) - x;
-        hwy = (MATRIX_HEIGHT - 1) - y;
-    } else if (screenConfig.rotation == rotation90) {
-        hwx = (MATRIX_WIDTH - 1) - y;
-        hwy = x;
-    } else { /* if (screenConfig.rotation == rotation270)*/
-        hwx = y;
-        hwy = (MATRIX_HEIGHT - 1) - x;
+    if(this->ccEnabled) {
+        for(i=0; i<this->matrixWidth; i++) {
+            currentPixel = currentRefreshBufferPtr[(hardwareY * this->matrixWidth) + i];
+            // load background pixel with color correction
+            refreshRow[i] = rgb48(backgroundColorCorrectionLUT[currentPixel.red],
+                backgroundColorCorrectionLUT[currentPixel.green],
+                backgroundColorCorrectionLUT[currentPixel.blue]);
+        }
+    } else {
+        for(i=0; i<this->matrixWidth; i++) {
+            currentPixel = currentRefreshBufferPtr[(hardwareY * this->matrixWidth) + i];
+            // load background pixel without color correction
+            refreshRow[i] = currentPixel;
+        }
     }
-
-    return currentDrawBufferPtr[hwy][hwx];
 }
 
-void SmartMatrix::drawPixel(int16_t x, int16_t y, const rgb24& color) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb24 refreshRow[]) {
+    RGB currentPixel;
+    int i;
+
+    if(this->ccEnabled) {
+        for(i=0; i<this->matrixWidth; i++) {
+            currentPixel = currentRefreshBufferPtr[(hardwareY * this->matrixWidth) + i];
+            // load background pixel with color correction
+            refreshRow[i] = rgb48(backgroundColorCorrectionLUT[currentPixel.red],
+                backgroundColorCorrectionLUT[currentPixel.green],
+                backgroundColorCorrectionLUT[currentPixel.blue]);
+        }
+    } else {
+        for(i=0; i<this->matrixWidth; i++) {
+            currentPixel = currentRefreshBufferPtr[(hardwareY * this->matrixWidth) + i];
+            // load background pixel without color correction
+            refreshRow[i] = currentPixel;
+        }
+    }
+}
+
+extern volatile int totalFramesToInterpolate;
+extern volatile int framesInterpolated;
+
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::drawPixel(int16_t x, int16_t y, const RGB& color) {
     int hwx, hwy;
 
     // check for out of bounds coordinates
-    if (x < 0 || y < 0 || x >= screenConfig.localWidth || y >= screenConfig.localHeight)
+    if (x < 0 || y < 0 || x >= this->localWidth || y >= this->localHeight)
         return;
 
     // map pixel into hardware buffer before writing
-    if (screenConfig.rotation == rotation0) {
+    if (this->rotation == rotation0) {
         hwx = x;
         hwy = y;
-    } else if (screenConfig.rotation == rotation180) {
-        hwx = (MATRIX_WIDTH - 1) - x;
-        hwy = (MATRIX_HEIGHT - 1) - y;
-    } else if (screenConfig.rotation == rotation90) {
-        hwx = (MATRIX_WIDTH - 1) - y;
+    } else if (this->rotation == rotation180) {
+        hwx = (this->matrixWidth - 1) - x;
+        hwy = (this->matrixHeight - 1) - y;
+    } else if (this->rotation == rotation90) {
+        hwx = (this->matrixWidth - 1) - y;
         hwy = x;
-    } else { /* if (screenConfig.rotation == rotation270)*/
+    } else { /* if (rotation == rotation270)*/
         hwx = y;
-        hwy = (MATRIX_HEIGHT - 1) - x;
+        hwy = (this->matrixHeight - 1) - x;
     }
 
-    copyRgb24(currentDrawBufferPtr[hwy][hwx], color);
+    currentDrawBufferPtr[(hwy * this->matrixWidth) + hwx] = color;
 }
 
 #define SWAPint(X,Y) { \
@@ -99,81 +128,86 @@ void SmartMatrix::drawPixel(int16_t x, int16_t y, const rgb24& color) {
         Y = temp ; \
     }
 
-// x0, x1, and y must be in bounds (0-localWidth/Height), x1 > x0
-void SmartMatrix::drawHardwareHLine(uint8_t x0, uint8_t x1, uint8_t y, const rgb24& color) {
+// x0, x1, and y must be in bounds (0-this->localWidth/Height-1), x1 > x0
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::drawHardwareHLine(uint16_t x0, uint16_t x1, uint16_t y, const RGB& color) {
     int i;
 
     for (i = x0; i <= x1; i++) {
-        copyRgb24(currentDrawBufferPtr[y][i], color);
+        currentDrawBufferPtr[(y * this->matrixWidth) + i] = color;
     }
 }
 
-// x, y0, and y1 must be in bounds (0-localWidth/Height), y1 > y0
-void SmartMatrix::drawHardwareVLine(uint8_t x, uint8_t y0, uint8_t y1, const rgb24& color) {
+// x, y0, and y1 must be in bounds (0-this->localWidth/Height-1), y1 > y0
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::drawHardwareVLine(uint16_t x, uint16_t y0, uint16_t y1, const RGB& color) {
     int i;
 
     for (i = y0; i <= y1; i++) {
-        copyRgb24(currentDrawBufferPtr[i][x], color);
+        currentDrawBufferPtr[(i * this->matrixWidth) + x] = color;
     }
 }
 
-void SmartMatrix::drawFastHLine(int16_t x0, int16_t x1, int16_t y, const rgb24& color) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::drawFastHLine(int16_t x0, int16_t x1, int16_t y, const RGB& color) {
     // make sure line goes from x0 to x1
     if (x1 < x0)
         SWAPint(x1, x0);
 
     // check for completely out of bounds line
-    if (x1 < 0 || x0 >= screenConfig.localWidth || y < 0 || y >= screenConfig.localHeight)
+    if (x1 < 0 || x0 >= this->localWidth || y < 0 || y >= this->localHeight)
         return;
 
     // truncate if partially out of bounds
     if (x0 < 0)
         x0 = 0;
 
-    if (x1 >= screenConfig.localWidth)
-        x1 = screenConfig.localWidth - 1;
+    if (x1 >= this->localWidth)
+        x1 = this->localWidth - 1;
 
     // map to hardware drawline function
-    if (screenConfig.rotation == rotation0) {
+    if (this->rotation == rotation0) {
         drawHardwareHLine(x0, x1, y, color);
-    } else if (screenConfig.rotation == rotation180) {
-        drawHardwareHLine((MATRIX_WIDTH - 1) - x1, (MATRIX_WIDTH - 1) - x0, (MATRIX_HEIGHT - 1) - y, color);
-    } else if (screenConfig.rotation == rotation90) {
-        drawHardwareVLine((MATRIX_WIDTH - 1) - y, x0, x1, color);
-    } else { /* if (screenConfig.rotation == rotation270)*/
-        drawHardwareVLine(y, (MATRIX_HEIGHT - 1) - x1, (MATRIX_HEIGHT - 1) - x0, color);
+    } else if (this->rotation == rotation180) {
+        drawHardwareHLine((this->matrixWidth - 1) - x1, (this->matrixWidth - 1) - x0, (this->matrixHeight - 1) - y, color);
+    } else if (this->rotation == rotation90) {
+        drawHardwareVLine((this->matrixWidth - 1) - y, x0, x1, color);
+    } else { /* if (rotation == rotation270)*/
+        drawHardwareVLine(y, (this->matrixHeight - 1) - x1, (this->matrixHeight - 1) - x0, color);
     }
 }
 
-void SmartMatrix::drawFastVLine(int16_t x, int16_t y0, int16_t y1, const rgb24& color) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::drawFastVLine(int16_t x, int16_t y0, int16_t y1, const RGB& color) {
     // make sure line goes from y0 to y1
     if (y1 < y0)
         SWAPint(y1, y0);
 
     // check for completely out of bounds line
-    if (y1 < 0 || y0 >= screenConfig.localHeight || x < 0 || x >= screenConfig.localWidth)
+    if (y1 < 0 || y0 >= this->localHeight || x < 0 || x >= this->localWidth)
         return;
 
     // truncate if partially out of bounds
     if (y0 < 0)
         y0 = 0;
 
-    if (y1 >= screenConfig.localHeight)
-        y1 = screenConfig.localHeight - 1;
+    if (y1 >= this->localHeight)
+        y1 = this->localHeight - 1;
 
     // map to hardware drawline function
-    if (screenConfig.rotation == rotation0) {
+    if (this->rotation == rotation0) {
         drawHardwareVLine(x, y0, y1, color);
-    } else if (screenConfig.rotation == rotation180) {
-        drawHardwareVLine((MATRIX_WIDTH - 1) - x, (MATRIX_HEIGHT - 1) - y1, (MATRIX_HEIGHT - 1) - y0, color);
-    } else if (screenConfig.rotation == rotation90) {
-        drawHardwareHLine((MATRIX_WIDTH - 1) - y1, (MATRIX_WIDTH - 1) - y0, x, color);
-    } else { /* if (screenConfig.rotation == rotation270)*/
-        drawHardwareHLine(y0, y1, (MATRIX_HEIGHT - 1) - x, color);
+    } else if (this->rotation == rotation180) {
+        drawHardwareVLine((this->matrixWidth - 1) - x, (this->matrixHeight - 1) - y1, (this->matrixHeight - 1) - y0, color);
+    } else if (this->rotation == rotation90) {
+        drawHardwareHLine((this->matrixWidth - 1) - y1, (this->matrixWidth - 1) - y0, x, color);
+    } else { /* if (rotation == rotation270)*/
+        drawHardwareHLine(y0, y1, (this->matrixHeight - 1) - x, color);
     }
 }
 
-void SmartMatrix::bresteepline(int16_t x3, int16_t y3, int16_t x4, int16_t y4, const rgb24& color) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::bresteepline(int16_t x3, int16_t y3, int16_t x4, int16_t y4, const RGB& color) {
     // if point x3, y3 is on the right side of point x4, y4, change them
     if ((x3 - x4) > 0) {
         bresteepline(x4, y4, x3, y3, color);
@@ -195,7 +229,8 @@ void SmartMatrix::bresteepline(int16_t x3, int16_t y3, int16_t x4, int16_t y4, c
 }
 
 // algorithm from http://www.netgraphics.sk/bresenham-algorithm-for-a-line
-void SmartMatrix::drawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, const rgb24& color) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::drawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, const RGB& color) {
     // if point x1, y1 is on the right side of point x2, y2, change them
     if ((x1 - x2) > 0) {
         drawLine(x2, y2, x1, y1, color);
@@ -225,7 +260,8 @@ void SmartMatrix::drawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, const
 }
 
 // algorithm from http://en.wikipedia.org/wiki/Midpoint_circle_algorithm
-void SmartMatrix::drawCircle(int16_t x0, int16_t y0, uint16_t radius, const rgb24& color)
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::drawCircle(int16_t x0, int16_t y0, uint16_t radius, const RGB& color)
 {
     int a = radius, b = 0;
     int radiusError = 1 - a;
@@ -258,7 +294,8 @@ void SmartMatrix::drawCircle(int16_t x0, int16_t y0, uint16_t radius, const rgb2
 }
 
 // algorithm from drawCircle rearranged with hlines drawn between points on the radius
-void SmartMatrix::fillCircle(int16_t x0, int16_t y0, uint16_t radius, const rgb24& outlineColor, const rgb24& fillColor)
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::fillCircle(int16_t x0, int16_t y0, uint16_t radius, const RGB& outlineColor, const RGB& fillColor)
 {
     int a = radius, b = 0;
     int radiusError = 1 - a;
@@ -306,10 +343,9 @@ void SmartMatrix::fillCircle(int16_t x0, int16_t y0, uint16_t radius, const rgb2
     }
 }
 
-
-
 // algorithm from drawCircle rearranged with hlines drawn between points on the raidus
-void SmartMatrix::fillCircle(int16_t x0, int16_t y0, uint16_t radius, const rgb24& fillColor)
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::fillCircle(int16_t x0, int16_t y0, uint16_t radius, const RGB& fillColor)
 {
     int a = radius, b = 0;
     int radiusError = 1 - a;
@@ -346,7 +382,8 @@ void SmartMatrix::fillCircle(int16_t x0, int16_t y0, uint16_t radius, const rgb2
 }
 
 // from https://web.archive.org/web/20120225095359/http://homepage.smc.edu/kennedy_john/belipse.pdf
-void SmartMatrix::drawEllipse(int16_t x0, int16_t y0, uint16_t radiusX, uint16_t radiusY, const rgb24& color) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::drawEllipse(int16_t x0, int16_t y0, uint16_t radiusX, uint16_t radiusY, const RGB& color) {
     int16_t twoASquare = 2 * radiusX * radiusX;
     int16_t twoBSquare = 2 * radiusY * radiusY;
     
@@ -407,14 +444,15 @@ void SmartMatrix::drawEllipse(int16_t x0, int16_t y0, uint16_t radiusX, uint16_t
     }
 }
 
-void SmartMatrix::fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
-  uint16_t radius, const rgb24& fillColor) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
+  uint16_t radius, const RGB& fillColor) {
     fillRoundRectangle(x0, y0, x1, y1, radius, fillColor, fillColor);
 }
 
-
-void SmartMatrix::fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
-  uint16_t radius, const rgb24& outlineColor, const rgb24& fillColor) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
+  uint16_t radius, const RGB& outlineColor, const RGB& fillColor) {
     if (x1 < x0)
         SWAPint(x1, x0);
 
@@ -495,8 +533,9 @@ void SmartMatrix::fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t
     fillRectangle(x0 - a, y0 - a, x1 + a, y1 + a, fillColor);
 }
 
-void SmartMatrix::drawRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
-  uint16_t radius, const rgb24& outlineColor) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::drawRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
+  uint16_t radius, const RGB& outlineColor) {
     if (x1 < x0)
         SWAPint(x1, x0);
 
@@ -552,10 +591,10 @@ void SmartMatrix::drawRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t
     }
 }
 
-
 // Code from http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html
-void SmartMatrix::fillFlatSideTriangleInt(int16_t x1, int16_t y1, int16_t x2, int16_t y2,
-  int16_t x3, int16_t y3, const rgb24& color) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::fillFlatSideTriangleInt(int16_t x1, int16_t y1, int16_t x2, int16_t y2,
+  int16_t x3, int16_t y3, const RGB& color) {
     int16_t t1x, t2x, t1y, t2y;
     bool changed1 = false;
     bool changed2 = false;
@@ -640,7 +679,8 @@ void SmartMatrix::fillFlatSideTriangleInt(int16_t x1, int16_t y1, int16_t x2, in
 }
 
 // Code from http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html
-void SmartMatrix::fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const rgb24& fillColor) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const RGB& fillColor) {
     // Sort vertices
     if (y1 > y2) {
         SWAPint(y1, y2);
@@ -675,26 +715,30 @@ void SmartMatrix::fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, i
     }
 }
 
-void SmartMatrix::fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3,
-  const rgb24& outlineColor, const rgb24& fillColor) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3,
+  const RGB& outlineColor, const RGB& fillColor) {
     fillTriangle(x1, y1, x2, y2, x3, y3, fillColor);
     drawTriangle(x1, y1, x2, y2, x3, y3, outlineColor);
 }
 
-void SmartMatrix::drawTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const rgb24& color) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::drawTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const RGB& color) {
     drawLine(x1, y1, x2, y2, color);
     drawLine(x2, y2, x3, y3, color);
     drawLine(x1, y1, x3, y3, color);
 }
 
-void SmartMatrix::drawRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const rgb24& color) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::drawRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& color) {
     drawFastHLine(x0, x1, y0, color);
     drawFastHLine(x0, x1, y1, color);
     drawFastVLine(x0, y0, y1, color);
     drawFastVLine(x1, y0, y1, color);
 }
 
-void SmartMatrix::fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const rgb24& color) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& color) {
     int i;
 // Loop only works if y1 > y0
     if (y0 > y1) {
@@ -710,27 +754,32 @@ void SmartMatrix::fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, 
     }
 }
 
-void SmartMatrix::fillScreen(const rgb24& color) {
-    fillRectangle(0, 0, screenConfig.localWidth, screenConfig.localHeight, color);
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::fillScreen(const RGB& color) {
+    fillRectangle(0, 0, this->localWidth - 1, this->localHeight - 1, color);
 }
 
-void SmartMatrix::fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const rgb24& outlineColor, const rgb24& fillColor) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& outlineColor, const RGB& fillColor) {
     fillRectangle(x0, y0, x1, y1, fillColor);
     drawRectangle(x0, y0, x1, y1, outlineColor);
 }
 
-bool SmartMatrix::getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap) {
+template <typename RGB, unsigned int optionFlags>
+bool SMLayerBackground<RGB, optionFlags>::getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap) {
     int cell = (y * ((width / 8) + 1)) + (x / 8);
 
     uint8_t mask = 0x80 >> (x % 8);
     return (mask & bitmap[cell]);
 }
 
-void SmartMatrix::setFont(fontChoices newFont) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::setFont(fontChoices newFont) {
     font = (bitmap_font *)fontLookup(newFont);
 }
 
-void SmartMatrix::drawChar(int16_t x, int16_t y, const rgb24& charColor, char character) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::drawChar(int16_t x, int16_t y, const RGB& charColor, char character) {
     int xcnt, ycnt;
 
     for (ycnt = 0; ycnt < font->Height; ycnt++) {
@@ -742,7 +791,8 @@ void SmartMatrix::drawChar(int16_t x, int16_t y, const rgb24& charColor, char ch
     }
 }
 
-void SmartMatrix::drawString(int16_t x, int16_t y, const rgb24& charColor, const char text[]) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::drawString(int16_t x, int16_t y, const RGB& charColor, const char text[]) {
     int xcnt, ycnt, i = 0, offset = 0;
     char character;
 
@@ -764,7 +814,8 @@ void SmartMatrix::drawString(int16_t x, int16_t y, const rgb24& charColor, const
 }
 
 // draw string while clearing background
-void SmartMatrix::drawString(int16_t x, int16_t y, const rgb24& charColor, const rgb24& backColor, const char text[]) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::drawString(int16_t x, int16_t y, const RGB& charColor, const RGB& backColor, const char text[]) {
     int xcnt, ycnt, i = 0, offset = 0;
     char character;
 
@@ -787,8 +838,9 @@ void SmartMatrix::drawString(int16_t x, int16_t y, const rgb24& charColor, const
     }
 }
 
-void SmartMatrix::drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height,
-  const rgb24& bitmapColor, const uint8_t *bitmap) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height,
+  const RGB& bitmapColor, const uint8_t *bitmap) {
     int xcnt, ycnt;
 
     for (ycnt = 0; ycnt < height; ycnt++) {
@@ -800,8 +852,8 @@ void SmartMatrix::drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t he
     }
 }
 
-
-void SmartMatrix::handleBufferSwap(void) {
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::handleBufferSwap(void) {
     if (!swapPending)
         return;
 
@@ -810,33 +862,87 @@ void SmartMatrix::handleBufferSwap(void) {
     currentRefreshBuffer = currentDrawBuffer;
     currentDrawBuffer = newDrawBuffer;
 
-    currentRefreshBufferPtr = backgroundBuffer[currentRefreshBuffer];
-    currentDrawBufferPtr = backgroundBuffer[currentDrawBuffer];
+    currentRefreshBufferPtr = &backgroundBuffer[currentRefreshBuffer * (this->matrixWidth * this->matrixHeight)];
+    currentDrawBufferPtr = &backgroundBuffer[currentDrawBuffer * (this->matrixWidth * this->matrixHeight)];
 
     swapPending = false;
 }
 
-// waits until swap is complete before returning
-void SmartMatrix::swapBuffers(bool copy) {
+// waits until previous swap is complete
+// waits until current swap is complete if copy is enabled
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::swapBuffers(bool copy) {
     while (swapPending);
 
     swapPending = true;
 
     if (copy) {
         while (swapPending);
-        memcpy(currentDrawBufferPtr, currentRefreshBufferPtr, sizeof(backgroundBuffer[0]));
+        memcpy(currentDrawBufferPtr, currentRefreshBufferPtr, sizeof(RGB) * (this->matrixWidth * this->matrixHeight));
     }
 }
 
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::copyRefreshToDrawing() {
+    memcpy(currentDrawBufferPtr, currentRefreshBufferPtr, sizeof(RGB) * (this->matrixWidth * this->matrixHeight));
+}
+
 // return pointer to start of currentDrawBuffer, so application can do efficient loading of bitmaps
-rgb24 *SmartMatrix::backBuffer(void) {
-    return currentDrawBufferPtr[0];
+template <typename RGB, unsigned int optionFlags>
+RGB *SMLayerBackground<RGB, optionFlags>::backBuffer(void) {
+    return currentDrawBufferPtr;
 }
 
-void SmartMatrix::setBackBuffer(rgb24 *newBuffer) {
-  currentDrawBufferPtr = (rgb24 (*)[MATRIX_WIDTH])newBuffer;
+template<typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::setBackBuffer(RGB *newBuffer) {
+  currentDrawBufferPtr = newBuffer;
 }
 
-rgb24 *SmartMatrix::getRealBackBuffer() {
-  return &backgroundBuffer[currentDrawBuffer][0][0];
+template<typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::setBrightness(uint8_t brightness) {
+    backgroundBrightness = brightness;
 }
+
+template<typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::enableColorCorrection(bool enabled) {
+    this->ccEnabled = sizeof(RGB) <= 3 ? enabled : false;
+}
+
+// reads pixel from drawing buffer, not refresh buffer
+template<typename RGB, unsigned int optionFlags>
+const RGB SMLayerBackground<RGB, optionFlags>::readPixel(int16_t x, int16_t y) {
+    int hwx, hwy;
+
+    // check for out of bounds coordinates
+    if (x < 0 || y < 0 || x >= this->localWidth || y >= this->localHeight)
+        return (RGB){0, 0, 0};
+
+    // map pixel into hardware buffer before reading
+    if (this->rotation == rotation0) {
+        hwx = x;
+        hwy = y;
+    } else if (this->rotation == rotation180) {
+        hwx = (this->matrixWidth - 1) - x;
+        hwy = (this->matrixHeight - 1) - y;
+    } else if (this->rotation == rotation90) {
+        hwx = (this->matrixWidth - 1) - y;
+        hwy = x;
+    } else { /* if (rotation == rotation270)*/
+        hwx = y;
+        hwy = (this->matrixHeight - 1) - x;
+    }
+
+    return currentDrawBufferPtr[(hwy * this->matrixWidth) + hwx];
+}
+
+template<typename RGB, unsigned int optionFlags>
+RGB *SMLayerBackground<RGB, optionFlags>::getRealBackBuffer() {
+  return &backgroundBuffer[currentDrawBuffer * (this->matrixWidth * this->matrixHeight)];
+}
+
+template<typename RGB, unsigned int optionFlags>
+RGB *SMLayerBackground<RGB, optionFlags>::getCurrentRefreshRow(uint16_t y) {
+  return &currentRefreshBufferPtr[y*this->matrixWidth];
+}
+
+

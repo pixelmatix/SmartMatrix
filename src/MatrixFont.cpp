@@ -1,7 +1,7 @@
 /*
  * SmartMatrix Library - Methods for accessing bitmap fonts
  *
- * Copyright (c) 2014 Louis Beaudoin (Pixelmatix)
+ * Copyright (c) 2015 Louis Beaudoin (Pixelmatix)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "SmartMatrix.h"
+#include "SmartMatrix3.h"
 
 // depends on letters in font->Index table being arranged in ascending order
 // save location of last lookup to speed up repeated lookups of the same letter
@@ -50,7 +50,7 @@ int getBitmapFontLocation(unsigned char letter, const bitmap_font *font) {
     return -1;
 }
 
-bool SmartMatrix::getBitmapFontPixelAtXY(unsigned char letter, unsigned char x, unsigned char y, const bitmap_font *font)
+bool getBitmapFontPixelAtXY(unsigned char letter, unsigned char x, unsigned char y, const bitmap_font *font)
 {
     int location;
     if (y >= font->Height)
@@ -67,7 +67,7 @@ bool SmartMatrix::getBitmapFontPixelAtXY(unsigned char letter, unsigned char x, 
         return false;
 }
 
-uint16_t SmartMatrix::getBitmapFontRowAtXY(unsigned char letter, unsigned char y, const bitmap_font *font) {
+uint16_t getBitmapFontRowAtXY(unsigned char letter, unsigned char y, const bitmap_font *font) {
     int location;
     if (y >= font->Height)
         return 0x0000;
@@ -90,6 +90,6 @@ static const bitmap_font *fontArray[] = {
     &gohufont6x11b,
 };
 
-const bitmap_font *SmartMatrix::fontLookup(fontChoices font) const {
+const bitmap_font *fontLookup(fontChoices font) {
     return fontArray[font];
 }
