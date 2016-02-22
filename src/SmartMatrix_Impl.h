@@ -43,9 +43,6 @@ extern DmaSpi::Transfer trx;
 #define TICKS_PER_FRAME   (TIMER_FREQUENCY/refreshRate)
 
 
-extern uint8_t src[];
-
-
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 const int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixPanelHeight = CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT(panelType);
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
@@ -157,6 +154,24 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalculations(bool initial) {
     static unsigned char currentRow = 0;
+
+    int i;
+
+    // fill start and end frame markers
+    for(i=0; i<4; i++) {
+        matrixUpdateData[i] = 0;
+        matrixUpdateData[4 + (matrixWidth * matrixHeight) + i] = 0;
+    }
+
+    for(i=0; i<8*8; i++) {
+        // global brightness
+        matrixUpdateData[4 + i*4 + 0] = 0xE0 | 0x01;
+
+        matrixUpdateData[4 + i*4 + 1] = i;
+        matrixUpdateData[4 + i*4 + 2] = 64-i;
+        matrixUpdateData[4 + i*4 + 3] = 0;
+    }
+
 
     do {
         // do once-per-frame updates
@@ -337,10 +352,9 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         temp0blue = tempRow0[i].blue;
 
         // load into SPI buffer
-        src[1] = temp0red;
-        src[2] = temp0green;
-        src[3] = temp0blue;
-
+        matrixUpdateData[4 + 1] = temp0red;
+        matrixUpdateData[4 + 2] = temp0green;
+        matrixUpdateData[4 + 3] = temp0blue;
     }
 }
 
@@ -370,7 +384,8 @@ void rowShiftCompleteISR(void) {
 #endif
 
     // do simple SPI transfer
-        trx = DmaSpi::Transfer(src, 1, nullptr);
+        trx = DmaSpi::Transfer((uint8_t*)SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateData,
+            sizeof(SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateData), nullptr);
         DMASPI0.registerTransfer(trx);
 
 

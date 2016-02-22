@@ -24,5 +24,3 @@
 #include "SmartMatrix3.h"
 
 DmaSpi::Transfer trx(nullptr, 0, nullptr);
-
-uint8_t src[SPIBUFFERSIZE];
