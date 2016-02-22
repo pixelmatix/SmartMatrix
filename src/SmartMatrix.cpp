@@ -23,9 +23,6 @@
 
 #include "SmartMatrix3.h"
 
-DMAChannel dmaOutputAddress(false);
-DMAChannel dmaUpdateAddress(false);
-DMAChannel dmaUpdateTimer(false);
-DMAChannel dmaClockOutData(false);
+DmaSpi::Transfer trx(nullptr, 0, nullptr);
 
-CircularBuffer dmaBuffer;
+uint8_t src[SPIBUFFERSIZE];
