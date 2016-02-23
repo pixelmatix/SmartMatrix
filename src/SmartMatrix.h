@@ -89,7 +89,6 @@ private:
     static uint8_t refreshRate;
     static const int matrixPanelHeight;    
     static const int matrixRowPairOffset;    
-    static const int matrixRowsPerFrame;    
 
     const static uint8_t latchesPerRow = refreshDepth/COLOR_CHANNELS_PER_PIXEL;
     static uint8_t dmaBufferNumRows;
@@ -100,6 +99,7 @@ private:
     static bool refreshRateChanged;
 
     static uint32_t * matrixUpdateData;
+    static uint8_t * matrixUpdateDataByte;
 
     static SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>* globalinstance;
 };
@@ -111,9 +111,6 @@ private:
                                                      (x == SMARTMATRIX_HUB75_16ROW_MOD8SCAN ? 16 : 0))
 
 #define CONVERT_PANELTYPE_TO_MATRIXROWPAIROFFSET(x)   ((x == SMARTMATRIX_HUB75_32ROW_MOD16SCAN ? 16 : 0) | \
-                                                     (x == SMARTMATRIX_HUB75_16ROW_MOD8SCAN ? 8 : 0))
-
-#define CONVERT_PANELTYPE_TO_MATRIXROWSPERFRAME(x)   ((x == SMARTMATRIX_HUB75_32ROW_MOD16SCAN ? 16 : 0) | \
                                                      (x == SMARTMATRIX_HUB75_16ROW_MOD8SCAN ? 8 : 0))
 
 #define SMARTMATRIX_OPTIONS_NONE                    0

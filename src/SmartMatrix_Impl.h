@@ -47,8 +47,6 @@ template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char pan
 const int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixPanelHeight = CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT(panelType);
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 const int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixRowPairOffset = CONVERT_PANELTYPE_TO_MATRIXROWPAIROFFSET(panelType);
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-const int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixRowsPerFrame = CONVERT_PANELTYPE_TO_MATRIXROWSPERFRAME(panelType);
 
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
@@ -111,6 +109,8 @@ bool SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
  */
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 uint32_t * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateData;
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+uint8_t * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateDataByte;
 
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
@@ -118,6 +118,7 @@ SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::S
     SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::globalinstance = this;
 
     matrixUpdateData = dataBuffer;
+    matrixUpdateDataByte = (uint8_t*)matrixUpdateData;
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
@@ -152,28 +153,65 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers(unsigned char currentRow) {
+    int i,j;
+
+    // static to avoid putting large buffer on the stack
+    static rgb24 tempRow0[matrixWidth];
+
+    // clear buffer to prevent garbage data showing through transparent layers
+    memset(tempRow0, 0x00, sizeof(tempRow0));
+
+    // get pixel data from layers
+    SM_Layer * templayer = globalinstance->baseLayer;
+    while(templayer) {
+        templayer->fillRefreshRow(currentRow, &tempRow0[0]);
+        templayer = templayer->nextLayer;        
+    }
+
+
+    for (j = 0; j < matrixWidth; j++) {
+        if(currentRow % 2)
+            i=(matrixWidth-j-1);
+        else
+            i=j;
+
+        uint16_t temp0red,temp0green,temp0blue;
+
+        temp0red = tempRow0[j].red;
+        temp0green = tempRow0[j].green;
+        temp0blue = tempRow0[j].blue;
+
+        matrixUpdateDataByte[4 + 1] = temp0red;
+        matrixUpdateDataByte[4 + 2] = temp0green;
+        matrixUpdateDataByte[4 + 3] = temp0blue;
+
+
+        // global brightness
+        matrixUpdateDataByte[4 + ((currentRow * matrixWidth + i) * 4) + 0] = 0xE0 | 0x01;
+
+        matrixUpdateDataByte[4 + ((currentRow * matrixWidth + i) * 4) + 1] = temp0red;
+        matrixUpdateDataByte[4 + ((currentRow * matrixWidth + i) * 4) + 2] = temp0green;
+        matrixUpdateDataByte[4 + ((currentRow * matrixWidth + i) * 4) + 3] = temp0blue;
+    }
+}
+
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalculations(bool initial) {
     static unsigned char currentRow = 0;
-
     int i;
 
     // fill start and end frame markers
     for(i=0; i<4; i++) {
-        matrixUpdateData[i] = 0;
-        matrixUpdateData[4 + (matrixWidth * matrixHeight) + i] = 0;
+        matrixUpdateDataByte[i] = 0;
+        matrixUpdateDataByte[4 + (matrixWidth * matrixHeight) + i] = 0;
     }
-
-    for(i=0; i<8*8; i++) {
-        // global brightness
-        matrixUpdateData[4 + i*4 + 0] = 0xE0 | 0x01;
-
-        matrixUpdateData[4 + i*4 + 1] = i;
-        matrixUpdateData[4 + i*4 + 2] = 64-i;
-        matrixUpdateData[4 + i*4 + 3] = 0;
-    }
-
 
     do {
+
+#ifdef DEBUG_PINS_ENABLED
+    digitalWriteFast(DEBUG_PIN_3, HIGH); // oscilloscope trigger
+#endif
         // do once-per-frame updates
         if (!currentRow) {
             if (rotationChange) {
@@ -199,11 +237,17 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         // do once-per-line updates
         // none right now
 
-        // enqueue row
-        if (++currentRow >= matrixRowsPerFrame)
-            currentRow = 0;
 
         SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers(currentRow);
+
+#ifdef DEBUG_PINS_ENABLED
+    digitalWriteFast(DEBUG_PIN_3, LOW);
+#endif
+
+        // enqueue row
+        if (++currentRow >= matrixHeight)
+            currentRow = 0;
+
 
     } while (currentRow);
 }
@@ -326,38 +370,6 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 
 }
 
-
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers(unsigned char currentRow) {
-    int i;
-
-    // static to avoid putting large buffer on the stack
-    static rgb48 tempRow0[matrixWidth];
-
-    // clear buffer to prevent garbage data showing through transparent layers
-    memset(tempRow0, 0x00, sizeof(tempRow0));
-
-    // get pixel data from layers
-    SM_Layer * templayer = globalinstance->baseLayer;
-    while(templayer) {
-        //templayer->fillRefreshRow(currentRow, &tempRow0[matrixWidth]);
-        templayer = templayer->nextLayer;        
-    }
-
-    for (i = 0; i < matrixWidth; i++) {
-        uint16_t temp0red,temp0green,temp0blue;
-
-        temp0red = tempRow0[i].red;
-        temp0green = tempRow0[i].green;
-        temp0blue = tempRow0[i].blue;
-
-        // load into SPI buffer
-        matrixUpdateData[4 + 1] = temp0red;
-        matrixUpdateData[4 + 2] = temp0green;
-        matrixUpdateData[4 + 3] = temp0blue;
-    }
-}
-
 // called by SPI when transfer is done
 // calculate data for next frame
 // low priority ISR as it will take a long time to complete
@@ -385,7 +397,7 @@ void rowShiftCompleteISR(void) {
 
     // do simple SPI transfer
         trx = DmaSpi::Transfer((uint8_t*)SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateData,
-            sizeof(SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateData), nullptr);
+                ((matrixWidth * matrixHeight)*4) + (4+4), nullptr);
         DMASPI0.registerTransfer(trx);
 
 
