@@ -23,8 +23,4 @@
 
 #include "SmartMatrix3.h"
 
-#ifdef USE_DMA_SPI
-DmaSpi::Transfer trx(nullptr, 0, nullptr);
-#else
 DMAChannel dmaClockOutData(false);
-#endif
