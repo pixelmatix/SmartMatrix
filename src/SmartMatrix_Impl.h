@@ -250,11 +250,11 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         // none right now
 
         // enqueue row
-        if (++currentRow >= matrixRowsPerFrame)
-            currentRow = 0;
-
         SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers(currentRow);
         cbWrite(&dmaBuffer);
+
+        if (++currentRow >= matrixRowsPerFrame)
+            currentRow = 0;
 
         if(dmaBufferUnderrun) {
             // if refreshrate is too high, lower - minimum set to avoid overflowing timer at low refresh rates
