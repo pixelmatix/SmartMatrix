@@ -157,7 +157,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     int i,j;
 
     // static to avoid putting large buffer on the stack
-    static rgb24 tempRow0[matrixWidth];
+    static rgb48 tempRow0[matrixWidth];
 
     // clear buffer to prevent garbage data showing through transparent layers
     memset(tempRow0, 0x00, sizeof(tempRow0));
@@ -186,13 +186,28 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         matrixUpdateDataByte[4 + 2] = temp0green;
         matrixUpdateDataByte[4 + 3] = temp0blue;
 
+        uint8_t globalbrightness = (0x20UL * (dimmingMaximum - dimmingFactor)) / dimmingMaximum;
+        uint8_t localshift = 0;
+        uint16_t value = temp0red | temp0green | temp0blue;
+
+        if(globalbrightness == 0x20)
+            globalbrightness = 0x1f;
+
+        // shift until the highest bit of value is set, or until globalbrightness == 1)
+        while(!((value << localshift) & 0x8000) && (globalbrightness != 1)) {
+            globalbrightness >>= 1;
+            localshift++;
+        }
+
+        // shift needs to put 16-bit color value into lowest byte, which will be sent over SPI
+        localshift = 8 - localshift;
 
         // global brightness
-        matrixUpdateDataByte[4 + ((currentRow * matrixWidth + i) * 4) + 0] = 0xE0 | 0x01;
+        matrixUpdateDataByte[4 + ((currentRow * matrixWidth + i) * 4) + 0] = 0xE0 | globalbrightness;
 
-        matrixUpdateDataByte[4 + ((currentRow * matrixWidth + i) * 4) + 1] = temp0red;
-        matrixUpdateDataByte[4 + ((currentRow * matrixWidth + i) * 4) + 2] = temp0green;
-        matrixUpdateDataByte[4 + ((currentRow * matrixWidth + i) * 4) + 3] = temp0blue;
+        matrixUpdateDataByte[4 + ((currentRow * matrixWidth + i) * 4) + 1] = temp0red >> localshift;
+        matrixUpdateDataByte[4 + ((currentRow * matrixWidth + i) * 4) + 2] = temp0green >> localshift;
+        matrixUpdateDataByte[4 + ((currentRow * matrixWidth + i) * 4) + 3] = temp0blue >> localshift;
     }
 }
 
