@@ -23,10 +23,19 @@
 
 #include "SmartMatrix3.h"
 #include <SPI.h>
+
+
+//#define USE_DMA_SPI
+
 // Needs to be modified version of DmaSpi: https://github.com/pixelmatix/DmaSpi/tree/userCallback
+#ifdef USE_DMA_SPI
 #include <DmaSpi.h>
 
 extern DmaSpi::Transfer trx;
+#else
+#include "DMAChannel.h"
+#endif
+
 
 #define INLINE __attribute__( ( always_inline ) ) inline
 
@@ -42,6 +51,7 @@ extern DmaSpi::Transfer trx;
 //#define LATCH_TIMER_PULSE_WIDTH_TICKS   NS_TO_TICKS(LATCH_TIMER_PULSE_WIDTH_NS)
 #define TICKS_PER_FRAME   (TIMER_FREQUENCY/refreshRate)
 
+extern DMAChannel dmaClockOutData;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 const int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixPanelHeight = CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT(panelType);
@@ -357,10 +367,19 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 
     // setup()
     SPI.begin();
+#ifdef USE_DMA_SPI
     DMASPI0.begin();
     DMASPI0.start();
     DMASPI0.setCallback(rowCalculationISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
-
+#else
+    dmaClockOutData.begin(false);
+    dmaClockOutData.disable();
+    dmaClockOutData.destination((volatile uint8_t&)SPI0_PUSHR);
+    dmaClockOutData.disableOnCompletion();
+    dmaClockOutData.triggerAtHardwareEvent(DMAMUX_SOURCE_SPI0_TX);
+    dmaClockOutData.attachInterrupt(rowCalculationISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
+    dmaClockOutData.interruptAtCompletion();
+#endif
     // setup FTM1
     FTM1_SC = 0;
     FTM1_CNT = 0;
@@ -394,6 +413,10 @@ void rowCalculationISR(void) {
     digitalWriteFast(DEBUG_PIN_2, HIGH); // oscilloscope trigger
 #endif
 
+
+#ifndef USE_DMA_SPI
+    dmaClockOutData.clearInterrupt();
+#endif
     SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalculations();
 
 
@@ -410,19 +433,25 @@ void rowShiftCompleteISR(void) {
     digitalWriteFast(DEBUG_PIN_1, HIGH); // oscilloscope trigger
 #endif
 
-    // do simple SPI transfer
-        trx = DmaSpi::Transfer((uint8_t*)SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateData,
-                ((matrixWidth * matrixHeight)*4) + (4+4), nullptr);
-        DMASPI0.registerTransfer(trx);
-
-
-    // if underrun
-
+    // TODO: if underrun
         // set flag so other ISR can enable DMA again when data is ready
-        SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBufferUnderrun = true;
-
-    // otherwise, start SPI
-
+        //SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBufferUnderrun = true;
+    // else, start SPI
+#ifdef USE_DMA_SPI
+    trx = DmaSpi::Transfer((uint8_t*)SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateData,
+            ((matrixWidth * matrixHeight)*4) + (4+4), nullptr);
+    DMASPI0.registerTransfer(trx);
+#else
+    SPI.endTransaction();
+    SPI0_RSER = 0;
+    SPI0_SR = 0xFF0F0000;
+    dmaClockOutData.sourceBuffer((uint8_t*)SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateData,
+        ((matrixWidth * matrixHeight)*4) + (4+4));
+    SPI0_SR = 0xFF0F0000;
+    SPI0_RSER = SPI_RSER_RFDF_RE | SPI_RSER_RFDF_DIRS | SPI_RSER_TFFF_RE | SPI_RSER_TFFF_DIRS;
+    SPI.beginTransaction(SPISettings());
+    dmaClockOutData.enable();
+#endif
 
     // clear timer overflow bit before leaving ISR
     FTM1_SC &= ~FTM_SC_TOF;
