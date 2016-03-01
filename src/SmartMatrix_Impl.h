@@ -67,7 +67,7 @@ uint8_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionF
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 uint16_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBufferBytesPerRow;
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-uint8_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refreshRate = 30;
+uint8_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refreshRate = 60;
 
 
 // todo: just use a single buffer for Blocks/LUT/Data?
@@ -363,6 +363,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     dmaClockOutData.triggerAtHardwareEvent(DMAMUX_SOURCE_SPI0_TX);
     dmaClockOutData.attachInterrupt(rowCalculationISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
     dmaClockOutData.interruptAtCompletion();
+    NVIC_SET_PRIORITY(IRQ_DMA_CH0 + dmaClockOutData.channel, ROW_CALCULATION_ISR_PRIORITY);
 
     // setup FTM1
     FTM1_SC = 0;
