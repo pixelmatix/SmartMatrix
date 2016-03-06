@@ -214,7 +214,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     // fill start and end frame markers
     for(i=0; i<4; i++) {
         matrixUpdateDataByte[i] = 0;
-        matrixUpdateDataByte[4 + (matrixWidth * matrixHeight) + i] = 0;
+        matrixUpdateDataByte[4 + (matrixWidth * matrixHeight * 4) + i] = 0xFF;
     }
 
     do {
