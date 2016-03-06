@@ -200,9 +200,9 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         // global brightness
         matrixUpdateDataByte[4 + ((currentRow * matrixWidth + i) * 4) + 0] = 0xE0 | globalbrightness;
 
-        matrixUpdateDataByte[4 + ((currentRow * matrixWidth + i) * 4) + 1] = temp0red >> localshift;
+        matrixUpdateDataByte[4 + ((currentRow * matrixWidth + i) * 4) + 1] = temp0blue >> localshift;
         matrixUpdateDataByte[4 + ((currentRow * matrixWidth + i) * 4) + 2] = temp0green >> localshift;
-        matrixUpdateDataByte[4 + ((currentRow * matrixWidth + i) * 4) + 3] = temp0blue >> localshift;
+        matrixUpdateDataByte[4 + ((currentRow * matrixWidth + i) * 4) + 3] = temp0red >> localshift;
     }
 }
 
