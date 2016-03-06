@@ -181,10 +181,6 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         temp0green = tempRow0[j].green;
         temp0blue = tempRow0[j].blue;
 
-        matrixUpdateDataByte[4 + 1] = temp0red;
-        matrixUpdateDataByte[4 + 2] = temp0green;
-        matrixUpdateDataByte[4 + 3] = temp0blue;
-
         uint8_t globalbrightness = (0x20UL * (dimmingMaximum - dimmingFactor)) / dimmingMaximum;
         uint8_t localshift = 0;
         uint16_t value = temp0red | temp0green | temp0blue;
