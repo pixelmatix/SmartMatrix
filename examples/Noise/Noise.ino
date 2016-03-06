@@ -48,7 +48,7 @@ const PatternList patterns = {
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 const uint8_t patternCount = ARRAY_SIZE(patterns);
 
-uint8_t patternIndex = 8;
+uint8_t patternIndex = 0;
 
 void setup() {
   // uncomment the following lines if you want to see FPS count information
@@ -170,12 +170,7 @@ void drawNoise(CRGBPalette16 palette)
       index = qsub8(index, 16);
       index = qadd8(index, scale8(index, 39));
 
-      CRGB c = ColorFromPalette(palette, index);
-
-      // fix color order (my panel is bgr)
-      CRGB color = CRGB(c.b, c.g, c.r);
-
-      buffer[XY(x, y)] = color;
+      buffer[XY(x, y)] = ColorFromPalette(palette, index);
     }
   }
 
