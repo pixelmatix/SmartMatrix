@@ -1,0 +1,101 @@
+#######################################
+# Syntax Coloring Map For SmartMatrix
+#######################################
+# Separate using TABS not SPACES!
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+ScrollMode	KEYWORD1
+fontChoices	KEYWORD1
+rgb24	KEYWORD1
+rgb48	KEYWORD1
+colorCorrectionModes	KEYWORD1
+rotationDegrees	KEYWORD1
+SmartMatrix3	KEYWORD1
+SMLayerScrolling	KEYWORD1
+SMLayerIndexed	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+# SmartMatrix3 Class
+begin	KEYWORD2
+addLayer	KEYWORD2
+
+setRotation KEYWORD2
+setBrightness	KEYWORD2
+setRefreshRate	KEYWORD2
+
+getScreenWidth	KEYWORD2
+getScreenHeight	KEYWORD2
+getRefreshRate	KEYWORD2
+getdmaBufferUnderrunFlag	KEYWORD2
+getRefreshRateLoweredFlag	KEYWORD2
+
+countFPS KEYWORD2
+
+# Layer class
+frameRefreshCallback	KEYWORD2
+fillRefreshRow	KEYWORD2
+
+# SMLayerScrolling class
+stop	KEYWORD2
+getStatus	KEYWORD2
+start	KEYWORD2
+update	KEYWORD2
+setMode	KEYWORD2
+setColor	KEYWORD2
+setSpeed	KEYWORD2
+setFont	KEYWORD2
+setOffsetFromTop	KEYWORD2
+setStartOffsetFromLeft	KEYWORD2
+enableColorCorrection	KEYWORD2
+
+# SMLayerIndexed class
+enableColorCorrection	KEYWORD2
+setIndexedColor	KEYWORD2
+fillScreen	KEYWORD2
+swapBuffers	KEYWORD2
+drawPixel	KEYWORD2
+setFont	KEYWORD2
+drawChar	KEYWORD2
+drawString	KEYWORD2
+drawMonoBitmap	KEYWORD2
+
+# SMLayerBackground class
+swapBuffers	KEYWORD2
+copyRefreshToDrawing	KEYWORD2
+drawPixel	KEYWORD2
+drawLine	KEYWORD2
+drawFastVLine	KEYWORD2
+drawFastHLine	KEYWORD2
+drawCircle	KEYWORD2
+fillCircle	KEYWORD2
+drawEllipse	KEYWORD2
+drawTriangle	KEYWORD2
+fillTriangle	KEYWORD2
+drawRectangle	KEYWORD2
+fillRectangle	KEYWORD2
+drawRoundRectangle	KEYWORD2
+fillRoundRectangle	KEYWORD2
+fillScreen	KEYWORD2
+drawChar	KEYWORD2
+drawString	KEYWORD2
+drawMonoBitmap	KEYWORD2
+readPixel	KEYWORD2
+backBuffer	KEYWORD2
+setBackBuffer	KEYWORD2
+getRealBackBuffer	KEYWORD2
+setFont	KEYWORD2
+setBrightness	KEYWORD2
+enableColorCorrection	KEYWORD2
+
+
+#######################################
+# Instances (KEYWORD2)
+#######################################
+
+#######################################
+# Constants (LITERAL1)
+#######################################
