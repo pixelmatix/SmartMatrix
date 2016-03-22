@@ -2,7 +2,7 @@
 #include "application.h"
 
 #include <SmartMatrix3.h>
-#include "FastLED.h"
+#include "FastLED/FastLED.h"
 FASTLED_USING_NAMESPACE;
 
 #define COLOR_DEPTH 24                  // known working: 24, 48 - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
