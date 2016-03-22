@@ -6,8 +6,8 @@
 FASTLED_USING_NAMESPACE;
 
 #define COLOR_DEPTH 24                  // known working: 24, 48 - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
-const uint8_t kMatrixWidth = 8;        // known working: 16, 32, 48, 64
-const uint8_t kMatrixHeight = 8;       // known working: 32, 64, 96, 128
+const uint8_t kMatrixWidth = 16;        // known working: 16, 32, 48, 64
+const uint8_t kMatrixHeight = 16;       // known working: 32, 64, 96, 128
 const uint8_t kRefreshDepth = 36;       // known working: 24, 36, 48
 const uint8_t kDmaBufferRows = 4;       // known working: 2-4, use 2 to save memory, more to keep from dropping frames and automatically lowering refresh rate
 const uint8_t kPanelType = 0;   // use SMARTMATRIX_HUB75_16ROW_MOD8SCAN for common 16x32 panels
@@ -19,79 +19,94 @@ SMARTMATRIX_ALLOCATE_BUFFERS(matrix, kMatrixWidth, kMatrixHeight, kRefreshDepth,
 SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kBackgroundLayerOptions);
 SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
 
-// The 32bit version of our coordinates
-static uint16_t x;
-static uint16_t y;
-static uint16_t z;
+rgb24 *buffer;
 
-// We're using the x/y dimensions to map to the x/y pixels on the matrix.  We'll
-// use the z-axis for "time".  speed determines how fast time moves forward.  Try
-// 1 for a very slow moving effect, or 60 for something that ends up looking like
-// water.
-// uint16_t speed = 1; // almost looks like a painting, moves very slowly
-uint16_t speed = 5; // a nice starting speed, mixes well with a scale of 100
-// uint16_t speed = 33;
-// uint16_t speed = 100; // wicked fast!
+const uint16_t NUM_LEDS = kMatrixWidth * kMatrixHeight;
+const uint8_t kMatrixCenterX = kMatrixWidth / 2;
+const uint8_t maxX = kMatrixWidth - 1;
 
-// Scale determines how far apart the pixels in our noise matrix are.  Try
-// changing these values around to see how it affects the motion of the display.  The
-// higher the value of scale, the more "zoomed out" the noise iwll be.  A value
-// of 1 will be so zoomed in, you'll mostly see solid colors.
+const uint8_t scale = 256 / kMatrixWidth;
 
-// uint16_t scale = 1; // mostly just solid colors
-// uint16_t scale = 4011; // very zoomed out and shimmery
-uint16_t scale = 31;
 
-// This is the array that we keep our computed noise values in
-uint8_t noise[kMatrixWidth][kMatrixHeight];
-
-void setup() { 
-    matrix.addLayer(&backgroundLayer); 
-    matrix.addLayer(&scrollingLayer); 
-    matrix.begin();
-
-    matrix.setBrightness(64);
-    
-    //scrollingLayer.start("SmartMatrix and Particle Photon", -1);
+uint16_t XY(uint8_t x, uint8_t y) {
+  return kMatrixWidth * x + y;
 }
 
-// Fill the x/y array of 8-bit noise values using the inoise8 function.
-void fillnoise8() {
-  for(int i = 0; i < kMatrixWidth; i++) {
-    int ioffset = scale * i;
-    for(int j = 0; j < kMatrixHeight; j++) {
-      int joffset = scale * j;
-      noise[i][j] = inoise8(x + ioffset,y + joffset,z);
-    }
+// scale the brightness of all pixels down
+void dimAll(byte value)
+{
+  for (int i = 0; i < NUM_LEDS; i++) {
+    CRGB c = CRGB(buffer[i].red, buffer[i].green, buffer[i].blue);
+    c.nscale8(value);
+    buffer[i] = c;
   }
-  z += speed;
 }
 
+void setup() {
+  // uncomment the following lines if you want to see FPS count information
+  delay(1000);
+  Serial.begin(38400);
+  Serial.println("resetting!");
 
-void loop() { 
-  static uint8_t circlex = 0;
-  static uint8_t circley = 0;
+  matrix.addLayer(&backgroundLayer);
+  matrix.addLayer(&scrollingLayer);
+  matrix.begin();
 
-  rgb24 *buffer = backgroundLayer.backBuffer();
+  matrix.setBrightness(64);
 
-  static uint8_t ihue=0;
-  fillnoise8();
-  for(int i = 0; i < kMatrixWidth; i++) {
-    for(int j = 0; j < kMatrixHeight; j++) {
-      // We use the value at the (i,j) coordinate in the noise
-      // array for our brightness, and the flipped value from (j,i)
-      // for our pixel's hue.
-      buffer[kMatrixWidth*j + i] = CRGB(CHSV(noise[j][i],255,noise[i][j]));
+  //scrollingLayer.start("SmartMatrix & APA102", -1);
+}
 
-      // You can also explore other ways to constrain the hue used, like below
-      // buffer[kMatrixHeight*j + i] = CRGB(CHSV(ihue + (noise[j][i]>>2),255,noise[i][j]));
-    }
+void loop() {
+  buffer = backgroundLayer.backBuffer();
+
+  dimAll(250);
+
+  static uint8_t theta = 0;
+  static uint8_t hue = 0;
+  static uint8_t rotation = random(0, 4);
+  static uint8_t waveCount = random(1, 3);
+  
+  switch (rotation) {
+    case 0:
+      for (uint8_t x = 0; x < kMatrixWidth; x++) {
+        uint8_t y = quadwave8(x * 2 + theta) / scale;
+        buffer[XY(x, y)] = CRGB(CHSV(x + hue, 255, 255));
+      }
+      break;
+
+    case 1:
+      for (uint8_t y = 0; y < kMatrixHeight; y++) {
+        uint8_t x = quadwave8(y * 2 + theta) / scale;
+        buffer[XY(x, y)] = CRGB(CHSV(y + hue, 255, 255));
+      }
+      break;
+
+    case 2:
+      for (uint8_t x = 0; x < kMatrixWidth; x++) {
+        uint8_t y = quadwave8(x * 2 - theta) / scale;
+        buffer[XY(x, y)] = CRGB(CHSV(x + hue, 255, 255));
+      }
+      break;
+
+    case 3:
+      for (uint8_t y = 0; y < kMatrixHeight; y++) {
+        uint8_t x = quadwave8(y * 2 - theta) / scale;
+        buffer[XY(x, y)] = CRGB(CHSV(y + hue, 255, 255));
+        if (waveCount == 2)
+          buffer[XY(maxX - x, y)] = CRGB(CHSV(y + hue, 255, 255));
+      }
+      break;
   }
-  ihue+=1;
 
-  //backgroundLayer.fillCircle(circlex % kMatrixWidth,circley % kMatrixHeight,6,CRGB(CHSV(ihue+128,255,255)));
-  circlex += random16(2);
-  circley += random16(2);
+  theta++;
+  hue++;
+
+  EVERY_N_SECONDS(10) {
+    rotation = random(0, 4);
+    waveCount = random(1, 3);
+  }
+
   backgroundLayer.swapBuffers(false);
-  //matrix.countFPS();      // print the loop() frames per second to Serial
+  matrix.countFPS();      // print the loop() frames per second to Serial
 }
