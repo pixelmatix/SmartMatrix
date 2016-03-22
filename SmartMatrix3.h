@@ -119,7 +119,7 @@ private:
 
 // single matrixUpdateBlocks buffer is divided up to hold matrixUpdateBlocks, addressLUT, timerLUT to simplify user sketch code and reduce constructor parameters
 #define SMARTMATRIX_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
-    static DMAMEM uint32_t matrixUpdateData[(((width*height) * 4) + (4+4)) / sizeof(uint32_t)]; \
+    static uint32_t matrixUpdateData[(((width*height) * 4) + (4+4)) / sizeof(uint32_t)]; \
     SmartMatrix3<pwm_depth, width, height, panel_type, option_flags> matrix_name(buffer_rows, matrixUpdateData)
 
 #define SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(layer_name, width, height, storage_depth, scrolling_options) \

@@ -33,10 +33,9 @@
 
 // hardware-specific definitions
 // prescale of 7 is F_BUS/128
-#define LATCH_TIMER_PRESCALE  0x07
-#define TIMER_FREQUENCY     (F_BUS/128)
+#define LATCH_TIMER_PRESCALE  31
+#define TIMER_FREQUENCY     ((SystemCoreClock / 2) / LATCH_TIMER_PRESCALE + 1)
 #define NS_TO_TICKS(X)      (uint32_t)(TIMER_FREQUENCY * ((X) / 1000000000.0))
-//#define LATCH_TIMER_PULSE_WIDTH_TICKS   NS_TO_TICKS(LATCH_TIMER_PULSE_WIDTH_NS)
 #define TICKS_PER_FRAME   (TIMER_FREQUENCY/refreshRate)
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
@@ -352,40 +351,45 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     digitalWriteFast(DEBUG_PIN_3, LOW);
 #endif
 
-#if 0
+
     // setup SPI and DMA to feed it
-    SPI.begin();
-    dmaClockOutData.begin(false);
-    dmaClockOutData.disable();
-    dmaClockOutData.destination((volatile uint8_t&)SPI0_PUSHR);
-    dmaClockOutData.disableOnCompletion();
-    dmaClockOutData.triggerAtHardwareEvent(DMAMUX_SOURCE_SPI0_TX);
-    dmaClockOutData.attachInterrupt(rowCalculationISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
-    dmaClockOutData.interruptAtCompletion();
-    NVIC_SET_PRIORITY(IRQ_DMA_CH0 + dmaClockOutData.channel, ROW_CALCULATION_ISR_PRIORITY);
+    SPI1.begin(D5);
+    //SPI1.setBitOrder(order);
+    SPI1.setClockSpeed(1000000);
+    //SPI1.setClockDivider(divider);
+    //SPI1.setDataMode(mode);
+    SPI1.setBitOrder(MSBFIRST);
+    SPI1.setDataMode(SPI_MODE0);
 
-    // setup FTM1
-    FTM1_SC = 0;
-    FTM1_CNT = 0;
-    FTM1_MOD = TICKS_PER_FRAME;
+    // setup Timer
+    TIM_TimeBaseInitTypeDef timerInitStructure;
+    NVIC_InitTypeDef nvicStructure;
 
-    // latch pulse width wide enough to be seen on logic analyzer
-    FTM1_C0V = 100;
+    // TIM clock enable
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM7, ENABLE);
 
-#define ENABLE_LATCH_PWM_OUTPUT() {                                     \
-        CORE_PIN3_CONFIG |= PORT_PCR_MUX(3) | PORT_PCR_DSE | PORT_PCR_SRE;  \
-    }
+    uint16_t TIM_Prescaler = LATCH_TIMER_PRESCALE;
 
-    // setup PWM outputs
-    ENABLE_LATCH_PWM_OUTPUT();
+    // Timebase configuration
+    timerInitStructure.TIM_Prescaler = TIM_Prescaler;
+    timerInitStructure.TIM_CounterMode = TIM_CounterMode_Up;
+    timerInitStructure.TIM_Period = TICKS_PER_FRAME;
+    timerInitStructure.TIM_ClockDivision = 0;
 
-    // enable timer from system clock, with appropriate prescale, TOF interrupt
-    FTM1_SC = FTM_SC_CLKS(1) | FTM_SC_PS(LATCH_TIMER_PRESCALE) | FTM_SC_TOIE;
+    TIM_TimeBaseInit(TIM7, &timerInitStructure);
 
-    attachInterruptVector(IRQ_FTM1, rowShiftCompleteISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
+    TIM_ITConfig(TIM7, TIM_IT_Update, ENABLE);
 
-    NVIC_ENABLE_IRQ(IRQ_FTM1);
-#endif
+    TIM_Cmd(TIM7, ENABLE);
+
+    attachSystemInterrupt(SysInterrupt_TIM7_IRQ, rowShiftCompleteISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
+
+    // Enable Timer Interrupt
+    nvicStructure.NVIC_IRQChannel = TIM7_IRQn;
+    nvicStructure.NVIC_IRQChannelPreemptionPriority = 10;
+    nvicStructure.NVIC_IRQChannelSubPriority = 1;
+    nvicStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&nvicStructure);
 }
 
 // called by SPI when transfer is done
@@ -417,23 +421,9 @@ void rowShiftCompleteISR(void) {
         // set flag so other ISR can enable DMA again when data is ready
         //SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBufferUnderrun = true;
     // else, start SPI
-#if 0
-    SPI.endTransaction();
-    
-    // disable SPI interrupts
-    SPI0_RSER = 0;
-    // clear flags
-    SPI0_SR = SPI_SR_TCF | SPI_SR_EOQF | SPI_SR_TFUF | SPI_SR_TFFF | SPI_SR_RFOF | SPI_SR_RFDF;
-    dmaClockOutData.sourceBuffer((uint8_t*)SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateData,
-        ((matrixWidth * matrixHeight)*4) + (4+4));
-    // Enable Transmit Fill DMA Requests
-    SPI0_RSER = SPI_RSER_TFFF_RE | SPI_RSER_TFFF_DIRS;
-    SPI.beginTransaction(SPISettings());
-    dmaClockOutData.enable();
-
-    // clear timer overflow bit before leaving ISR
-    FTM1_SC &= ~FTM_SC_TOF;
-#endif
+    SPI1.transfer((uint8_t*)SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateData,
+        (uint8_t*)SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateData,
+        ((matrixWidth * matrixHeight)*4) + (4+4), rowCalculationISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
 
 #ifdef DEBUG_PINS_ENABLED
     digitalWriteFast(DEBUG_PIN_1, LOW); // oscilloscope trigger
