@@ -53,7 +53,7 @@
     p3r1:1, p3clk:1, p3g2:1, p3pad:1, p3b1:1, p3b2:1, p3r2:1, p3g1:1
 
 
-#define DEBUG_PINS_ENABLED
+//#define DEBUG_PINS_ENABLED
 #define DEBUG_PIN_1 17
 #define DEBUG_PIN_2 18
 #define DEBUG_PIN_3 19

@@ -23,4 +23,3 @@
 
 #include "SmartMatrix3.h"
 
-DMAChannel dmaClockOutData(false);

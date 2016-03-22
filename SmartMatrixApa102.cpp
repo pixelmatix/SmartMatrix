@@ -1,6 +1,8 @@
 #pragma SPARK_NO_PREPROCESSOR
 #include "application.h"
 
+#include "SmartMatrix3.h"
+
 
 // hardware-specific definitions
 // prescale of 7 is F_BUS/128

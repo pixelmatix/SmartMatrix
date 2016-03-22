@@ -22,9 +22,8 @@
  */
 
 #include "SmartMatrix3.h"
-#include <SPI.h>
+#include "application.h"
 
-#include "DMAChannel.h"
 
 #define INLINE __attribute__( ( always_inline ) ) inline
 
@@ -39,8 +38,6 @@
 #define NS_TO_TICKS(X)      (uint32_t)(TIMER_FREQUENCY * ((X) / 1000000000.0))
 //#define LATCH_TIMER_PULSE_WIDTH_TICKS   NS_TO_TICKS(LATCH_TIMER_PULSE_WIDTH_NS)
 #define TICKS_PER_FRAME   (TIMER_FREQUENCY/refreshRate)
-
-extern DMAChannel dmaClockOutData;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 const int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixPanelHeight = CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT(panelType);
@@ -355,6 +352,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     digitalWriteFast(DEBUG_PIN_3, LOW);
 #endif
 
+#if 0
     // setup SPI and DMA to feed it
     SPI.begin();
     dmaClockOutData.begin(false);
@@ -387,7 +385,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     attachInterruptVector(IRQ_FTM1, rowShiftCompleteISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
 
     NVIC_ENABLE_IRQ(IRQ_FTM1);
-
+#endif
 }
 
 // called by SPI when transfer is done
@@ -399,10 +397,6 @@ void rowCalculationISR(void) {
     digitalWriteFast(DEBUG_PIN_2, HIGH); // oscilloscope trigger
 #endif
 
-
-#ifndef USE_DMA_SPI
-    dmaClockOutData.clearInterrupt();
-#endif
     SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalculations();
 
 
@@ -423,6 +417,7 @@ void rowShiftCompleteISR(void) {
         // set flag so other ISR can enable DMA again when data is ready
         //SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBufferUnderrun = true;
     // else, start SPI
+#if 0
     SPI.endTransaction();
     
     // disable SPI interrupts
@@ -438,6 +433,7 @@ void rowShiftCompleteISR(void) {
 
     // clear timer overflow bit before leaving ISR
     FTM1_SC &= ~FTM_SC_TOF;
+#endif
 
 #ifdef DEBUG_PINS_ENABLED
     digitalWriteFast(DEBUG_PIN_1, LOW); // oscilloscope trigger
