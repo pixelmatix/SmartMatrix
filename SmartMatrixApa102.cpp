@@ -31,7 +31,7 @@ FASTLED_USING_NAMESPACE;
   #define DATA_PIN D2
   #define CLOCK_PIN D4
   
-  #define COLOR_ORDER RGB
+  #define COLOR_ORDER BGR
   #define CHIPSET     APA102
   
   // Params for width and height
@@ -106,6 +106,7 @@ void setup() {
   FastLED.setBrightness( BRIGHTNESS );
 
   FastLED.setDither(BINARY_DITHER);
+  //FastLED.setDither(DISABLE_DITHER);
 #endif
 }
 
