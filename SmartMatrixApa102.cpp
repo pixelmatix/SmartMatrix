@@ -1,112 +1,144 @@
-#pragma SPARK_NO_PREPROCESSOR
+#define SMARTMATRIX_ENABLED   1
+
 #include "application.h"
 
-#include <SmartMatrix3.h>
+#if (SMARTMATRIX_ENABLED == 1)
+  #include <SmartMatrix3.h>
+#endif
+
 #include "FastLED/FastLED.h"
 FASTLED_USING_NAMESPACE;
 
-#define COLOR_DEPTH 24                  // known working: 24, 48 - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
-const uint8_t kMatrixWidth = 16;        // known working: 16, 32, 48, 64
-const uint8_t kMatrixHeight = 16;       // known working: 32, 64, 96, 128
-const uint8_t kRefreshDepth = 36;       // known working: 24, 36, 48
-const uint8_t kDmaBufferRows = 4;       // known working: 2-4, use 2 to save memory, more to keep from dropping frames and automatically lowering refresh rate
-const uint8_t kPanelType = 0;   // use SMARTMATRIX_HUB75_16ROW_MOD8SCAN for common 16x32 panels
-const uint8_t kMatrixOptions = (SMARTMATRIX_OPTIONS_NONE);      // see http://docs.pixelmatix.com/SmartMatrix for options
-const uint8_t kBackgroundLayerOptions = (SM_BACKGROUND_OPTIONS_NONE);
-const uint8_t kScrollingLayerOptions = (SM_SCROLLING_OPTIONS_NONE);
-
-SMARTMATRIX_ALLOCATE_BUFFERS(matrix, kMatrixWidth, kMatrixHeight, kRefreshDepth, kDmaBufferRows, kPanelType, kMatrixOptions);
-SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kBackgroundLayerOptions);
-SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
-
-rgb24 *buffer;
-
-const uint16_t NUM_LEDS = kMatrixWidth * kMatrixHeight;
-const uint8_t kMatrixCenterX = kMatrixWidth / 2;
-const uint8_t maxX = kMatrixWidth - 1;
+#if (SMARTMATRIX_ENABLED == 1)
+  #define COLOR_DEPTH 24                  // known working: 24, 48 - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
+  const uint8_t kMatrixWidth = 16;        // known working: 16, 32, 48, 64
+  const uint8_t kMatrixHeight = 16;       // known working: 32, 64, 96, 128
+  const uint8_t kRefreshDepth = 36;       // known working: 24, 36, 48
+  const uint8_t kDmaBufferRows = 4;       // known working: 2-4, use 2 to save memory, more to keep from dropping frames and automatically lowering refresh rate
+  const uint8_t kPanelType = 0;   // use SMARTMATRIX_HUB75_16ROW_MOD8SCAN for common 16x32 panels
+  const uint8_t kMatrixOptions = (SMARTMATRIX_OPTIONS_NONE);      // see http://docs.pixelmatix.com/SmartMatrix for options
+  const uint8_t kBackgroundLayerOptions = (SM_BACKGROUND_OPTIONS_NONE);
+  const uint8_t kScrollingLayerOptions = (SM_SCROLLING_OPTIONS_NONE);
+  
+  SMARTMATRIX_ALLOCATE_BUFFERS(matrix, kMatrixWidth, kMatrixHeight, kRefreshDepth, kDmaBufferRows, kPanelType, kMatrixOptions);
+  SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kBackgroundLayerOptions);
+  SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
+  
+  rgb24 *buffer;
+  
+  const uint16_t NUM_LEDS = kMatrixWidth * kMatrixHeight;
+#else
+  #define DATA_PIN D2
+  #define CLOCK_PIN D4
+  
+  #define COLOR_ORDER RGB
+  #define CHIPSET     APA102
+  
+  // Params for width and height
+  const uint8_t kMatrixWidth = 16;
+  const uint8_t kMatrixHeight = 16;
+  
+  const uint16_t NUM_LEDS = kMatrixWidth * kMatrixHeight;
+  
+  CRGB leds_plus_safety_pixel[ NUM_LEDS + 1];
+  CRGB* leds( leds_plus_safety_pixel + 1);
+#endif
 
 const uint8_t scale = 256 / kMatrixWidth;
 
-
-uint16_t XY(uint8_t x, uint8_t y) {
-  return kMatrixWidth * x + y;
-}
-
-// scale the brightness of all pixels down
-void dimAll(byte value)
-{
-  for (int i = 0; i < NUM_LEDS; i++) {
-    CRGB c = CRGB(buffer[i].red, buffer[i].green, buffer[i].blue);
-    c.nscale8(value);
-    buffer[i] = c;
+#if (SMARTMATRIX_ENABLED == 1)
+  uint16_t XY(uint8_t x, uint8_t y) {
+    return kMatrixWidth * y + x;
   }
-}
+#else
+  uint16_t XY( uint8_t x, uint8_t y)
+  {
+    uint16_t i;
+    
+    if( y & 0x01) {
+      // Odd rows run backwards
+      uint8_t reverseX = (kMatrixWidth - 1) - x;
+      i = (y * kMatrixWidth) + reverseX;
+    } else {
+      // Even rows run forwards
+      i = (y * kMatrixWidth) + x;
+    }
+    
+    return i;
+  }
+#endif
+
+#if (SMARTMATRIX_ENABLED == 1)
+  // scale the brightness of all pixels down
+  void dimAll(byte value)
+  {
+    for (int i = 0; i < NUM_LEDS; i++) {
+      CRGB c = CRGB(buffer[i].red, buffer[i].green, buffer[i].blue);
+      c.nscale8(value);
+      buffer[i] = c;
+    }
+  }
+#else
+  // scale the brightness of all pixels down
+  void dimAll(byte value)
+  {
+    for (int i = 0; i < NUM_LEDS; i++) {
+      CRGB c = leds[i];
+      c.nscale8(value);
+      leds[i] = c;
+    }
+  }
+#endif
+
+
+#define BRIGHTNESS 255
+
 
 void setup() {
-  // uncomment the following lines if you want to see FPS count information
-  delay(1000);
-  Serial.begin(38400);
-  Serial.println("resetting!");
-
+#if (SMARTMATRIX_ENABLED == 1)
   matrix.addLayer(&backgroundLayer);
   matrix.addLayer(&scrollingLayer);
   matrix.begin();
+  matrix.setBrightness(BRIGHTNESS);
+  backgroundLayer.enableColorCorrection(false);
+#else
+  FastLED.addLeds<CHIPSET, DATA_PIN, CLOCK_PIN, COLOR_ORDER, DATA_RATE_MHZ(1)>(leds, NUM_LEDS).setCorrection(TypicalSMD5050);
+  FastLED.setBrightness( BRIGHTNESS );
 
-  matrix.setBrightness(64);
-
-  //scrollingLayer.start("SmartMatrix & APA102", -1);
+  FastLED.setDither(BINARY_DITHER);
+#endif
 }
 
 void loop() {
-  buffer = backgroundLayer.backBuffer();
+  EVERY_N_MILLISECONDS(1000/60) {
 
-  dimAll(250);
+#if (SMARTMATRIX_ENABLED == 1)
+    buffer = backgroundLayer.backBuffer();
+#endif      
 
-  static uint8_t theta = 0;
-  static uint8_t hue = 0;
-  static uint8_t rotation = random(0, 4);
-  static uint8_t waveCount = random(1, 3);
-  
-  switch (rotation) {
-    case 0:
-      for (uint8_t x = 0; x < kMatrixWidth; x++) {
-        uint8_t y = quadwave8(x * 2 + theta) / scale;
-        buffer[XY(x, y)] = CRGB(CHSV(x + hue, 255, 255));
-      }
-      break;
+    dimAll(250);
 
-    case 1:
-      for (uint8_t y = 0; y < kMatrixHeight; y++) {
-        uint8_t x = quadwave8(y * 2 + theta) / scale;
-        buffer[XY(x, y)] = CRGB(CHSV(y + hue, 255, 255));
-      }
-      break;
+    static uint8_t theta = 0;
+    static uint8_t hue = 0;
+    
+    for (uint8_t x = 0; x < kMatrixWidth; x++) {
+      uint8_t y = quadwave8(x * 2 + theta) / scale;
+#if (SMARTMATRIX_ENABLED == 1)
+      buffer[XY(x, y)] = CRGB(CHSV(x + hue, 255, 255));
+#else
+      leds[XY(x, y)] = CRGB(CHSV(x + hue, 255, 255));
+#endif      
+    }
 
-    case 2:
-      for (uint8_t x = 0; x < kMatrixWidth; x++) {
-        uint8_t y = quadwave8(x * 2 - theta) / scale;
-        buffer[XY(x, y)] = CRGB(CHSV(x + hue, 255, 255));
-      }
-      break;
+    theta++;
+    hue++;
 
-    case 3:
-      for (uint8_t y = 0; y < kMatrixHeight; y++) {
-        uint8_t x = quadwave8(y * 2 - theta) / scale;
-        buffer[XY(x, y)] = CRGB(CHSV(y + hue, 255, 255));
-        if (waveCount == 2)
-          buffer[XY(maxX - x, y)] = CRGB(CHSV(y + hue, 255, 255));
-      }
-      break;
+#if (SMARTMATRIX_ENABLED == 1)
+    backgroundLayer.swapBuffers(true);
+#endif
   }
 
-  theta++;
-  hue++;
-
-  EVERY_N_SECONDS(10) {
-    rotation = random(0, 4);
-    waveCount = random(1, 3);
-  }
-
-  backgroundLayer.swapBuffers(false);
-  matrix.countFPS();      // print the loop() frames per second to Serial
+#if (SMARTMATRIX_ENABLED == 0)
+  FastLED.show();
+#endif
 }
