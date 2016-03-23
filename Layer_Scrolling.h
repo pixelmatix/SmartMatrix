@@ -81,7 +81,7 @@ class SMLayerScrolling : public SM_Layer {
         bool getPixel(uint16_t hardwareX, uint16_t hardwareY, RGB_OUT &xyPixel);
         bool getPixel(uint16_t hardwareX, uint16_t hardwareY);
 
-        RGB textcolor = RGB(0xffff, 0xffff, 0xffff);
+        RGB textcolor = RGB(0xff, 0xff, 0xff);
         unsigned char currentframe = 0;
         char text[textLayerMaxStringLength];
         unsigned char pixelsPerSecond = 30;
