@@ -111,7 +111,7 @@ void setup() {
 }
 
 void loop() {
-  EVERY_N_MILLISECONDS(1000/60) {
+  EVERY_N_MILLISECONDS(1000/30) {
 
 #if (SMARTMATRIX_ENABLED == 1)
     buffer = backgroundLayer.backBuffer();
