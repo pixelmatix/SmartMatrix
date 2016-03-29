@@ -1,6 +1,9 @@
 # Migrating from SmartMatrix 2.x to SmartMatrix 3.0
 SmartMatrix 3.0 has separated out the single SmartMatrix class into a core class for refreshing the display, and separate layer classes for storing data.  The library is not backwards compatible with sketches created for SmartMatrix 2.x, but by following this document it should be relatively easy to update your sketches to get access to the new features.  You can have SmartMatrix3 installed in parallel with an existing SmartMatrix_32x32 or SmartMatrix_16x32 library without conflicts.
 
+(If you're Updating a sketch using FastLED's SMART_MATRIX controller, see the ["Update FastLED Sketch"](#update-fastled-sketch) section later in the document)
+
+
 ## Updating Normal SmartMatrix Sketch
 
 ### `#Include`
@@ -287,12 +290,24 @@ indexedLayer.drawMonoBitmap
 
 Make sure the calls to matrix.addLayers() before matrix.begin() are added
 
+If you're still getting errors after following the instructions above, please post your sketch and the full error report you get from Arduino in the [SmartMatrix Community](http://community.pixelmatix.com).  Make sure you have "Show verbose output during: compilation" checked in Arduino preferences to get the full error report.
+
 
 ## Update FastLED Sketch
 FastLED's `SMART_MATRIX` controller was based on SmartMatrix 2.x, and is incompatible with SmartMatrix 3.0.  You can get similar features by using FastLED's helper functions but drawing to the SmartMatrix background layer directly instead of through FastLED.  [Let us know](http://community.pixelmatix.com) if you want to see support for the FastLED `SMART_MATRIX` controller in the future.
 
 ### `#Include`
 Start by updating the #include to `<SmartMatrix3.h>`
+```
+#include <SmartMatrix_32x32.h>
+```
+
+replace with:
+
+```
+#include <SmartMatrix3.h>
+```
+
 
 If you try to compile you'll now get errors like
 ```
@@ -320,6 +335,8 @@ SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer, kMatrixWidth, kMatrixHeight
 
 
 If your sketch has a `#define` for `kMatrixWidth` and `kMatrixHeight`, remove those definitions as they are now a constant in the allocation section.
+
+If you sketch depends on definitions for `MATRIX_WIDTH` and `MATRIX_HEIGHT`, replace those with `kMatrixWidth` and `kMatrixHeight`.
 
 ### Setup
 ```
@@ -407,6 +424,10 @@ replace with:
       buffer[XY(i,j)] = CHSV(noise[j][i],255,noise[i][j]);
 ```
 
+Keep in mind that you need to get an updated pointer from `backBuffer()` after every call to `swapBuffers()`.  If you call `swapBuffers()` more than once per pass through `loop()`, make sure to update the `buffer` pointer by calling `backBuffer()` after each swap, not just at the top of `loop()`.
+
+
+### CHSV to CRGB Conversion
 This won't work quite yet, you'll get an error like:
 ```
 no known conversion for argument 1 from 'CHSV' to 'const rgb24&'
@@ -417,4 +438,41 @@ There's no automatic conversion from FastLED's `CHSV` to `rgb24`, so help the co
       buffer[XY(i,j)] = CRGB(CHSV(noise[j][i],255,noise[i][j]));
 ```
 
-Keep in mind that you need to get an updated pointer from `backBuffer()` after every call to `swapBuffers()`.  If you call `swapBuffers()` more than once per pass through `loop()`, make sure to update the `buffer` pointer by calling `backBuffer()` after each swap, not just at the top of `loop()`.
+### CRGB Pointers
+You may also get this error if using functions that expect a pointer to a CRGB array:
+
+```
+no known conversion for argument 1 from 'rgb24*' to 'CRGB*'
+```
+
+You can cast the `rgb24* buffer` pointer as type `CRGB*`, e.g.
+```
+    fill_solid(leds, NUM_LEDS, CRGB::Black);
+```
+
+becomes:
+```
+    fill_solid((CRGB*)buffer, NUM_LEDS, CRGB::Black);
+```
+
+### Other CRGB Conversions
+
+You may also get this function if using a `CRGB::HTMLColorCode`:
+
+```
+no known conversion for argument 1 from 'CRGB::HTMLColorCode' to 'const rgb24&'
+```
+
+You can cast the `CRGB::HTMLColorCode` as type `CRGB`:
+
+```
+        buffer[XY(i, j)] = CRGB::Black;
+```
+
+becomes:
+```
+        buffer[XY(i, j)] = (CRGB)CRGB::Black;
+```
+
+### FastLED Troubleshooting
+This document may not cover all the FastLED sketch modifications that need to be made to migrate to SmartMatrix3.  If you're still getting errors after following the instructions above, please post your sketch and the full error report you get from Arduino in the [SmartMatrix Community](http://community.pixelmatix.com).  Make sure you have "Show verbose output during: compilation" checked in Arduino preferences to get the full error report.
