@@ -21,6 +21,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include <stdlib.h>     
+
 static color_chan_t backgroundColorCorrectionLUT[256];
 
 template <typename RGB, unsigned int optionFlags>
