@@ -1,15 +1,16 @@
 /*
  * Based on SpectrumAnalyzerBasic by Paul Stoffregen included in the Teensy Audio Library
  * Modified by Jason Coon for the SmartMatrix Library
- * Requires Teensyduino 1.20 and the Teensy Audio Library
- * Also requires FastLED 3.0 or higher
+ * Requires Teensyduino 1.20 or higher and the Teensy Audio Library
+ * Also requires FastLED 3.1 or higher
  * If you are having trouble compiling, see
  * the troubleshooting instructions here:
  * https://github.com/pixelmatix/SmartMatrix/#external-libraries
  *
  * Requires the following libraries:
  * Teensy Audio Library: https://github.com/PaulStoffregen/Audio
- * FastLED v3.0 or higher: https://github.com/FastLED/FastLED/releases
+ * SerialFlash Library (a dependency of the Teensy Audio Library): https://github.com/PaulStoffregen/SerialFlash
+ * FastLED v3.1 or higher: https://github.com/FastLED/FastLED/releases
  *
  * Uses line in on pin A2.  For more information, and a recommended analog input circuit, see: http://www.pjrc.com/teensy/gui/?info=AudioInputAnalog
  *
@@ -26,6 +27,7 @@
 #include <Wire.h>
 #include <SPI.h>
 #include <SD.h>
+#include <SerialFlash.h>
 
 #include <SmartMatrix3.h>
 #include <FastLED.h>

@@ -12,8 +12,9 @@ Requires a SmartMatrix shield: http://docs.pixelmatix.com/SmartMatrix
 Requires the following libraries:
 
 * Teensy Audio Library: https://github.com/PaulStoffregen/Audio
+* SerialFlash Library (a dependency of the Teensy Audio Library): https://github.com/PaulStoffregen/SerialFlash
 * Smartmatrix Library for Teensy 3: https://github.com/pixelmatix/smartmatrix/releases
-* FastLED v3.0 or higher: https://github.com/FastLED/FastLED/releases
+* FastLED v3.1 or higher: https://github.com/FastLED/FastLED/releases
 
 Uses line in on pin A2.  For more information, and a recommended analog input circuit, see: http://www.pjrc.com/teensy/gui/?info=AudioInputAnalog
 
