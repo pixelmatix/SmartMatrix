@@ -26,6 +26,8 @@
 
 #include <stdint.h>
 
+#include "Arduino.h"
+
 #include "MatrixHardware_KitV1.h"
 
 #include "MatrixCommon.h"
