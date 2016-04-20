@@ -39,6 +39,7 @@ class SMLayerBackground : public SM_Layer {
         void fillRefreshRow(uint16_t hardwareY, rgb24 refreshRow[]);
 
         void swapBuffers(bool copy = true);
+        bool isSwapPending();
         void copyRefreshToDrawing(void);
         void drawPixel(int16_t x, int16_t y, const RGB& color);
         void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& color);

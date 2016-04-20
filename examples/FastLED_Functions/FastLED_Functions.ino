@@ -96,6 +96,9 @@ void loop() {
   static uint8_t circlex = 0;
   static uint8_t circley = 0;
 
+  // if sketch uses swapBuffers(false), wait to get a new backBuffer() pointer after the swap is done:
+  while(backgroundLayer.isSwapPending());
+
   rgb24 *buffer = backgroundLayer.backBuffer();
 
   static uint8_t ihue=0;
@@ -116,6 +119,8 @@ void loop() {
   backgroundLayer.fillCircle(circlex % kMatrixWidth,circley % kMatrixHeight,6,CRGB(CHSV(ihue+128,255,255)));
   circlex += random16(2);
   circley += random16(2);
+
+  // buffer is filled completely each time, use swapBuffers without buffer copy to save CPU cycles
   backgroundLayer.swapBuffers(false);
   //matrix.countFPS();      // print the loop() frames per second to Serial
 }

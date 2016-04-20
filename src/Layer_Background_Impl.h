@@ -855,6 +855,11 @@ void SMLayerBackground<RGB, optionFlags>::drawMonoBitmap(int16_t x, int16_t y, u
 }
 
 template <typename RGB, unsigned int optionFlags>
+bool SMLayerBackground<RGB, optionFlags>::isSwapPending(void) {
+    return swapPending;
+}
+
+template <typename RGB, unsigned int optionFlags>
 void SMLayerBackground<RGB, optionFlags>::handleBufferSwap(void) {
     if (!swapPending)
         return;
