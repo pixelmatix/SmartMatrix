@@ -1114,61 +1114,13 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 
         uint32_t * tempptr = (uint32_t*)matrixUpdateData + ((freeRowBuffer*dmaBufferBytesPerRow)/sizeof(uint32_t)) + ((i*dmaBufferBytesPerPixel)/sizeof(uint32_t));
         *tempptr = o0.word;
-        if(i < (PIXELS_PER_LATCH - 1)) {
-            *(tempptr + latchesPerRow/sizeof(uint32_t)) = o0.word | clkset.word;
-        } else {
-            o0.p0r1 = (currentRow & 0x01) ? 1 : 0;
-            o0.p0g1 = (currentRow & 0x02) ? 1 : 0;
-            o0.p0b1 = (currentRow & 0x04) ? 1 : 0;
-            o0.p0r2 = (currentRow & 0x08) ? 1 : 0;
 
-            o0.p1r1 = (currentRow & 0x01) ? 1 : 0;
-            o0.p1g1 = (currentRow & 0x02) ? 1 : 0;
-            o0.p1b1 = (currentRow & 0x04) ? 1 : 0;
-            o0.p1r2 = (currentRow & 0x08) ? 1 : 0;
-
-            o0.p2r1 = (currentRow & 0x01) ? 1 : 0;
-            o0.p2g1 = (currentRow & 0x02) ? 1 : 0;
-            o0.p2b1 = (currentRow & 0x04) ? 1 : 0;
-            o0.p2r2 = (currentRow & 0x08) ? 1 : 0;
-
-            o0.p3r1 = (currentRow & 0x01) ? 1 : 0;
-            o0.p3g1 = (currentRow & 0x02) ? 1 : 0;
-            o0.p3b1 = (currentRow & 0x04) ? 1 : 0;
-            o0.p3r2 = (currentRow & 0x08) ? 1 : 0;
-
-            *(tempptr + latchesPerRow/sizeof(uint32_t)) = o0.word | clkset.word;
-        }
-
+        *(tempptr + latchesPerRow/sizeof(uint32_t)) = o0.word | clkset.word;
 
         *(++tempptr) = o1.word;
 
-        if(i < (PIXELS_PER_LATCH - 1)) {
-            *(tempptr + latchesPerRow/sizeof(uint32_t)) = o1.word | clkset.word;
-        } else {
-            o1.p0r1 = (currentRow & 0x01) ? 1 : 0;
-            o1.p0g1 = (currentRow & 0x02) ? 1 : 0;
-            o1.p0b1 = (currentRow & 0x04) ? 1 : 0;
-            o1.p0r2 = (currentRow & 0x08) ? 1 : 0;
-
-            o1.p1r1 = (currentRow & 0x01) ? 1 : 0;
-            o1.p1g1 = (currentRow & 0x02) ? 1 : 0;
-            o1.p1b1 = (currentRow & 0x04) ? 1 : 0;
-            o1.p1r2 = (currentRow & 0x08) ? 1 : 0;
-
-            o1.p2r1 = (currentRow & 0x01) ? 1 : 0;
-            o1.p2g1 = (currentRow & 0x02) ? 1 : 0;
-            o1.p2b1 = (currentRow & 0x04) ? 1 : 0;
-            o1.p2r2 = (currentRow & 0x08) ? 1 : 0;
-
-            o1.p3r1 = (currentRow & 0x01) ? 1 : 0;
-            o1.p3g1 = (currentRow & 0x02) ? 1 : 0;
-            o1.p3b1 = (currentRow & 0x04) ? 1 : 0;
-            o1.p3r2 = (currentRow & 0x08) ? 1 : 0;
-
-            *(tempptr + latchesPerRow/sizeof(uint32_t)) = o1.word | clkset.word;
-        }
-
+        *(tempptr + latchesPerRow/sizeof(uint32_t)) = o1.word | clkset.word;
+ 
         //if(latchesPerRow >= 12) {
             union {
                 uint32_t word;
@@ -1218,31 +1170,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 
             *(++tempptr) = o2.word;
             
-            if(i < (PIXELS_PER_LATCH - 1)) {
-                *(tempptr + latchesPerRow/sizeof(uint32_t)) = o2.word | clkset.word;
-            } else {
-                o2.p0r1 = (currentRow & 0x01) ? 1 : 0;
-                o2.p0g1 = (currentRow & 0x02) ? 1 : 0;
-                o2.p0b1 = (currentRow & 0x04) ? 1 : 0;
-                o2.p0r2 = (currentRow & 0x08) ? 1 : 0;
-
-                o2.p1r1 = (currentRow & 0x01) ? 1 : 0;
-                o2.p1g1 = (currentRow & 0x02) ? 1 : 0;
-                o2.p1b1 = (currentRow & 0x04) ? 1 : 0;
-                o2.p1r2 = (currentRow & 0x08) ? 1 : 0;
-
-                o2.p2r1 = (currentRow & 0x01) ? 1 : 0;
-                o2.p2g1 = (currentRow & 0x02) ? 1 : 0;
-                o2.p2b1 = (currentRow & 0x04) ? 1 : 0;
-                o2.p2r2 = (currentRow & 0x08) ? 1 : 0;
-
-                o2.p3r1 = (currentRow & 0x01) ? 1 : 0;
-                o2.p3g1 = (currentRow & 0x02) ? 1 : 0;
-                o2.p3b1 = (currentRow & 0x04) ? 1 : 0;
-                o2.p3r2 = (currentRow & 0x08) ? 1 : 0;
-
-                *(tempptr + latchesPerRow/sizeof(uint32_t)) = o2.word | clkset.word;
-            }
+            *(tempptr + latchesPerRow/sizeof(uint32_t)) = o2.word | clkset.word;
         //}
 #ifdef DEBUG_PINS_ENABLED
     digitalWriteFast(DEBUG_PIN_3, LOW); // oscilloscope trigger
@@ -1301,6 +1229,44 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         }
 #endif
     }
+
+    union {
+        uint32_t word;
+        struct {
+            // order of bits in word matches how GPIO connects to the display
+            uint32_t GPIO_WORD_ORDER;
+        };
+    } o0;
+
+    o0.p0r1 = (currentRow & 0x01) ? 1 : 0;
+    o0.p0g1 = (currentRow & 0x02) ? 1 : 0;
+    o0.p0b1 = (currentRow & 0x04) ? 1 : 0;
+    o0.p0r2 = (currentRow & 0x08) ? 1 : 0;
+
+    o0.p1r1 = (currentRow & 0x01) ? 1 : 0;
+    o0.p1g1 = (currentRow & 0x02) ? 1 : 0;
+    o0.p1b1 = (currentRow & 0x04) ? 1 : 0;
+    o0.p1r2 = (currentRow & 0x08) ? 1 : 0;
+
+    o0.p2r1 = (currentRow & 0x01) ? 1 : 0;
+    o0.p2g1 = (currentRow & 0x02) ? 1 : 0;
+    o0.p2b1 = (currentRow & 0x04) ? 1 : 0;
+    o0.p2r2 = (currentRow & 0x08) ? 1 : 0;
+
+    o0.p3r1 = (currentRow & 0x01) ? 1 : 0;
+    o0.p3g1 = (currentRow & 0x02) ? 1 : 0;
+    o0.p3b1 = (currentRow & 0x04) ? 1 : 0;
+    o0.p3r2 = (currentRow & 0x08) ? 1 : 0;
+
+    uint32_t * tempptr2 = (uint32_t*)matrixUpdateData + ((freeRowBuffer*dmaBufferBytesPerRow)/sizeof(uint32_t)) + (((PIXELS_PER_LATCH-1)*dmaBufferBytesPerPixel)/sizeof(uint32_t));
+    *tempptr2 = o0.word;
+    *(tempptr2 + latchesPerRow/sizeof(uint32_t)) = o0.word;
+    tempptr2++;
+    *tempptr2 = o0.word;
+    *(tempptr2 + latchesPerRow/sizeof(uint32_t)) = o0.word;
+    tempptr2++;
+    *tempptr2 = o0.word;
+    *(tempptr2 + latchesPerRow/sizeof(uint32_t)) = o0.word;
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
