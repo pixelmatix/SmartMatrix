@@ -48,7 +48,6 @@
 
 #define TIMER_REGISTERS_TO_UPDATE   2
 
-extern DMAChannel dmaOutputAddress;
 extern DMAChannel dmaUpdateAddress;
 extern DMAChannel dmaUpdateTimer;
 extern DMAChannel dmaClockOutData;
@@ -495,7 +494,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     ENABLE_OE_PWM_OUTPUT();
 
     // setup GPIO interrupts
-    ENABLE_LATCH_RISING_EDGE_GPIO_INT();
+    //ENABLE_LATCH_RISING_EDGE_GPIO_INT();
     ENABLE_LATCH_FALLING_EDGE_GPIO_INT();
 
 
@@ -507,11 +506,11 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     DMA_CR |= DMA_CR_EMLM;
 
     // allocate all DMA channels up front so channels can link to each other
-    dmaOutputAddress.begin(false);
     dmaUpdateAddress.begin(false);
     dmaUpdateTimer.begin(false);
     dmaClockOutData.begin(false);
 
+#if 0
     // dmaOutputAddress - on latch rising edge, read address from fixed address temporary buffer, and output address on GPIO
     // using combo of writes to set+clear registers, to only modify the address pins and not other GPIO pins
     // address temporary buffer is refreshed before each DMA trigger (by DMA channel dmaUpdateAddress)
@@ -536,7 +535,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     // link channel dmaUpdateAddress, enable major channel-to-channel linking, don't clear enable on major loop complete
     dmaOutputAddress.TCD->CSR = (dmaUpdateAddress.channel << 8) | (1 << 5);
     dmaOutputAddress.triggerAtHardwareEvent(DMAMUX_SOURCE_LATCH_RISING_EDGE);
-
+#endif
     // dmaUpdateAddress - copy address values from current position in array to buffer to temporarily hold row values for the next timer cycle
     // only use single major loop, never disable channel
     dmaUpdateAddress.TCD->SADDR = &((matrixUpdateBlock*)matrixUpdateBlocks)->addressValues;
@@ -604,7 +603,6 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     NVIC_SET_PRIORITY(IRQ_DMA_CH0 + dmaUpdateAddress.channel, ROW_CALCULATION_ISR_PRIORITY);
     dmaUpdateAddress.attachInterrupt(rowCalculationISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
 
-    dmaOutputAddress.enable();
     dmaUpdateAddress.enable();
     dmaUpdateTimer.enable();
     dmaClockOutData.enable();

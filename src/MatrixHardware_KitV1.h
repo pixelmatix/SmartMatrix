@@ -46,11 +46,13 @@
 
 /* this section describes how the microcontroller is attached to the display */
 
+// change for SmartMatrix Shield V4: G2 moves from Teensy pin 7 (D2) to 8 (D3)
+
 // defines data bit order from bit 0-7, four times to fit in uint32_t
-#define GPIO_WORD_ORDER p0r1:1, p0clk:1, p0g2:1, p0pad:1, p0b1:1, p0b2:1, p0r2:1, p0g1:1, \
-    p1r1:1, p1clk:1, p1g2:1, p1pad:1, p1b1:1, p1b2:1, p1r2:1, p1g1:1, \
-    p2r1:1, p2clk:1, p2g2:1, p2pad:1, p2b1:1, p2b2:1, p2r2:1, p2g1:1, \
-    p3r1:1, p3clk:1, p3g2:1, p3pad:1, p3b1:1, p3b2:1, p3r2:1, p3g1:1
+#define GPIO_WORD_ORDER p0r1:1, p0clk:1, p0pad:1, p0g2:1, p0b1:1, p0b2:1, p0r2:1, p0g1:1, \
+    p1r1:1, p1clk:1, p1pad:1, p1g2:1, p1b1:1, p1b2:1, p1r2:1, p1g1:1, \
+    p2r1:1, p2clk:1, p2pad:1, p2g2:1, p2b1:1, p2b2:1, p2r2:1, p2g1:1, \
+    p3r1:1, p3clk:1, p3pad:1, p3g2:1, p3b1:1, p3b2:1, p3r2:1, p3g1:1
 
 
 //#define DEBUG_PINS_ENABLED
@@ -64,7 +66,7 @@
 #define GPIO_PIN_R0_TEENSY_PIN      2
 #define GPIO_PIN_R1_TEENSY_PIN      21
 #define GPIO_PIN_G0_TEENSY_PIN      5
-#define GPIO_PIN_G1_TEENSY_PIN      7
+#define GPIO_PIN_G1_TEENSY_PIN      8
 #define GPIO_PIN_B1_TEENSY_PIN      20
 
 #define ADDX_PIN_0  3
@@ -91,17 +93,26 @@
     }
 
 // pin 3 (PORT A) triggers based on latch signal, on rising edge
+#if 0
 #define ENABLE_LATCH_RISING_EDGE_GPIO_INT() {       \
         CORE_PIN3_CONFIG |= PORT_PCR_IRQC(1);           \
     }
+#endif
 
-#define DMAMUX_SOURCE_LATCH_RISING_EDGE     DMAMUX_SOURCE_PORTA
+//#define DMAMUX_SOURCE_LATCH_RISING_EDGE     DMAMUX_SOURCE_PORTD
 
+#if 0
 // pin 8 (PORT D3) is set to input, and triggers based on latch signal, on falling edge
 #define ENABLE_LATCH_FALLING_EDGE_GPIO_INT() {              \
         CORE_PIN8_CONFIG |= PORT_PCR_MUX(1) | PORT_PCR_IRQC(2); \
     }
+#else
+// pin 3 (PORT A) triggers based on latch signal, on falling edge
+#define ENABLE_LATCH_FALLING_EDGE_GPIO_INT() {              \
+        CORE_PIN3_CONFIG |= PORT_PCR_MUX(1) | PORT_PCR_IRQC(1); \
+    }
+#endif
 
-#define DMAMUX_SOURCE_LATCH_FALLING_EDGE     DMAMUX_SOURCE_PORTD
+#define DMAMUX_SOURCE_LATCH_FALLING_EDGE     DMAMUX_SOURCE_PORTA
 
 #endif
