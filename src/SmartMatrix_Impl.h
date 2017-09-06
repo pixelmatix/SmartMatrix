@@ -584,7 +584,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     // after each minor loop, set source to point back to the beginning of this set of data,
     // but advance by 1 byte to get the next significant bits data
     dmaClockOutData.TCD->NBYTES_MLOFFYES = DMA_TCD_NBYTES_SMLOE |
-                               (((1 - (dmaBufferBytesPerPixel * PIXELS_PER_LATCH)) << 10) & DMA_TCD_MLOFF_MASK) |
+                               (((1 - (latchesPerRow * DMA_UPDATES_PER_CLOCK * PIXELS_PER_LATCH)) << 10) & DMA_TCD_MLOFF_MASK) |
                                (PIXELS_PER_LATCH * DMA_UPDATES_PER_CLOCK);
     dmaClockOutData.TCD->DADDR = &GPIOD_PDOR;
     dmaClockOutData.TCD->DOFF = 0;
