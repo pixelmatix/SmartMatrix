@@ -149,7 +149,7 @@ SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::S
     SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::globalinstance = this;
     dmaBufferNumRows = bufferrows;
     dmaBufferBytesPerPixel = latchesPerRow * DMA_UPDATES_PER_CLOCK;
-    dmaBufferBytesPerRow = dmaBufferBytesPerPixel * PIXELS_PER_LATCH;
+    dmaBufferBytesPerRow = latchesPerRow * (PIXELS_PER_LATCH * DMA_UPDATES_PER_CLOCK + ADDX_UPDATE_BEFORE_LATCH_BYTES);
 
     matrixUpdateData = dataBuffer;
     // single buffer is divided up to hold matrixUpdateBlocks, addressLUT, timerLUT to simplify user sketch code and reduce constructor parameters
@@ -584,8 +584,8 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     // after each minor loop, set source to point back to the beginning of this set of data,
     // but advance by 1 byte to get the next significant bits data
     dmaClockOutData.TCD->NBYTES_MLOFFYES = DMA_TCD_NBYTES_SMLOE |
-                               (((1 - (latchesPerRow * (PIXELS_PER_LATCH * DMA_UPDATES_PER_CLOCK))) << 10) & DMA_TCD_MLOFF_MASK) |
-                               (PIXELS_PER_LATCH * DMA_UPDATES_PER_CLOCK);
+                               (((1 - (latchesPerRow * (PIXELS_PER_LATCH * DMA_UPDATES_PER_CLOCK + ADDX_UPDATE_BEFORE_LATCH_BYTES))) << 10) & DMA_TCD_MLOFF_MASK) |
+                               (PIXELS_PER_LATCH * DMA_UPDATES_PER_CLOCK + ADDX_UPDATE_BEFORE_LATCH_BYTES);
     dmaClockOutData.TCD->DADDR = &GPIOD_PDOR;
     dmaClockOutData.TCD->DOFF = 0;
     dmaClockOutData.TCD->DLASTSGA = 0;
@@ -913,6 +913,47 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
             *(tempptr + latchesPerRow/sizeof(uint32_t)) = o3.word | clkset.word;
         //}
     }
+
+#if (ADDX_UPDATE_BEFORE_LATCH_BYTES > 0)
+    union {
+        uint32_t word;
+        struct {
+            // order of bits in word matches how GPIO connects to the display
+            uint32_t GPIO_WORD_ORDER;
+        };
+    } o0;
+
+    o0.p0r1 = (currentRow & 0x01) ? 1 : 0;
+    o0.p0g1 = (currentRow & 0x02) ? 1 : 0;
+    o0.p0b1 = (currentRow & 0x04) ? 1 : 0;
+    o0.p0r2 = (currentRow & 0x08) ? 1 : 0;
+
+    o0.p1r1 = (currentRow & 0x01) ? 1 : 0;
+    o0.p1g1 = (currentRow & 0x02) ? 1 : 0;
+    o0.p1b1 = (currentRow & 0x04) ? 1 : 0;
+    o0.p1r2 = (currentRow & 0x08) ? 1 : 0;
+
+    o0.p2r1 = (currentRow & 0x01) ? 1 : 0;
+    o0.p2g1 = (currentRow & 0x02) ? 1 : 0;
+    o0.p2b1 = (currentRow & 0x04) ? 1 : 0;
+    o0.p2r2 = (currentRow & 0x08) ? 1 : 0;
+
+    o0.p3r1 = (currentRow & 0x01) ? 1 : 0;
+    o0.p3g1 = (currentRow & 0x02) ? 1 : 0;
+    o0.p3b1 = (currentRow & 0x04) ? 1 : 0;
+    o0.p3r2 = (currentRow & 0x08) ? 1 : 0;
+
+    // set pointer to the byte past the end of the pixel data to shift, and write the currentRow address
+    uint32_t * tempptr2 = (uint32_t*)matrixUpdateData + ((freeRowBuffer*dmaBufferBytesPerRow)/sizeof(uint32_t)) + (((PIXELS_PER_LATCH)*dmaBufferBytesPerPixel)/sizeof(uint32_t));
+    *tempptr2 = o0.word;
+    tempptr2++;
+    *tempptr2 = o0.word;
+    tempptr2++;
+    *tempptr2 = o0.word;
+    tempptr2++;
+    *tempptr2 = o0.word;
+    // stop after 4th word for 48 bit color
+#endif
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
@@ -1230,6 +1271,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 #endif
     }
 
+#if (ADDX_UPDATE_BEFORE_LATCH_BYTES > 0)
     union {
         uint32_t word;
         struct {
@@ -1258,15 +1300,15 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     o0.p3b1 = (currentRow & 0x04) ? 1 : 0;
     o0.p3r2 = (currentRow & 0x08) ? 1 : 0;
 
-    uint32_t * tempptr2 = (uint32_t*)matrixUpdateData + ((freeRowBuffer*dmaBufferBytesPerRow)/sizeof(uint32_t)) + (((PIXELS_PER_LATCH-1)*dmaBufferBytesPerPixel)/sizeof(uint32_t));
+    // set pointer to the byte past the end of the pixel data to shift, and write the currentRow address
+    uint32_t * tempptr2 = (uint32_t*)matrixUpdateData + ((freeRowBuffer*dmaBufferBytesPerRow)/sizeof(uint32_t)) + (((PIXELS_PER_LATCH)*dmaBufferBytesPerPixel)/sizeof(uint32_t));
     *tempptr2 = o0.word;
-    *(tempptr2 + latchesPerRow/sizeof(uint32_t)) = o0.word;
     tempptr2++;
     *tempptr2 = o0.word;
-    *(tempptr2 + latchesPerRow/sizeof(uint32_t)) = o0.word;
     tempptr2++;
     *tempptr2 = o0.word;
-    *(tempptr2 + latchesPerRow/sizeof(uint32_t)) = o0.word;
+    // stop after 3rd word for 36 bit color
+#endif
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
@@ -1446,6 +1488,43 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         *(++tempptr) = o1.word;
         *(tempptr + latchesPerRow/sizeof(uint32_t)) = o1.word | clkset.word;
     }
+
+#if (ADDX_UPDATE_BEFORE_LATCH_BYTES > 0)
+    union {
+        uint32_t word;
+        struct {
+            // order of bits in word matches how GPIO connects to the display
+            uint32_t GPIO_WORD_ORDER;
+        };
+    } o0;
+
+    o0.p0r1 = (currentRow & 0x01) ? 1 : 0;
+    o0.p0g1 = (currentRow & 0x02) ? 1 : 0;
+    o0.p0b1 = (currentRow & 0x04) ? 1 : 0;
+    o0.p0r2 = (currentRow & 0x08) ? 1 : 0;
+
+    o0.p1r1 = (currentRow & 0x01) ? 1 : 0;
+    o0.p1g1 = (currentRow & 0x02) ? 1 : 0;
+    o0.p1b1 = (currentRow & 0x04) ? 1 : 0;
+    o0.p1r2 = (currentRow & 0x08) ? 1 : 0;
+
+    o0.p2r1 = (currentRow & 0x01) ? 1 : 0;
+    o0.p2g1 = (currentRow & 0x02) ? 1 : 0;
+    o0.p2b1 = (currentRow & 0x04) ? 1 : 0;
+    o0.p2r2 = (currentRow & 0x08) ? 1 : 0;
+
+    o0.p3r1 = (currentRow & 0x01) ? 1 : 0;
+    o0.p3g1 = (currentRow & 0x02) ? 1 : 0;
+    o0.p3b1 = (currentRow & 0x04) ? 1 : 0;
+    o0.p3r2 = (currentRow & 0x08) ? 1 : 0;
+
+    // set pointer to the byte past the end of the pixel data to shift, and write the currentRow address
+    uint32_t * tempptr2 = (uint32_t*)matrixUpdateData + ((freeRowBuffer*dmaBufferBytesPerRow)/sizeof(uint32_t)) + (((PIXELS_PER_LATCH)*dmaBufferBytesPerPixel)/sizeof(uint32_t));
+    *tempptr2 = o0.word;
+    tempptr2++;
+    *tempptr2 = o0.word;
+    // stop after 2nd word for 24 bit color
+#endif
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
