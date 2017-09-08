@@ -144,7 +144,7 @@ private:
 
 // single matrixUpdateBlocks buffer is divided up to hold matrixUpdateBlocks, addressLUT, timerLUT to simplify user sketch code and reduce constructor parameters
 #define SMARTMATRIX_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
-    static DMAMEM uint32_t matrixUpdateData[buffer_rows * ((((width * height) / CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT(panel_type)) * (pwm_depth/COLOR_CHANNELS_PER_PIXEL / sizeof(uint32_t)) * DMA_UPDATES_PER_CLOCK) + (pwm_depth/COLOR_CHANNELS_PER_PIXEL/sizeof(uint32_t) * ADDX_UPDATE_BEFORE_LATCH_BYTES))]; \
+    static DMAMEM uint32_t matrixUpdateData[buffer_rows * (pwm_depth/COLOR_CHANNELS_PER_PIXEL / sizeof(uint32_t)) * ((((width * height) / CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT(panel_type)) * DMA_UPDATES_PER_CLOCK + ADDX_UPDATE_BEFORE_LATCH_BYTES))]; \
     static DMAMEM uint8_t matrixUpdateBlocks[(sizeof(matrixUpdateBlock) * buffer_rows * pwm_depth/COLOR_CHANNELS_PER_PIXEL) + (sizeof(addresspair) * CONVERT_PANELTYPE_TO_MATRIXROWSPERFRAME(panel_type)) + (sizeof(timerpair) * pwm_depth/COLOR_CHANNELS_PER_PIXEL) + sizeof(timerpair)]; \
     SmartMatrix3<pwm_depth, width, height, panel_type, option_flags> matrix_name(buffer_rows, matrixUpdateData, matrixUpdateBlocks)
 
