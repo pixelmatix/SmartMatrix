@@ -940,6 +940,8 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         };
     } o0;
 
+    o0.word = 0x00000000;
+
     o0.p0r1 = (currentRow & 0x01) ? 1 : 0;
     o0.p0g1 = (currentRow & 0x02) ? 1 : 0;
     o0.p0b1 = (currentRow & 0x04) ? 1 : 0;
@@ -1297,6 +1299,8 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         };
     } o0;
 
+    o0.word = 0x00000000;
+
     o0.p0r1 = (currentRow & 0x01) ? 1 : 0;
     o0.p0g1 = (currentRow & 0x02) ? 1 : 0;
     o0.p0b1 = (currentRow & 0x04) ? 1 : 0;
@@ -1514,6 +1518,8 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
             uint32_t GPIO_WORD_ORDER;
         };
     } o0;
+
+    o0.word = 0x00000000;
 
     o0.p0r1 = (currentRow & 0x01) ? 1 : 0;
     o0.p0g1 = (currentRow & 0x02) ? 1 : 0;
