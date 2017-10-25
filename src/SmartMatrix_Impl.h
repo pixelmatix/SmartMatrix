@@ -48,6 +48,9 @@
 
 #define TIMER_REGISTERS_TO_UPDATE   2
 
+#ifndef ADDX_UPDATE_ON_DATA_PINS
+    extern DMAChannel dmaOutputAddress;
+#endif
 extern DMAChannel dmaUpdateAddress;
 extern DMAChannel dmaUpdateTimer;
 extern DMAChannel dmaClockOutData;
@@ -419,9 +422,10 @@ bool SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin(void)
 {
-    int i;
     cbInit(&dmaBuffer, dmaBufferNumRows);
 
+#ifndef ADDX_UPDATE_ON_DATA_PINS
+    int i;
     // fill addressLUT
     for (i = 0; i < matrixRowsPerFrame; i++) {
 
@@ -441,6 +445,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
         // set all bits that are clear in address
         addressLUT[i].bits_to_clear = (~addressLUT[i].bits_to_set) & ADDX_PIN_MASK;
     }
+#endif
 
     // fill timerLUT
     calculateTimerLut();
@@ -470,10 +475,16 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     pinMode(GPIO_PIN_G1_TEENSY_PIN, OUTPUT);
     pinMode(GPIO_PIN_B1_TEENSY_PIN, OUTPUT);
 
+#ifdef ADDX_TEENSY_PIN_0
     // configure the address pins
     pinMode(ADDX_TEENSY_PIN_0, OUTPUT);
+#endif
+#ifdef ADDX_TEENSY_PIN_1
     pinMode(ADDX_TEENSY_PIN_1, OUTPUT);
+#endif
+#ifdef ADDX_TEENSY_PIN_2
     pinMode(ADDX_TEENSY_PIN_2, OUTPUT);
+#endif
 #ifdef ADDX_TEENSY_PIN_3
     pinMode(ADDX_TEENSY_PIN_3, OUTPUT);
 #endif
@@ -494,7 +505,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     ENABLE_OE_PWM_OUTPUT();
 
     // setup GPIO interrupts
-    //ENABLE_LATCH_RISING_EDGE_GPIO_INT();
+    ENABLE_LATCH_RISING_EDGE_GPIO_INT();
     ENABLE_LATCH_FALLING_EDGE_GPIO_INT();
 
 
@@ -506,11 +517,14 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     DMA_CR |= DMA_CR_EMLM;
 
     // allocate all DMA channels up front so channels can link to each other
+#ifndef ADDX_UPDATE_ON_DATA_PINS
+    dmaOutputAddress.begin(false);
+#endif
     dmaUpdateAddress.begin(false);
     dmaUpdateTimer.begin(false);
     dmaClockOutData.begin(false);
 
-#if 0
+#ifndef ADDX_UPDATE_ON_DATA_PINS
     // dmaOutputAddress - on latch rising edge, read address from fixed address temporary buffer, and output address on GPIO
     // using combo of writes to set+clear registers, to only modify the address pins and not other GPIO pins
     // address temporary buffer is refreshed before each DMA trigger (by DMA channel dmaUpdateAddress)
@@ -603,6 +617,9 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     NVIC_SET_PRIORITY(IRQ_DMA_CH0 + dmaUpdateAddress.channel, ROW_CALCULATION_ISR_PRIORITY);
     dmaUpdateAddress.attachInterrupt(rowCalculationISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
 
+#ifndef ADDX_UPDATE_ON_DATA_PINS
+    dmaOutputAddress.enable();
+#endif
     dmaUpdateAddress.enable();
     dmaUpdateTimer.enable();
     dmaClockOutData.enable();
