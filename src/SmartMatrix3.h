@@ -28,7 +28,11 @@
 
 #include "Arduino.h"
 
-#include "MatrixHardware_KitV1.h"
+#ifdef V4HEADER
+    #include "MatrixHardware_KitV4.h"
+#else
+    #include "MatrixHardware_KitV1.h"
+#endif
 
 #include "MatrixCommon.h"
 
