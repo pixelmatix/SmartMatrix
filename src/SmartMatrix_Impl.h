@@ -607,8 +607,11 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     dmaClockOutData.TCD->BITER_ELINKNO = latchesPerRow;
     // int after major loop is complete
     dmaClockOutData.TCD->CSR = DMA_TCD_CSR_INTMAJOR;
+    
     // for debugging - enable bandwidth control (space out GPIO updates so they can be seen easier on a low-bandwidth logic analyzer)
-    //dmaClockOutData.TCD->CSR |= (0x02 << 14);
+    // enable for now, until DMA sharing complications (brought to light by Teensy 3.6 SDIO) can be worked out - use bandwidth control to space out our DMA access and allow SD reads to not slow down shifting to the matrix
+    // also enable for now, until it can be selectively enabled for higher clock speeds (140MHz+) where the data rate is too high for the panel
+    dmaClockOutData.TCD->CSR |= (0x02 << 14);
 
     // enable a done interrupt when all DMA operations are complete
     dmaClockOutData.attachInterrupt(rowShiftCompleteISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);

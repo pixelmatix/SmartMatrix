@@ -43,7 +43,8 @@
 #define LATCH_TO_CLK_DELAY_NS       1400
 
 // measured <3400ns to transfer 32 pixels at 96MHz, <6600ns to transfer 32 pixels at 48MHz
-#define PANEL_32_PIXELDATA_TRANSFER_MAXIMUM_NS  (uint32_t)((3400 * 96000000.0) / F_CPU)
+// for now, until DMA sharing complications (brought to light by Teensy 3.6 SDIO) can be worked out, enable DMA Bandwidth Control, which approximately doubles this estimated time
+#define PANEL_32_PIXELDATA_TRANSFER_MAXIMUM_NS  (uint32_t)((2 * 3400 * 96000000.0) / F_CPU)
 
 /* this section describes how the microcontroller is attached to the display */
 
