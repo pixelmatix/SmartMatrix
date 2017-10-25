@@ -29,7 +29,7 @@
 #include <SD.h>
 #include <SerialFlash.h>
 
-//#include <SmartMatrixShieldV4.h>  // uncomment this line for SmartMatrix Shield V4 (needs to be before #include <SmartMatrix3.h>)
+//#include <SmartLEDShieldV4.h>  // uncomment this line for SmartLED Shield V4 (needs to be before #include <SmartMatrix3.h>)
 #include <SmartMatrix3.h>
 #include <FastLED.h>
 
