@@ -1,5 +1,5 @@
 /*
- * SmartMatrix Library - Hardware-Specific Header File
+ * SmartMatrix Library - Hardware-Specific Header File (for SmartMatrix Shield V1-V3)
  *
  * Copyright (c) 2015 Louis Beaudoin (Pixelmatix)
  *
