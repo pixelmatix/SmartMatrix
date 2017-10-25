@@ -80,11 +80,9 @@
 // not used for SmartMatrix Shield V4
 #define ENABLE_LATCH_RISING_EDGE_GPIO_INT() {}
 
-//#define DMAMUX_SOURCE_LATCH_RISING_EDGE     DMAMUX_SOURCE_PORTD
-
 // pin 3 (PORT A) triggers based on latch signal, on falling edge
 #define ENABLE_LATCH_FALLING_EDGE_GPIO_INT() {              \
-        CORE_PIN3_CONFIG |= PORT_PCR_MUX(1) | PORT_PCR_IRQC(1); \
+        CORE_PIN3_CONFIG |= PORT_PCR_MUX(1) | PORT_PCR_IRQC(2); \
     }
 
 #define DMAMUX_SOURCE_LATCH_FALLING_EDGE     DMAMUX_SOURCE_PORTA
