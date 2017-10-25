@@ -3,6 +3,7 @@
     This example code is released into the public domain
 */
 
+//#include <SmartMatrixShieldV4.h>  // uncomment this line for SmartMatrix Shield V4 (needs to be before #include <SmartMatrix3.h>)
 #include <SmartMatrix3.h>
 #include "colorwheel.c"
 #include "gimpbitmap.h"
