@@ -35,6 +35,7 @@ SMLayerIndexed<RGB, optionFlags>::SMLayerIndexed(uint8_t * bitmap, uint16_t widt
     indexedBitmap = bitmap;
     this->matrixWidth = width;
     this->matrixHeight = height;
+    this->color = rgb48(0xffff, 0xffff, 0xffff);
 }
 
 template <typename RGB, unsigned int optionFlags>

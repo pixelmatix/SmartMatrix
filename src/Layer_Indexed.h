@@ -67,7 +67,7 @@ class SMLayerIndexed : public SM_Layer {
 
         void handleBufferCopy(void);
 
-        RGB color = RGB(0xffff, 0xffff, 0xffff);
+        RGB color;
         unsigned char currentframe = 0;
         char text[textLayerMaxStringLength];
 
