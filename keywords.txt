@@ -90,7 +90,7 @@ getRealBackBuffer	KEYWORD2
 setFont	KEYWORD2
 setBrightness	KEYWORD2
 enableColorCorrection	KEYWORD2
-
+isSwapPending	KEYWORD2
 
 #######################################
 # Instances (KEYWORD2)
