@@ -32,6 +32,15 @@ SMARTMATRIX_ALLOCATE_BUFFERS(matrix, kMatrixWidth, kMatrixHeight, kRefreshDepth,
 SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kBackgroundLayerOptions);
 SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
 
+// adjust this to your APA matrix/strip - set kApaMatrixHeight to 1 for a strip
+const uint8_t kApaMatrixWidth = 16;
+const uint8_t kApaMatrixHeight = 16;
+const bool kApaMatrixSerpentineLayout = true;
+
+// allocate space for the APA102 LEDs
+#define NUM_APA_LEDS (kApaMatrixWidth * kApaMatrixHeight)
+CRGB apa_leds[NUM_APA_LEDS];
+
 // The 32bit version of our coordinates
 static uint16_t x;
 static uint16_t y;
@@ -55,12 +64,38 @@ uint16_t speed = 20; // a nice starting speed, mixes well with a scale of 100
 // uint16_t scale = 4011; // very zoomed out and shimmery
 uint16_t scale = 31;
 
-// This is the array that we keep our computed noise values in
-uint8_t noise[kMatrixWidth][kMatrixHeight];
+#define MAX_DIMENSION_APA ((kApaMatrixWidth>kApaMatrixHeight) ? kApaMatrixWidth : kApaMatrixHeight)
+#define MAX_DIMENSION_PANEL ((kMatrixWidth>kMatrixHeight) ? kMatrixWidth : kMatrixHeight)
+#define MAX_DIMENSION_OVERALL ((MAX_DIMENSION_APA>MAX_DIMENSION_PANEL) ? MAX_DIMENSION_APA : MAX_DIMENSION_PANEL)
 
-// allocate space for the APA102 LED Strip
-#define NUM_LEDS 144
-CRGB leds[NUM_LEDS];
+// This is the array that we keep our computed noise values in
+uint8_t noise[MAX_DIMENSION_OVERALL][MAX_DIMENSION_OVERALL];
+
+//
+// Mark's xy coordinate mapping code.  See the FastLED XYMatrix example for more information on it.
+//
+
+uint16_t XY( uint8_t x, uint8_t y)
+{
+  uint16_t i;
+
+  if( kApaMatrixSerpentineLayout == false) {
+    i = (y * kApaMatrixWidth) + x;
+  }
+
+  if( kApaMatrixSerpentineLayout == true) {
+    if( y & 0x01) {
+      // Odd rows run backwards
+      uint8_t reverseX = (kApaMatrixWidth - 1) - x;
+      i = (y * kApaMatrixWidth) + reverseX;
+    } else {
+      // Even rows run forwards
+      i = (y * kApaMatrixWidth) + x;
+    }
+  }
+
+  return i;
+}
 
 void setup() {
   // uncomment the following lines if you want to see FPS count information
@@ -69,7 +104,8 @@ void setup() {
   delay(3000);
 
   // initialize FastLED with the alternate pins used by SmartMatrix Shield V4
-  FastLED.addLeds<APA102,7,13, BGR>(leds, NUM_LEDS);
+  FastLED.addLeds<APA102,7,13, BGR>(apa_leds, NUM_APA_LEDS);
+
   // enable the APA102 buffers to drive out the SPI signals
   pinMode(17, OUTPUT);
   digitalWrite(17, HIGH);  // enable access to LEDs
@@ -78,7 +114,9 @@ void setup() {
   matrix.addLayer(&scrollingLayer); 
   matrix.begin();
 
-  backgroundLayer.setBrightness(96);
+  // lower the brigtness of both sets of LEDs
+  FastLED.setBrightness(64);
+  backgroundLayer.setBrightness(128);
 
   // Initialize our coordinates to some random values
   x = random16();
@@ -96,9 +134,9 @@ void setup() {
 
 // Fill the x/y array of 8-bit noise values using the inoise8 function.
 void fillnoise8() {
-  for(int i = 0; i < kMatrixWidth; i++) {
+  for(int i = 0; i < MAX_DIMENSION_OVERALL; i++) {
     int ioffset = scale * i;
-    for(int j = 0; j < kMatrixHeight; j++) {
+    for(int j = 0; j < MAX_DIMENSION_OVERALL; j++) {
       int joffset = scale * j;
       noise[i][j] = inoise8(x + ioffset,y + joffset,z);
     }
@@ -128,16 +166,23 @@ void loop() {
       // buffer[kMatrixHeight*j + i] = CRGB(CHSV(ihue + (noise[j][i]>>2),255,noise[i][j]));
     }
   }
+  for(int i = 0; i < kApaMatrixWidth; i++) {
+    for(int j = 0; j < kApaMatrixHeight; j++) {
+      // We use the value at the (i,j) coordinate in the noise
+      // array for our brightness, and the flipped value from (j,i)
+      // for our pixel's hue.
+      apa_leds[XY(i,j)] = CHSV(noise[j][i],255,noise[i][j]);
+
+      // You can also explore other ways to constrain the hue used, like below
+      // leds[XY(i,j)] = CHSV(ihue + (noise[j][i]>>2),255,noise[i][j]);
+    }
+  }
+
   ihue+=1;
 
   backgroundLayer.fillCircle(circlex % kMatrixWidth,circley % kMatrixHeight,6,CRGB(CHSV(ihue+128,255,255)));
   circlex += random16(2);
   circley += random16(2);
-
-  // fill buffer for APA102 strip with the pixels from SmartMatrix Buffer
-  for(int n=0; n<NUM_LEDS; n++) {
-    leds[n] = CRGB(buffer[n].red, buffer[n].green, buffer[n].blue);
-  }
 
   // draw to APA102 strip
   FastLED.show();

@@ -3,8 +3,7 @@
  * This example shows how to use some of FastLED's functions with the SmartMatrix Library
  * using the SmartMatrix buffers directly instead of FastLED's buffers.
  * FastLED's dithering and color balance features can't be used this way, but SmartMatrix can draw in
- * 36-bit color and so dithering may not provide much advantage.  There's no one 'right' way to use these two
- * libraries together, try this example and FastLED_Controller and figure out what is 'right' for you
+ * 36-bit color and so dithering may not provide much advantage.
  *
  * This example requires FastLED 3.0 or higher.  If you are having trouble compiling, see
  * the troubleshooting instructions here:
@@ -65,7 +64,7 @@ void setup() {
   matrix.addLayer(&scrollingLayer); 
   matrix.begin();
 
-  backgroundLayer.setBrightness(96);
+  backgroundLayer.setBrightness(128);
 
   // Initialize our coordinates to some random values
   x = random16();
