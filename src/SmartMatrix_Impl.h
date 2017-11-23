@@ -690,7 +690,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         uint16_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;
 
         // for upside down stacks, flip order
-        if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && ((PIXELS_PER_LATCH-i-1)/matrixWidth)) {
+        if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && !((i/matrixWidth)%2)) {
             int tempPosition = ((i/matrixWidth) * matrixWidth) + matrixWidth - i%matrixWidth - 1;
             temp0red = tempRow0[tempPosition].red;
             temp0green = tempRow0[tempPosition].green;
@@ -1041,7 +1041,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 #endif
 
         // for upside down stacks, flip order
-        if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && ((PIXELS_PER_LATCH-i-1)/matrixWidth)) {
+        if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && !((i/matrixWidth)%2)) {
             int tempPosition = ((i/matrixWidth) * matrixWidth) + matrixWidth - i%matrixWidth - 1;
             temp0red = tempRow0[tempPosition].red;
             temp0green = tempRow0[tempPosition].green;
@@ -1394,7 +1394,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         uint8_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;
 
         // for upside down stacks, flip order
-        if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && ((PIXELS_PER_LATCH-i-1)/matrixWidth)) {
+        if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && !((i/matrixWidth)%2)) {
             int tempPosition = ((i/matrixWidth) * matrixWidth) + matrixWidth - i%matrixWidth - 1;
             temp0red = tempRow0[tempPosition].red;
             temp0green = tempRow0[tempPosition].green;
