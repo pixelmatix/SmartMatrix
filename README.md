@@ -29,7 +29,16 @@ Download the latest version of the SmartMatrix Library:
 Import the library, see instructions from Arduino here:  
 [Arduino - Libraries](http://arduino.cc/en/Guide/Libraries)
 
+(Note if you use the Arduino Library Manager, the [AnimatedGIFs](https://github.com/pixelmatix/AnimatedGIFs) example won't be included, as that sketch is included as a Git Submodule which is not supported by Arduino Library Manager.  You will need to download the [AnimatedGIFs](https://github.com/pixelmatix/AnimatedGIFs) example separately)
+
 Start with the FeatureDemo Example project, included with the library.  From the Arduino File menu, choose Examples, SmartMatrix3, then FeatureDemo.  
+
+Important note for SmartLED Shield V4: This line needs to be included before (or instead of) `#include <SmartMatrix3.h>`
+
+```
+#include <SmartLEDShieldV4.h> // this line must be first
+#include <SmartMatrix3.h> //optionally include this line for SmartLED Shield V4
+```
 
 You should already have most of the correct Arduino settings to load the FeatureDemo sketch on your Teensy, from running the blink example earlier.  Under Tools, CPU Speed, make sure either 48 MHz or 96MHz (overclock) is selected.  (Some libraries are not compatible with the 72MHz CPU)
 
