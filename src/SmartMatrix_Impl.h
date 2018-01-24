@@ -136,6 +136,7 @@ bool SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 uint32_t * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateData;
 
+#ifndef ADDX_UPDATE_ON_DATA_PINS
 #define ADDRESS_ARRAY_REGISTERS_TO_UPDATE   2
 
 // 2x uint32_t to match size and spacing of values it is updating: GPIOx_PSOR and GPIOx_PCOR are 32-bit and adjacent to each other
@@ -145,7 +146,7 @@ typedef struct gpiopair {
 } gpiopair;
 
 static gpiopair gpiosync;
-
+#endif
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::SmartMatrix3(uint8_t bufferrows, uint32_t * dataBuffer, uint8_t * blockBuffer) {
