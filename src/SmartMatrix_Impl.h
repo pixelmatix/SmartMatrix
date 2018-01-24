@@ -50,8 +50,8 @@
 
 #ifndef ADDX_UPDATE_ON_DATA_PINS
     extern DMAChannel dmaOutputAddress;
+    extern DMAChannel dmaUpdateAddress;
 #endif
-extern DMAChannel dmaUpdateAddress;
 extern DMAChannel dmaUpdateTimer;
 extern DMAChannel dmaClockOutData;
 
@@ -272,7 +272,9 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 
             // point DMA addresses to the next buffer
             int currentRow = cbGetNextRead(&dmaBuffer);
+#ifndef ADDX_UPDATE_ON_DATA_PINS
             dmaUpdateAddress.TCD->SADDR = &((matrixUpdateBlock*)SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateBlocks + (currentRow * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::latchesPerRow))->addressValues;
+#endif
             dmaUpdateTimer.TCD->SADDR = &((matrixUpdateBlock*)SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateBlocks + (currentRow * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::latchesPerRow))->timerValues.timer_oe;
             dmaClockOutData.TCD->SADDR = (uint8_t*)SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateData + (currentRow * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBufferBytesPerRow);
 
@@ -519,8 +521,8 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     // allocate all DMA channels up front so channels can link to each other
 #ifndef ADDX_UPDATE_ON_DATA_PINS
     dmaOutputAddress.begin(false);
-#endif
     dmaUpdateAddress.begin(false);
+#endif
     dmaUpdateTimer.begin(false);
     dmaClockOutData.begin(false);
 
@@ -549,7 +551,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     // link channel dmaUpdateAddress, enable major channel-to-channel linking, don't clear enable on major loop complete
     dmaOutputAddress.TCD->CSR = (dmaUpdateAddress.channel << 8) | (1 << 5);
     dmaOutputAddress.triggerAtHardwareEvent(DMAMUX_SOURCE_LATCH_RISING_EDGE);
-#endif
+
     // dmaUpdateAddress - copy address values from current position in array to buffer to temporarily hold row values for the next timer cycle
     // only use single major loop, never disable channel
     dmaUpdateAddress.TCD->SADDR = &((matrixUpdateBlock*)matrixUpdateBlocks)->addressValues;
@@ -567,6 +569,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     dmaUpdateAddress.TCD->CITER_ELINKNO = 1;
     dmaUpdateAddress.TCD->BITER_ELINKNO = 1;
     dmaUpdateAddress.TCD->CSR = 0;
+#endif
 
     // dmaUpdateTimer - on latch falling edge, load FTM1_CV1 and FTM1_MOD with with next values from current block
     // only use single major loop, never disable channel
@@ -617,13 +620,13 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     dmaClockOutData.attachInterrupt(rowShiftCompleteISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
 
     // enable additional dma interrupt used as software interrupt
-    NVIC_SET_PRIORITY(IRQ_DMA_CH0 + dmaUpdateAddress.channel, ROW_CALCULATION_ISR_PRIORITY);
-    dmaUpdateAddress.attachInterrupt(rowCalculationISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
+    NVIC_SET_PRIORITY(IRQ_DMA_CH0 + dmaUpdateTimer.channel, ROW_CALCULATION_ISR_PRIORITY);
+    dmaUpdateTimer.attachInterrupt(rowCalculationISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
 
 #ifndef ADDX_UPDATE_ON_DATA_PINS
     dmaOutputAddress.enable();
-#endif
     dmaUpdateAddress.enable();
+#endif
     dmaUpdateTimer.enable();
     dmaClockOutData.enable();
 
@@ -1626,13 +1629,15 @@ void rowShiftCompleteISR(void) {
     } else {
         // get next row to draw to display and update DMA pointers
         int currentRow = cbGetNextRead(&dmaBuffer);
+#ifndef ADDX_UPDATE_ON_DATA_PINS
         dmaUpdateAddress.TCD->SADDR = &((matrixUpdateBlock*)SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateBlocks + (currentRow * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::latchesPerRow))->addressValues;
+#endif
         dmaUpdateTimer.TCD->SADDR = &((matrixUpdateBlock*)SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateBlocks + (currentRow * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::latchesPerRow))->timerValues.timer_oe;
         dmaClockOutData.TCD->SADDR = (uint8_t*)SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateData + (currentRow * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBufferBytesPerRow);
     }
 
     // trigger software interrupt (DMA channel interrupt used instead of actual softint)
-    NVIC_SET_PENDING(IRQ_DMA_CH0 + dmaUpdateAddress.channel);
+    NVIC_SET_PENDING(IRQ_DMA_CH0 + dmaUpdateTimer.channel);
 
     // clear pending int
     dmaClockOutData.clearInterrupt();
