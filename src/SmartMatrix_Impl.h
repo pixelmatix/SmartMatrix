@@ -156,6 +156,7 @@ SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::S
     dmaBufferBytesPerRow = latchesPerRow * (PIXELS_PER_LATCH * DMA_UPDATES_PER_CLOCK + ADDX_UPDATE_BEFORE_LATCH_BYTES);
 
     matrixUpdateData = dataBuffer;
+
     // single buffer is divided up to hold matrixUpdateBlocks, addressLUT, timerLUT to simplify user sketch code and reduce constructor parameters
     matrixUpdateBlocks = (matrixUpdateBlock*)blockBuffer;
     blockBuffer += sizeof(matrixUpdateBlock) * dmaBufferNumRows * latchesPerRow;
@@ -595,14 +596,14 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 
     // dmaClockOutData - repeatedly load gpio_array into GPIOD_PDOR, stop and int on major loop complete
     dmaClockOutData.TCD->SADDR = matrixUpdateData;
-    dmaClockOutData.TCD->SOFF = latchesPerRow;
+    dmaClockOutData.TCD->SOFF = 1;
     // SADDR will get updated by ISR, no need to set SLAST
     dmaClockOutData.TCD->SLAST = 0;
     dmaClockOutData.TCD->ATTR = DMA_TCD_ATTR_SSIZE(0) | DMA_TCD_ATTR_DSIZE(0);
-    // after each minor loop, set source to point back to the beginning of this set of data,
-    // but advance by 1 byte to get the next significant bits data
+    // after each minor loop, apply no offset to source data, it's pointing to the next buffer already
+    // clock out (PIXELS_PER_LATCH * DMA_UPDATES_PER_CLOCK + ADDX_UPDATE_BEFORE_LATCH_BYTES) number of bytes per loop
     dmaClockOutData.TCD->NBYTES_MLOFFYES = DMA_TCD_NBYTES_SMLOE |
-                               (((1 - (latchesPerRow * (PIXELS_PER_LATCH * DMA_UPDATES_PER_CLOCK + ADDX_UPDATE_BEFORE_LATCH_BYTES))) << 10) & DMA_TCD_MLOFF_MASK) |
+                               ((0 << 10) & DMA_TCD_MLOFF_MASK) |
                                (PIXELS_PER_LATCH * DMA_UPDATES_PER_CLOCK + ADDX_UPDATE_BEFORE_LATCH_BYTES);
     dmaClockOutData.TCD->DADDR = &GPIOD_PDOR;
     dmaClockOutData.TCD->DOFF = 0;
@@ -1084,6 +1085,36 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         }
 #endif
 
+#if 1
+    // load this pixel's data into matrixUpdateData buffer linearly: so pixel0-clk, pixel0-CLK, pixel1-clk ... pixeln-CLK are adjacent and can be shifted out incrementing by 1 each time
+    for(int j=0; j<latchesPerRow; j++) {
+        union {
+            uint32_t word;
+            struct {
+                // order of bits in word matches how GPIO connects to the display
+                uint32_t GPIO_WORD_ORDER;
+            };
+        } o0;
+        o0.p0b1 = temp0blue    >> j;
+        o0.p0b1 = temp0blue    >> j;
+        o0.p0r1 = temp0red     >> j;
+        o0.p0r2 = temp1red     >> j;
+        o0.p0g1 = temp0green   >> j;
+        o0.p0g2 = temp1green   >> j;
+        o0.p0b2 = temp1blue    >> j;
+        o0.p0clk = 0;
+
+        uint8_t * tempptr = (uint8_t*)matrixUpdateData + (freeRowBuffer*dmaBufferBytesPerRow) + (i*DMA_UPDATES_PER_CLOCK) + (j*(PIXELS_PER_LATCH * DMA_UPDATES_PER_CLOCK + ADDX_UPDATE_BEFORE_LATCH_BYTES));
+        
+        // write clk byte
+        *tempptr = (uint8_t)o0.word;
+
+        // write CLK byte
+        o0.p0clk = 1;
+        *(tempptr + 1) = o0.word;
+    }
+
+#else
         // this technique is from Fadecandy
         union {
             uint32_t word;
@@ -1187,7 +1218,8 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         *(++tempptr) = o1.word;
 
         *(tempptr + latchesPerRow/sizeof(uint32_t)) = o1.word | clkset.word;
- 
+
+
         //if(latchesPerRow >= 12) {
             union {
                 uint32_t word;
@@ -1295,9 +1327,34 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
             *(tempptr + latchesPerRow/sizeof(uint32_t)) = o3.word | clkset.word;
         }
 #endif
+#endif
     }
 
+
+
 #if (ADDX_UPDATE_BEFORE_LATCH_BYTES > 0)
+    #if 1
+        for(int j=0; j<latchesPerRow; j++) {
+            union {
+                uint32_t word;
+                struct {
+                    // order of bits in word matches how GPIO connects to the display
+                    uint32_t GPIO_WORD_ORDER;
+                };
+            } o0;
+            o0.word = 0x00000000;
+            o0.p0r1 = (currentRow & 0x01) ? 1 : 0;
+            o0.p0g1 = (currentRow & 0x02) ? 1 : 0;
+            o0.p0b1 = (currentRow & 0x04) ? 1 : 0;
+            o0.p0r2 = (currentRow & 0x08) ? 1 : 0;
+
+            // copy words to DMA buffer as a pair, one with clock set low, next with clock set high
+
+            uint8_t * tempptr = (uint8_t*)matrixUpdateData + (freeRowBuffer*dmaBufferBytesPerRow) + (PIXELS_PER_LATCH*DMA_UPDATES_PER_CLOCK) + (j*(PIXELS_PER_LATCH * DMA_UPDATES_PER_CLOCK + ADDX_UPDATE_BEFORE_LATCH_BYTES));
+            *tempptr = (uint8_t)o0.word;
+        }
+
+    #else
     union {
         uint32_t word;
         struct {
@@ -1336,6 +1393,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     tempptr2++;
     *tempptr2 = o0.word;
     // stop after 3rd word for 36 bit color
+#endif
 #endif
 }
 
