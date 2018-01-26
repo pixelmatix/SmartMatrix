@@ -1087,12 +1087,14 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 
 #if 1
     // load this pixel's data into matrixUpdateData buffer linearly: so pixel0-clk, pixel0-CLK, pixel1-clk ... pixeln-CLK are adjacent and can be shifted out incrementing by 1 each time
+    uint8_t * tempptr = (uint8_t*)matrixUpdateData + (freeRowBuffer*dmaBufferBytesPerRow) + (i*DMA_UPDATES_PER_CLOCK);
+
     for(int j=0; j<latchesPerRow; j++) {
         union {
-            uint32_t word;
+            uint8_t word;
             struct {
                 // order of bits in word matches how GPIO connects to the display
-                uint32_t GPIO_WORD_ORDER;
+                uint8_t GPIO_WORD_ORDER_8BIT;
             };
         } o0;
         o0.p0b1 = temp0blue    >> j;
@@ -1104,14 +1106,14 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         o0.p0b2 = temp1blue    >> j;
         o0.p0clk = 0;
 
-        uint8_t * tempptr = (uint8_t*)matrixUpdateData + (freeRowBuffer*dmaBufferBytesPerRow) + (i*DMA_UPDATES_PER_CLOCK) + (j*(PIXELS_PER_LATCH * DMA_UPDATES_PER_CLOCK + ADDX_UPDATE_BEFORE_LATCH_BYTES));
-        
         // write clk byte
-        *tempptr = (uint8_t)o0.word;
+        *tempptr = o0.word;
 
         // write CLK byte
         o0.p0clk = 1;
         *(tempptr + 1) = o0.word;
+
+        tempptr += (PIXELS_PER_LATCH * DMA_UPDATES_PER_CLOCK + ADDX_UPDATE_BEFORE_LATCH_BYTES);
     }
 
 #else
@@ -1336,10 +1338,10 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     #if 1
         for(int j=0; j<latchesPerRow; j++) {
             union {
-                uint32_t word;
+                uint8_t word;
                 struct {
                     // order of bits in word matches how GPIO connects to the display
-                    uint32_t GPIO_WORD_ORDER;
+                    uint8_t GPIO_WORD_ORDER_8BIT;
                 };
             } o0;
             o0.word = 0x00000000;
