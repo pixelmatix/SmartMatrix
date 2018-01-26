@@ -23,8 +23,10 @@
 
 #include "SmartMatrix3.h"
 
+#ifndef ADDX_UPDATE_ON_DATA_PINS
 DMAChannel dmaOutputAddress(false);
 DMAChannel dmaUpdateAddress(false);
+#endif
 DMAChannel dmaUpdateTimer(false);
 DMAChannel dmaClockOutData(false);
 
