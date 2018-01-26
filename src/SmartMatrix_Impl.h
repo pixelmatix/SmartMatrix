@@ -90,8 +90,10 @@ uint8_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionF
 // todo: just use a single buffer for Blocks/LUT/Data?
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 matrixUpdateBlock * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateBlocks;    // array is size dmaBufferNumRows * latchesPerRow
+#ifndef ADDX_UPDATE_ON_DATA_PINS
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 addresspair * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::addressLUT;      // array is size rowsPerFrame
+#endif
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 timerpair * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::timerLUT;          // array is size latchesPerRow
 
@@ -159,7 +161,9 @@ SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::S
     // single buffer is divided up to hold matrixUpdateBlocks, addressLUT, timerLUT to simplify user sketch code and reduce constructor parameters
     matrixUpdateBlocks = (matrixUpdateBlock*)blockBuffer;
     blockBuffer += sizeof(matrixUpdateBlock) * dmaBufferNumRows * latchesPerRow;
+#ifndef ADDX_UPDATE_ON_DATA_PINS
     addressLUT = (addresspair*)blockBuffer;
+#endif
     blockBuffer += sizeof(addresspair) * matrixRowsPerFrame;
     timerLUT = (timerpair*)blockBuffer;
     blockBuffer += sizeof(timerpair) * latchesPerRow;
@@ -1563,9 +1567,11 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 
     addresspair rowAddressPair;
 
+#ifndef ADDX_UPDATE_ON_DATA_PINS
     rowAddressPair.bits_to_set = addressLUT[currentRow].bits_to_set;
     rowAddressPair.bits_to_clear = addressLUT[currentRow].bits_to_clear;
-
+#endif
+    
     unsigned char freeRowBuffer = cbGetNextWrite(&dmaBuffer);
 
     for (i = 0; i < latchesPerRow; i++) {
