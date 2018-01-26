@@ -1697,7 +1697,7 @@ void rowShiftCompleteISR(void) {
         dmaClockOutData.TCD->SADDR = (uint8_t*)SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateData + (currentRow * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBufferBytesPerRow);
     }
 
-    // trigger software interrupt (DMA channel interrupt used instead of actual softint)
+    // trigger software interrupt to call rowCalculationISR() (DMA channel interrupt used instead of actual softint)
     NVIC_SET_PENDING(IRQ_DMA_CH0 + dmaUpdateTimer.channel);
 
     // clear pending int
