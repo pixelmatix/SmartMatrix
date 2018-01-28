@@ -1042,6 +1042,57 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         templayer = templayer->nextLayer;        
     }
 
+#if 0
+    union {
+        uint8_t word;
+        struct {
+            // order of bits in word matches how GPIO connects to the display
+            uint8_t GPIO_WORD_ORDER_8BIT;
+        };
+    } o0;
+    
+    uint8_t * tempptr = (uint8_t*)matrixUpdateData + (freeRowBuffer*dmaBufferBytesPerRow) + (i*DMA_UPDATES_PER_CLOCK);
+
+    for(int j=0; j<latchesPerRow; j++) {
+        //uint16_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;
+
+        uint16_t mask = (1 << (j + 4));
+        
+        //int i=0;
+
+        // doesn't currently handle C-shaped panels
+//        while(i < PIXELS_PER_LATCH) {
+            // parse through matrixWith block of pixels, from left to right, or right to left, depending on C_SHAPE_STACKING options
+            for(int k=0; k < PIXELS_PER_LATCH; k++) {
+
+                o0.word = 0x00;
+
+                //fill temp0red, etc, or work directly from buffer?
+                if (tempRow0[k].red & mask)
+                    o0.p0r1 = 1;
+                if (tempRow0[k].green & mask)
+                    o0.p0g1 = 1;
+                if (tempRow0[k].blue & mask)
+                    o0.p0b1 = 1;
+                if (tempRow1[k].red & mask)
+                    o0.p0r2 = 1;
+                if (tempRow1[k].green & mask)
+                    o0.p0g2 = 1;
+                if (tempRow1[k].blue & mask)
+                    o0.p0b2 = 1;
+
+                *tempptr++ = o0.word;
+                o0.p0clk = 1;
+                *tempptr++ = o0.word;
+
+            }
+//        }
+
+        tempptr += (PIXELS_PER_LATCH * DMA_UPDATES_PER_CLOCK + ADDX_UPDATE_BEFORE_LATCH_BYTES) - (2 * PIXELS_PER_LATCH);
+
+    }
+
+#else
     for (i = 0; i < PIXELS_PER_LATCH; i++) {
         uint16_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;
 
@@ -1101,11 +1152,10 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 uint8_t GPIO_WORD_ORDER_8BIT;
             };
         } o0;
-        o0.p0b1 = temp0blue    >> j;
-        o0.p0b1 = temp0blue    >> j;
         o0.p0r1 = temp0red     >> j;
-        o0.p0r2 = temp1red     >> j;
         o0.p0g1 = temp0green   >> j;
+        o0.p0b1 = temp0blue    >> j;
+        o0.p0r2 = temp1red     >> j;
         o0.p0g2 = temp1green   >> j;
         o0.p0b2 = temp1blue    >> j;
         o0.p0clk = 0;
@@ -1335,7 +1385,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 #endif
 #endif
     }
-
+#endif
 
 
 #if (ADDX_UPDATE_BEFORE_LATCH_BYTES > 0)
