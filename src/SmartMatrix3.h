@@ -96,6 +96,7 @@ public:
 
     struct rowBitStruct {
         uint8_t data[((((matrixWidth * matrixHeight) / CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT(panelType)) * DMA_UPDATES_PER_CLOCK + ADDX_UPDATE_BEFORE_LATCH_BYTES))];
+        uint8_t rowNumber;
     };
 
     struct rowDataStruct {
@@ -139,7 +140,6 @@ private:
     const static uint8_t latchesPerRow = refreshDepth/COLOR_CHANNELS_PER_PIXEL;
     static uint8_t dmaBufferNumRows;
     static uint8_t dmaBufferBytesPerPixel;
-    static uint16_t dmaBufferBytesPerRow;
     static bool dmaBufferUnderrunSinceLastCheck;
     static bool refreshRateLowered;
     static bool refreshRateChanged;

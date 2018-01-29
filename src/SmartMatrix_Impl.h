@@ -82,8 +82,6 @@ uint8_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionF
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 uint8_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBufferBytesPerPixel;
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-uint16_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBufferBytesPerRow;
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 uint8_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refreshRate = 120;
 
 
@@ -155,7 +153,6 @@ SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::S
     SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::globalinstance = this;
     dmaBufferNumRows = bufferrows;
     dmaBufferBytesPerPixel = latchesPerRow * DMA_UPDATES_PER_CLOCK;
-    dmaBufferBytesPerRow = latchesPerRow * (PIXELS_PER_LATCH * DMA_UPDATES_PER_CLOCK + ADDX_UPDATE_BEFORE_LATCH_BYTES);
 
     matrixUpdateRows = (typename SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowDataStruct *)dataBuffer;
 
@@ -598,6 +595,10 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 
 #define DMA_TCD_MLOFF_MASK  (0x3FFFFC00)
 
+    // this is the number of bytes in the gap between each sequential rowBitStruct.data arrays
+    uint16_t rowBitStructDataOffset = sizeof(SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[0].rowbits[0]) - 
+                                    sizeof(SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[0].rowbits[0].data);
+
     // dmaClockOutData - repeatedly load gpio_array into GPIOD_PDOR, stop and int on major loop complete
     dmaClockOutData.TCD->SADDR = matrixUpdateRows;
     dmaClockOutData.TCD->SOFF = 1;
@@ -607,8 +608,8 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     // after each minor loop, apply no offset to source data, it's pointing to the next buffer already
     // clock out (PIXELS_PER_LATCH * DMA_UPDATES_PER_CLOCK + ADDX_UPDATE_BEFORE_LATCH_BYTES) number of bytes per loop
     dmaClockOutData.TCD->NBYTES_MLOFFYES = DMA_TCD_NBYTES_SMLOE |
-                               ((0 << 10) & DMA_TCD_MLOFF_MASK) |
-                               (PIXELS_PER_LATCH * DMA_UPDATES_PER_CLOCK + ADDX_UPDATE_BEFORE_LATCH_BYTES);
+                                ((rowBitStructDataOffset << 10) & DMA_TCD_MLOFF_MASK) |
+                                sizeof(SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[0].rowbits[0].data);
     dmaClockOutData.TCD->DADDR = &GPIOD_PDOR;
     dmaClockOutData.TCD->DOFF = 0;
     dmaClockOutData.TCD->DLASTSGA = 0;
