@@ -95,8 +95,8 @@ public:
     void countFPS(void);
 
     struct rowBitStruct {
-        uint8_t data[((((matrixWidth * matrixHeight) / CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT(panelType)) * DMA_UPDATES_PER_CLOCK + ADDX_UPDATE_BEFORE_LATCH_BYTES))];
-        uint8_t rowNumber;
+        uint8_t data[((((matrixWidth * matrixHeight) / CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT(panelType)) * DMA_UPDATES_PER_CLOCK))];
+        uint8_t rowAddress;
     };
 
     struct rowDataStruct {

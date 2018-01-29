@@ -595,9 +595,14 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 
 #define DMA_TCD_MLOFF_MASK  (0x3FFFFC00)
 
+#ifdef ADDX_UPDATE_ON_DATA_PINS
+    uint16_t rowBitStructBytesToShift = sizeof(SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[0].rowbits[0].data) + ADDX_UPDATE_BEFORE_LATCH_BYTES;
+#else
+    uint16_t rowBitStructBytesToShift = sizeof(SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[0].rowbits[0].data);
+#endif
+
     // this is the number of bytes in the gap between each sequential rowBitStruct.data arrays
-    uint16_t rowBitStructDataOffset = sizeof(SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[0].rowbits[0]) - 
-                                    sizeof(SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[0].rowbits[0].data);
+    uint16_t rowBitStructDataOffset = sizeof(SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[0].rowbits[0]) - rowBitStructBytesToShift;
 
     // dmaClockOutData - repeatedly load gpio_array into GPIOD_PDOR, stop and int on major loop complete
     dmaClockOutData.TCD->SADDR = matrixUpdateRows;
@@ -609,7 +614,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     // clock out (PIXELS_PER_LATCH * DMA_UPDATES_PER_CLOCK + ADDX_UPDATE_BEFORE_LATCH_BYTES) number of bytes per loop
     dmaClockOutData.TCD->NBYTES_MLOFFYES = DMA_TCD_NBYTES_SMLOE |
                                 ((rowBitStructDataOffset << 10) & DMA_TCD_MLOFF_MASK) |
-                                sizeof(SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[0].rowbits[0].data);
+                                rowBitStructBytesToShift;
     dmaClockOutData.TCD->DADDR = &GPIOD_PDOR;
     dmaClockOutData.TCD->DOFF = 0;
     dmaClockOutData.TCD->DLASTSGA = 0;
@@ -1062,7 +1067,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         //int i=0;
 
         // doesn't currently handle C-shaped panels
-//        while(i < PIXELS_PER_LATCH) {
+//      while(i < PIXELS_PER_LATCH) {
             // parse through matrixWith block of pixels, from left to right, or right to left, depending on C_SHAPE_STACKING options
             for(int k=0; k < PIXELS_PER_LATCH; k++) {
 
@@ -1087,7 +1092,8 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 matrixUpdateRows[freeRowBuffer].rowbits[j].data[(k*DMA_UPDATES_PER_CLOCK)+1] = o0.word;
 
             }
-//        }
+//      }
+        matrixUpdateRows[freeRowBuffer].rowbits[j].rowAddress = currentRow;
     }
 
 #else
@@ -1387,25 +1393,16 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 #endif
 
 
-#if (ADDX_UPDATE_BEFORE_LATCH_BYTES > 0)
+#ifdef ADDX_UPDATE_ON_DATA_PINS
     #if 1
+        o0.word = 0x00000000;
+        o0.p0r1 = (currentRow & 0x01) ? 1 : 0;
+        o0.p0g1 = (currentRow & 0x02) ? 1 : 0;
+        o0.p0b1 = (currentRow & 0x04) ? 1 : 0;
+        o0.p0r2 = (currentRow & 0x08) ? 1 : 0;
+
         for(int j=0; j<latchesPerRow; j++) {
-            union {
-                uint8_t word;
-                struct {
-                    // order of bits in word matches how GPIO connects to the display
-                    uint8_t GPIO_WORD_ORDER_8BIT;
-                };
-            } o0;
-            o0.word = 0x00000000;
-            o0.p0r1 = (currentRow & 0x01) ? 1 : 0;
-            o0.p0g1 = (currentRow & 0x02) ? 1 : 0;
-            o0.p0b1 = (currentRow & 0x04) ? 1 : 0;
-            o0.p0r2 = (currentRow & 0x08) ? 1 : 0;
-
-            // copy words to DMA buffer as a pair, one with clock set low, next with clock set high
-
-            matrixUpdateRows[freeRowBuffer].rowbits[j].data[PIXELS_PER_LATCH*DMA_UPDATES_PER_CLOCK] = o0.word;
+            matrixUpdateRows[freeRowBuffer].rowbits[j].rowAddress = o0.word;
         }
 
     #else
