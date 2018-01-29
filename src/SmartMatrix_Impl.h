@@ -136,7 +136,7 @@ bool SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     [pixel pair 15 - CLK - MSB][pixel pair 15 - CLK - MSB-1]...[pixel pair 15 - CLK - LSB+1][pixel pair 15 - CLK - LSB]
  */
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-uint8_t * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateData;
+typename SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowDataStruct * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows;
 
 #ifndef ADDX_UPDATE_ON_DATA_PINS
 #define ADDRESS_ARRAY_REGISTERS_TO_UPDATE   2
@@ -157,7 +157,7 @@ SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::S
     dmaBufferBytesPerPixel = latchesPerRow * DMA_UPDATES_PER_CLOCK;
     dmaBufferBytesPerRow = latchesPerRow * (PIXELS_PER_LATCH * DMA_UPDATES_PER_CLOCK + ADDX_UPDATE_BEFORE_LATCH_BYTES);
 
-    matrixUpdateData = dataBuffer;
+    matrixUpdateRows = (typename SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowDataStruct *)dataBuffer;
 
     // single buffer is divided up to hold matrixUpdateBlocks, addressLUT, timerLUT to simplify user sketch code and reduce constructor parameters
     matrixUpdateBlocks = (matrixUpdateBlock*)blockBuffer;
@@ -282,7 +282,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
             dmaUpdateAddress.TCD->SADDR = &((matrixUpdateBlock*)SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateBlocks + (currentRow * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::latchesPerRow))->addressValues;
 #endif
             dmaUpdateTimer.TCD->SADDR = &((matrixUpdateBlock*)SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateBlocks + (currentRow * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::latchesPerRow))->timerValues.timer_oe;
-            dmaClockOutData.TCD->SADDR = (uint8_t*)SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateData + (currentRow * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBufferBytesPerRow);
+            dmaClockOutData.TCD->SADDR = (uint8_t*)&SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[currentRow];
 
             // enable channel-to-channel linking so data will be shifted out
             dmaUpdateTimer.TCD->CSR &= ~(1 << 7);  // must clear DONE flag before enabling
@@ -599,7 +599,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 #define DMA_TCD_MLOFF_MASK  (0x3FFFFC00)
 
     // dmaClockOutData - repeatedly load gpio_array into GPIOD_PDOR, stop and int on major loop complete
-    dmaClockOutData.TCD->SADDR = matrixUpdateData;
+    dmaClockOutData.TCD->SADDR = matrixUpdateRows;
     dmaClockOutData.TCD->SOFF = 1;
     // SADDR will get updated by ISR, no need to set SLAST
     dmaClockOutData.TCD->SLAST = 0;
@@ -642,6 +642,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers48(unsigned char currentRow, unsigned char freeRowBuffer) {
+#if 0
     int i;
 
     // static to avoid putting large buffer on the stack
@@ -985,6 +986,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     *tempptr2 = o0.word;
     // stop after 4th word for 48 bit color
 #endif
+#endif
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
@@ -1042,7 +1044,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         templayer = templayer->nextLayer;        
     }
 
-#if 0
+#if 1
     union {
         uint8_t word;
         struct {
@@ -1051,8 +1053,6 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         };
     } o0;
     
-    uint8_t * tempptr = (uint8_t*)matrixUpdateData + (freeRowBuffer*dmaBufferBytesPerRow) + (i*DMA_UPDATES_PER_CLOCK);
-
     for(int j=0; j<latchesPerRow; j++) {
         //uint16_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;
 
@@ -1081,15 +1081,12 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 if (tempRow1[k].blue & mask)
                     o0.p0b2 = 1;
 
-                *tempptr++ = o0.word;
+                matrixUpdateRows[freeRowBuffer].rowbits[j].data[(k*DMA_UPDATES_PER_CLOCK)] = o0.word;
                 o0.p0clk = 1;
-                *tempptr++ = o0.word;
+                matrixUpdateRows[freeRowBuffer].rowbits[j].data[(k*DMA_UPDATES_PER_CLOCK)+1] = o0.word;
 
             }
 //        }
-
-        tempptr += (PIXELS_PER_LATCH * DMA_UPDATES_PER_CLOCK + ADDX_UPDATE_BEFORE_LATCH_BYTES) - (2 * PIXELS_PER_LATCH);
-
     }
 
 #else
@@ -1142,7 +1139,8 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 
 #if 1
     // load this pixel's data into matrixUpdateData buffer linearly: so pixel0-clk, pixel0-CLK, pixel1-clk ... pixeln-CLK are adjacent and can be shifted out incrementing by 1 each time
-    uint8_t * tempptr = (uint8_t*)matrixUpdateData + (freeRowBuffer*dmaBufferBytesPerRow) + (i*DMA_UPDATES_PER_CLOCK);
+    uint8_t * tempptr = (uint8_t*)&matrixUpdateRows[freeRowBuffer] + (i*DMA_UPDATES_PER_CLOCK);
+    
 
     for(int j=0; j<latchesPerRow; j++) {
         union {
@@ -1406,8 +1404,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 
             // copy words to DMA buffer as a pair, one with clock set low, next with clock set high
 
-            uint8_t * tempptr = (uint8_t*)matrixUpdateData + (freeRowBuffer*dmaBufferBytesPerRow) + (PIXELS_PER_LATCH*DMA_UPDATES_PER_CLOCK) + (j*(PIXELS_PER_LATCH * DMA_UPDATES_PER_CLOCK + ADDX_UPDATE_BEFORE_LATCH_BYTES));
-            *tempptr = (uint8_t)o0.word;
+            matrixUpdateRows[freeRowBuffer].rowbits[j].data[PIXELS_PER_LATCH*DMA_UPDATES_PER_CLOCK] = o0.word;
         }
 
     #else
@@ -1455,6 +1452,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers24(unsigned char currentRow, unsigned char freeRowBuffer) {
+#if 0
     int i;
 
     // static to avoid putting large buffer on the stack
@@ -1669,6 +1667,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     *tempptr2 = o0.word;
     // stop after 2nd word for 24 bit color
 #endif
+#endif
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
@@ -1750,7 +1749,7 @@ void rowShiftCompleteISR(void) {
         dmaUpdateAddress.TCD->SADDR = &((matrixUpdateBlock*)SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateBlocks + (currentRow * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::latchesPerRow))->addressValues;
 #endif
         dmaUpdateTimer.TCD->SADDR = &((matrixUpdateBlock*)SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateBlocks + (currentRow * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::latchesPerRow))->timerValues.timer_oe;
-        dmaClockOutData.TCD->SADDR = (uint8_t*)SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateData + (currentRow * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBufferBytesPerRow);
+        dmaClockOutData.TCD->SADDR = (uint8_t*)&SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[currentRow];
     }
 
     // trigger software interrupt to call rowCalculationISR() (DMA channel interrupt used instead of actual softint)
