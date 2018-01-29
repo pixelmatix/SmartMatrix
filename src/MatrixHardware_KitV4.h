@@ -28,8 +28,8 @@
 
 #define COLOR_CHANNELS_PER_PIXEL        3
 #define DMA_UPDATES_PER_CLOCK           2
-#define ADDX_UPDATE_BEFORE_LATCH_BYTES  1
 #define ADDX_UPDATE_ON_DATA_PINS
+#define ADDX_UPDATE_BEFORE_LATCH_BYTES  1
 
 /* an advanced user may need to tweak these values */
 
