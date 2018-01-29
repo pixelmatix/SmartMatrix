@@ -29,7 +29,6 @@
 #define COLOR_CHANNELS_PER_PIXEL        3
 #define PIXELS_UPDATED_PER_CLOCK        2
 #define DMA_UPDATES_PER_CLOCK           2
-#define ADDX_UPDATE_BEFORE_LATCH_BYTES  0
 
 /* an advanced user may need to tweak these values */
 
@@ -53,6 +52,8 @@
     p1r1:1, p1clk:1, p1g2:1, p1pad:1, p1b1:1, p1b2:1, p1r2:1, p1g1:1, \
     p2r1:1, p2clk:1, p2g2:1, p2pad:1, p2b1:1, p2b2:1, p2r2:1, p2g1:1, \
     p3r1:1, p3clk:1, p3g2:1, p3pad:1, p3b1:1, p3b2:1, p3r2:1, p3g1:1
+
+#define GPIO_WORD_ORDER_8BIT p0r1:1, p0clk:1, p0pad:1, p0g2:1, p0b1:1, p0b2:1, p0r2:1, p0g1:1
 
 //#define DEBUG_PINS_ENABLED
 #define DEBUG_PIN_1 17
