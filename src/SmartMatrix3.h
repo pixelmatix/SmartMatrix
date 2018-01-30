@@ -50,10 +50,6 @@ typedef struct addresspair {
     uint16_t bits_to_set;
 } addresspair;
 
-typedef struct matrixUpdateBlock {
-    addresspair addressValues;
-} matrixUpdateBlock;
-
 #define SMARTMATRIX_HUB75_32ROW_MOD16SCAN             0
 #define SMARTMATRIX_HUB75_16ROW_MOD8SCAN              1
 
@@ -73,8 +69,22 @@ typedef struct matrixUpdateBlock {
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 class SmartMatrix3 {
 public:
+    struct rowBitStruct {
+        uint8_t data[((((matrixWidth * matrixHeight) / CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT(panelType)) * DMA_UPDATES_PER_CLOCK))];
+        uint8_t rowAddress;
+        timerpair timerValues;
+#ifndef ADDX_UPDATE_ON_DATA_PINS
+        addresspair addressValues;
+#endif
+    };
+
+    struct rowDataStruct {
+        rowBitStruct rowbits[refreshDepth/COLOR_CHANNELS_PER_PIXEL];
+    };
+
+
     // init
-    SmartMatrix3(uint8_t bufferrows, uint8_t * dataBuffer, uint8_t * blockBuffer);
+    SmartMatrix3(uint8_t bufferrows, rowDataStruct * rowDataBuffer);
     void begin(void);
     void addLayer(SM_Layer * newlayer);
 
@@ -92,16 +102,6 @@ public:
 
     // debug
     void countFPS(void);
-
-    struct rowBitStruct {
-        uint8_t data[((((matrixWidth * matrixHeight) / CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT(panelType)) * DMA_UPDATES_PER_CLOCK))];
-        uint8_t rowAddress;
-        timerpair timerValues;
-    };
-
-    struct rowDataStruct {
-        rowBitStruct rowbits[refreshDepth/COLOR_CHANNELS_PER_PIXEL];
-    };
 
 private:
     SM_Layer * baseLayer;
@@ -141,7 +141,7 @@ private:
     static uint8_t refreshRate;
     static const int matrixPanelHeight;    
     static const int matrixRowPairOffset;    
-    static const int matrixRowsPerFrame;    
+    static const int matrixRowsPerFrame  = CONVERT_PANELTYPE_TO_MATRIXROWSPERFRAME(panelType);    
 
     const static uint8_t latchesPerRow = refreshDepth/COLOR_CHANNELS_PER_PIXEL;
     static uint8_t dmaBufferNumRows;
@@ -151,10 +151,9 @@ private:
     static bool refreshRateChanged;
 
     static rowDataStruct * matrixUpdateRows;
-    static matrixUpdateBlock * matrixUpdateBlocks;
-    static addresspair * addressLUT;
-    static timerpair * timerLUT;
-    static timerpair * timerPairIdle;
+    static addresspair addressLUT[matrixRowsPerFrame];
+    static timerpair timerLUT[latchesPerRow];
+    static timerpair timerPairIdle;
 
     static SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>* globalinstance;
 };
@@ -164,9 +163,8 @@ private:
 
 // single matrixUpdateBlocks buffer is divided up to hold matrixUpdateBlocks, addressLUT, timerLUT to simplify user sketch code and reduce constructor parameters
 #define SMARTMATRIX_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
-    static DMAMEM uint8_t matrixUpdateBlocks[(sizeof(matrixUpdateBlock) * buffer_rows * pwm_depth/COLOR_CHANNELS_PER_PIXEL) + (sizeof(addresspair) * CONVERT_PANELTYPE_TO_MATRIXROWSPERFRAME(panel_type)) + (sizeof(timerpair) * pwm_depth/COLOR_CHANNELS_PER_PIXEL) + sizeof(timerpair)]; \
-    static DMAMEM SmartMatrix3<pwm_depth, width, height, panel_type, option_flags>::rowDataStruct rowbit[buffer_rows]; \
-    SmartMatrix3<pwm_depth, width, height, panel_type, option_flags> matrix_name(buffer_rows, (uint8_t*)rowbit, matrixUpdateBlocks)
+    static DMAMEM SmartMatrix3<pwm_depth, width, height, panel_type, option_flags>::rowDataStruct rowsDataBuffer[buffer_rows]; \
+    SmartMatrix3<pwm_depth, width, height, panel_type, option_flags> matrix_name(buffer_rows, rowsDataBuffer)
 
 #define SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(layer_name, width, height, storage_depth, scrolling_options) \
     typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \

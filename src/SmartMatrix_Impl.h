@@ -60,7 +60,7 @@ const int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optio
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 const int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixRowPairOffset = CONVERT_PANELTYPE_TO_MATRIXROWPAIROFFSET(panelType);
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-const int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixRowsPerFrame = CONVERT_PANELTYPE_TO_MATRIXROWSPERFRAME(panelType);
+const int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixRowsPerFrame;
 
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
@@ -86,17 +86,15 @@ uint8_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionF
 
 
 // todo: just use a single buffer for Blocks/LUT/Data?
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-matrixUpdateBlock * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateBlocks;    // array is size dmaBufferNumRows * latchesPerRow
 #ifndef ADDX_UPDATE_ON_DATA_PINS
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-addresspair * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::addressLUT;      // array is size rowsPerFrame
+addresspair SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::addressLUT[matrixRowsPerFrame];
 #endif
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-timerpair * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::timerLUT;          // array is size latchesPerRow
+timerpair SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::timerLUT[latchesPerRow];
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-timerpair * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::timerPairIdle;
+timerpair SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::timerPairIdle;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 volatile bool SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBufferUnderrun = false;
@@ -149,25 +147,15 @@ static gpiopair gpiosync;
 #endif
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::SmartMatrix3(uint8_t bufferrows, uint8_t * dataBuffer, uint8_t * blockBuffer) {
+SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::SmartMatrix3(uint8_t bufferrows, rowDataStruct * rowDataBuffer) {
     SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::globalinstance = this;
     dmaBufferNumRows = bufferrows;
     dmaBufferBytesPerPixel = latchesPerRow * DMA_UPDATES_PER_CLOCK;
 
-    matrixUpdateRows = (typename SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowDataStruct *)dataBuffer;
+    matrixUpdateRows = rowDataBuffer;
 
-    // single buffer is divided up to hold matrixUpdateBlocks, addressLUT, timerLUT to simplify user sketch code and reduce constructor parameters
-    matrixUpdateBlocks = (matrixUpdateBlock*)blockBuffer;
-    blockBuffer += sizeof(matrixUpdateBlock) * dmaBufferNumRows * latchesPerRow;
-#ifndef ADDX_UPDATE_ON_DATA_PINS
-    addressLUT = (addresspair*)blockBuffer;
-#endif
-    blockBuffer += sizeof(addresspair) * matrixRowsPerFrame;
-    timerLUT = (timerpair*)blockBuffer;
-    blockBuffer += sizeof(timerpair) * latchesPerRow;
-    timerPairIdle = (timerpair*)blockBuffer;
-    timerPairIdle->timer_period = MIN_BLOCK_PERIOD_TICKS;
-    timerPairIdle->timer_oe = MIN_BLOCK_PERIOD_TICKS;
+    timerPairIdle.timer_period = MIN_BLOCK_PERIOD_TICKS;
+    timerPairIdle.timer_oe = MIN_BLOCK_PERIOD_TICKS;
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
@@ -227,7 +215,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     // point DMA addresses to the next buffer
     int currentRow = cbGetNextRead(&dmaBuffer);
 #ifndef ADDX_UPDATE_ON_DATA_PINS
-    dmaUpdateAddress.TCD->SADDR = &((matrixUpdateBlock*)SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateBlocks + (currentRow * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::latchesPerRow))->addressValues;
+    dmaUpdateAddress.TCD->SADDR = &(SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[0].rowbits[0].addressValues);
 #endif
     dmaUpdateTimer.TCD->SADDR = &(SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[currentRow].rowbits[0].timerValues.timer_oe);
     dmaClockOutData.TCD->SADDR = (uint8_t*)&SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[currentRow];
@@ -580,9 +568,9 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 
     // dmaUpdateAddress - copy address values from current position in array to buffer to temporarily hold row values for the next timer cycle
     // only use single major loop, never disable channel
-    dmaUpdateAddress.TCD->SADDR = &((matrixUpdateBlock*)matrixUpdateBlocks)->addressValues;
+    dmaUpdateAddress.TCD->SADDR = &(matrixUpdateRows[0].rowbits[0].addressValues);
     dmaUpdateAddress.TCD->SOFF = sizeof(uint16_t);
-    dmaUpdateAddress.TCD->SLAST = sizeof(matrixUpdateBlock) - (ADDRESS_ARRAY_REGISTERS_TO_UPDATE * sizeof(uint16_t));
+    dmaUpdateAddress.TCD->SLAST = sizeof(matrixUpdateRows[0].rowbits[0]) - (ADDRESS_ARRAY_REGISTERS_TO_UPDATE * sizeof(uint16_t));
     dmaUpdateAddress.TCD->ATTR = DMA_TCD_ATTR_SSIZE(1) | DMA_TCD_ATTR_DSIZE(1);
     // 16-bit = 2 bytes transferred
     // transfer two 16-bit values, reset destination address back after each minor loop
@@ -1695,9 +1683,8 @@ template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char pan
 INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers(unsigned char currentRow) {
     int i;
 
-    addresspair rowAddressPair;
-
 #ifndef ADDX_UPDATE_ON_DATA_PINS
+    addresspair rowAddressPair;
     rowAddressPair.bits_to_set = addressLUT[currentRow].bits_to_set;
     rowAddressPair.bits_to_clear = addressLUT[currentRow].bits_to_clear;
 #endif
@@ -1706,11 +1693,11 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowDataStruct * currentRowDataPtr = getNextRowBufferPtr();
 
     for (i = 0; i < latchesPerRow; i++) {
-        matrixUpdateBlock* tempptr = (matrixUpdateBlock*)matrixUpdateBlocks + (freeRowBuffer * latchesPerRow) + i;
+#ifndef ADDX_UPDATE_ON_DATA_PINS
         // copy bits to set and clear to generate address for current block
-        tempptr->addressValues.bits_to_clear = rowAddressPair.bits_to_clear;
-        tempptr->addressValues.bits_to_set = rowAddressPair.bits_to_set;
-
+        currentRowDataPtr->rowbits[i].addressValues.bits_to_clear = rowAddressPair.bits_to_clear;
+        currentRowDataPtr->rowbits[i].addressValues.bits_to_set = rowAddressPair.bits_to_set;
+#endif
         currentRowDataPtr->rowbits[i].timerValues.timer_period = timerLUT[i].timer_period;
         currentRowDataPtr->rowbits[i].timerValues.timer_oe = timerLUT[i].timer_oe;
     }
@@ -1752,7 +1739,7 @@ void rowShiftCompleteISR(void) {
     digitalWriteFast(DEBUG_PIN_1, LOW); // oscilloscope trigger
 #endif
         // point dmaUpdateTimer to repeatedly load from values that set mod to MIN_BLOCK_PERIOD_TICKS and disable OE
-        dmaUpdateTimer.TCD->SADDR = SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::timerPairIdle;
+        dmaUpdateTimer.TCD->SADDR = &SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::timerPairIdle;
         // set timer increment to repeat timerPairIdle
         dmaUpdateTimer.TCD->SLAST = -(TIMER_REGISTERS_TO_UPDATE*sizeof(uint16_t));
         // disable channel-to-channel linking - don't link dmaClockOutData until buffer is ready
@@ -1768,7 +1755,7 @@ void rowShiftCompleteISR(void) {
         // get next row to draw to display and update DMA pointers
         int currentRow = cbGetNextRead(&dmaBuffer);
 #ifndef ADDX_UPDATE_ON_DATA_PINS
-        dmaUpdateAddress.TCD->SADDR = &((matrixUpdateBlock*)SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateBlocks + (currentRow * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::latchesPerRow))->addressValues;
+        dmaUpdateAddress.TCD->SADDR = &(SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[currentRow].rowbits[0].addressValues);
 #endif
         dmaUpdateTimer.TCD->SADDR = &(SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[currentRow].rowbits[0].timerValues.timer_oe);
         dmaClockOutData.TCD->SADDR = (uint8_t*)&SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[currentRow];
