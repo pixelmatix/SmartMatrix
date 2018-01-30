@@ -112,13 +112,19 @@ private:
     template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
     friend void rowShiftCompleteISR(void);
 
+    // refresh API
+    static bool isRowBufferFree(void);
+    static rowDataStruct * getNextRowBufferPtr(void);
+    static void writeRowBuffer(void);
+    static void recoverFromDmaUnderrun(void);
+
     // functions called by ISR
     static void matrixCalculations(bool initial = false);
 
     // functions for refreshing
     static void loadMatrixBuffers(unsigned char currentRow);
     static void loadMatrixBuffers48(unsigned char currentRow, unsigned char freeRowBuffer);
-    static void loadMatrixBuffers36(unsigned char currentRow, unsigned char freeRowBuffer);
+    static void loadMatrixBuffers36(rowDataStruct * currentRowDataPtr, unsigned char currentRow);
     static void loadMatrixBuffers24(unsigned char currentRow, unsigned char freeRowBuffer);
 
     // configuration helper functions
