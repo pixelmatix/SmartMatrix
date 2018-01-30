@@ -229,14 +229,14 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 #ifndef ADDX_UPDATE_ON_DATA_PINS
     dmaUpdateAddress.TCD->SADDR = &((matrixUpdateBlock*)SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateBlocks + (currentRow * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::latchesPerRow))->addressValues;
 #endif
-    dmaUpdateTimer.TCD->SADDR = &((matrixUpdateBlock*)SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateBlocks + (currentRow * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::latchesPerRow))->timerValues.timer_oe;
+    dmaUpdateTimer.TCD->SADDR = &(SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[currentRow].rowbits[0].timerValues.timer_oe);
     dmaClockOutData.TCD->SADDR = (uint8_t*)&SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[currentRow];
 
     // enable channel-to-channel linking so data will be shifted out
     dmaUpdateTimer.TCD->CSR &= ~(1 << 7);  // must clear DONE flag before enabling
     dmaUpdateTimer.TCD->CSR |= (1 << 5);
-    // set timer increment back to read from matrixUpdateBlocks
-    dmaUpdateTimer.TCD->SLAST = sizeof(matrixUpdateBlock) - (TIMER_REGISTERS_TO_UPDATE * sizeof(uint16_t));
+    // set timer increment back to read from matrixUpdateRows
+    dmaUpdateTimer.TCD->SLAST = sizeof(matrixUpdateRows[0].rowbits[0]) - (TIMER_REGISTERS_TO_UPDATE * sizeof(uint16_t));
 
     dmaBufferUnderrunSinceLastCheck = true;
     dmaBufferUnderrun = false;
@@ -597,12 +597,14 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     dmaUpdateAddress.TCD->CSR = 0;
 #endif
 
+#define DMA_TCD_MLOFF_MASK  (0x3FFFFC00)
+
     // dmaUpdateTimer - on latch falling edge, load FTM1_CV1 and FTM1_MOD with with next values from current block
     // only use single major loop, never disable channel
     // link to dmaClockOutData channel when complete
-    dmaUpdateTimer.TCD->SADDR = &((matrixUpdateBlock*)matrixUpdateBlocks)->timerValues.timer_oe;
+    dmaUpdateTimer.TCD->SADDR = &(matrixUpdateRows[0].rowbits[0].timerValues.timer_oe);
     dmaUpdateTimer.TCD->SOFF = sizeof(uint16_t);
-    dmaUpdateTimer.TCD->SLAST = sizeof(matrixUpdateBlock) - (TIMER_REGISTERS_TO_UPDATE * sizeof(uint16_t));
+    dmaUpdateTimer.TCD->SLAST = sizeof(matrixUpdateRows[0].rowbits[0]) - (TIMER_REGISTERS_TO_UPDATE * sizeof(uint16_t));
     dmaUpdateTimer.TCD->ATTR = DMA_TCD_ATTR_SSIZE(1) | DMA_TCD_ATTR_DSIZE(1);
     // 16-bit = 2 bytes transferred
     dmaUpdateTimer.TCD->NBYTES_MLOFFNO = TIMER_REGISTERS_TO_UPDATE * sizeof(uint16_t);
@@ -615,8 +617,6 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     // link dmaClockOutData channel, enable major channel-to-channel linking, don't clear enable after major loop complete
     dmaUpdateTimer.TCD->CSR = (dmaClockOutData.channel << 8) | (1 << 5);
     dmaUpdateTimer.triggerAtHardwareEvent(DMAMUX_SOURCE_LATCH_FALLING_EDGE);
-
-#define DMA_TCD_MLOFF_MASK  (0x3FFFFC00)
 
 #ifdef ADDX_UPDATE_ON_DATA_PINS
     uint16_t rowBitStructBytesToShift = sizeof(SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[0].rowbits[0].data) + ADDX_UPDATE_BEFORE_LATCH_BYTES;
@@ -1711,8 +1711,8 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         tempptr->addressValues.bits_to_clear = rowAddressPair.bits_to_clear;
         tempptr->addressValues.bits_to_set = rowAddressPair.bits_to_set;
 
-        tempptr->timerValues.timer_period = timerLUT[i].timer_period;
-        tempptr->timerValues.timer_oe = timerLUT[i].timer_oe;
+        currentRowDataPtr->rowbits[i].timerValues.timer_period = timerLUT[i].timer_period;
+        currentRowDataPtr->rowbits[i].timerValues.timer_oe = timerLUT[i].timer_oe;
     }
 
     if(latchesPerRow == 16)
@@ -1770,7 +1770,7 @@ void rowShiftCompleteISR(void) {
 #ifndef ADDX_UPDATE_ON_DATA_PINS
         dmaUpdateAddress.TCD->SADDR = &((matrixUpdateBlock*)SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateBlocks + (currentRow * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::latchesPerRow))->addressValues;
 #endif
-        dmaUpdateTimer.TCD->SADDR = &((matrixUpdateBlock*)SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateBlocks + (currentRow * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::latchesPerRow))->timerValues.timer_oe;
+        dmaUpdateTimer.TCD->SADDR = &(SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[currentRow].rowbits[0].timerValues.timer_oe);
         dmaClockOutData.TCD->SADDR = (uint8_t*)&SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[currentRow];
     }
 

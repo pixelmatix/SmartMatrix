@@ -51,7 +51,6 @@ typedef struct addresspair {
 } addresspair;
 
 typedef struct matrixUpdateBlock {
-    timerpair timerValues;
     addresspair addressValues;
 } matrixUpdateBlock;
 
@@ -97,6 +96,7 @@ public:
     struct rowBitStruct {
         uint8_t data[((((matrixWidth * matrixHeight) / CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT(panelType)) * DMA_UPDATES_PER_CLOCK))];
         uint8_t rowAddress;
+        timerpair timerValues;
     };
 
     struct rowDataStruct {
