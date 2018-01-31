@@ -104,7 +104,7 @@ public:
     void countFPS(void);
 
 private:
-    SM_Layer * baseLayer;
+    static SM_Layer * baseLayer;
 
     // enable ISR access to private member variables
     template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
@@ -154,8 +154,6 @@ private:
     static addresspair addressLUT[matrixRowsPerFrame];
     static timerpair timerLUT[latchesPerRow];
     static timerpair timerPairIdle;
-
-    static SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>* globalinstance;
 };
 
 

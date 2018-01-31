@@ -83,6 +83,7 @@ template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char pan
 uint8_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBufferBytesPerPixel;
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 uint8_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refreshRate = 120;
+SM_Layer * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
 
 
 // todo: just use a single buffer for Blocks/LUT/Data?
@@ -148,7 +149,6 @@ static gpiopair gpiosync;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::SmartMatrix3(uint8_t bufferrows, rowDataStruct * rowDataBuffer) {
-    SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::globalinstance = this;
     dmaBufferNumRows = bufferrows;
     dmaBufferBytesPerPixel = latchesPerRow * DMA_UPDATES_PER_CLOCK;
 
@@ -260,7 +260,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         // do once-per-frame updates
         if (!currentRow) {
             if (rotationChange) {
-                SM_Layer * templayer = globalinstance->baseLayer;
+                SM_Layer * templayer = SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
                 while(templayer) {
                     templayer->setRotation(rotation);
                     templayer = templayer->nextLayer;
@@ -268,7 +268,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 rotationChange = false;
             }
 
-            SM_Layer * templayer = globalinstance->baseLayer;
+            SM_Layer * templayer = SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
             while(templayer) {
                 if(refreshRateChanged) {
                     templayer->setRefreshRate(refreshRate);
@@ -1019,7 +1019,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     memset(tempRow1, 0x00, sizeof(tempRow1));
 
     // get pixel data from layers
-    SM_Layer * templayer = globalinstance->baseLayer;
+    SM_Layer * templayer = SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
     while(templayer) {
         for(i=0; i<MATRIX_STACK_HEIGHT; i++) {
             // Z-shape, bottom to top
