@@ -40,15 +40,20 @@
 #include "Layer_Indexed.h"
 #include "Layer_Background.h"
 
-typedef struct timerpair {
+typedef struct refresh_timerpair {
     uint16_t timer_oe;
     uint16_t timer_period;
-} timerpair;
+} refresh_timerpair;
 
-typedef struct addresspair {
+typedef struct calc_timerpair {
+    uint16_t timer_brightness;
+    uint16_t timer_refreshrate;
+} calc_timerpair;
+
+typedef struct refresh_addresspair {
     uint16_t bits_to_clear;
     uint16_t bits_to_set;
-} addresspair;
+} refresh_addresspair;
 
 #define SMARTMATRIX_HUB75_32ROW_MOD16SCAN             0
 #define SMARTMATRIX_HUB75_16ROW_MOD8SCAN              1
@@ -72,9 +77,9 @@ public:
     struct rowBitStruct {
         uint8_t data[((((matrixWidth * matrixHeight) / CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT(panelType)) * DMA_UPDATES_PER_CLOCK))];
         uint8_t rowAddress;
-        timerpair timerValues;
+        refresh_timerpair timerValues;
 #ifndef ADDX_UPDATE_ON_DATA_PINS
-        addresspair addressValues;
+        refresh_addresspair addressValues;
 #endif
     };
 
@@ -82,10 +87,11 @@ public:
         rowBitStruct rowbits[refreshDepth/COLOR_CHANNELS_PER_PIXEL];
     };
 
-
     // init
     SmartMatrix3(uint8_t bufferrows, rowDataStruct * rowDataBuffer);
+    void refresh_SmartMatrix3(uint8_t bufferrows, rowDataStruct * rowDataBuffer);
     void begin(void);
+    void refresh_begin(void);
     void addLayer(SM_Layer * newlayer);
 
     // configuration
@@ -103,23 +109,24 @@ public:
     // debug
     void countFPS(void);
 
+    // functions called by ISR
+    static void matrixCalculations(bool initial = false);
+
 private:
     static SM_Layer * baseLayer;
 
     // enable ISR access to private member variables
     template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
-    friend void rowCalculationISR(void);
+    friend void refresh_rowCalculationISR(void);
     template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
-    friend void rowShiftCompleteISR(void);
+    friend void refresh_rowShiftCompleteISR(void);
+
 
     // refresh API
-    static bool isRowBufferFree(void);
-    static rowDataStruct * getNextRowBufferPtr(void);
-    static void writeRowBuffer(void);
-    static void recoverFromDmaUnderrun(void);
-
-    // functions called by ISR
-    static void matrixCalculations(bool initial = false);
+    static bool refresh_isRowBufferFree(void);
+    static rowDataStruct * refresh_getNextRowBufferPtr(void);
+    static void refresh_writeRowBuffer(uint8_t currentRow);
+    static void refresh_recoverFromDmaUnderrun(void);
 
     // functions for refreshing
     static void loadMatrixBuffers(unsigned char currentRow);
@@ -128,7 +135,8 @@ private:
     static void loadMatrixBuffers24(unsigned char currentRow, unsigned char freeRowBuffer);
 
     // configuration helper functions
-    static void calculateTimerLut(void);
+    static void refresh_calculateTimerLUT(void);
+    static void refresh_setRefreshRate(uint8_t newRefreshRate);
 
     // configuration
     static volatile bool brightnessChange;
@@ -137,29 +145,30 @@ private:
     static int dimmingFactor;
     static const int dimmingMaximum;
     static rotationDegrees rotation;
-    static uint8_t colorDepthRgb;
-    static uint8_t refreshRate;
+    static uint8_t calc_refreshRate;
     static const int matrixPanelHeight;    
     static const int matrixRowPairOffset;    
-    static const int matrixRowsPerFrame  = CONVERT_PANELTYPE_TO_MATRIXROWSPERFRAME(panelType);    
+    static const int calc_matrixRowsPerFrame  = CONVERT_PANELTYPE_TO_MATRIXROWSPERFRAME(panelType);    
 
-    const static uint8_t latchesPerRow = refreshDepth/COLOR_CHANNELS_PER_PIXEL;
-    static uint8_t dmaBufferNumRows;
-    static uint8_t dmaBufferBytesPerPixel;
+    static uint8_t refresh_refreshRate;
+    static const int refresh_matrixRowsPerFrame  = CONVERT_PANELTYPE_TO_MATRIXROWSPERFRAME(panelType);    
+
+    static uint8_t refresh_dmaBufferNumRows;
+    const static uint8_t refresh_latchesPerRow = refreshDepth/COLOR_CHANNELS_PER_PIXEL;
+
+    const static uint8_t calc_latchesPerRow = refreshDepth/COLOR_CHANNELS_PER_PIXEL;
     static bool dmaBufferUnderrunSinceLastCheck;
     static bool refreshRateLowered;
     static bool refreshRateChanged;
 
-    static rowDataStruct * matrixUpdateRows;
-    static addresspair addressLUT[matrixRowsPerFrame];
-    static timerpair timerLUT[latchesPerRow];
-    static timerpair timerPairIdle;
+    static rowDataStruct * refresh_matrixUpdateRows;
+
+    static refresh_addresspair refresh_addressLUT[refresh_matrixRowsPerFrame];
+    static refresh_timerpair refresh_timerLUT[refresh_latchesPerRow];
+    static refresh_timerpair refresh_timerPairIdle;
 };
 
-
-
-
-// single matrixUpdateBlocks buffer is divided up to hold matrixUpdateBlocks, addressLUT, timerLUT to simplify user sketch code and reduce constructor parameters
+// single matrixUpdateBlocks buffer is divided up to hold matrixUpdateBlocks, refresh_addressLUT, refresh_timerLUT to simplify user sketch code and reduce constructor parameters
 #define SMARTMATRIX_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
     static DMAMEM SmartMatrix3<pwm_depth, width, height, panel_type, option_flags>::rowDataStruct rowsDataBuffer[buffer_rows]; \
     SmartMatrix3<pwm_depth, width, height, panel_type, option_flags> matrix_name(buffer_rows, rowsDataBuffer)
