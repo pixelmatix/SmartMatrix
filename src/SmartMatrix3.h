@@ -96,7 +96,7 @@ public:
 
     // configuration
     void setRotation(rotationDegrees rotation);
-    void setBrightness(uint8_t brightness);
+    void setBrightness(uint8_t newBrightness);
     void setRefreshRate(uint8_t newRefreshRate);
 
     // get info
@@ -121,7 +121,6 @@ private:
     template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
     friend void refresh_rowShiftCompleteISR(void);
 
-
     // refresh API
     static bool refresh_isRowBufferFree(void);
     static rowDataStruct * refresh_getNextRowBufferPtr(void);
@@ -137,13 +136,16 @@ private:
     // configuration helper functions
     static void refresh_calculateTimerLUT(void);
     static void refresh_setRefreshRate(uint8_t newRefreshRate);
+    static void refresh_setBrightness(uint8_t newBrightness);
 
     // configuration
     static volatile bool brightnessChange;
     static volatile bool rotationChange;
     static volatile bool dmaBufferUnderrun;
-    static int dimmingFactor;
-    static const int dimmingMaximum;
+    // TODO: move out of refresh code
+    static int refresh_dimmingFactor;
+    static int brightness;
+    static const int refresh_dimmingMaximum = 255;
     static rotationDegrees rotation;
     static uint8_t calc_refreshRate;
     static const int matrixPanelHeight;    
@@ -167,6 +169,8 @@ private:
     static refresh_timerpair refresh_timerLUT[refresh_latchesPerRow];
     static refresh_timerpair refresh_timerPairIdle;
 };
+
+
 
 // single matrixUpdateBlocks buffer is divided up to hold matrixUpdateBlocks, refresh_addressLUT, refresh_timerLUT to simplify user sketch code and reduce constructor parameters
 #define SMARTMATRIX_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \

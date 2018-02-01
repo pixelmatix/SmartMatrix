@@ -296,7 +296,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
             }
             refreshRateChanged = false;
             if (brightnessChange) {
-                refresh_calculateTimerLUT();
+                refresh_setBrightness(brightness);
                 brightnessChange = false;
             }
         }
@@ -356,7 +356,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
         // period is max on time for this block, plus the dead time while the latch is high
         uint16_t period = (msbBlockTicks >> (refresh_latchesPerRow - i - 1)) + LATCH_TIMER_PULSE_WIDTH_TICKS;
         // on-time is the max on-time * dimming factor, plus the dead time while the latch is high
-        uint16_t ontime = (((msbBlockTicks >> (refresh_latchesPerRow - i - 1)) * dimmingFactor) / dimmingMaximum) + LATCH_TIMER_PULSE_WIDTH_TICKS;
+        uint16_t ontime = (((msbBlockTicks >> (refresh_latchesPerRow - i - 1)) * refresh_dimmingFactor) / refresh_dimmingMaximum) + LATCH_TIMER_PULSE_WIDTH_TICKS;
 
         if (period < MIN_BLOCK_PERIOD_TICKS) {
             uint16_t padding = (MIN_BLOCK_PERIOD_TICKS) - period;
@@ -408,16 +408,20 @@ volatile bool SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, o
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 rotationDegrees SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rotation = rotation0;
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-const int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dimmingMaximum = 255;
 // large factor = more dim, default is full brightness
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dimmingFactor = dimmingMaximum - (100 * 255)/100;
+int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_dimmingFactor = refresh_dimmingMaximum - (100 * 255)/100;
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::brightness;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setBrightness(uint8_t brightness) {
-    dimmingFactor = dimmingMaximum - brightness;
+void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setBrightness(uint8_t newBrightness) {
+    brightness = newBrightness;
     brightnessChange = true;
+}
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_setBrightness(uint8_t newBrightness) {
+    refresh_dimmingFactor = refresh_dimmingMaximum - newBrightness;
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
