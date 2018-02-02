@@ -165,9 +165,8 @@ private:
 
     // functions for refreshing
     static void loadMatrixBuffers(unsigned char currentRow);
-    static void loadMatrixBuffers48(unsigned char currentRow, unsigned char freeRowBuffer);
-    static void loadMatrixBuffers36(rowDataStruct * currentRowDataPtr, unsigned char currentRow);
-    static void loadMatrixBuffers24(unsigned char currentRow, unsigned char freeRowBuffer);
+    static void loadMatrixBuffers48(rowDataStruct * currentRowDataPtr, unsigned char currentRow);
+    static void loadMatrixBuffers24(rowDataStruct * currentRowDataPtr, unsigned char currentRow);
 
     // configuration
     static volatile bool brightnessChange;

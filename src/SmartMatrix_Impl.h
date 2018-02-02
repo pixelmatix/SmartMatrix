@@ -712,356 +712,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers48(unsigned char currentRow, unsigned char freeRowBuffer) {
-#if 0
-    int i;
-
-    // static to avoid putting large buffer on the stack
-    static rgb48 tempRow0[PIXELS_PER_LATCH];
-    static rgb48 tempRow1[PIXELS_PER_LATCH];
-
-    // clear buffer to prevent garbage data showing through transparent layers
-    memset(tempRow0, 0x00, sizeof(tempRow0));
-    memset(tempRow1, 0x00, sizeof(tempRow1));
-
-    // get pixel data from layers
-    SM_Layer * templayer = globalinstance->baseLayer;
-    while(templayer) {
-        for(i=0; i<MATRIX_STACK_HEIGHT; i++) {
-            // Z-shape, bottom to top
-            if(!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
-                (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
-                // fill data from bottom to top, so bottom panel is the one closest to Teensy
-                templayer->fillRefreshRow(currentRow + (MATRIX_STACK_HEIGHT-i-1)*matrixPanelHeight, &tempRow0[i*matrixWidth]);
-                templayer->fillRefreshRow(currentRow + matrixRowPairOffset + (MATRIX_STACK_HEIGHT-i-1)*matrixPanelHeight, &tempRow1[i*matrixWidth]);
-            // Z-shape, top to bottom
-            } else if(!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
-                !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
-                // fill data from top to bottom, so top panel is the one closest to Teensy
-                templayer->fillRefreshRow(currentRow + i*matrixPanelHeight, &tempRow0[i*matrixWidth]);
-                templayer->fillRefreshRow(currentRow + matrixRowPairOffset + i*matrixPanelHeight, &tempRow1[i*matrixWidth]);
-            // C-shape, bottom to top
-            } else if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
-                (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
-                // alternate direction of filling (or loading) for each matrixwidth
-                // swap row order from top to bottom for each stack (tempRow1 filled with top half of panel, tempRow0 filled with bottom half)
-                if((MATRIX_STACK_HEIGHT-i+1)%2) {
-                    templayer->fillRefreshRow((matrixRowsPerFrame-currentRow-1) + matrixRowPairOffset + (i)*matrixPanelHeight, &tempRow0[i*matrixWidth]);
-                    templayer->fillRefreshRow((matrixRowsPerFrame-currentRow-1) + (i)*matrixPanelHeight, &tempRow1[i*matrixWidth]);
-                } else {
-                    templayer->fillRefreshRow(currentRow + (i)*matrixPanelHeight, &tempRow0[i*matrixWidth]);
-                    templayer->fillRefreshRow(currentRow + matrixRowPairOffset + (i)*matrixPanelHeight, &tempRow1[i*matrixWidth]);
-                }
-            // C-shape, top to bottom
-            } else if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && 
-                !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
-                if((MATRIX_STACK_HEIGHT-i)%2) {
-                    templayer->fillRefreshRow(currentRow + (MATRIX_STACK_HEIGHT-i-1)*matrixPanelHeight, &tempRow0[i*matrixWidth]);
-                    templayer->fillRefreshRow(currentRow + matrixRowPairOffset + (MATRIX_STACK_HEIGHT-i-1)*matrixPanelHeight, &tempRow1[i*matrixWidth]);
-                } else {
-                    templayer->fillRefreshRow((matrixRowsPerFrame-currentRow-1) + matrixRowPairOffset + (MATRIX_STACK_HEIGHT-i-1)*matrixPanelHeight, &tempRow0[i*matrixWidth]);
-                    templayer->fillRefreshRow((matrixRowsPerFrame-currentRow-1) + (MATRIX_STACK_HEIGHT-i-1)*matrixPanelHeight, &tempRow1[i*matrixWidth]);
-                }
-            }
-        }
-        templayer = templayer->nextLayer;        
-    }
-
-    for (i = 0; i < PIXELS_PER_LATCH; i++) {
-        uint16_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;
-
-        // for upside down stacks, flip order
-        if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && !((i/matrixWidth)%2)) {
-            int tempPosition = ((i/matrixWidth) * matrixWidth) + matrixWidth - i%matrixWidth - 1;
-            temp0red = tempRow0[tempPosition].red;
-            temp0green = tempRow0[tempPosition].green;
-            temp0blue = tempRow0[tempPosition].blue;
-            temp1red = tempRow1[tempPosition].red;
-            temp1green = tempRow1[tempPosition].green;
-            temp1blue = tempRow1[tempPosition].blue;
-        } else {
-            temp0red = tempRow0[i].red;
-            temp0green = tempRow0[i].green;
-            temp0blue = tempRow0[i].blue;
-            temp1red = tempRow1[i].red;
-            temp1green = tempRow1[i].green;
-            temp1blue = tempRow1[i].blue;
-        }
-
-
-#if 0
-        if(latchesPerRow == 12) {
-            temp0red >>= 4;
-            temp0green >>= 4;
-            temp0blue >>= 4;
-
-            temp1red >>= 4;
-            temp1green >>= 4;
-            temp1blue >>= 4;
-        }
-
-        if(latchesPerRow == 8) {
-            temp0red >>= 8;
-            temp0green >>= 8;
-            temp0blue >>= 8;
-
-            temp1red >>= 8;
-            temp1green >>= 8;
-            temp1blue >>= 8;
-        }
-#endif
-
-        // this technique is from Fadecandy
-        union {
-            uint32_t word;
-            struct {
-                // order of bits in word matches how GPIO connects to the display
-                uint32_t GPIO_WORD_ORDER;
-            };
-        } o0, o1, clkset;
-
-        o0.word = 0;
-        // set bits starting from LSB brightness moving to MSB brightness with each byte across the word
-        // each word contains four brightness levels for single set of pixels above
-        // o0.p0clk = 0;
-        // o0.p0pad = 0;
-        o0.p0b1 = temp0blue    >> 0;
-        o0.p0r1 = temp0red     >> 0;
-        o0.p0r2 = temp1red     >> 0;
-        o0.p0g1 = temp0green   >> 0;
-        o0.p0g2 = temp1green   >> 0;
-        o0.p0b2 = temp1blue    >> 0;
-
-        // o0.p1clk = 0;
-        // o0.p1pad = 0;
-        o0.p1b1 = temp0blue    >> 1;
-        o0.p1r1 = temp0red     >> 1;
-        o0.p1r2 = temp1red     >> 1;
-        o0.p1g1 = temp0green   >> 1;
-        o0.p1g2 = temp1green   >> 1;
-        o0.p1b2 = temp1blue    >> 1;
-
-        // o0.p2clk = 0;
-        // o0.p2pad = 0;
-        o0.p2b1 = temp0blue    >> 2;
-        o0.p2r1 = temp0red     >> 2;
-        o0.p2r2 = temp1red     >> 2;
-        o0.p2g1 = temp0green   >> 2;
-        o0.p2g2 = temp1green   >> 2;
-        o0.p2b2 = temp1blue    >> 2;
-
-        // o0.p3clk = 0;
-        // o0.p3pad = 0;
-        o0.p3b1 = temp0blue    >> 3;
-        o0.p3r1 = temp0red     >> 3;
-        o0.p3r2 = temp1red     >> 3;
-        o0.p3g1 = temp0green   >> 3;
-        o0.p3g2 = temp1green   >> 3;
-        o0.p3b2 = temp1blue    >> 3;
-
-
-        // continue moving from LSB to MSB brightness with the next word
-        o1.word = 0;
-        // o1.p0clk = 0;
-        // o1.p0pad = 0;
-        o1.p0b1 = temp0blue    >> (0 + 1 * sizeof(uint32_t));
-        o1.p0r1 = temp0red     >> (0 + 1 * sizeof(uint32_t));
-        o1.p0r2 = temp1red     >> (0 + 1 * sizeof(uint32_t));
-        o1.p0g1 = temp0green   >> (0 + 1 * sizeof(uint32_t));
-        o1.p0g2 = temp1green   >> (0 + 1 * sizeof(uint32_t));
-        o1.p0b2 = temp1blue    >> (0 + 1 * sizeof(uint32_t));
-
-        // o1.p1clk = 0;
-        // o1.p1pad = 0;
-        o1.p1b1 = temp0blue    >> (1 + 1 * sizeof(uint32_t));
-        o1.p1r1 = temp0red     >> (1 + 1 * sizeof(uint32_t));
-        o1.p1r2 = temp1red     >> (1 + 1 * sizeof(uint32_t));
-        o1.p1g1 = temp0green   >> (1 + 1 * sizeof(uint32_t));
-        o1.p1g2 = temp1green   >> (1 + 1 * sizeof(uint32_t));
-        o1.p1b2 = temp1blue    >> (1 + 1 * sizeof(uint32_t));
-
-        // o1.p2clk = 0;
-        // o1.p2pad = 0;
-        o1.p2b1 = temp0blue    >> (2 + 1 * sizeof(uint32_t));
-        o1.p2r1 = temp0red     >> (2 + 1 * sizeof(uint32_t));
-        o1.p2r2 = temp1red     >> (2 + 1 * sizeof(uint32_t));
-        o1.p2g1 = temp0green   >> (2 + 1 * sizeof(uint32_t));
-        o1.p2g2 = temp1green   >> (2 + 1 * sizeof(uint32_t));
-        o1.p2b2 = temp1blue    >> (2 + 1 * sizeof(uint32_t));
-
-        // o1.p3clk = 0;
-        // o1.p3pad = 0;
-        o1.p3b1 = temp0blue    >> (3 + 1 * sizeof(uint32_t));
-        o1.p3r1 = temp0red     >> (3 + 1 * sizeof(uint32_t));
-        o1.p3r2 = temp1red     >> (3 + 1 * sizeof(uint32_t));
-        o1.p3g1 = temp0green   >> (3 + 1 * sizeof(uint32_t));
-        o1.p3g2 = temp1green   >> (3 + 1 * sizeof(uint32_t));
-        o1.p3b2 = temp1blue    >> (3 + 1 * sizeof(uint32_t));
-
-        clkset.word = 0x00;
-        clkset.p0clk = 1;
-        clkset.p1clk = 1;
-        clkset.p2clk = 1;
-        clkset.p3clk = 1;
-
-        // copy words to DMA buffer as a pair, one with clock set low, next with clock set high
-
-        uint32_t * tempptr = (uint32_t*)matrixUpdateData + ((freeRowBuffer*dmaBufferBytesPerRow)/sizeof(uint32_t)) + ((i*dmaBufferBytesPerPixel)/sizeof(uint32_t));
-        *tempptr = o0.word;
-        *(tempptr + latchesPerRow/sizeof(uint32_t)) = o0.word | clkset.word;
-        *(++tempptr) = o1.word;
-        *(tempptr + latchesPerRow/sizeof(uint32_t)) = o1.word | clkset.word;
-
-        //if(latchesPerRow >= 12) {
-            union {
-                uint32_t word;
-                struct {
-                    // order of bits in word matches how GPIO connects to the display
-                    uint32_t GPIO_WORD_ORDER;
-                };
-            } o2;
-
-            o2.word = 0;
-            //o2.p0clk = 0;
-            //o2.p0pad = 0;
-            o2.p0b1 = temp0blue    >> (0 + 2 * sizeof(uint32_t));
-            o2.p0r1 = temp0red     >> (0 + 2 * sizeof(uint32_t));
-            o2.p0r2 = temp1red     >> (0 + 2 * sizeof(uint32_t));
-            o2.p0g1 = temp0green   >> (0 + 2 * sizeof(uint32_t));
-            o2.p0g2 = temp1green   >> (0 + 2 * sizeof(uint32_t));
-            o2.p0b2 = temp1blue    >> (0 + 2 * sizeof(uint32_t));
-
-            //o2.p1clk = 0;
-            //o2.p1pad = 0;
-            o2.p1b1 = temp0blue    >> (1 + 2 * sizeof(uint32_t));
-            o2.p1r1 = temp0red     >> (1 + 2 * sizeof(uint32_t));
-            o2.p1r2 = temp1red     >> (1 + 2 * sizeof(uint32_t));
-            o2.p1g1 = temp0green   >> (1 + 2 * sizeof(uint32_t));
-            o2.p1g2 = temp1green   >> (1 + 2 * sizeof(uint32_t));
-            o2.p1b2 = temp1blue    >> (1 + 2 * sizeof(uint32_t));
-
-            //o2.p2clk = 0;
-            //o2.p2pad = 0;
-            o2.p2b1 = temp0blue    >> (2 + 2 * sizeof(uint32_t));
-            o2.p2r1 = temp0red     >> (2 + 2 * sizeof(uint32_t));
-            o2.p2r2 = temp1red     >> (2 + 2 * sizeof(uint32_t));
-            o2.p2g1 = temp0green   >> (2 + 2 * sizeof(uint32_t));
-            o2.p2g2 = temp1green   >> (2 + 2 * sizeof(uint32_t));
-            o2.p2b2 = temp1blue    >> (2 + 2 * sizeof(uint32_t));
-
-
-            //o2.p3clk = 0;
-            //o2.p3pad = 0;
-            o2.p3b1 = temp0blue    >> (3 + 2 * sizeof(uint32_t));
-            o2.p3r1 = temp0red     >> (3 + 2 * sizeof(uint32_t));
-            o2.p3r2 = temp1red     >> (3 + 2 * sizeof(uint32_t));
-            o2.p3g1 = temp0green   >> (3 + 2 * sizeof(uint32_t));
-            o2.p3g2 = temp1green   >> (3 + 2 * sizeof(uint32_t));
-            o2.p3b2 = temp1blue    >> (3 + 2 * sizeof(uint32_t));
-
-            *(++tempptr) = o2.word;
-            *(tempptr + latchesPerRow/sizeof(uint32_t)) = o2.word | clkset.word;
-        //}
-
-        //if(latchesPerRow == 16) {
-            union {
-                uint32_t word;
-                struct {
-                    // order of bits in word matches how GPIO connects to the display
-                    uint32_t GPIO_WORD_ORDER;
-                };
-            } o3;
-
-            o3.word = 0;
-            //o3.p0clk = 0;
-            //o3.p0pad = 0;
-            o3.p0b1 = temp0blue    >> (0 + 3 * sizeof(uint32_t));
-            o3.p0r1 = temp0red     >> (0 + 3 * sizeof(uint32_t));
-            o3.p0r2 = temp1red     >> (0 + 3 * sizeof(uint32_t));
-            o3.p0g1 = temp0green   >> (0 + 3 * sizeof(uint32_t));
-            o3.p0g2 = temp1green   >> (0 + 3 * sizeof(uint32_t));
-            o3.p0b2 = temp1blue    >> (0 + 3 * sizeof(uint32_t));
-
-            //o3.p1clk = 0;
-            //o3.p1pad = 0;
-            o3.p1b1 = temp0blue    >> (1 + 3 * sizeof(uint32_t));
-            o3.p1r1 = temp0red     >> (1 + 3 * sizeof(uint32_t));
-            o3.p1r2 = temp1red     >> (1 + 3 * sizeof(uint32_t));
-            o3.p1g1 = temp0green   >> (1 + 3 * sizeof(uint32_t));
-            o3.p1g2 = temp1green   >> (1 + 3 * sizeof(uint32_t));
-            o3.p1b2 = temp1blue    >> (1 + 3 * sizeof(uint32_t));
-
-            //o3.p2clk = 0;
-            //o3.p2pad = 0;
-            o3.p2b1 = temp0blue    >> (2 + 3 * sizeof(uint32_t));
-            o3.p2r1 = temp0red     >> (2 + 3 * sizeof(uint32_t));
-            o3.p2r2 = temp1red     >> (2 + 3 * sizeof(uint32_t));
-            o3.p2g1 = temp0green   >> (2 + 3 * sizeof(uint32_t));
-            o3.p2g2 = temp1green   >> (2 + 3 * sizeof(uint32_t));
-            o3.p2b2 = temp1blue    >> (2 + 3 * sizeof(uint32_t));
-
-
-            //o3.p3clk = 0;
-            //o3.p3pad = 0;
-            o3.p3b1 = temp0blue    >> (3 + 3 * sizeof(uint32_t));
-            o3.p3r1 = temp0red     >> (3 + 3 * sizeof(uint32_t));
-            o3.p3r2 = temp1red     >> (3 + 3 * sizeof(uint32_t));
-            o3.p3g1 = temp0green   >> (3 + 3 * sizeof(uint32_t));
-            o3.p3g2 = temp1green   >> (3 + 3 * sizeof(uint32_t));
-            o3.p3b2 = temp1blue    >> (3 + 3 * sizeof(uint32_t));
-
-            *(++tempptr) = o3.word;
-            *(tempptr + latchesPerRow/sizeof(uint32_t)) = o3.word | clkset.word;
-        //}
-    }
-
-#if (ADDX_UPDATE_BEFORE_LATCH_BYTES > 0)
-    union {
-        uint32_t word;
-        struct {
-            // order of bits in word matches how GPIO connects to the display
-            uint32_t GPIO_WORD_ORDER;
-        };
-    } o0;
-
-    o0.word = 0x00000000;
-
-    o0.p0r1 = (currentRow & 0x01) ? 1 : 0;
-    o0.p0g1 = (currentRow & 0x02) ? 1 : 0;
-    o0.p0b1 = (currentRow & 0x04) ? 1 : 0;
-    o0.p0r2 = (currentRow & 0x08) ? 1 : 0;
-
-    o0.p1r1 = (currentRow & 0x01) ? 1 : 0;
-    o0.p1g1 = (currentRow & 0x02) ? 1 : 0;
-    o0.p1b1 = (currentRow & 0x04) ? 1 : 0;
-    o0.p1r2 = (currentRow & 0x08) ? 1 : 0;
-
-    o0.p2r1 = (currentRow & 0x01) ? 1 : 0;
-    o0.p2g1 = (currentRow & 0x02) ? 1 : 0;
-    o0.p2b1 = (currentRow & 0x04) ? 1 : 0;
-    o0.p2r2 = (currentRow & 0x08) ? 1 : 0;
-
-    o0.p3r1 = (currentRow & 0x01) ? 1 : 0;
-    o0.p3g1 = (currentRow & 0x02) ? 1 : 0;
-    o0.p3b1 = (currentRow & 0x04) ? 1 : 0;
-    o0.p3r2 = (currentRow & 0x08) ? 1 : 0;
-
-    // set pointer to the byte past the end of the pixel data to shift, and write the currentRow address
-    uint32_t * tempptr2 = (uint32_t*)matrixUpdateData + ((freeRowBuffer*dmaBufferBytesPerRow)/sizeof(uint32_t)) + (((PIXELS_PER_LATCH)*dmaBufferBytesPerPixel)/sizeof(uint32_t));
-    *tempptr2 = o0.word;
-    tempptr2++;
-    *tempptr2 = o0.word;
-    tempptr2++;
-    *tempptr2 = o0.word;
-    tempptr2++;
-    *tempptr2 = o0.word;
-    // stop after 4th word for 48 bit color
-#endif
-#endif
-}
-
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers36(rowDataStruct * currentRowDataPtr, unsigned char currentRow) {
+INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers48(rowDataStruct * currentRowDataPtr, unsigned char currentRow) {
     int i;
 
     // static to avoid putting large buffer on the stack
@@ -1124,9 +775,13 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     } o0;
     
     for(int j=0; j<LATCHES_PER_ROW; j++) {
-        //uint16_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;
+        int maskoffset = 0;
+        if(LATCHES_PER_ROW == 36)
+            maskoffset = 4;
+        else if (LATCHES_PER_ROW == 48)
+            maskoffset = 0;
 
-        uint16_t mask = (1 << (j + 4));
+        uint16_t mask = (1 << (j + maskoffset));
         
         int i=0;
 
@@ -1178,8 +833,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers24(unsigned char currentRow, unsigned char freeRowBuffer) {
-#if 0
+INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers24(rowDataStruct * currentRowDataPtr, unsigned char currentRow) {
     int i;
 
     // static to avoid putting large buffer on the stack
@@ -1191,224 +845,127 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     memset(tempRow1, 0x00, sizeof(tempRow1));
 
     // get pixel data from layers
-    SM_Layer * templayer = globalinstance->baseLayer;
+    SM_Layer * templayer = SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
     while(templayer) {
         for(i=0; i<MATRIX_STACK_HEIGHT; i++) {
             // Z-shape, bottom to top
             if(!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
                 (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
                 // fill data from bottom to top, so bottom panel is the one closest to Teensy
-                templayer->fillRefreshRow(currentRow + (MATRIX_STACK_HEIGHT-i-1)*matrixPanelHeight, &tempRow0[i*matrixWidth]);
-                templayer->fillRefreshRow(currentRow + matrixRowPairOffset + (MATRIX_STACK_HEIGHT-i-1)*matrixPanelHeight, &tempRow1[i*matrixWidth]);
+                templayer->fillRefreshRow(currentRow + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                templayer->fillRefreshRow(currentRow + ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
             // Z-shape, top to bottom
             } else if(!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
                 !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
                 // fill data from top to bottom, so top panel is the one closest to Teensy
-                templayer->fillRefreshRow(currentRow + i*matrixPanelHeight, &tempRow0[i*matrixWidth]);
-                templayer->fillRefreshRow(currentRow + matrixRowPairOffset + i*matrixPanelHeight, &tempRow1[i*matrixWidth]);
+                templayer->fillRefreshRow(currentRow + i*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                templayer->fillRefreshRow(currentRow + ROW_PAIR_OFFSET + i*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
             // C-shape, bottom to top
             } else if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
                 (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
                 // alternate direction of filling (or loading) for each matrixwidth
                 // swap row order from top to bottom for each stack (tempRow1 filled with top half of panel, tempRow0 filled with bottom half)
                 if((MATRIX_STACK_HEIGHT-i+1)%2) {
-                    templayer->fillRefreshRow((matrixRowsPerFrame-currentRow-1) + matrixRowPairOffset + (i)*matrixPanelHeight, &tempRow0[i*matrixWidth]);
-                    templayer->fillRefreshRow((matrixRowsPerFrame-currentRow-1) + (i)*matrixPanelHeight, &tempRow1[i*matrixWidth]);
+                    templayer->fillRefreshRow((ROWS_PER_FRAME-currentRow-1) + ROW_PAIR_OFFSET + (i)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                    templayer->fillRefreshRow((ROWS_PER_FRAME-currentRow-1) + (i)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
                 } else {
-                    templayer->fillRefreshRow(currentRow + (i)*matrixPanelHeight, &tempRow0[i*matrixWidth]);
-                    templayer->fillRefreshRow(currentRow + matrixRowPairOffset + (i)*matrixPanelHeight, &tempRow1[i*matrixWidth]);
+                    templayer->fillRefreshRow(currentRow + (i)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                    templayer->fillRefreshRow(currentRow + ROW_PAIR_OFFSET + (i)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
                 }
             // C-shape, top to bottom
             } else if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && 
                 !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
                 if((MATRIX_STACK_HEIGHT-i)%2) {
-                    templayer->fillRefreshRow(currentRow + (MATRIX_STACK_HEIGHT-i-1)*matrixPanelHeight, &tempRow0[i*matrixWidth]);
-                    templayer->fillRefreshRow(currentRow + matrixRowPairOffset + (MATRIX_STACK_HEIGHT-i-1)*matrixPanelHeight, &tempRow1[i*matrixWidth]);
+                    templayer->fillRefreshRow(currentRow + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                    templayer->fillRefreshRow(currentRow + ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
                 } else {
-                    templayer->fillRefreshRow((matrixRowsPerFrame-currentRow-1) + matrixRowPairOffset + (MATRIX_STACK_HEIGHT-i-1)*matrixPanelHeight, &tempRow0[i*matrixWidth]);
-                    templayer->fillRefreshRow((matrixRowsPerFrame-currentRow-1) + (MATRIX_STACK_HEIGHT-i-1)*matrixPanelHeight, &tempRow1[i*matrixWidth]);
+                    templayer->fillRefreshRow((ROWS_PER_FRAME-currentRow-1) + ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                    templayer->fillRefreshRow((ROWS_PER_FRAME-currentRow-1) + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
                 }
             }
         }
         templayer = templayer->nextLayer;        
     }
 
-    for (i = 0; i < PIXELS_PER_LATCH; i++) {
-        uint8_t temp0red,temp0green,temp0blue,temp1red,temp1green,temp1blue;
-
-        // for upside down stacks, flip order
-        if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && !((i/matrixWidth)%2)) {
-            int tempPosition = ((i/matrixWidth) * matrixWidth) + matrixWidth - i%matrixWidth - 1;
-            temp0red = tempRow0[tempPosition].red;
-            temp0green = tempRow0[tempPosition].green;
-            temp0blue = tempRow0[tempPosition].blue;
-            temp1red = tempRow1[tempPosition].red;
-            temp1green = tempRow1[tempPosition].green;
-            temp1blue = tempRow1[tempPosition].blue;
-        } else {
-            temp0red = tempRow0[i].red;
-            temp0green = tempRow0[i].green;
-            temp0blue = tempRow0[i].blue;
-            temp1red = tempRow1[i].red;
-            temp1green = tempRow1[i].green;
-            temp1blue = tempRow1[i].blue;
-        }
-
-        // this technique is from Fadecandy
-        union {
-            uint32_t word;
-            struct {
-                // order of bits in word matches how GPIO connects to the display
-                uint32_t GPIO_WORD_ORDER;
-            };
-        } o0, o1, clkset;
-
-        o0.word = 0;
-        // set bits starting from LSB brightness moving to MSB brightness with each byte across the word
-        // each word contains four brightness levels for single set of pixels above
-        // o0.p0clk = 0;
-        // o0.p0pad = 0;
-        o0.p0b1 = temp0blue    >> 0;
-        o0.p0r1 = temp0red     >> 0;
-        o0.p0r2 = temp1red     >> 0;
-        o0.p0g1 = temp0green   >> 0;
-        o0.p0g2 = temp1green   >> 0;
-        o0.p0b2 = temp1blue    >> 0;
-
-        // o0.p1clk = 0;
-        // o0.p1pad = 0;
-        o0.p1b1 = temp0blue    >> 1;
-        o0.p1r1 = temp0red     >> 1;
-        o0.p1r2 = temp1red     >> 1;
-        o0.p1g1 = temp0green   >> 1;
-        o0.p1g2 = temp1green   >> 1;
-        o0.p1b2 = temp1blue    >> 1;
-
-        // o0.p2clk = 0;
-        // o0.p2pad = 0;
-        o0.p2b1 = temp0blue    >> 2;
-        o0.p2r1 = temp0red     >> 2;
-        o0.p2r2 = temp1red     >> 2;
-        o0.p2g1 = temp0green   >> 2;
-        o0.p2g2 = temp1green   >> 2;
-        o0.p2b2 = temp1blue    >> 2;
-
-        // o0.p3clk = 0;
-        // o0.p3pad = 0;
-        o0.p3b1 = temp0blue    >> 3;
-        o0.p3r1 = temp0red     >> 3;
-        o0.p3r2 = temp1red     >> 3;
-        o0.p3g1 = temp0green   >> 3;
-        o0.p3g2 = temp1green   >> 3;
-        o0.p3b2 = temp1blue    >> 3;
-
-
-        // continue moving from LSB to MSB brightness with the next word
-        o1.word = 0;
-        // o1.p0clk = 0;
-        // o1.p0pad = 0;
-        o1.p0b1 = temp0blue    >> (0 + 1 * sizeof(uint32_t));
-        o1.p0r1 = temp0red     >> (0 + 1 * sizeof(uint32_t));
-        o1.p0r2 = temp1red     >> (0 + 1 * sizeof(uint32_t));
-        o1.p0g1 = temp0green   >> (0 + 1 * sizeof(uint32_t));
-        o1.p0g2 = temp1green   >> (0 + 1 * sizeof(uint32_t));
-        o1.p0b2 = temp1blue    >> (0 + 1 * sizeof(uint32_t));
-
-        // o1.p1clk = 0;
-        // o1.p1pad = 0;
-        o1.p1b1 = temp0blue    >> (1 + 1 * sizeof(uint32_t));
-        o1.p1r1 = temp0red     >> (1 + 1 * sizeof(uint32_t));
-        o1.p1r2 = temp1red     >> (1 + 1 * sizeof(uint32_t));
-        o1.p1g1 = temp0green   >> (1 + 1 * sizeof(uint32_t));
-        o1.p1g2 = temp1green   >> (1 + 1 * sizeof(uint32_t));
-        o1.p1b2 = temp1blue    >> (1 + 1 * sizeof(uint32_t));
-
-        // o1.p2clk = 0;
-        // o1.p2pad = 0;
-        o1.p2b1 = temp0blue    >> (2 + 1 * sizeof(uint32_t));
-        o1.p2r1 = temp0red     >> (2 + 1 * sizeof(uint32_t));
-        o1.p2r2 = temp1red     >> (2 + 1 * sizeof(uint32_t));
-        o1.p2g1 = temp0green   >> (2 + 1 * sizeof(uint32_t));
-        o1.p2g2 = temp1green   >> (2 + 1 * sizeof(uint32_t));
-        o1.p2b2 = temp1blue    >> (2 + 1 * sizeof(uint32_t));
-
-        // o1.p3clk = 0;
-        // o1.p3pad = 0;
-        o1.p3b1 = temp0blue    >> (3 + 1 * sizeof(uint32_t));
-        o1.p3r1 = temp0red     >> (3 + 1 * sizeof(uint32_t));
-        o1.p3r2 = temp1red     >> (3 + 1 * sizeof(uint32_t));
-        o1.p3g1 = temp0green   >> (3 + 1 * sizeof(uint32_t));
-        o1.p3g2 = temp1green   >> (3 + 1 * sizeof(uint32_t));
-        o1.p3b2 = temp1blue    >> (3 + 1 * sizeof(uint32_t));
-
-        clkset.word = 0x00;
-        clkset.p0clk = 1;
-        clkset.p1clk = 1;
-        clkset.p2clk = 1;
-        clkset.p3clk = 1;
-
-        // copy words to DMA buffer as a pair, one with clock set low, next with clock set high
-
-        uint32_t * tempptr = (uint32_t*)matrixUpdateData + ((freeRowBuffer*dmaBufferBytesPerRow)/sizeof(uint32_t)) + ((i*dmaBufferBytesPerPixel)/sizeof(uint32_t));
-        *tempptr = o0.word;
-        *(tempptr + latchesPerRow/sizeof(uint32_t)) = o0.word | clkset.word;
-        *(++tempptr) = o1.word;
-        *(tempptr + latchesPerRow/sizeof(uint32_t)) = o1.word | clkset.word;
-    }
-
-#if (ADDX_UPDATE_BEFORE_LATCH_BYTES > 0)
     union {
-        uint32_t word;
+        uint8_t word;
         struct {
             // order of bits in word matches how GPIO connects to the display
-            uint32_t GPIO_WORD_ORDER;
+            uint8_t GPIO_WORD_ORDER_8BIT;
         };
     } o0;
+    
+    for(int j=0; j<LATCHES_PER_ROW; j++) {
+        int maskoffset = 0;
+        if(LATCHES_PER_ROW == 36)
+            maskoffset = 4;
+        else if (LATCHES_PER_ROW == 48)
+            maskoffset = 0;
+        else if (LATCHES_PER_ROW == 24)
+            maskoffset = 0;
 
-    o0.word = 0x00000000;
+        uint16_t mask = (1 << (j + maskoffset));
+        
+        int i=0;
 
-    o0.p0r1 = (currentRow & 0x01) ? 1 : 0;
-    o0.p0g1 = (currentRow & 0x02) ? 1 : 0;
-    o0.p0b1 = (currentRow & 0x04) ? 1 : 0;
-    o0.p0r2 = (currentRow & 0x08) ? 1 : 0;
+        while(i < PIXELS_PER_LATCH) {
+            // parse through matrixWith block of pixels, from left to right, or right to left, depending on C_SHAPE_STACKING options
+            for(int k=0; k < matrixWidth; k++) {
+                o0.word = 0x00;
 
-    o0.p1r1 = (currentRow & 0x01) ? 1 : 0;
-    o0.p1g1 = (currentRow & 0x02) ? 1 : 0;
-    o0.p1b1 = (currentRow & 0x04) ? 1 : 0;
-    o0.p1r2 = (currentRow & 0x08) ? 1 : 0;
+                //fill temp0red, etc, or work directly from buffer?
+                if (tempRow0[i+k].red & mask)
+                    o0.p0r1 = 1;
+                if (tempRow0[i+k].green & mask)
+                    o0.p0g1 = 1;
+                if (tempRow0[i+k].blue & mask)
+                    o0.p0b1 = 1;
+                if (tempRow1[i+k].red & mask)
+                    o0.p0r2 = 1;
+                if (tempRow1[i+k].green & mask)
+                    o0.p0g2 = 1;
+                if (tempRow1[i+k].blue & mask)
+                    o0.p0b2 = 1;
 
-    o0.p2r1 = (currentRow & 0x01) ? 1 : 0;
-    o0.p2g1 = (currentRow & 0x02) ? 1 : 0;
-    o0.p2b1 = (currentRow & 0x04) ? 1 : 0;
-    o0.p2r2 = (currentRow & 0x08) ? 1 : 0;
+                if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && !((i/matrixWidth)%2)) {
+                    currentRowDataPtr->rowbits[j].data[(((i+matrixWidth-1)-k)*DMA_UPDATES_PER_CLOCK)] = o0.word;
+                    o0.p0clk = 1;
+                    currentRowDataPtr->rowbits[j].data[(((i+matrixWidth-1)-k)*DMA_UPDATES_PER_CLOCK)+1] = o0.word;
+                } else {
+                    currentRowDataPtr->rowbits[j].data[((i+k)*DMA_UPDATES_PER_CLOCK)] = o0.word;
+                    o0.p0clk = 1;
+                    currentRowDataPtr->rowbits[j].data[((i+k)*DMA_UPDATES_PER_CLOCK)+1] = o0.word;
+                }
+            }
+            i += matrixWidth;
+        }
+        currentRowDataPtr->rowbits[j].rowAddress = currentRow;
+    }
 
-    o0.p3r1 = (currentRow & 0x01) ? 1 : 0;
-    o0.p3g1 = (currentRow & 0x02) ? 1 : 0;
-    o0.p3b1 = (currentRow & 0x04) ? 1 : 0;
-    o0.p3r2 = (currentRow & 0x08) ? 1 : 0;
+#ifdef ADDX_UPDATE_ON_DATA_PINS
+        o0.word = 0x00000000;
+        o0.p0r1 = (currentRow & 0x01) ? 1 : 0;
+        o0.p0g1 = (currentRow & 0x02) ? 1 : 0;
+        o0.p0b1 = (currentRow & 0x04) ? 1 : 0;
+        o0.p0r2 = (currentRow & 0x08) ? 1 : 0;
 
-    // set pointer to the byte past the end of the pixel data to shift, and write the currentRow address
-    uint32_t * tempptr2 = (uint32_t*)matrixUpdateData + ((freeRowBuffer*dmaBufferBytesPerRow)/sizeof(uint32_t)) + (((PIXELS_PER_LATCH)*dmaBufferBytesPerPixel)/sizeof(uint32_t));
-    *tempptr2 = o0.word;
-    tempptr2++;
-    *tempptr2 = o0.word;
-    // stop after 2nd word for 24 bit color
-#endif
+        for(int j=0; j<LATCHES_PER_ROW; j++) {
+            currentRowDataPtr->rowbits[j].rowAddress = o0.word;
+        }
 #endif
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers(unsigned char currentRow) {
-    unsigned char freeRowBuffer = cbGetNextWrite(&dmaBuffer);
-    SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowDataStruct * currentRowDataPtr = SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_getNextRowBufferPtr();
+    rowDataStruct * currentRowDataPtr = SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_getNextRowBufferPtr();
 
     // TODO: support rgb36/48 with same function, copy function to rgb24
     if(LATCHES_PER_ROW == 16)
-        loadMatrixBuffers48(currentRow, freeRowBuffer);
+        loadMatrixBuffers48(currentRowDataPtr, currentRow);
     else if(LATCHES_PER_ROW == 12)
-        loadMatrixBuffers36(currentRowDataPtr, currentRow);
+        loadMatrixBuffers48(currentRowDataPtr, currentRow);
     else if(LATCHES_PER_ROW == 8)
-        loadMatrixBuffers24(currentRow, freeRowBuffer);
+        loadMatrixBuffers24(currentRowDataPtr, currentRow);
 }
 
 // low priority ISR triggered by software interrupt on a DMA channel that doesn't need interrupts otherwise
