@@ -30,4 +30,23 @@
 #define PIXELS_PER_LATCH    ((matrixWidth * matrixHeight) / MATRIX_PANEL_HEIGHT)
 #define ROW_PAIR_OFFSET (CONVERT_PANELTYPE_TO_MATRIXROWPAIROFFSET(panelType))
 
+#define SMARTMATRIX_HUB75_32ROW_MOD16SCAN             0
+#define SMARTMATRIX_HUB75_16ROW_MOD8SCAN              1
+
+#define CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT(x)   ((x == SMARTMATRIX_HUB75_32ROW_MOD16SCAN ? 32 : 0) | \
+                                                     (x == SMARTMATRIX_HUB75_16ROW_MOD8SCAN ? 16 : 0))
+
+#define CONVERT_PANELTYPE_TO_MATRIXROWPAIROFFSET(x)   ((x == SMARTMATRIX_HUB75_32ROW_MOD16SCAN ? 16 : 0) | \
+                                                     (x == SMARTMATRIX_HUB75_16ROW_MOD8SCAN ? 8 : 0))
+
+#define CONVERT_PANELTYPE_TO_MATRIXROWSPERFRAME(x)   ((x == SMARTMATRIX_HUB75_32ROW_MOD16SCAN ? 16 : 0) | \
+                                                     (x == SMARTMATRIX_HUB75_16ROW_MOD8SCAN ? 8 : 0))
+
+#define LATCHES_PER_ROW (refreshDepth/COLOR_CHANNELS_PER_PIXEL)
+#define ROWS_PER_FRAME (CONVERT_PANELTYPE_TO_MATRIXROWSPERFRAME(panelType))
+
+#define SMARTMATRIX_OPTIONS_NONE                    0
+#define SMARTMATRIX_OPTIONS_C_SHAPE_STACKING        (1 << 0)
+#define SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING  (1 << 1)
+
 #endif

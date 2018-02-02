@@ -22,7 +22,6 @@
  */
 
 #include "SmartMatrix3.h"
-#include "SmartMatrixMultiplexedCommon.h"
 #include "DMAChannel.h"
 
 #define INLINE __attribute__( ( always_inline ) ) inline
