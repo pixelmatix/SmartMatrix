@@ -29,5 +29,3 @@ DMAChannel dmaUpdateAddress(false);
 #endif
 DMAChannel dmaUpdateTimer(false);
 DMAChannel dmaClockOutData(false);
-
-CircularBuffer dmaBuffer;

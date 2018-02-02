@@ -23,7 +23,6 @@
 
 #include "SmartMatrix3.h"
 #include "SmartMatrixMultiplexedCommon.h"
-#include "CircularBuffer.h"
 #include "DMAChannel.h"
 
 #define INLINE __attribute__( ( always_inline ) ) inline
@@ -58,7 +57,8 @@ void refresh_rowShiftCompleteISR(void);
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void refresh_rowCalculationISR(void);
 
-extern CircularBuffer dmaBuffer;
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+CircularBuffer SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer;
 
 // refresh_dmaBufferNumRows = the size of the buffer that DMA pulls from to refresh the display
 // must be minimum 2 rows so one can be updated while the other is refreshed
@@ -517,9 +517,9 @@ void refresh_rowShiftCompleteISR(void) {
     digitalWriteFast(DEBUG_PIN_1, HIGH); // oscilloscope trigger
 #endif
     // done with previous row, mark it as read
-    cbRead(&dmaBuffer);
+    cbRead(&SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer);
 
-    if(cbIsEmpty(&dmaBuffer)) {
+    if(cbIsEmpty(&SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer)) {
 #ifdef DEBUG_PINS_ENABLED
     digitalWriteFast(DEBUG_PIN_1, LOW); // oscilloscope trigger
 #endif
@@ -538,7 +538,7 @@ void refresh_rowShiftCompleteISR(void) {
 #endif
     } else {
         // get next row to draw to display and update DMA pointers
-        int currentRow = cbGetNextRead(&dmaBuffer);
+        int currentRow = cbGetNextRead(&SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer);
 #ifndef ADDX_UPDATE_ON_DATA_PINS
         dmaUpdateAddress.TCD->SADDR = &(SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_matrixUpdateRows[currentRow].rowbits[0].addressValues);
 #endif

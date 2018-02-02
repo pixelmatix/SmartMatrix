@@ -35,6 +35,7 @@
 #endif
 
 #include "MatrixCommon.h"
+#include "CircularBuffer.h"
 
 #include "Layer_Scrolling.h"
 #include "Layer_Indexed.h"
@@ -124,6 +125,8 @@ private:
     static refresh_timerpair refresh_timerPairIdle;
     static matrix_calc_callback matrixCalcCallback;
     static matrix_underrun_callback matrixUnderrunCallback;
+
+    static CircularBuffer dmaBuffer;
 };
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
