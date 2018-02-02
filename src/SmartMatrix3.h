@@ -40,24 +40,6 @@
 #include "Layer_Indexed.h"
 #include "Layer_Background.h"
 
-typedef struct refresh_timerpair {
-    uint16_t timer_oe;
-    uint16_t timer_period;
-} refresh_timerpair;
-
-typedef struct calc_timerpair {
-    uint16_t timer_brightness;
-    uint16_t timer_refreshrate;
-} calc_timerpair;
-
-typedef struct refresh_addresspair {
-    uint16_t bits_to_clear;
-    uint16_t bits_to_set;
-} refresh_addresspair;
-
-typedef void (*matrix_calc_callback)(bool initial);
-typedef void (*matrix_underrun_callback)(void);
-
 #define SMARTMATRIX_HUB75_32ROW_MOD16SCAN             0
 #define SMARTMATRIX_HUB75_16ROW_MOD8SCAN              1
 
@@ -80,6 +62,16 @@ typedef void (*matrix_underrun_callback)(void);
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 class SmartMatrix3RefreshMultiplexed {
 public:
+    struct refresh_timerpair {
+        uint16_t timer_oe;
+        uint16_t timer_period;
+    };
+
+    struct refresh_addresspair {
+        uint16_t bits_to_clear;
+        uint16_t bits_to_set;
+    };
+
     struct rowBitStruct {
         uint8_t data[((((matrixWidth * matrixHeight) / CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT(panelType)) * DMA_UPDATES_PER_CLOCK))];
         uint8_t rowAddress;
@@ -92,6 +84,9 @@ public:
     struct rowDataStruct {
         rowBitStruct rowbits[refreshDepth/COLOR_CHANNELS_PER_PIXEL];
     };
+
+    typedef void (*matrix_underrun_callback)(void);
+    typedef void (*matrix_calc_callback)(bool initial);
 
     // init
     SmartMatrix3RefreshMultiplexed(uint8_t bufferrows, rowDataStruct * rowDataBuffer);
