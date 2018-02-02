@@ -55,6 +55,9 @@ typedef struct refresh_addresspair {
     uint16_t bits_to_set;
 } refresh_addresspair;
 
+typedef void (*matrix_calc_callback)(bool initial);
+typedef void (*matrix_underrun_callback)(void);
+
 #define SMARTMATRIX_HUB75_32ROW_MOD16SCAN             0
 #define SMARTMATRIX_HUB75_16ROW_MOD8SCAN              1
 
@@ -102,6 +105,8 @@ public:
     static void refresh_recoverFromDmaUnderrun(void);
     static bool refresh_isRowBufferFree(void);
     static void refresh_setRefreshRate(uint8_t newRefreshRate);
+    static void setMatrixCalculationsCallback(matrix_calc_callback f);
+    static void setMatrixUnderrunCallback(matrix_underrun_callback f);
 
 private:
     // enable ISR access to private member variables
@@ -122,6 +127,8 @@ private:
     static refresh_addresspair refresh_addressLUT[ROWS_PER_FRAME];
     static refresh_timerpair refresh_timerLUT[LATCHES_PER_ROW];
     static refresh_timerpair refresh_timerPairIdle;
+    static matrix_calc_callback matrixCalcCallback;
+    static matrix_underrun_callback matrixUnderrunCallback;
 };
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
@@ -150,7 +157,7 @@ public:
     void countFPS(void);
 
     // functions called by ISR
-    static void matrixCalculations(bool initial = false);
+    static void matrixCalculations(bool initial);
     static void dmaBufferUnderrunCallback(void);
 
 private:
@@ -194,7 +201,6 @@ private:
     typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
     static RGB_TYPE(storage_depth) backgroundBitmap[2*width*height];                                        \
     static SMLayerBackground<RGB_TYPE(storage_depth), background_options> layer_name(backgroundBitmap, width, height)  
-
 
 #include "SmartMatrix_Impl.h"
 
