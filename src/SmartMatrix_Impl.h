@@ -261,6 +261,7 @@ int SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pane
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_setBrightness(uint8_t newBrightness) {
     refresh_dimmingFactor = refresh_dimmingMaximum - newBrightness;
+    refresh_calculateTimerLUT();
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
