@@ -187,6 +187,11 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_recoverFromDmaUnderrun(void) {
 #if defined(KINETISL)
+    // restart timer, rest will get setup in ISR
+    FTM2_SC = 0;
+    FTM2_CNT = 0;
+    FTM2_SC = (FTM_SC_CLKS(1) | FTM_SC_PS(LATCH_TIMER_PRESCALE)) | FTM_SC_TOIE | FTM_SC_TOF | FTM_SC_DMA;
+
 #elif defined(KINETISK)
     // stop timer
     FTM1_SC = FTM_SC_CLKS(0) | FTM_SC_PS(LATCH_TIMER_PRESCALE);
@@ -606,30 +611,31 @@ void refresh_rowBitShiftCompleteISR(void) {
 
     digitalWriteFast(DEBUG_PIN_1, HIGH); // oscilloscope trigger
 
-    if(++currentLatchBit >= LATCHES_PER_ROW) {
+    if(currentLatchBit >= LATCHES_PER_ROW) {
         currentLatchBit = 0;
 
         // done with previous row, mark it as read
         cbRead(&SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer);
+    }
 
+    if(currentLatchBit == 0) {
+        // need new row, see if it is available yet
         if(cbIsEmpty(&SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer)) {
+            // new row is not available, handle DMA underrun
 #ifdef DEBUG_PINS_ENABLED
             digitalWriteFast(DEBUG_PIN_1, LOW); // oscilloscope trigger
 #endif
-
-        #if 0
-            // point dmaUpdateTimer to repeatedly load from values that set mod to MIN_BLOCK_PERIOD_TICKS and disable OE
-            dmaUpdateTimer.TCD->SADDR = &SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_timerPairIdle;
-            // set timer increment to repeat timerPairIdle
-            dmaUpdateTimer.TCD->SLAST = -(TIMER_REGISTERS_TO_UPDATE*sizeof(uint16_t));
-            // disable channel-to-channel linking - don't link dmaClockOutData until buffer is ready
-            dmaUpdateTimer.TCD->CSR &= ~(1 << 5);
-        #endif
-
+            // setup timer to overflow as fast as safely possible, with no interrupt, and no DMA channel linking (clear TOF flag)
             FTM2_MOD = SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_timerPairIdle.timer_period;
             FTM2_C1V = SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_timerPairIdle.timer_oe;
+            FTM2_SC = (FTM_SC_CLKS(1) | FTM_SC_PS(LATCH_TIMER_PRESCALE)) | FTM_SC_TOF;
 
-            // don't clear timer overflow flag?
+#ifdef DEBUG_PINS_ENABLED
+            digitalWriteFast(DEBUG_PIN_1, HIGH); // oscilloscope trigger
+#endif
+
+            // disable PORTA DMA request on edge
+            CORE_PIN3_CONFIG &= ~PORT_PCR_IRQC_MASK;
 
             // set flag so other ISR can enable DMA again when data is ready
             SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUnderrunCallback();
@@ -637,11 +643,9 @@ void refresh_rowBitShiftCompleteISR(void) {
 #ifdef DEBUG_PINS_ENABLED
             digitalWriteFast(DEBUG_PIN_1, LOW);
 #endif
+            // return without setting up timers below
             return;
 
-        #ifdef DEBUG_PINS_ENABLED
-            digitalWriteFast(DEBUG_PIN_1, HIGH); // oscilloscope trigger
-        #endif
         } else {
             // get next row to draw to display
             currentRow = cbGetNextRead(&SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer);
@@ -685,6 +689,8 @@ void refresh_rowBitShiftCompleteISR(void) {
 
       NVIC_SET_PENDING(IRQ_DMA_CH0 + dmaClockOutData.channel);
     }
+
+    currentLatchBit++;
 
     digitalWriteFast(DEBUG_PIN_1, LOW);
 }
