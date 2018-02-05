@@ -659,35 +659,34 @@ void refresh_rowBitShiftCompleteISR(void) {
     FTM2_SC = (FTM_SC_CLKS(1) | FTM_SC_PS(LATCH_TIMER_PRESCALE)) | FTM_SC_TOIE | FTM_SC_TOF;
 
     if(!alternateDmaBuffer) {
-      dmaClockOutData2.clearComplete();
-      dmaClockOutData2.CFG->SAR = (uint8_t*)&SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_matrixUpdateRows[currentRow].rowbits[currentLatchBit].data[0];
-      dmaClockOutData2.transferCount(SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowBitStructBytesToShift);
-      
-      // enable PORTA DMA request on edge again - enabling trigger for dmaClockOutData2, now that we've passed the previous trigger we wanted to ignore
-      ENABLE_LATCH_RISING_EDGE_GPIO_INT();
-      
-      dmaClockOutData2.enable();
+        dmaClockOutData2.clearComplete();
+        dmaClockOutData2.CFG->SAR = (uint8_t*)&SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_matrixUpdateRows[currentRow].rowbits[currentLatchBit].data[0];
+        dmaClockOutData2.transferCount(SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowBitStructBytesToShift);
+        
+        // enable PORTA DMA request on edge again - enabling trigger for dmaClockOutData2, now that we've passed the previous trigger we wanted to ignore
+        ENABLE_LATCH_RISING_EDGE_GPIO_INT();
+        
+        dmaClockOutData2.enable();
     } else {
-      // disable PORTA DMA request on edge - otherwise Interrupt Status Flag will stay asserted until the *completion* of the next DMA transfer, and will trigger the next time the channel is enabled, even though we don't want to be triggered on a previously seen edge
-      CORE_PIN3_CONFIG &= ~PORT_PCR_IRQC_MASK;
-
-      dmaClockOutData.clearComplete();
-      dmaClockOutData.CFG->SAR = (uint8_t*)&SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_matrixUpdateRows[currentRow].rowbits[currentLatchBit].data[0];
-      dmaClockOutData.transferCount(SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowBitStructBytesToShift);
-
-      // enable DMA flag for FTM2 - enabling trigger for dmaClockOutData
-      FTM2_SC |= FTM_SC_DMA;
-
-      dmaClockOutData.enable();
+        // disable PORTA DMA request on edge - otherwise Interrupt Status Flag will stay asserted until the *completion* of the next DMA transfer, and will trigger the next time the channel is enabled, even though we don't want to be triggered on a previously seen edge
+        CORE_PIN3_CONFIG &= ~PORT_PCR_IRQC_MASK;
+    
+        dmaClockOutData.clearComplete();
+        dmaClockOutData.CFG->SAR = (uint8_t*)&SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_matrixUpdateRows[currentRow].rowbits[currentLatchBit].data[0];
+        dmaClockOutData.transferCount(SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowBitStructBytesToShift);
+    
+        // enable DMA flag for FTM2 - enabling trigger for dmaClockOutData
+        FTM2_SC |= FTM_SC_DMA;
+    
+        dmaClockOutData.enable();
     }
 
     alternateDmaBuffer = !alternateDmaBuffer;
 
     // update row buffers and triger software interrupt when done with row
     if(currentLatchBit == 0) {
-          // trigger software interrupt to call refresh_rowCalculationISR() (DMA channel interrupt used instead of actual softint)
-
-      NVIC_SET_PENDING(IRQ_DMA_CH0 + dmaClockOutData.channel);
+        // trigger software interrupt to call refresh_rowCalculationISR() (DMA channel interrupt used instead of actual softint)
+        NVIC_SET_PENDING(IRQ_DMA_CH0 + dmaClockOutData.channel);
     }
 
     currentLatchBit++;
