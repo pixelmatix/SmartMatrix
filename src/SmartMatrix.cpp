@@ -23,9 +23,14 @@
 
 #include "SmartMatrix3.h"
 
-#ifndef ADDX_UPDATE_ON_DATA_PINS
-DMAChannel dmaOutputAddress(false);
-DMAChannel dmaUpdateAddress(false);
+#if defined(KINETISL)
+    DMAChannel dmaClockOutData(false);
+    DMAChannel dmaClockOutData2(false);
+#elif defined(KINETISK)
+    #ifndef ADDX_UPDATE_ON_DATA_PINS
+        DMAChannel dmaOutputAddress(false);
+        DMAChannel dmaUpdateAddress(false);
+    #endif
+    DMAChannel dmaUpdateTimer(false);
+    DMAChannel dmaClockOutData(false);
 #endif
-DMAChannel dmaUpdateTimer(false);
-DMAChannel dmaClockOutData(false);

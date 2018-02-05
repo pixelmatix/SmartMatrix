@@ -72,14 +72,21 @@ private:
     // enable ISR access to private member variables
     template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
     friend void refresh_rowCalculationISR(void);
-    template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
-    friend void refresh_rowShiftCompleteISR(void);
+
+    #if defined(KINETISL)
+        template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
+        friend void refresh_rowBitShiftCompleteISR(void);
+    #elif defined(KINETISK)
+        template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
+        friend void refresh_rowShiftCompleteISR(void);
+    #endif
 
     // configuration helper functions
     static void refresh_calculateTimerLUT(void);
 
     static int refresh_dimmingFactor;
     static const int refresh_dimmingMaximum = 255;
+    static uint16_t rowBitStructBytesToShift;
     static uint8_t refresh_refreshRate;
     static uint8_t refresh_dmaBufferNumRows;
     static rowDataStruct * refresh_matrixUpdateRows;

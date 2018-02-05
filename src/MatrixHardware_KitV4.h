@@ -33,9 +33,8 @@
 
 /* an advanced user may need to tweak these values */
 
-// size of latch pulse - all address updates must fit inside high portion of latch pulse
-// increase this value if DMA use is causing address updates to take longer
-#define LATCH_TIMER_PULSE_WIDTH_NS  438
+// size of latch pulse - can be short for V4 which doesn't need to update ADDX lines during latch pulse
+#define LATCH_TIMER_PULSE_WIDTH_NS  100
 
 // max delay from rising edge of latch pulse to falling edge of clock
 // increase this value if DMA use is delaying clock
@@ -80,8 +79,10 @@
         CORE_PIN4_CONFIG = PORT_PCR_MUX(3) | PORT_PCR_DSE | PORT_PCR_SRE;   \
     }
 
-// not used for SmartMatrix Shield V4
-#define ENABLE_LATCH_RISING_EDGE_GPIO_INT() {}
+// pin 3 (PORT A) triggers based on latch signal, on rising edge
+#define ENABLE_LATCH_RISING_EDGE_GPIO_INT() {              \
+        CORE_PIN3_CONFIG |= PORT_PCR_MUX(1) | PORT_PCR_IRQC(1); \
+    }
 
 // pin 3 (PORT A) triggers based on latch signal, on falling edge
 #define ENABLE_LATCH_FALLING_EDGE_GPIO_INT() {              \
