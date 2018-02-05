@@ -27,7 +27,6 @@
 #define INLINE __attribute__( ( always_inline ) ) inline
 
 #if defined(KINETISL)
-    #define FTM_SC_VALUE (FTM_SC_TOIE | FTM_SC_CLKS(1) | FTM_SC_PS(LATCH_TIMER_PRESCALE))
     #define ROW_CALCULATION_ISR_PRIORITY   192   // Cortex-M0 Acceptable values: 0,64,128,192
 #elif defined(KINETISK)
     #define ROW_CALCULATION_ISR_PRIORITY   240 // M4 acceptable values: 0,16,32,48,64,80,96,112,128,144,160,176,192,208,224,240
@@ -432,8 +431,8 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
 
     attachInterruptVector(IRQ_FTM2, refresh_rowBitShiftCompleteISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
 
-    // at the end after everything is set up: enable timer from system clock, with appropriate prescale, clear any pending overflow bits (otherwise get two ISR calls back to back in beginning), trigger DMA
-    FTM2_SC = FTM_SC_VALUE | FTM_SC_TOF | FTM_SC_DMA;
+    // at the end after everything is set up: enable timer from system clock with appropriate prescale, enable interrupts, clear any pending overflow bits (otherwise get two ISR calls back to back in beginning), trigger DMA
+    FTM2_SC = (FTM_SC_CLKS(1) | FTM_SC_PS(LATCH_TIMER_PRESCALE)) | FTM_SC_TOIE | FTM_SC_TOF | FTM_SC_DMA;
 
 #elif defined(KINETISK)
 
@@ -652,8 +651,8 @@ void refresh_rowBitShiftCompleteISR(void) {
     FTM2_MOD = SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_matrixUpdateRows[currentRow].rowbits[currentLatchBit].timerValues.timer_period;
     FTM2_C1V = SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_matrixUpdateRows[currentRow].rowbits[currentLatchBit].timerValues.timer_oe;
 
-    // clear Timer Overflow Flag - this also clears the FTM_SC_DMA flag, so dmaClockOutData won't trigger unless we want it to (set later in the ISR)
-    FTM2_SC = FTM_SC_VALUE | FTM_SC_TOF;
+    // clear Timer Overflow Flag while keeping timer running with interrupts enabled - this also clears the FTM_SC_DMA flag, so dmaClockOutData won't trigger unless we want it to (it can be set later in the ISR)
+    FTM2_SC = (FTM_SC_CLKS(1) | FTM_SC_PS(LATCH_TIMER_PRESCALE)) | FTM_SC_TOIE | FTM_SC_TOF;
 
     if(!alternateDmaBuffer) {
       dmaClockOutData2.clearComplete();
