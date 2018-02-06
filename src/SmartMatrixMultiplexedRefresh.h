@@ -37,6 +37,14 @@ public:
         uint16_t bits_to_set;
     };
 
+#ifndef ADDX_UPDATE_ON_DATA_PINS
+    // gpiopair is 2x uint32_t to match size and spacing of values it is updating: GPIOx_PSOR and GPIOx_PCOR are 32-bit and adjacent to each other
+    struct gpiopair {
+        uint32_t  gpio_psor;
+        uint32_t  gpio_pcor;
+    };
+#endif
+
     struct rowBitStruct {
         uint8_t data[((((matrixWidth * matrixHeight) / CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT(panelType)) * DMA_UPDATES_PER_CLOCK))];
         uint8_t rowAddress;
@@ -93,6 +101,9 @@ private:
     static addresspair addressLUT[ROWS_PER_FRAME];
     static timerpair timerLUT[LATCHES_PER_ROW];
     static timerpair timerPairIdle;
+#ifndef ADDX_UPDATE_ON_DATA_PINS
+    static gpiopair gpiosync;
+#endif
     static matrix_calc_callback matrixCalcCallback;
     static matrix_underrun_callback matrixUnderrunCallback;
 

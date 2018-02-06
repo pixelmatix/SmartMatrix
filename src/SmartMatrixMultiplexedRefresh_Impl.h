@@ -92,9 +92,13 @@ template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char pan
 uint16_t SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowBitStructBytesToShift;
 
 #ifndef ADDX_UPDATE_ON_DATA_PINS
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::addresspair SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::addressLUT[ROWS_PER_FRAME];
+    template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+    typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::addresspair SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::addressLUT[ROWS_PER_FRAME];
+
+    template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+    typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::gpiopair SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::gpiosync;
 #endif
+
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::timerpair SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::timerLUT[LATCHES_PER_ROW];
 
@@ -125,18 +129,6 @@ typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight,
  */
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowDataStruct * SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows;
-
-#ifndef ADDX_UPDATE_ON_DATA_PINS
-#define ADDRESS_ARRAY_REGISTERS_TO_UPDATE   2
-
-// 2x uint32_t to match size and spacing of values it is updating: GPIOx_PSOR and GPIOx_PCOR are 32-bit and adjacent to each other
-typedef struct gpiopair {
-    uint32_t  gpio_psor;
-    uint32_t  gpio_pcor;
-} gpiopair;
-
-static gpiopair gpiosync;
-#endif
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::SmartMatrix3RefreshMultiplexed(uint8_t bufferrows, rowDataStruct * rowDataBuffer) {
@@ -477,6 +469,7 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
     dmaClockOutData.begin(false);
 
 #ifndef ADDX_UPDATE_ON_DATA_PINS
+#define ADDRESS_ARRAY_REGISTERS_TO_UPDATE   2
     // dmaOutputAddress - on latch rising edge, read address from fixed address temporary buffer, and output address on GPIO
     // using combo of writes to set+clear registers, to only modify the address pins and not other GPIO pins
     // address temporary buffer is refreshed before each DMA trigger (by DMA channel dmaUpdateAddress)
