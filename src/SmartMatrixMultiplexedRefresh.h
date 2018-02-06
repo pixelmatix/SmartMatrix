@@ -57,14 +57,13 @@ public:
     SmartMatrix3RefreshMultiplexed(uint8_t bufferrows, rowDataStruct * rowDataBuffer);
     static void begin(void);
 
-    static void setBrightness(uint8_t newBrightness);
-
     // refresh API
     static rowDataStruct * getNextRowBufferPtr(void);
     static void writeRowBuffer(uint8_t currentRow);
     static void recoverFromDmaUnderrun(void);
     static bool isRowBufferFree(void);
     static void setRefreshRate(uint8_t newRefreshRate);
+    static void setBrightness(uint8_t newBrightness);
     static void setMatrixCalculationsCallback(matrix_calc_callback f);
     static void setMatrixUnderrunCallback(matrix_underrun_callback f);
 
