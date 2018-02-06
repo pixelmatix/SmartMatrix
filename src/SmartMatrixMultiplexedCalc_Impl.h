@@ -496,5 +496,3 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     else if(LATCHES_PER_ROW == 8)
         loadMatrixBuffers24(currentRowDataPtr, currentRow);
 }
-
-

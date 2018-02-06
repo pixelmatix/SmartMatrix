@@ -67,7 +67,7 @@
     static RGB_TYPE(storage_depth) backgroundBitmap[2*width*height];                                        \
     static SMLayerBackground<RGB_TYPE(storage_depth), background_options> layer_name(backgroundBitmap, width, height)  
 
-#include "SmartMatrix_Impl.h"
-#include "SmartMatrix3Calc_Impl.h"
+#include "SmartMatrixMultiplexedRefresh_Impl.h"
+#include "SmartMatrixMultiplexedCalc_Impl.h"
 
 #endif
