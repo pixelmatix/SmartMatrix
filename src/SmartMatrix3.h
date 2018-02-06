@@ -50,7 +50,7 @@
 
 // single matrixUpdateBlocks buffer is divided up to hold matrixUpdateBlocks, refresh_addressLUT, refresh_timerLUT to simplify user sketch code and reduce constructor parameters
 #define SMARTMATRIX_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
-    static DMAMEM SmartMatrix3<pwm_depth, width, height, panel_type, option_flags>::rowDataStruct rowsDataBuffer[buffer_rows]; \
+    static DMAMEM SmartMatrix3RefreshMultiplexed<pwm_depth, width, height, panel_type, option_flags>::rowDataStruct rowsDataBuffer[buffer_rows]; \
     SmartMatrix3RefreshMultiplexed<pwm_depth, width, height, panel_type, option_flags> matrix_name##Refresh(buffer_rows, rowsDataBuffer); \
     SmartMatrix3<pwm_depth, width, height, panel_type, option_flags> matrix_name(buffer_rows, rowsDataBuffer)
 
