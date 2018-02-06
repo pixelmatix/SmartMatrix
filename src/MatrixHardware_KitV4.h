@@ -84,9 +84,8 @@
         CORE_PIN3_CONFIG |= PORT_PCR_MUX(1) | PORT_PCR_IRQC(1); \
     }
 
-// pin 3 (PORT A) triggers based on latch signal, on falling edge
+// unused for SmartMatrix Shield V4
 #define ENABLE_LATCH_FALLING_EDGE_GPIO_INT() {              \
-        CORE_PIN3_CONFIG |= PORT_PCR_MUX(1) | PORT_PCR_IRQC(2); \
     }
 
 #define DMAMUX_SOURCE_LATCH_FALLING_EDGE     DMAMUX_SOURCE_PORTA
