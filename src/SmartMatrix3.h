@@ -42,9 +42,11 @@
 #include "Layer_Background.h"
 
 #include "SmartMatrixMultiplexedCommon.h"
-
 #include "SmartMatrixMultiplexedRefresh.h"
 #include "SmartMatrixMultiplexedCalc.h"
+
+#include "SmartMatrixAPA102Refresh.h"
+#include "SmartMatrixAPA102Calc.h"
 
 // single matrixUpdateBlocks buffer is divided up to hold matrixUpdateBlocks, refresh_addressLUT, refresh_timerLUT to simplify user sketch code and reduce constructor parameters
 #define SMARTMATRIX_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
@@ -69,5 +71,8 @@
 
 #include "SmartMatrixMultiplexedRefresh_Impl.h"
 #include "SmartMatrixMultiplexedCalc_Impl.h"
+
+#include "SmartMatrixAPA102Refresh_Impl.h"
+#include "SmartMatrixAPA102Calc_Impl.h"
 
 #endif
