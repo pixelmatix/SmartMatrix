@@ -44,7 +44,7 @@
 #endif
 
 #define LATCH_TIMER_PULSE_WIDTH_TICKS   NS_TO_TICKS(LATCH_TIMER_PULSE_WIDTH_NS)
-#define TICKS_PER_ROW   (TIMER_FREQUENCY/refresh_refreshRate/ROWS_PER_FRAME)
+#define TICKS_PER_ROW   (TIMER_FREQUENCY/refreshRate/ROWS_PER_FRAME)
 #define IDEAL_MSB_BLOCK_TICKS     (TICKS_PER_ROW/2)
 #define MIN_BLOCK_PERIOD_NS (LATCH_TO_CLK_DELAY_NS + ((PANEL_32_PIXELDATA_TRANSFER_MAXIMUM_NS*PIXELS_PER_LATCH)/32))
 #define MIN_BLOCK_PERIOD_TICKS NS_TO_TICKS(MIN_BLOCK_PERIOD_NS)
@@ -68,38 +68,38 @@
 
 #if defined(KINETISL)
     template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-    void refresh_rowBitShiftCompleteISR(void);
+    void rowBitShiftCompleteISR(void);
 #elif defined(KINETISK)
     template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-    void refresh_rowShiftCompleteISR(void);
+    void rowShiftCompleteISR(void);
 #endif
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void refresh_rowCalculationISR(void);
+void rowCalculationISR(void);
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 CircularBuffer SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer;
 
-// refresh_dmaBufferNumRows = the size of the buffer that DMA pulls from to refresh the display
+// dmaBufferNumRows = the size of the buffer that DMA pulls from to refresh the display
 // must be minimum 2 rows so one can be updated while the other is refreshed
 // increase beyond two to give more time for the update routine to complete
 // (increase this number if non-DMA interrupts are causing display problems)
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-uint8_t SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_dmaBufferNumRows;
+uint8_t SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBufferNumRows;
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-uint8_t SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_refreshRate = 120;
+uint8_t SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refreshRate = 120;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 uint16_t SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowBitStructBytesToShift;
 
 #ifndef ADDX_UPDATE_ON_DATA_PINS
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_addresspair SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_addressLUT[ROWS_PER_FRAME];
+typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::addresspair SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::addressLUT[ROWS_PER_FRAME];
 #endif
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_timerpair SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_timerLUT[LATCHES_PER_ROW];
+typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::timerpair SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::timerLUT[LATCHES_PER_ROW];
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_timerpair SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_timerPairIdle;
+typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::timerpair SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::timerPairIdle;
 
 /*
     THIS IS NOW OUT OF DATE: data is now arranged linearly sorted first by pixels, then by color bit
@@ -124,7 +124,7 @@ typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight,
     [pixel pair 15 - CLK - MSB][pixel pair 15 - CLK - MSB-1]...[pixel pair 15 - CLK - LSB+1][pixel pair 15 - CLK - LSB]
  */
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowDataStruct * SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_matrixUpdateRows;
+typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowDataStruct * SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows;
 
 #ifndef ADDX_UPDATE_ON_DATA_PINS
 #define ADDRESS_ARRAY_REGISTERS_TO_UPDATE   2
@@ -140,16 +140,16 @@ static gpiopair gpiosync;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::SmartMatrix3RefreshMultiplexed(uint8_t bufferrows, rowDataStruct * rowDataBuffer) {
-    refresh_dmaBufferNumRows = bufferrows;
+    dmaBufferNumRows = bufferrows;
 
-    refresh_matrixUpdateRows = rowDataBuffer;
+    matrixUpdateRows = rowDataBuffer;
 
-    refresh_timerPairIdle.timer_period = MIN_BLOCK_PERIOD_TICKS;
-    refresh_timerPairIdle.timer_oe = MIN_BLOCK_PERIOD_TICKS;
+    timerPairIdle.timer_period = MIN_BLOCK_PERIOD_TICKS;
+    timerPairIdle.timer_oe = MIN_BLOCK_PERIOD_TICKS;
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-bool SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_isRowBufferFree(void) {
+bool SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::isRowBufferFree(void) {
     if(cbIsFull(&dmaBuffer))
         return false;
     else
@@ -157,19 +157,19 @@ bool SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowDataStruct * SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_getNextRowBufferPtr(void) {
-    return &(refresh_matrixUpdateRows[cbGetNextWrite(&dmaBuffer)]);
+typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowDataStruct * SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getNextRowBufferPtr(void) {
+    return &(matrixUpdateRows[cbGetNextWrite(&dmaBuffer)]);
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_writeRowBuffer(uint8_t currentRow) {
+void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::writeRowBuffer(uint8_t currentRow) {
 #ifndef ADDX_UPDATE_ON_DATA_PINS
-    refresh_addresspair rowAddressPair;
-    rowAddressPair.bits_to_set = refresh_addressLUT[currentRow].bits_to_set;
-    rowAddressPair.bits_to_clear = refresh_addressLUT[currentRow].bits_to_clear;
+    addresspair rowAddressPair;
+    rowAddressPair.bits_to_set = addressLUT[currentRow].bits_to_set;
+    rowAddressPair.bits_to_clear = addressLUT[currentRow].bits_to_clear;
 #endif
         
-    SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowDataStruct * currentRowDataPtr = SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_getNextRowBufferPtr();
+    SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowDataStruct * currentRowDataPtr = SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getNextRowBufferPtr();
 
     for (int i = 0; i < LATCHES_PER_ROW; i++) {
 #ifndef ADDX_UPDATE_ON_DATA_PINS
@@ -177,15 +177,15 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
         currentRowDataPtr->rowbits[i].addressValues.bits_to_clear = rowAddressPair.bits_to_clear;
         currentRowDataPtr->rowbits[i].addressValues.bits_to_set = rowAddressPair.bits_to_set;
 #endif
-        currentRowDataPtr->rowbits[i].timerValues.timer_period = refresh_timerLUT[i].timer_period;
-        currentRowDataPtr->rowbits[i].timerValues.timer_oe = refresh_timerLUT[i].timer_oe;
+        currentRowDataPtr->rowbits[i].timerValues.timer_period = timerLUT[i].timer_period;
+        currentRowDataPtr->rowbits[i].timerValues.timer_oe = timerLUT[i].timer_oe;
     }
 
     cbWrite(&dmaBuffer);
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_recoverFromDmaUnderrun(void) {
+void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::recoverFromDmaUnderrun(void) {
 #if defined(KINETISL)
     // restart timer, rest will get setup in ISR
     FTM2_SC = 0;
@@ -199,16 +199,16 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
     // point DMA addresses to the next buffer
     int currentRow = cbGetNextRead(&dmaBuffer);
 #ifndef ADDX_UPDATE_ON_DATA_PINS
-    dmaUpdateAddress.TCD->SADDR = &(SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_matrixUpdateRows[0].rowbits[0].addressValues);
+    dmaUpdateAddress.TCD->SADDR = &(SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[0].rowbits[0].addressValues);
 #endif
-    dmaUpdateTimer.TCD->SADDR = &(SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_matrixUpdateRows[currentRow].rowbits[0].timerValues.timer_oe);
-    dmaClockOutData.TCD->SADDR = (uint8_t*)&SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_matrixUpdateRows[currentRow];
+    dmaUpdateTimer.TCD->SADDR = &(SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[currentRow].rowbits[0].timerValues.timer_oe);
+    dmaClockOutData.TCD->SADDR = (uint8_t*)&SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[currentRow];
 
     // enable channel-to-channel linking so data will be shifted out
     dmaUpdateTimer.TCD->CSR &= ~(1 << 7);  // must clear DONE flag before enabling
     dmaUpdateTimer.TCD->CSR |= (1 << 5);
     // set timer increment back to read from matrixUpdateRows
-    dmaUpdateTimer.TCD->SLAST = sizeof(refresh_matrixUpdateRows[0].rowbits[0]) - (TIMER_REGISTERS_TO_UPDATE * sizeof(uint16_t));
+    dmaUpdateTimer.TCD->SLAST = sizeof(matrixUpdateRows[0].rowbits[0]) - (TIMER_REGISTERS_TO_UPDATE * sizeof(uint16_t));
 
     // start timer again - next timer period is MIN_BLOCK_PERIOD_TICKS with OE disabled, period after that will be loaded from matrixUpdateBlock
     FTM1_SC = FTM_SC_CLKS(1) | FTM_SC_PS(LATCH_TIMER_PRESCALE);
@@ -235,7 +235,7 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
 #define MSB_BLOCK_TICKS_ADJUSTMENT_INCREMENT    10
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_calculateTimerLUT(void) {
+void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::calculateTimerLUT(void) {
     int i;
     uint32_t ticksUsed;
     uint16_t msbBlockTicks = IDEAL_MSB_BLOCK_TICKS + MSB_BLOCK_TICKS_ADJUSTMENT_INCREMENT;
@@ -263,7 +263,7 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
         // period is max on time for this block, plus the dead time while the latch is high
         uint16_t period = (msbBlockTicks >> (LATCHES_PER_ROW - i - 1)) + LATCH_TIMER_PULSE_WIDTH_TICKS;
         // on-time is the max on-time * dimming factor, plus the dead time while the latch is high
-        uint16_t ontime = (((msbBlockTicks >> (LATCHES_PER_ROW - i - 1)) * refresh_dimmingFactor) / refresh_dimmingMaximum) + LATCH_TIMER_PULSE_WIDTH_TICKS;
+        uint16_t ontime = (((msbBlockTicks >> (LATCHES_PER_ROW - i - 1)) * dimmingFactor) / dimmingMaximum) + LATCH_TIMER_PULSE_WIDTH_TICKS;
 
         if (period < MIN_BLOCK_PERIOD_TICKS) {
             uint16_t padding = (MIN_BLOCK_PERIOD_TICKS) - period;
@@ -279,59 +279,59 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
             ontime += padding;
         }
 #endif
-        refresh_timerLUT[i].timer_period = period;
-        refresh_timerLUT[i].timer_oe = ontime;
+        timerLUT[i].timer_period = period;
+        timerLUT[i].timer_oe = ontime;
     }
 }
 
 // large factor = more dim, default is full brightness
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-int SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_dimmingFactor = refresh_dimmingMaximum - (100 * 255)/100;
+int SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dimmingFactor = dimmingMaximum - (100 * 255)/100;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_setBrightness(uint8_t newBrightness) {
-    refresh_dimmingFactor = refresh_dimmingMaximum - newBrightness;
-    refresh_calculateTimerLUT();
+void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setBrightness(uint8_t newBrightness) {
+    dimmingFactor = dimmingMaximum - newBrightness;
+    calculateTimerLUT();
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_setRefreshRate(uint8_t newRefreshRate) {
+void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRefreshRate(uint8_t newRefreshRate) {
     if(newRefreshRate > MIN_REFRESH_RATE)
-        refresh_refreshRate = newRefreshRate;
+        refreshRate = newRefreshRate;
     else
-        refresh_refreshRate = MIN_REFRESH_RATE;
-    refresh_calculateTimerLUT();
+        refreshRate = MIN_REFRESH_RATE;
+    calculateTimerLUT();
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_begin(void) {
-    cbInit(&dmaBuffer, refresh_dmaBufferNumRows);
+void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin(void) {
+    cbInit(&dmaBuffer, dmaBufferNumRows);
 
 #ifndef ADDX_UPDATE_ON_DATA_PINS
     int i;
-    // fill refresh_addressLUT
+    // fill addressLUT
     for (i = 0; i < ROWS_PER_FRAME; i++) {
 
         // set all bits that are 1 in address
-        refresh_addressLUT[i].bits_to_set = 0x00;
+        addressLUT[i].bits_to_set = 0x00;
         if (i & 0x01)
-            refresh_addressLUT[i].bits_to_set |= (1 << ADDX_PIN_0);
+            addressLUT[i].bits_to_set |= (1 << ADDX_PIN_0);
         if (i & 0x02)
-            refresh_addressLUT[i].bits_to_set |= (1 << ADDX_PIN_1);
+            addressLUT[i].bits_to_set |= (1 << ADDX_PIN_1);
         if (i & 0x04)
-            refresh_addressLUT[i].bits_to_set |= (1 << ADDX_PIN_2);
+            addressLUT[i].bits_to_set |= (1 << ADDX_PIN_2);
 #ifdef ADDX_PIN_3
         if (i & 0x08)
-            refresh_addressLUT[i].bits_to_set |= (1 << ADDX_PIN_3);
+            addressLUT[i].bits_to_set |= (1 << ADDX_PIN_3);
 #endif
 
         // set all bits that are clear in address
-        refresh_addressLUT[i].bits_to_clear = (~refresh_addressLUT[i].bits_to_set) & ADDX_PIN_MASK;
+        addressLUT[i].bits_to_clear = (~addressLUT[i].bits_to_set) & ADDX_PIN_MASK;
     }
 #endif
 
-    // fill refresh_timerLUT
-    refresh_calculateTimerLUT();
+    // fill timerLUT
+    calculateTimerLUT();
 
     // completely fill buffer with data before enabling DMA
     matrixCalcCallback(true);
@@ -373,21 +373,21 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
 #endif
 
 #ifdef ADDX_UPDATE_ON_DATA_PINS
-    rowBitStructBytesToShift = sizeof(SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_matrixUpdateRows[0].rowbits[0].data) + ADDX_UPDATE_BEFORE_LATCH_BYTES;
+    rowBitStructBytesToShift = sizeof(SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[0].rowbits[0].data) + ADDX_UPDATE_BEFORE_LATCH_BYTES;
 #else
-    rowBitStructBytesToShift = sizeof(SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_matrixUpdateRows[0].rowbits[0].data);
+    rowBitStructBytesToShift = sizeof(SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[0].rowbits[0].data);
 #endif
 
 #if defined(KINETISL)
     // setup FTM2 (Teensy LC)
     FTM2_SC = 0;
     FTM2_CNT = 0;
-    FTM2_MOD = refresh_timerLUT[0].timer_period;
+    FTM2_MOD = timerLUT[0].timer_period;
 
     // setup FTM2 compares:
     // latch pulse width set based on max time to update address pins
     FTM2_C0V = LATCH_TIMER_PULSE_WIDTH_TICKS;
-    FTM2_C1V = refresh_timerLUT[0].timer_oe;
+    FTM2_C1V = timerLUT[0].timer_oe;
 
     // Cortex-M0 Acceptable values: 0,64,128,192
     NVIC_SET_PRIORITY(IRQ_FTM2, 64);
@@ -401,8 +401,8 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
     dmaClockOutData.begin();
     dmaClockOutData2.begin();
 
-    dmaClockOutData.sourceBuffer((uint8_t*)refresh_matrixUpdateRows, rowBitStructBytesToShift);
-    dmaClockOutData2.sourceBuffer((uint8_t*)refresh_matrixUpdateRows, rowBitStructBytesToShift);
+    dmaClockOutData.sourceBuffer((uint8_t*)matrixUpdateRows, rowBitStructBytesToShift);
+    dmaClockOutData2.sourceBuffer((uint8_t*)matrixUpdateRows, rowBitStructBytesToShift);
     dmaClockOutData.destination(GPIOD_PDOR);
     dmaClockOutData2.destination(GPIOD_PDOR);
 
@@ -429,12 +429,12 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
 
     // enable additional dma interrupt used as software interrupt
     NVIC_SET_PRIORITY(IRQ_DMA_CH0 + dmaClockOutData.channel, ROW_CALCULATION_ISR_PRIORITY);
-    dmaClockOutData.attachInterrupt(refresh_rowCalculationISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
+    dmaClockOutData.attachInterrupt(rowCalculationISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
 
     // only enable first DMA channel, second will be enabled in timer ISR
     dmaClockOutData.enable();
 
-    attachInterruptVector(IRQ_FTM2, refresh_rowBitShiftCompleteISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
+    attachInterruptVector(IRQ_FTM2, rowBitShiftCompleteISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
 
     // at the end after everything is set up: enable timer from system clock with appropriate prescale, enable interrupts, clear any pending overflow bits (otherwise get two ISR calls back to back in beginning), trigger DMA
     FTM2_SC = (FTM_SC_CLKS(1) | FTM_SC_PS(LATCH_TIMER_PRESCALE)) | FTM_SC_TOIE | FTM_SC_TOF | FTM_SC_DMA;
@@ -504,9 +504,9 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
 
     // dmaUpdateAddress - copy address values from current position in array to buffer to temporarily hold row values for the next timer cycle
     // only use single major loop, never disable channel
-    dmaUpdateAddress.TCD->SADDR = &(refresh_matrixUpdateRows[0].rowbits[0].addressValues);
+    dmaUpdateAddress.TCD->SADDR = &(matrixUpdateRows[0].rowbits[0].addressValues);
     dmaUpdateAddress.TCD->SOFF = sizeof(uint16_t);
-    dmaUpdateAddress.TCD->SLAST = sizeof(refresh_matrixUpdateRows[0].rowbits[0]) - (ADDRESS_ARRAY_REGISTERS_TO_UPDATE * sizeof(uint16_t));
+    dmaUpdateAddress.TCD->SLAST = sizeof(matrixUpdateRows[0].rowbits[0]) - (ADDRESS_ARRAY_REGISTERS_TO_UPDATE * sizeof(uint16_t));
     dmaUpdateAddress.TCD->ATTR = DMA_TCD_ATTR_SSIZE(1) | DMA_TCD_ATTR_DSIZE(1);
     // 16-bit = 2 bytes transferred
     // transfer two 16-bit values, reset destination address back after each minor loop
@@ -526,9 +526,9 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
     // dmaUpdateTimer - on latch falling edge, load FTM1_CV1 and FTM1_MOD with with next values from current block
     // only use single major loop, never disable channel
     // link to dmaClockOutData channel when complete
-    dmaUpdateTimer.TCD->SADDR = &(refresh_matrixUpdateRows[0].rowbits[0].timerValues.timer_oe);
+    dmaUpdateTimer.TCD->SADDR = &(matrixUpdateRows[0].rowbits[0].timerValues.timer_oe);
     dmaUpdateTimer.TCD->SOFF = sizeof(uint16_t);
-    dmaUpdateTimer.TCD->SLAST = sizeof(refresh_matrixUpdateRows[0].rowbits[0]) - (TIMER_REGISTERS_TO_UPDATE * sizeof(uint16_t));
+    dmaUpdateTimer.TCD->SLAST = sizeof(matrixUpdateRows[0].rowbits[0]) - (TIMER_REGISTERS_TO_UPDATE * sizeof(uint16_t));
     dmaUpdateTimer.TCD->ATTR = DMA_TCD_ATTR_SSIZE(1) | DMA_TCD_ATTR_DSIZE(1);
     // 16-bit = 2 bytes transferred
     dmaUpdateTimer.TCD->NBYTES_MLOFFNO = TIMER_REGISTERS_TO_UPDATE * sizeof(uint16_t);
@@ -543,10 +543,10 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
     dmaUpdateTimer.triggerAtHardwareEvent(DMAMUX_SOURCE_LATCH_FALLING_EDGE);
 
     // this is the number of bytes in the gap between each sequential rowBitStruct.data arrays
-    uint16_t rowBitStructDataOffset = sizeof(SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_matrixUpdateRows[0].rowbits[0]) - rowBitStructBytesToShift;
+    uint16_t rowBitStructDataOffset = sizeof(SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[0].rowbits[0]) - rowBitStructBytesToShift;
 
     // dmaClockOutData - repeatedly load gpio_array into GPIOD_PDOR, stop and int on major loop complete
-    dmaClockOutData.TCD->SADDR = refresh_matrixUpdateRows;
+    dmaClockOutData.TCD->SADDR = matrixUpdateRows;
     dmaClockOutData.TCD->SOFF = 1;
     // SADDR will get updated by ISR, no need to set SLAST
     dmaClockOutData.TCD->SLAST = 0;
@@ -570,11 +570,11 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
     dmaClockOutData.TCD->CSR |= (0x02 << 14);
 
     // enable a done interrupt when all DMA operations are complete
-    dmaClockOutData.attachInterrupt(refresh_rowShiftCompleteISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
+    dmaClockOutData.attachInterrupt(rowShiftCompleteISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
 
     // enable additional dma interrupt used as software interrupt
     NVIC_SET_PRIORITY(IRQ_DMA_CH0 + dmaUpdateTimer.channel, ROW_CALCULATION_ISR_PRIORITY);
-    dmaUpdateTimer.attachInterrupt(refresh_rowCalculationISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
+    dmaUpdateTimer.attachInterrupt(rowCalculationISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
 
 #ifndef ADDX_UPDATE_ON_DATA_PINS
     dmaOutputAddress.enable();
@@ -590,7 +590,7 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
 
 // low priority ISR triggered by software interrupt on a DMA channel that doesn't need interrupts otherwise
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void refresh_rowCalculationISR(void) {
+void rowCalculationISR(void) {
 #ifdef DEBUG_PINS_ENABLED
     digitalWriteFast(DEBUG_PIN_2, HIGH); // oscilloscope trigger
 #endif
@@ -604,7 +604,7 @@ void refresh_rowCalculationISR(void) {
 
 #ifdef KINETISL
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void refresh_rowBitShiftCompleteISR(void) {
+void rowBitShiftCompleteISR(void) {
     static bool alternateDmaBuffer = false;
     static int currentLatchBit = 0;
     static int currentRow = 0;
@@ -626,8 +626,8 @@ void refresh_rowBitShiftCompleteISR(void) {
             digitalWriteFast(DEBUG_PIN_1, LOW); // oscilloscope trigger
 #endif
             // setup timer to overflow as fast as safely possible, with no interrupt, and no DMA channel linking (clear TOF flag)
-            FTM2_MOD = SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_timerPairIdle.timer_period;
-            FTM2_C1V = SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_timerPairIdle.timer_oe;
+            FTM2_MOD = SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::timerPairIdle.timer_period;
+            FTM2_C1V = SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::timerPairIdle.timer_oe;
             FTM2_SC = (FTM_SC_CLKS(1) | FTM_SC_PS(LATCH_TIMER_PRESCALE)) | FTM_SC_TOF;
 
 #ifdef DEBUG_PINS_ENABLED
@@ -652,15 +652,15 @@ void refresh_rowBitShiftCompleteISR(void) {
         }
     }
 
-    FTM2_MOD = SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_matrixUpdateRows[currentRow].rowbits[currentLatchBit].timerValues.timer_period;
-    FTM2_C1V = SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_matrixUpdateRows[currentRow].rowbits[currentLatchBit].timerValues.timer_oe;
+    FTM2_MOD = SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[currentRow].rowbits[currentLatchBit].timerValues.timer_period;
+    FTM2_C1V = SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[currentRow].rowbits[currentLatchBit].timerValues.timer_oe;
 
     // clear Timer Overflow Flag while keeping timer running with interrupts enabled - this also clears the FTM_SC_DMA flag, so dmaClockOutData won't trigger unless we want it to (it can be set later in the ISR)
     FTM2_SC = (FTM_SC_CLKS(1) | FTM_SC_PS(LATCH_TIMER_PRESCALE)) | FTM_SC_TOIE | FTM_SC_TOF;
 
     if(!alternateDmaBuffer) {
         dmaClockOutData2.clearComplete();
-        dmaClockOutData2.CFG->SAR = (uint8_t*)&SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_matrixUpdateRows[currentRow].rowbits[currentLatchBit].data[0];
+        dmaClockOutData2.CFG->SAR = (uint8_t*)&SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[currentRow].rowbits[currentLatchBit].data[0];
         dmaClockOutData2.transferCount(SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowBitStructBytesToShift);
         
         // enable PORTA DMA request on edge again - enabling trigger for dmaClockOutData2, now that we've passed the previous trigger we wanted to ignore
@@ -672,7 +672,7 @@ void refresh_rowBitShiftCompleteISR(void) {
         CORE_PIN3_CONFIG &= ~PORT_PCR_IRQC_MASK;
     
         dmaClockOutData.clearComplete();
-        dmaClockOutData.CFG->SAR = (uint8_t*)&SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_matrixUpdateRows[currentRow].rowbits[currentLatchBit].data[0];
+        dmaClockOutData.CFG->SAR = (uint8_t*)&SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[currentRow].rowbits[currentLatchBit].data[0];
         dmaClockOutData.transferCount(SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowBitStructBytesToShift);
     
         // enable DMA flag for FTM2 - enabling trigger for dmaClockOutData
@@ -685,7 +685,7 @@ void refresh_rowBitShiftCompleteISR(void) {
 
     // update row buffers and triger software interrupt when done with row
     if(currentLatchBit == 0) {
-        // trigger software interrupt to call refresh_rowCalculationISR() (DMA channel interrupt used instead of actual softint)
+        // trigger software interrupt to call rowCalculationISR() (DMA channel interrupt used instead of actual softint)
         NVIC_SET_PENDING(IRQ_DMA_CH0 + dmaClockOutData.channel);
     }
 
@@ -699,7 +699,7 @@ void refresh_rowBitShiftCompleteISR(void) {
 // DMA transfer done (meaning data was shifted and timer value for MSB on current row just got loaded)
 // set DMA up for loading the next row, triggered from the next timer latch
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void refresh_rowShiftCompleteISR(void) {
+void rowShiftCompleteISR(void) {
 #ifdef DEBUG_PINS_ENABLED
     digitalWriteFast(DEBUG_PIN_1, HIGH); // oscilloscope trigger
 #endif
@@ -712,7 +712,7 @@ void refresh_rowShiftCompleteISR(void) {
 #endif
 
         // point dmaUpdateTimer to repeatedly load from values that set mod to MIN_BLOCK_PERIOD_TICKS and disable OE
-        dmaUpdateTimer.TCD->SADDR = &SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_timerPairIdle;
+        dmaUpdateTimer.TCD->SADDR = &SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::timerPairIdle;
         // set timer increment to repeat timerPairIdle
         dmaUpdateTimer.TCD->SLAST = -(TIMER_REGISTERS_TO_UPDATE*sizeof(uint16_t));
         // disable channel-to-channel linking - don't link dmaClockOutData until buffer is ready
@@ -728,13 +728,13 @@ void refresh_rowShiftCompleteISR(void) {
         // get next row to draw to display and update DMA pointers
         int currentRow = cbGetNextRead(&SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer);
 #ifndef ADDX_UPDATE_ON_DATA_PINS
-        dmaUpdateAddress.TCD->SADDR = &(SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_matrixUpdateRows[currentRow].rowbits[0].addressValues);
+        dmaUpdateAddress.TCD->SADDR = &(SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[currentRow].rowbits[0].addressValues);
 #endif
-        dmaUpdateTimer.TCD->SADDR = &(SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_matrixUpdateRows[currentRow].rowbits[0].timerValues.timer_oe);
-        dmaClockOutData.TCD->SADDR = (uint8_t*)&SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refresh_matrixUpdateRows[currentRow];
+        dmaUpdateTimer.TCD->SADDR = &(SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[currentRow].rowbits[0].timerValues.timer_oe);
+        dmaClockOutData.TCD->SADDR = (uint8_t*)&SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[currentRow];
     }
 
-    // trigger software interrupt to call refresh_rowCalculationISR() (DMA channel interrupt used instead of actual softint)
+    // trigger software interrupt to call rowCalculationISR() (DMA channel interrupt used instead of actual softint)
     NVIC_SET_PENDING(IRQ_DMA_CH0 + dmaUpdateTimer.channel);
 
     // clear pending int

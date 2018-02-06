@@ -27,12 +27,12 @@
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 class SmartMatrix3RefreshMultiplexed {
 public:
-    struct refresh_timerpair {
+    struct timerpair {
         uint16_t timer_oe;
         uint16_t timer_period;
     };
 
-    struct refresh_addresspair {
+    struct addresspair {
         uint16_t bits_to_clear;
         uint16_t bits_to_set;
     };
@@ -40,9 +40,9 @@ public:
     struct rowBitStruct {
         uint8_t data[((((matrixWidth * matrixHeight) / CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT(panelType)) * DMA_UPDATES_PER_CLOCK))];
         uint8_t rowAddress;
-        refresh_timerpair timerValues;
+        timerpair timerValues;
 #ifndef ADDX_UPDATE_ON_DATA_PINS
-        refresh_addresspair addressValues;
+        addresspair addressValues;
 #endif
     };
 
@@ -55,45 +55,45 @@ public:
 
     // init
     SmartMatrix3RefreshMultiplexed(uint8_t bufferrows, rowDataStruct * rowDataBuffer);
-    static void refresh_begin(void);
+    static void begin(void);
 
-    static void refresh_setBrightness(uint8_t newBrightness);
+    static void setBrightness(uint8_t newBrightness);
 
     // refresh API
-    static rowDataStruct * refresh_getNextRowBufferPtr(void);
-    static void refresh_writeRowBuffer(uint8_t currentRow);
-    static void refresh_recoverFromDmaUnderrun(void);
-    static bool refresh_isRowBufferFree(void);
-    static void refresh_setRefreshRate(uint8_t newRefreshRate);
+    static rowDataStruct * getNextRowBufferPtr(void);
+    static void writeRowBuffer(uint8_t currentRow);
+    static void recoverFromDmaUnderrun(void);
+    static bool isRowBufferFree(void);
+    static void setRefreshRate(uint8_t newRefreshRate);
     static void setMatrixCalculationsCallback(matrix_calc_callback f);
     static void setMatrixUnderrunCallback(matrix_underrun_callback f);
 
 private:
     // enable ISR access to private member variables
     template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
-    friend void refresh_rowCalculationISR(void);
+    friend void rowCalculationISR(void);
 
     #if defined(KINETISL)
         template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
-        friend void refresh_rowBitShiftCompleteISR(void);
+        friend void rowBitShiftCompleteISR(void);
     #elif defined(KINETISK)
         template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
-        friend void refresh_rowShiftCompleteISR(void);
+        friend void rowShiftCompleteISR(void);
     #endif
 
     // configuration helper functions
-    static void refresh_calculateTimerLUT(void);
+    static void calculateTimerLUT(void);
 
-    static int refresh_dimmingFactor;
-    static const int refresh_dimmingMaximum = 255;
+    static int dimmingFactor;
+    static const int dimmingMaximum = 255;
     static uint16_t rowBitStructBytesToShift;
-    static uint8_t refresh_refreshRate;
-    static uint8_t refresh_dmaBufferNumRows;
-    static rowDataStruct * refresh_matrixUpdateRows;
+    static uint8_t refreshRate;
+    static uint8_t dmaBufferNumRows;
+    static rowDataStruct * matrixUpdateRows;
 
-    static refresh_addresspair refresh_addressLUT[ROWS_PER_FRAME];
-    static refresh_timerpair refresh_timerLUT[LATCHES_PER_ROW];
-    static refresh_timerpair refresh_timerPairIdle;
+    static addresspair addressLUT[ROWS_PER_FRAME];
+    static timerpair timerLUT[LATCHES_PER_ROW];
+    static timerpair timerPairIdle;
     static matrix_calc_callback matrixCalcCallback;
     static matrix_underrun_callback matrixUnderrunCallback;
 
