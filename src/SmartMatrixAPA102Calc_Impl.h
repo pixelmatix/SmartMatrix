@@ -26,7 +26,7 @@
 #define INLINE __attribute__( ( always_inline ) ) inline
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-uint8_t SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::calc_refreshRate = 120;
+uint8_t SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refreshRate = 60;
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 SM_Layer * SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
 
@@ -44,7 +44,7 @@ template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char pan
 bool SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refreshRateChanged = true;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::SmartMatrixApaCalc(uint8_t bufferrows, rowDataStruct * rowDataBuffer) {
+SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::SmartMatrixApaCalc(uint8_t bufferrows, frameDataStruct * frameDataBuffer) {
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
@@ -88,25 +88,15 @@ void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, opti
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalculations(bool initial) {
     static unsigned char currentRow = 0;
-    unsigned char numLoopsWithoutExit = 0;
 
-    // only run the loop if there is free space, and fill the entire buffer before returning
-    while (SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::isRowBufferFree()) {
-        // check to see if the refresh rate is too high, and the application doesn't have time to run
-        if(++numLoopsWithoutExit > MAX_MATRIXCALCULATIONS_LOOPS_WITHOUT_EXIT) {
+    // TODO: check for space before getting pointer, handle underrun
 
-            // minimum set to avoid overflowing timer at low refresh rates
-            if(!initial && calc_refreshRate > MIN_REFRESH_RATE) {
-                calc_refreshRate--;
-                SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRefreshRate(calc_refreshRate);
-                refreshRateLowered = true;
-                refreshRateChanged = true;
-            }
+    frameDataStruct * currentRowDataPtr = SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getNextRowBufferPtr();
 
-            initial = false;
-            numLoopsWithoutExit = 0;
-        }
-
+    do {
+#ifdef DEBUG_PINS_ENABLED
+    digitalWriteFast(DEBUG_PIN_3, HIGH); // oscilloscope trigger
+#endif
         // do once-per-frame updates
         if (!currentRow) {
             if (rotationChange) {
@@ -121,42 +111,30 @@ void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, opti
             SM_Layer * templayer = SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
             while(templayer) {
                 if(refreshRateChanged) {
-                    templayer->setRefreshRate(calc_refreshRate);
+                    templayer->setRefreshRate(refreshRate);
                 }
                 templayer->frameRefreshCallback();
                 templayer = templayer->nextLayer;
             }
             refreshRateChanged = false;
-            if (brightnessChange) {
-                SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setBrightness(brightness);
-                brightnessChange = false;
-            }
         }
 
         // do once-per-line updates
         // none right now
 
+        SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers(currentRowDataPtr, currentRow);
+
+#ifdef DEBUG_PINS_ENABLED
+    digitalWriteFast(DEBUG_PIN_3, LOW);
+#endif
+
         // enqueue row
-        SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers(currentRow);
-        SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::writeRowBuffer(currentRow);
-
-        if (++currentRow >= ROWS_PER_FRAME)
+        if (++currentRow >= matrixHeight) {
             currentRow = 0;
-
-        if(dmaBufferUnderrun) {
-            // if refreshrate is too high, lower - minimum set to avoid overflowing timer at low refresh rates
-            if(calc_refreshRate > MIN_REFRESH_RATE) {
-                calc_refreshRate--;
-                SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRefreshRate(calc_refreshRate);
-                refreshRateLowered = true;
-                refreshRateChanged = true;
-            }
-
-            SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::recoverFromDmaUnderrun();
-            dmaBufferUnderrunSinceLastCheck = true;
-            dmaBufferUnderrun = false;
+            SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::writeRowBuffer(currentRow);
         }
-    }
+
+    } while (currentRow);
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
@@ -184,34 +162,28 @@ uint16_t SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, 
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-volatile bool SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::brightnessChange = false;
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 volatile bool SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rotationChange = true;
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 rotationDegrees SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rotation = rotation0;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-int SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::brightness;
-
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setBrightness(uint8_t newBrightness) {
-    brightness = newBrightness;
-    brightnessChange = true;
+    dimmingFactor = dimmingMaximum - newBrightness;
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRefreshRate(uint8_t newRefreshRate) {
     if(newRefreshRate > MIN_REFRESH_RATE)
-        calc_refreshRate = newRefreshRate;
+        refreshRate = newRefreshRate;
     else
-        calc_refreshRate = MIN_REFRESH_RATE;
+        refreshRate = MIN_REFRESH_RATE;
     refreshRateChanged = true;
-    SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRefreshRate(calc_refreshRate);
+    SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRefreshRate(refreshRate);
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 uint8_t SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getRefreshRate(void) {
-    return calc_refreshRate;
+    return refreshRate;
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
@@ -240,259 +212,73 @@ void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, opti
     SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin();
 }
 
+// large factor = more dim, default is full brightness
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-INLINE void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers48(rowDataStruct * currentRowDataPtr, unsigned char currentRow) {
-    int i;
+int SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dimmingFactor = dimmingMaximum - (100 * 255)/100;
+
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+INLINE void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers(frameDataStruct * currentRowDataPtr, unsigned char currentRow) {
+    int i,j;
 
     // static to avoid putting large buffer on the stack
-    static rgb48 tempRow0[PIXELS_PER_LATCH];
-    static rgb48 tempRow1[PIXELS_PER_LATCH];
+    static rgb48 tempRow0[matrixWidth];
 
     // clear buffer to prevent garbage data showing through transparent layers
     memset(tempRow0, 0x00, sizeof(tempRow0));
-    memset(tempRow1, 0x00, sizeof(tempRow1));
 
     // get pixel data from layers
     SM_Layer * templayer = SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
     while(templayer) {
-        for(i=0; i<MATRIX_STACK_HEIGHT; i++) {
-            // Z-shape, bottom to top
-            if(!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
-                (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
-                // fill data from bottom to top, so bottom panel is the one closest to Teensy
-                templayer->fillRefreshRow(currentRow + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
-                templayer->fillRefreshRow(currentRow + ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
-            // Z-shape, top to bottom
-            } else if(!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
-                !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
-                // fill data from top to bottom, so top panel is the one closest to Teensy
-                templayer->fillRefreshRow(currentRow + i*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
-                templayer->fillRefreshRow(currentRow + ROW_PAIR_OFFSET + i*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
-            // C-shape, bottom to top
-            } else if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
-                (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
-                // alternate direction of filling (or loading) for each matrixwidth
-                // swap row order from top to bottom for each stack (tempRow1 filled with top half of panel, tempRow0 filled with bottom half)
-                if((MATRIX_STACK_HEIGHT-i+1)%2) {
-                    templayer->fillRefreshRow((ROWS_PER_FRAME-currentRow-1) + ROW_PAIR_OFFSET + (i)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
-                    templayer->fillRefreshRow((ROWS_PER_FRAME-currentRow-1) + (i)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
-                } else {
-                    templayer->fillRefreshRow(currentRow + (i)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
-                    templayer->fillRefreshRow(currentRow + ROW_PAIR_OFFSET + (i)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
-                }
-            // C-shape, top to bottom
-            } else if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && 
-                !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
-                if((MATRIX_STACK_HEIGHT-i)%2) {
-                    templayer->fillRefreshRow(currentRow + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
-                    templayer->fillRefreshRow(currentRow + ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
-                } else {
-                    templayer->fillRefreshRow((ROWS_PER_FRAME-currentRow-1) + ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
-                    templayer->fillRefreshRow((ROWS_PER_FRAME-currentRow-1) + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
-                }
-            }
-        }
+        templayer->fillRefreshRow(currentRow, &tempRow0[0]);
         templayer = templayer->nextLayer;        
     }
 
-    union {
-        uint8_t word;
-        struct {
-            // order of bits in word matches how GPIO connects to the display
-            uint8_t GPIO_WORD_ORDER_8BIT;
-        };
-    } o0;
-    
-    for(int j=0; j<LATCHES_PER_ROW; j++) {
-        int maskoffset = 0;
-        if(LATCHES_PER_ROW == 36)
-            maskoffset = 4;
-        else if (LATCHES_PER_ROW == 48)
-            maskoffset = 0;
-
-        uint16_t mask = (1 << (j + maskoffset));
-        
-        int i=0;
-
-        while(i < PIXELS_PER_LATCH) {
-            // parse through matrixWith block of pixels, from left to right, or right to left, depending on C_SHAPE_STACKING options
-            for(int k=0; k < matrixWidth; k++) {
-                o0.word = 0x00;
-
-                //fill temp0red, etc, or work directly from buffer?
-                if (tempRow0[i+k].red & mask)
-                    o0.p0r1 = 1;
-                if (tempRow0[i+k].green & mask)
-                    o0.p0g1 = 1;
-                if (tempRow0[i+k].blue & mask)
-                    o0.p0b1 = 1;
-                if (tempRow1[i+k].red & mask)
-                    o0.p0r2 = 1;
-                if (tempRow1[i+k].green & mask)
-                    o0.p0g2 = 1;
-                if (tempRow1[i+k].blue & mask)
-                    o0.p0b2 = 1;
-
-                if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && !((i/matrixWidth)%2)) {
-                    currentRowDataPtr->rowbits[j].data[(((i+matrixWidth-1)-k)*DMA_UPDATES_PER_CLOCK)] = o0.word;
-                    o0.p0clk = 1;
-                    currentRowDataPtr->rowbits[j].data[(((i+matrixWidth-1)-k)*DMA_UPDATES_PER_CLOCK)+1] = o0.word;
-                } else {
-                    currentRowDataPtr->rowbits[j].data[((i+k)*DMA_UPDATES_PER_CLOCK)] = o0.word;
-                    o0.p0clk = 1;
-                    currentRowDataPtr->rowbits[j].data[((i+k)*DMA_UPDATES_PER_CLOCK)+1] = o0.word;
-                }
-            }
-            i += matrixWidth;
+    if(!currentRow) {
+        // fill start and end frame markers
+        for(i=0; i<4; i++) {
+            currentRowDataPtr->data[i] = 0;
+            currentRowDataPtr->data[4 + (matrixWidth * matrixHeight * 4) + i] = 0xFF;
         }
-        currentRowDataPtr->rowbits[j].rowAddress = currentRow;
     }
 
-#ifdef ADDX_UPDATE_ON_DATA_PINS
-        o0.word = 0x00000000;
-        o0.p0r1 = (currentRow & 0x01) ? 1 : 0;
-        o0.p0g1 = (currentRow & 0x02) ? 1 : 0;
-        o0.p0b1 = (currentRow & 0x04) ? 1 : 0;
-        o0.p0r2 = (currentRow & 0x08) ? 1 : 0;
+    for (j = 0; j < matrixWidth; j++) {
+        if(currentRow % 2)
+            i=(matrixWidth-j-1);
+        else
+            i=j;
 
-        for(int j=0; j<LATCHES_PER_ROW; j++) {
-            currentRowDataPtr->rowbits[j].rowAddress = o0.word;
+        uint16_t temp0red,temp0green,temp0blue;
+
+        temp0red = tempRow0[j].red;
+        temp0green = tempRow0[j].green;
+        temp0blue = tempRow0[j].blue;
+
+        uint8_t globalbrightness = (0x20UL * (dimmingMaximum - dimmingFactor)) / dimmingMaximum;
+        uint8_t localshift = 0;
+
+        if(globalbrightness == 0x20)
+            globalbrightness = 0x1f;
+
+#if 1
+        uint16_t value = temp0red | temp0green | temp0blue;
+
+        // shift until the highest bit of value is set, or until globalbrightness == 1)
+        while(!((value << localshift) & 0x8000) && (globalbrightness != 1)) {
+            globalbrightness >>= 1;
+            localshift++;
         }
+
+
+        // shift needs to put 16-bit color value into lowest byte, which will be sent over SPI
+        localshift = 8 - localshift;
+#else
+        localshift = 8;
 #endif
-}
+        // global brightness
+        currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 0] = 0xE0 | globalbrightness;
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-INLINE void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers24(rowDataStruct * currentRowDataPtr, unsigned char currentRow) {
-    int i;
-
-    // static to avoid putting large buffer on the stack
-    static rgb24 tempRow0[PIXELS_PER_LATCH];
-    static rgb24 tempRow1[PIXELS_PER_LATCH];
-
-    // clear buffer to prevent garbage data showing through transparent layers
-    memset(tempRow0, 0x00, sizeof(tempRow0));
-    memset(tempRow1, 0x00, sizeof(tempRow1));
-
-    // get pixel data from layers
-    SM_Layer * templayer = SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
-    while(templayer) {
-        for(i=0; i<MATRIX_STACK_HEIGHT; i++) {
-            // Z-shape, bottom to top
-            if(!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
-                (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
-                // fill data from bottom to top, so bottom panel is the one closest to Teensy
-                templayer->fillRefreshRow(currentRow + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
-                templayer->fillRefreshRow(currentRow + ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
-            // Z-shape, top to bottom
-            } else if(!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
-                !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
-                // fill data from top to bottom, so top panel is the one closest to Teensy
-                templayer->fillRefreshRow(currentRow + i*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
-                templayer->fillRefreshRow(currentRow + ROW_PAIR_OFFSET + i*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
-            // C-shape, bottom to top
-            } else if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
-                (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
-                // alternate direction of filling (or loading) for each matrixwidth
-                // swap row order from top to bottom for each stack (tempRow1 filled with top half of panel, tempRow0 filled with bottom half)
-                if((MATRIX_STACK_HEIGHT-i+1)%2) {
-                    templayer->fillRefreshRow((ROWS_PER_FRAME-currentRow-1) + ROW_PAIR_OFFSET + (i)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
-                    templayer->fillRefreshRow((ROWS_PER_FRAME-currentRow-1) + (i)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
-                } else {
-                    templayer->fillRefreshRow(currentRow + (i)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
-                    templayer->fillRefreshRow(currentRow + ROW_PAIR_OFFSET + (i)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
-                }
-            // C-shape, top to bottom
-            } else if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && 
-                !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
-                if((MATRIX_STACK_HEIGHT-i)%2) {
-                    templayer->fillRefreshRow(currentRow + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
-                    templayer->fillRefreshRow(currentRow + ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
-                } else {
-                    templayer->fillRefreshRow((ROWS_PER_FRAME-currentRow-1) + ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
-                    templayer->fillRefreshRow((ROWS_PER_FRAME-currentRow-1) + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
-                }
-            }
-        }
-        templayer = templayer->nextLayer;        
+        currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 1] = temp0blue >> localshift;
+        currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 2] = temp0green >> localshift;
+        currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 3] = temp0red >> localshift;
     }
-
-    union {
-        uint8_t word;
-        struct {
-            // order of bits in word matches how GPIO connects to the display
-            uint8_t GPIO_WORD_ORDER_8BIT;
-        };
-    } o0;
-    
-    for(int j=0; j<LATCHES_PER_ROW; j++) {
-        int maskoffset = 0;
-        if(LATCHES_PER_ROW == 36)
-            maskoffset = 4;
-        else if (LATCHES_PER_ROW == 48)
-            maskoffset = 0;
-        else if (LATCHES_PER_ROW == 24)
-            maskoffset = 0;
-
-        uint16_t mask = (1 << (j + maskoffset));
-        
-        int i=0;
-
-        while(i < PIXELS_PER_LATCH) {
-            // parse through matrixWith block of pixels, from left to right, or right to left, depending on C_SHAPE_STACKING options
-            for(int k=0; k < matrixWidth; k++) {
-                o0.word = 0x00;
-
-                //fill temp0red, etc, or work directly from buffer?
-                if (tempRow0[i+k].red & mask)
-                    o0.p0r1 = 1;
-                if (tempRow0[i+k].green & mask)
-                    o0.p0g1 = 1;
-                if (tempRow0[i+k].blue & mask)
-                    o0.p0b1 = 1;
-                if (tempRow1[i+k].red & mask)
-                    o0.p0r2 = 1;
-                if (tempRow1[i+k].green & mask)
-                    o0.p0g2 = 1;
-                if (tempRow1[i+k].blue & mask)
-                    o0.p0b2 = 1;
-
-                if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && !((i/matrixWidth)%2)) {
-                    currentRowDataPtr->rowbits[j].data[(((i+matrixWidth-1)-k)*DMA_UPDATES_PER_CLOCK)] = o0.word;
-                    o0.p0clk = 1;
-                    currentRowDataPtr->rowbits[j].data[(((i+matrixWidth-1)-k)*DMA_UPDATES_PER_CLOCK)+1] = o0.word;
-                } else {
-                    currentRowDataPtr->rowbits[j].data[((i+k)*DMA_UPDATES_PER_CLOCK)] = o0.word;
-                    o0.p0clk = 1;
-                    currentRowDataPtr->rowbits[j].data[((i+k)*DMA_UPDATES_PER_CLOCK)+1] = o0.word;
-                }
-            }
-            i += matrixWidth;
-        }
-        currentRowDataPtr->rowbits[j].rowAddress = currentRow;
-    }
-
-#ifdef ADDX_UPDATE_ON_DATA_PINS
-        o0.word = 0x00000000;
-        o0.p0r1 = (currentRow & 0x01) ? 1 : 0;
-        o0.p0g1 = (currentRow & 0x02) ? 1 : 0;
-        o0.p0b1 = (currentRow & 0x04) ? 1 : 0;
-        o0.p0r2 = (currentRow & 0x08) ? 1 : 0;
-
-        for(int j=0; j<LATCHES_PER_ROW; j++) {
-            currentRowDataPtr->rowbits[j].rowAddress = o0.word;
-        }
-#endif
-}
-
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-INLINE void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers(unsigned char currentRow) {
-    rowDataStruct * currentRowDataPtr = SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getNextRowBufferPtr();
-
-    // TODO: support rgb36/48 with same function, copy function to rgb24
-    if(LATCHES_PER_ROW == 16)
-        loadMatrixBuffers48(currentRowDataPtr, currentRow);
-    else if(LATCHES_PER_ROW == 12)
-        loadMatrixBuffers48(currentRowDataPtr, currentRow);
-    else if(LATCHES_PER_ROW == 8)
-        loadMatrixBuffers24(currentRowDataPtr, currentRow);
 }

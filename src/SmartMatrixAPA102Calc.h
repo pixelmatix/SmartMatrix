@@ -27,10 +27,10 @@
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 class SmartMatrixApaCalc {
 public:
-    typedef typename SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowDataStruct rowDataStruct;
+    typedef typename SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::frameDataStruct frameDataStruct;
 
     // init
-    SmartMatrixApaCalc(uint8_t bufferrows, rowDataStruct * rowDataBuffer);
+    SmartMatrixApaCalc(uint8_t bufferrows, frameDataStruct * rowDataBuffer);
     void begin(void);
     void addLayer(SM_Layer * newlayer);
 
@@ -57,17 +57,15 @@ private:
     static SM_Layer * baseLayer;
 
     // functions for refreshing
-    static void loadMatrixBuffers(unsigned char currentRow);
-    static void loadMatrixBuffers48(rowDataStruct * currentRowDataPtr, unsigned char currentRow);
-    static void loadMatrixBuffers24(rowDataStruct * currentRowDataPtr, unsigned char currentRow);
+    static void loadMatrixBuffers(frameDataStruct * currentRowDataPtr, unsigned char currentRow);
 
     // configuration
-    static volatile bool brightnessChange;
     static volatile bool rotationChange;
     static volatile bool dmaBufferUnderrun;
-    static int brightness;
+    static int dimmingFactor;
+    static const int dimmingMaximum = 255;
     static rotationDegrees rotation;
-    static uint8_t calc_refreshRate;   
+    static uint8_t refreshRate;   
     static bool dmaBufferUnderrunSinceLastCheck;
     static bool refreshRateLowered;
     static bool refreshRateChanged;

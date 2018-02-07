@@ -33,4 +33,5 @@
     #endif
     DMAChannel dmaUpdateTimer(false);
     DMAChannel dmaClockOutData(false);
+    DMAChannel dmaClockOutDataApa(false);
 #endif
