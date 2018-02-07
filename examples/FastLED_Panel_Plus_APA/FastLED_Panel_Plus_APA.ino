@@ -35,11 +35,14 @@ SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer, kMatrixWidth, kMatrixHeight
 // adjust this to your APA matrix/strip - set kApaMatrixHeight to 1 for a strip
 const uint8_t kApaMatrixWidth = 16;
 const uint8_t kApaMatrixHeight = 16;
-const bool kApaMatrixSerpentineLayout = true;
+const uint8_t kApaRefreshDepth = 36;        // known working: 36
+const uint8_t kApaDmaBufferRows = 1;        // known working: 1
+const uint8_t kApaPanelType = 0;            // not used for APA matrices as of now
+const uint8_t kApaMatrixOptions = (SMARTMATRIX_OPTIONS_NONE);      // no options for APA matrices as of not 
+const uint8_t kApaBackgroundLayerOptions = (SM_BACKGROUND_OPTIONS_NONE);
 
-// allocate space for the APA102 LEDs
-#define NUM_APA_LEDS (kApaMatrixWidth * kApaMatrixHeight)
-CRGB apa_leds[NUM_APA_LEDS];
+SMARTMATRIX_APA_ALLOCATE_BUFFERS(apamatrix, kApaMatrixWidth, kApaMatrixHeight, kApaRefreshDepth, kApaDmaBufferRows, kApaPanelType, kApaMatrixOptions);
+SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(apaBackgroundLayer, kApaMatrixWidth, kApaMatrixHeight, COLOR_DEPTH, kApaBackgroundLayerOptions);
 
 // The 32bit version of our coordinates
 static uint16_t x;
@@ -71,52 +74,26 @@ uint16_t scale = 31;
 // This is the array that we keep our computed noise values in
 uint8_t noise[MAX_DIMENSION_OVERALL][MAX_DIMENSION_OVERALL];
 
-//
-// Mark's xy coordinate mapping code.  See the FastLED XYMatrix example for more information on it.
-//
-
-uint16_t XY( uint8_t x, uint8_t y)
-{
-  uint16_t i;
-
-  if( kApaMatrixSerpentineLayout == false) {
-    i = (y * kApaMatrixWidth) + x;
-  }
-
-  if( kApaMatrixSerpentineLayout == true) {
-    if( y & 0x01) {
-      // Odd rows run backwards
-      uint8_t reverseX = (kApaMatrixWidth - 1) - x;
-      i = (y * kApaMatrixWidth) + reverseX;
-    } else {
-      // Even rows run forwards
-      i = (y * kApaMatrixWidth) + x;
-    }
-  }
-
-  return i;
-}
-
 void setup() {
   // uncomment the following lines if you want to see FPS count information
   // Serial.begin(38400);
   // Serial.println("resetting!");
   delay(3000);
 
-  // initialize FastLED with the alternate pins used by SmartMatrix Shield V4
-  FastLED.addLeds<APA102,7,13, BGR>(apa_leds, NUM_APA_LEDS);
-
   // enable the APA102 buffers to drive out the SPI signals
-  pinMode(17, OUTPUT);
-  digitalWrite(17, HIGH);  // enable access to LEDs
+  pinMode(SMARTLED_APA_ENABLE_PIN, OUTPUT);
+  digitalWrite(SMARTLED_APA_ENABLE_PIN, HIGH);  // enable access to LEDs
 
   matrix.addLayer(&backgroundLayer); 
   matrix.addLayer(&scrollingLayer); 
   matrix.begin();
 
+  apamatrix.addLayer(&apaBackgroundLayer);
+  apamatrix.begin();
+
   // lower the brigtness of both sets of LEDs
-  FastLED.setBrightness(64);
-  backgroundLayer.setBrightness(128);
+  matrix.setBrightness(128);
+  apamatrix.setBrightness(128);
 
   // Initialize our coordinates to some random values
   x = random16();
@@ -150,8 +127,10 @@ void loop() {
 
   // if sketch uses swapBuffers(false), wait to get a new backBuffer() pointer after the swap is done:
   while(backgroundLayer.isSwapPending());
-
   rgb24 *buffer = backgroundLayer.backBuffer();
+
+  while(apaBackgroundLayer.isSwapPending());
+  rgb24 *apabuffer = apaBackgroundLayer.backBuffer();
 
   static uint8_t ihue=0;
   fillnoise8();
@@ -171,10 +150,10 @@ void loop() {
       // We use the value at the (i,j) coordinate in the noise
       // array for our brightness, and the flipped value from (j,i)
       // for our pixel's hue.
-      apa_leds[XY(i,j)] = CHSV(noise[j][i],255,noise[i][j]);
+      apabuffer[kApaMatrixWidth*j + i] = CRGB(CHSV(noise[j][i],255,noise[i][j]));
 
       // You can also explore other ways to constrain the hue used, like below
-      // leds[XY(i,j)] = CHSV(ihue + (noise[j][i]>>2),255,noise[i][j]);
+      // apabuffer[kApaMatrixWidth*j + i] = CHSV(ihue + (noise[j][i]>>2),255,noise[i][j]);
     }
   }
 
@@ -184,11 +163,9 @@ void loop() {
   circlex += random16(2);
   circley += random16(2);
 
-  // draw to APA102 strip
-  FastLED.show();
-
   // buffer is filled completely each time, use swapBuffers without buffer copy to save CPU cycles
   backgroundLayer.swapBuffers(false);
+  apaBackgroundLayer.swapBuffers(false);
 
   //matrix.countFPS();      // print the loop() frames per second to Serial
 }
