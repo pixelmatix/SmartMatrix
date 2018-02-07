@@ -56,9 +56,13 @@
 #define GPIO_WORD_ORDER_8BIT p0r1:1, p0clk:1, p0g2:1, p0pad:1, p0b1:1, p0b2:1, p0r2:1, p0g1:1
 
 //#define DEBUG_PINS_ENABLED
-#define DEBUG_PIN_1 17
+#define DEBUG_PIN_1 16
 #define DEBUG_PIN_2 18
 #define DEBUG_PIN_3 19
+
+#define SMARTLED_APA_ENABLE_PIN     17
+#define SMARTLED_APA_CLK_PIN        13
+#define SMARTLED_APA_DAT_PIN        7
 
 #define GPIO_PIN_CLK_TEENSY_PIN     14
 #define GPIO_PIN_B0_TEENSY_PIN      6

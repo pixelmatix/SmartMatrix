@@ -58,7 +58,7 @@
 #define GPIO_WORD_ORDER_8BIT p0r1:1, p0clk:1, p0pad:1, p0g2:1, p0b1:1, p0b2:1, p0r2:1, p0g1:1
 
 //#define DEBUG_PINS_ENABLED
-#define DEBUG_PIN_1 17
+#define DEBUG_PIN_1 16
 #define DEBUG_PIN_2 18
 #define DEBUG_PIN_3 19
 
@@ -69,6 +69,10 @@
 #define GPIO_PIN_G0_TEENSY_PIN      5
 #define GPIO_PIN_G1_TEENSY_PIN      8
 #define GPIO_PIN_B1_TEENSY_PIN      20
+
+#define SMARTLED_APA_ENABLE_PIN     17
+#define SMARTLED_APA_CLK_PIN        13
+#define SMARTLED_APA_DAT_PIN        7
 
 // output latch signal on two pins, to trigger two different GPIO port interrupts
 #define ENABLE_LATCH_PWM_OUTPUT() {                                     \
