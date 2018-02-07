@@ -305,9 +305,9 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     
     for(int j=0; j<LATCHES_PER_ROW; j++) {
         int maskoffset = 0;
-        if(LATCHES_PER_ROW == 36)
+        if(LATCHES_PER_ROW == 12) // 36-bit color
             maskoffset = 4;
-        else if (LATCHES_PER_ROW == 48)
+        else if (LATCHES_PER_ROW == 16) // 48-bit color
             maskoffset = 0;
 
         uint16_t mask = (1 << (j + maskoffset));
@@ -426,11 +426,11 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     
     for(int j=0; j<LATCHES_PER_ROW; j++) {
         int maskoffset = 0;
-        if(LATCHES_PER_ROW == 36)
+        if(LATCHES_PER_ROW == 12)   // 36-bit color
             maskoffset = 4;
-        else if (LATCHES_PER_ROW == 48)
+        else if (LATCHES_PER_ROW == 16) // 48-bit color
             maskoffset = 0;
-        else if (LATCHES_PER_ROW == 24)
+        else if (LATCHES_PER_ROW == 8)  // 24-bit color
             maskoffset = 0;
 
         uint16_t mask = (1 << (j + maskoffset));
