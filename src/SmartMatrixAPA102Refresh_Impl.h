@@ -163,27 +163,30 @@ void SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType
     dmaClockOutDataApa.interruptAtCompletion();
     NVIC_SET_PRIORITY(IRQ_DMA_CH0 + dmaClockOutDataApa.channel, ROW_CALCULATION_ISR_PRIORITY);
 
-    // setup FTM1
-    FTM1_SC = 0;
-    FTM1_CNT = 0;
-    FTM1_MOD = TICKS_PER_FRAME;
+    // setup FTM2
+    FTM2_SC = 0;
+    FTM2_CNT = 0;
+    FTM2_MOD = TICKS_PER_FRAME;
 
-    // latch pulse width wide enough to be seen on logic analyzer
-    FTM1_C0V = 100;
+#if 0
+    // for debug: latch pulse width wide enough to be seen on logic analyzer
+    FTM2_C0V = 100;
 
+// out of date, set for FTM1_C0V
 #define ENABLE_LATCH_PWM_OUTPUT() {                                     \
         CORE_PIN3_CONFIG |= PORT_PCR_MUX(3) | PORT_PCR_DSE | PORT_PCR_SRE;  \
     }
 
     // setup PWM outputs
     ENABLE_LATCH_PWM_OUTPUT();
+#endif
 
     // enable timer from system clock, with appropriate prescale, TOF interrupt
-    FTM1_SC = FTM_SC_CLKS(1) | FTM_SC_PS(APA_LATCH_TIMER_PRESCALE) | FTM_SC_TOIE;
+    FTM2_SC = FTM_SC_CLKS(1) | FTM_SC_PS(APA_LATCH_TIMER_PRESCALE) | FTM_SC_TOIE;
 
-    attachInterruptVector(IRQ_FTM1, apaRowShiftCompleteISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
+    attachInterruptVector(IRQ_FTM2, apaRowShiftCompleteISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
 
-    NVIC_ENABLE_IRQ(IRQ_FTM1);
+    NVIC_ENABLE_IRQ(IRQ_FTM2);
 }
 
 // low priority ISR triggered by software interrupt on a DMA channel that doesn't need interrupts otherwise
@@ -231,7 +234,7 @@ void apaRowShiftCompleteISR(void) {
     dmaClockOutDataApa.enable();
 
     // clear timer overflow bit before leaving ISR
-    FTM1_SC &= ~FTM_SC_TOF;
+    FTM2_SC &= ~FTM_SC_TOF;
 
 #ifdef DEBUG_PINS_ENABLED
     digitalWriteFast(DEBUG_PIN_1, LOW); // oscilloscope trigger
