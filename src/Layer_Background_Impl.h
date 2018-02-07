@@ -23,22 +23,16 @@
 
 #include <stdlib.h>     
 
-static color_chan_t backgroundColorCorrectionLUT[256];
-
-template <typename RGB, unsigned int optionFlags>
-unsigned char SMLayerBackground<RGB, optionFlags>::currentDrawBuffer = 0;
-template <typename RGB, unsigned int optionFlags>
-unsigned char SMLayerBackground<RGB, optionFlags>::currentRefreshBuffer = 1;
-template <typename RGB, unsigned int optionFlags>
-volatile bool SMLayerBackground<RGB, optionFlags>::swapPending = false;
-static bitmap_font *font = (bitmap_font *) &apple3x5;
-
-
 template <typename RGB, unsigned int optionFlags>
 SMLayerBackground<RGB, optionFlags>::SMLayerBackground(RGB * buffer, uint16_t width, uint16_t height) {
     backgroundBuffer = buffer;
     this->matrixWidth = width;
     this->matrixHeight = height;
+
+    currentDrawBuffer = 0;
+    currentRefreshBuffer = 1;
+    swapPending = false;
+    font = (bitmap_font *) &apple3x5;
 
     currentDrawBufferPtr = &backgroundBuffer[0 * (this->matrixWidth * this->matrixHeight)];
     currentRefreshBufferPtr = &backgroundBuffer[1 * (this->matrixWidth * this->matrixHeight)];

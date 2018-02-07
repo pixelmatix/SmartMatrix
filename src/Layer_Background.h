@@ -100,12 +100,13 @@ class SMLayerBackground : public SM_Layer {
         static bool getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap);
 
         uint8_t backgroundBrightness = 255;
+        color_chan_t backgroundColorCorrectionLUT[256];
+        bitmap_font *font;
 
         // keeping track of drawing buffers
-        static unsigned char currentDrawBuffer;
-        static unsigned char currentRefreshBuffer;
-        static volatile bool swapPending;
-        static bool swapWithCopy;
+        unsigned char currentDrawBuffer;
+        unsigned char currentRefreshBuffer;
+        volatile bool swapPending;
         void handleBufferSwap(void);
 };
 
