@@ -87,54 +87,57 @@ void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, opti
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalculations(bool initial) {
-    static unsigned char currentRow = 0;
+    static unsigned char currentRow;
 
-    // TODO: check for space before getting pointer, handle underrun
+    // TODO: handle underrun, and too high refresh rate
+    // only run the loop if there is free space, and fill the entire buffer before returning
+    while (SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::isRowBufferFree()) {
+        currentRow = 0;
+        frameDataStruct * currentRowDataPtr = SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getNextRowBufferPtr();
 
-    frameDataStruct * currentRowDataPtr = SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getNextRowBufferPtr();
-
-    do {
+        do {
 #ifdef DEBUG_PINS_ENABLED
-    digitalWriteFast(DEBUG_PIN_3, HIGH); // oscilloscope trigger
+            digitalWriteFast(DEBUG_PIN_3, HIGH); // oscilloscope trigger
 #endif
-        // do once-per-frame updates
-        if (!currentRow) {
-            if (rotationChange) {
+            // do once-per-frame updates
+            if (!currentRow) {
+                if (rotationChange) {
+                    SM_Layer * templayer = SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
+                    while(templayer) {
+                        templayer->setRotation(rotation);
+                        templayer = templayer->nextLayer;
+                    }
+                    rotationChange = false;
+                }
+
                 SM_Layer * templayer = SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
                 while(templayer) {
-                    templayer->setRotation(rotation);
+                    if(refreshRateChanged) {
+                        templayer->setRefreshRate(refreshRate);
+                    }
+                    templayer->frameRefreshCallback();
                     templayer = templayer->nextLayer;
                 }
-                rotationChange = false;
+                refreshRateChanged = false;
             }
 
-            SM_Layer * templayer = SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
-            while(templayer) {
-                if(refreshRateChanged) {
-                    templayer->setRefreshRate(refreshRate);
-                }
-                templayer->frameRefreshCallback();
-                templayer = templayer->nextLayer;
-            }
-            refreshRateChanged = false;
-        }
+            // do once-per-line updates
+            // none right now
 
-        // do once-per-line updates
-        // none right now
-
-        SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers(currentRowDataPtr, currentRow);
+            SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers(currentRowDataPtr, currentRow);
 
 #ifdef DEBUG_PINS_ENABLED
     digitalWriteFast(DEBUG_PIN_3, LOW);
 #endif
 
-        // enqueue row
-        if (++currentRow >= matrixHeight) {
-            currentRow = 0;
-            SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::writeRowBuffer(currentRow);
-        }
+            // enqueue row
+            if (++currentRow >= matrixHeight) {
+                currentRow = 0;
+                SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::writeRowBuffer(currentRow);
+            }
 
-    } while (currentRow);
+        } while (currentRow);
+    }
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>

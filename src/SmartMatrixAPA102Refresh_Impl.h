@@ -151,6 +151,8 @@ void SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType
     digitalWriteFast(DEBUG_PIN_3, LOW);
 #endif
 
+    SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalcCallback(true);
+
     // setup SPI and DMA to feed it
     SPI.begin();
     SPI.setMOSI(SMARTLED_APA_DAT_PIN);
@@ -211,6 +213,7 @@ void apaRowShiftCompleteISR(void) {
 #ifdef DEBUG_PINS_ENABLED
     digitalWriteFast(DEBUG_PIN_1, HIGH); // oscilloscope trigger
 #endif
+
     // done with previous row, mark it as read
     cbRead(&SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer);
 
