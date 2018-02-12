@@ -21,16 +21,16 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef SmartMatrixMultiplexedCalc_h
-#define SmartMatrixMultiplexedCalc_h
+#ifndef SmartMatrixCoprocessorCalc_h
+#define SmartMatrixCoprocessorCalc_h
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-class SmartMatrix3 {
+class SmartMatrixCoprocessorCalc {
 public:
-    typedef typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowDataStruct rowDataStruct;
+    typedef typename SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowDataStruct rowDataStruct;
 
     // init
-    SmartMatrix3(uint8_t bufferrows, rowDataStruct * rowDataBuffer);
+    SmartMatrixCoprocessorCalc(uint8_t bufferrows, rowDataStruct * rowDataBuffer);
     void begin(void);
     void addLayer(SM_Layer * newlayer);
 

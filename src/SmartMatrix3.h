@@ -48,6 +48,9 @@
 #include "SmartMatrixAPA102Refresh.h"
 #include "SmartMatrixAPA102Calc.h"
 
+#include "SmartMatrixCoprocessorSend.h"
+#include "SmartMatrixCoprocessorCalc.h"
+
 #define SMARTMATRIX_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
     static DMAMEM SmartMatrix3RefreshMultiplexed<pwm_depth, width, height, panel_type, option_flags>::rowDataStruct rowsDataBuffer[buffer_rows]; \
     SmartMatrix3RefreshMultiplexed<pwm_depth, width, height, panel_type, option_flags> matrix_name##Refresh(buffer_rows, rowsDataBuffer); \
@@ -75,6 +78,9 @@
 
 #include "SmartMatrixMultiplexedRefresh_Impl.h"
 #include "SmartMatrixMultiplexedCalc_Impl.h"
+
+#include "SmartMatrixCoprocessorSend_Impl.h"
+#include "SmartMatrixCoprocessorCalc_Impl.h"
 
 #include "SmartMatrixAPA102Refresh_Impl.h"
 #include "SmartMatrixAPA102Calc_Impl.h"

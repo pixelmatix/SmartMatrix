@@ -21,11 +21,11 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef SmartMatrixMultiplexedRefresh_h
-#define SmartMatrixMultiplexedRefresh_h
+#ifndef SmartMatrixCoprocessorSend_h
+#define SmartMatrixCoprocessorSend_h
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-class SmartMatrix3RefreshMultiplexed {
+class SmartMatrix3CoprocessorSend {
 public:
     struct timerpair {
         uint16_t timer_oe;
@@ -62,7 +62,7 @@ public:
     typedef void (*matrix_calc_callback)(bool initial);
 
     // init
-    SmartMatrix3RefreshMultiplexed(uint8_t bufferrows, rowDataStruct * rowDataBuffer);
+    SmartMatrix3CoprocessorSend(uint8_t bufferrows, rowDataStruct * rowDataBuffer);
     static void begin(void);
 
     // refresh API
@@ -78,14 +78,14 @@ public:
 private:
     // enable ISR access to private member variables
     template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
-    friend void rowCalculationISR(void);
+    friend void coprocessorSendRowCalculationISR(void);
 
     #if defined(KINETISL)
         template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
-        friend void rowBitShiftCompleteISR(void);
+        friend void coprocessorSendRowBitShiftCompleteISR(void);
     #elif defined(KINETISK)
         template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
-        friend void rowShiftCompleteISR(void);
+        friend void coprocessorSendRowShiftCompleteISR(void);
     #endif
 
     // configuration helper functions
