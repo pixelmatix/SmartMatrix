@@ -151,7 +151,8 @@ void SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType
     digitalWriteFast(DEBUG_PIN_3, LOW);
 #endif
 
-    SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalcCallback(true);
+    // completely fill buffer with data before enabling DMA
+    matrixCalcCallback(true);
 
     // setup SPI and DMA to feed it
     SPI.begin();
