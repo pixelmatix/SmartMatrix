@@ -26,22 +26,14 @@
 
 #define INLINE __attribute__( ( always_inline ) ) inline
 
-#if defined(KINETISL)
-    #define ROW_CALCULATION_ISR_PRIORITY   192   // Cortex-M0 Acceptable values: 0,64,128,192
-#elif defined(KINETISK)
-    #define ROW_CALCULATION_ISR_PRIORITY   240 // M4 acceptable values: 0,16,32,48,64,80,96,112,128,144,160,176,192,208,224,240
-#endif
+#define ROW_CALCULATION_ISR_PRIORITY   240 // M4 acceptable values: 0,16,32,48,64,80,96,112,128,144,160,176,192,208,224,240
 
 // hardware-specific definitions
 // prescale of 1 is F_BUS/2
 #define LATCH_TIMER_PRESCALE  0x01
 #define NS_TO_TICKS(X)      (uint32_t)(TIMER_FREQUENCY * ((X) / 1000000000.0))
 
-#if defined(KINETISL)
-    #define TIMER_FREQUENCY     (F_BUS/1)
-#elif defined(KINETISK)
-    #define TIMER_FREQUENCY     (F_BUS/2)
-#endif
+#define TIMER_FREQUENCY     (F_BUS/2)
 
 #define LATCH_TIMER_PULSE_WIDTH_TICKS   NS_TO_TICKS(LATCH_TIMER_PULSE_WIDTH_NS)
 #define TICKS_PER_ROW   (TIMER_FREQUENCY/refreshRate/ROWS_PER_FRAME)
@@ -54,25 +46,15 @@
 
 #define TIMER_REGISTERS_TO_UPDATE   2
 
-#if defined(KINETISL)
-    extern DMAChannel dmaClockOutData;
-    extern DMAChannel dmaClockOutData2;
-#elif defined(KINETISK)
-    #ifndef ADDX_UPDATE_ON_DATA_PINS
-        extern DMAChannel dmaOutputAddress;
-        extern DMAChannel dmaUpdateAddress;
-    #endif
-    extern DMAChannel dmaUpdateTimer;
-    extern DMAChannel dmaClockOutData;
+#ifndef ADDX_UPDATE_ON_DATA_PINS
+    extern DMAChannel dmaOutputAddress;
+    extern DMAChannel dmaUpdateAddress;
 #endif
+extern DMAChannel dmaUpdateTimer;
+extern DMAChannel dmaClockOutData;
 
-#if defined(KINETISL)
-    template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-    void coprocessorSendRowBitShiftCompleteISR(void);
-#elif defined(KINETISK)
-    template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-    void coprocessorSendRowShiftCompleteISR(void);
-#endif
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+void coprocessorSendRowShiftCompleteISR(void);
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void coprocessorSendRowCalculationISR(void);
 
@@ -178,13 +160,6 @@ void SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelT
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::recoverFromDmaUnderrun(void) {
-#if defined(KINETISL)
-    // restart timer, rest will get setup in ISR
-    FTM2_SC = 0;
-    FTM2_CNT = 0;
-    FTM2_SC = (FTM_SC_CLKS(1) | FTM_SC_PS(LATCH_TIMER_PRESCALE)) | FTM_SC_TOIE | FTM_SC_TOF | FTM_SC_DMA;
-
-#elif defined(KINETISK)
     // stop timer
     FTM1_SC = FTM_SC_CLKS(0) | FTM_SC_PS(LATCH_TIMER_PRESCALE);
 
@@ -204,7 +179,6 @@ void SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelT
 
     // start timer again - next timer period is MIN_BLOCK_PERIOD_TICKS with OE disabled, period after that will be loaded from matrixUpdateBlock
     FTM1_SC = FTM_SC_CLKS(1) | FTM_SC_PS(LATCH_TIMER_PRESCALE);
-#endif
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
@@ -370,69 +344,6 @@ void SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelT
     rowBitStructBytesToShift = sizeof(SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[0].rowbits[0].data);
 #endif
 
-#if defined(KINETISL)
-    // setup FTM2 (Teensy LC)
-    FTM2_SC = 0;
-    FTM2_CNT = 0;
-    FTM2_MOD = timerLUT[0].timer_period;
-
-    // setup FTM2 compares:
-    // latch pulse width set based on max time to update address pins
-    FTM2_C0V = LATCH_TIMER_PULSE_WIDTH_TICKS;
-    FTM2_C1V = timerLUT[0].timer_oe;
-
-    // Cortex-M0 Acceptable values: 0,64,128,192
-    NVIC_SET_PRIORITY(IRQ_FTM2, 64);
-    NVIC_ENABLE_IRQ(IRQ_FTM2);
-
-    // setup PWM outputs
-    ENABLE_LATCH_PWM_OUTPUT();
-    ENABLE_OE_PWM_OUTPUT();
-
-    // setup two DMA channels, but only enable one
-    dmaClockOutData.begin();
-    dmaClockOutData2.begin();
-
-    dmaClockOutData.sourceBuffer((uint8_t*)matrixUpdateRows, rowBitStructBytesToShift);
-    dmaClockOutData2.sourceBuffer((uint8_t*)matrixUpdateRows, rowBitStructBytesToShift);
-    dmaClockOutData.destination(GPIOD_PDOR);
-    dmaClockOutData2.destination(GPIOD_PDOR);
-
-    // need to adjust destination size, we need 8-bit, no the size of GPIOD_PDOR - also transferSize() has a bug, so do it manually
-    dmaClockOutData.CFG->DCR = (dmaClockOutData.CFG->DCR & 0xF0F8FFFF) | DMA_DCR_DSIZE(1);
-    dmaClockOutData2.CFG->DCR = (dmaClockOutData2.CFG->DCR & 0xF0F8FFFF) | DMA_DCR_DSIZE(1);
-    dmaClockOutData.transferCount(64);
-    dmaClockOutData2.transferCount(64);
-
-    // Can't use triggerAtHardwareEvent as is, as it sets the CS (Cycle Steal) bit to only transfer one byte instead of the whole transfer
-    dmaClockOutData.triggerAtHardwareEvent(DMAMUX_SOURCE_FTM2_OV);
-    dmaClockOutData2.triggerAtHardwareEvent(DMAMUX_SOURCE_LATCH_FALLING_EDGE);
-    uint32_t dcr;
-    dcr = dmaClockOutData.CFG->DCR;
-    dcr &= ~(DMA_DCR_CS);
-    dmaClockOutData.CFG->DCR = dcr;
-    dcr = dmaClockOutData2.CFG->DCR;
-    dcr &= ~(DMA_DCR_CS);
-    dmaClockOutData2.CFG->DCR = dcr;
-    
-    // prevent an error when transfer is complete, BCR is zero, and timer triggers transfer
-    dmaClockOutData.disableOnCompletion();
-    dmaClockOutData2.disableOnCompletion();
-
-    // enable additional dma interrupt used as software interrupt
-    NVIC_SET_PRIORITY(IRQ_DMA_CH0 + dmaClockOutData.channel, ROW_CALCULATION_ISR_PRIORITY);
-    dmaClockOutData.attachInterrupt(coprocessorSendRowCalculationISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
-
-    // only enable first DMA channel, second will be enabled in timer ISR
-    dmaClockOutData.enable();
-
-    attachInterruptVector(IRQ_FTM2, coprocessorSendRowBitShiftCompleteISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
-
-    // at the end after everything is set up: enable timer from system clock with appropriate prescale, enable interrupts, clear any pending overflow bits (otherwise get two ISR calls back to back in beginning), trigger DMA
-    FTM2_SC = (FTM_SC_CLKS(1) | FTM_SC_PS(LATCH_TIMER_PRESCALE)) | FTM_SC_TOIE | FTM_SC_TOF | FTM_SC_DMA;
-
-#elif defined(KINETISK)
-
     // setup FTM1
     FTM1_SC = 0;
     FTM1_CNT = 0;
@@ -578,7 +489,6 @@ void SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelT
 
     // at the end after everything is set up: enable timer from system clock, with appropriate prescale
     FTM1_SC = FTM_SC_CLKS(1) | FTM_SC_PS(LATCH_TIMER_PRESCALE);
-#endif
 }
 
 // low priority ISR triggered by software interrupt on a DMA channel that doesn't need interrupts otherwise
@@ -594,100 +504,6 @@ void coprocessorSendRowCalculationISR(void) {
     digitalWriteFast(DEBUG_PIN_2, LOW);
 #endif
 }
-
-#ifdef KINETISL
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void coprocessorSendRowBitShiftCompleteISR(void) {
-    static bool alternateDmaBuffer = false;
-    static int currentLatchBit = 0;
-    static int currentRow = 0;
-
-    digitalWriteFast(DEBUG_PIN_1, HIGH); // oscilloscope trigger
-
-    if(currentLatchBit >= LATCHES_PER_ROW) {
-        currentLatchBit = 0;
-
-        // done with previous row, mark it as read
-        cbRead(&SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer);
-    }
-
-    if(currentLatchBit == 0) {
-        // need new row, see if it is available yet
-        if(cbIsEmpty(&SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer)) {
-            // new row is not available, handle DMA underrun
-#ifdef DEBUG_PINS_ENABLED
-            digitalWriteFast(DEBUG_PIN_1, LOW); // oscilloscope trigger
-#endif
-            // setup timer to overflow as fast as safely possible, with no interrupt, and no DMA channel linking (clear TOF flag)
-            FTM2_MOD = SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::timerPairIdle.timer_period;
-            FTM2_C1V = SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::timerPairIdle.timer_oe;
-            FTM2_SC = (FTM_SC_CLKS(1) | FTM_SC_PS(LATCH_TIMER_PRESCALE)) | FTM_SC_TOF;
-
-#ifdef DEBUG_PINS_ENABLED
-            digitalWriteFast(DEBUG_PIN_1, HIGH); // oscilloscope trigger
-#endif
-
-            // disable PORTA DMA request on edge
-            CORE_PIN3_CONFIG &= ~PORT_PCR_IRQC_MASK;
-
-            // set flag so other ISR can enable DMA again when data is ready
-            SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUnderrunCallback();
-
-#ifdef DEBUG_PINS_ENABLED
-            digitalWriteFast(DEBUG_PIN_1, LOW);
-#endif
-            // return without setting up timers below
-            return;
-
-        } else {
-            // get next row to draw to display
-            currentRow = cbGetNextRead(&SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer);
-        }
-    }
-
-    FTM2_MOD = SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[currentRow].rowbits[currentLatchBit].timerValues.timer_period;
-    FTM2_C1V = SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[currentRow].rowbits[currentLatchBit].timerValues.timer_oe;
-
-    // clear Timer Overflow Flag while keeping timer running with interrupts enabled - this also clears the FTM_SC_DMA flag, so dmaClockOutData won't trigger unless we want it to (it can be set later in the ISR)
-    FTM2_SC = (FTM_SC_CLKS(1) | FTM_SC_PS(LATCH_TIMER_PRESCALE)) | FTM_SC_TOIE | FTM_SC_TOF;
-
-    if(!alternateDmaBuffer) {
-        dmaClockOutData2.clearComplete();
-        dmaClockOutData2.CFG->SAR = (uint8_t*)&SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[currentRow].rowbits[currentLatchBit].data[0];
-        dmaClockOutData2.transferCount(SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowBitStructBytesToShift);
-        
-        // enable PORTA DMA request on edge again - enabling trigger for dmaClockOutData2, now that we've passed the previous trigger we wanted to ignore
-        ENABLE_LATCH_RISING_EDGE_GPIO_INT();
-        
-        dmaClockOutData2.enable();
-    } else {
-        // disable PORTA DMA request on edge - otherwise Interrupt Status Flag will stay asserted until the *completion* of the next DMA transfer, and will trigger the next time the channel is enabled, even though we don't want to be triggered on a previously seen edge
-        CORE_PIN3_CONFIG &= ~PORT_PCR_IRQC_MASK;
-    
-        dmaClockOutData.clearComplete();
-        dmaClockOutData.CFG->SAR = (uint8_t*)&SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[currentRow].rowbits[currentLatchBit].data[0];
-        dmaClockOutData.transferCount(SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowBitStructBytesToShift);
-    
-        // enable DMA flag for FTM2 - enabling trigger for dmaClockOutData
-        FTM2_SC |= FTM_SC_DMA;
-    
-        dmaClockOutData.enable();
-    }
-
-    alternateDmaBuffer = !alternateDmaBuffer;
-
-    // update row buffers and triger software interrupt when done with row
-    if(currentLatchBit == 0) {
-        // trigger software interrupt to call coprocessorSendRowCalculationISR() (DMA channel interrupt used instead of actual softint)
-        NVIC_SET_PENDING(IRQ_DMA_CH0 + dmaClockOutData.channel);
-    }
-
-    currentLatchBit++;
-
-    digitalWriteFast(DEBUG_PIN_1, LOW);
-}
-
-#elif defined(KINETISK)
 
 // DMA transfer done (meaning data was shifted and timer value for MSB on current row just got loaded)
 // set DMA up for loading the next row, triggered from the next timer latch
@@ -737,4 +553,3 @@ void coprocessorSendRowShiftCompleteISR(void) {
     digitalWriteFast(DEBUG_PIN_1, LOW); // oscilloscope trigger
 #endif
 }
-#endif
