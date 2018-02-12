@@ -169,7 +169,7 @@ void SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelT
     dmaUpdateAddress.TCD->SADDR = &(SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[0].rowbits[0].addressValues);
 #endif
     dmaUpdateTimer.TCD->SADDR = &(SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[currentRow].rowbits[0].timerValues.timer_oe);
-    dmaClockOutData.TCD->SADDR = (uint8_t*)&SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[currentRow];
+    dmaClockOutData.TCD->SADDR = (uint8_t*)&SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[currentRow].rowbits[0].data;
 
     // enable channel-to-channel linking so data will be shifted out
     dmaUpdateTimer.TCD->CSR &= ~(1 << 7);  // must clear DONE flag before enabling
@@ -450,7 +450,7 @@ void SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelT
     uint16_t rowBitStructDataOffset = sizeof(SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[0].rowbits[0]) - rowBitStructBytesToShift;
 
     // dmaClockOutData - repeatedly load gpio_array into GPIOD_PDOR, stop and int on major loop complete
-    dmaClockOutData.TCD->SADDR = matrixUpdateRows;
+    dmaClockOutData.TCD->SADDR = matrixUpdateRows[0].rowbits[0].data;
     dmaClockOutData.TCD->SOFF = 1;
     // SADDR will get updated by ISR, no need to set SLAST
     dmaClockOutData.TCD->SLAST = 0;
@@ -540,7 +540,7 @@ void coprocessorSendRowShiftCompleteISR(void) {
         dmaUpdateAddress.TCD->SADDR = &(SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[currentRow].rowbits[0].addressValues);
 #endif
         dmaUpdateTimer.TCD->SADDR = &(SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[currentRow].rowbits[0].timerValues.timer_oe);
-        dmaClockOutData.TCD->SADDR = (uint8_t*)&SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[currentRow];
+        dmaClockOutData.TCD->SADDR = (uint8_t*)&SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[currentRow].rowbits[0].data;
     }
 
     // trigger software interrupt to call coprocessorSendRowCalculationISR() (DMA channel interrupt used instead of actual softint)
