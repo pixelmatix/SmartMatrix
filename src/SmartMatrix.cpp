@@ -34,4 +34,5 @@
     DMAChannel dmaUpdateTimer(false);
     DMAChannel dmaClockOutData(false);
     DMAChannel dmaClockOutDataApa(false);
+    DMAChannel dmaClockOutDataCoprocessorSend(false);
 #endif

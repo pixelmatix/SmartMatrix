@@ -49,4 +49,9 @@
 #define SMARTMATRIX_OPTIONS_C_SHAPE_STACKING        (1 << 0)
 #define SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING  (1 << 1)
 
+// defines data bit order from bit 0-7, four times to fit in uint32_t
+#define PACKED_HUB75_WORD_ORDER p0r1:1, p0g1:1, p0b1:1, p0r2:1, p0g2:1, p0b2:1, p1r1:1, p1g1:1, \
+    p1b1:1, p1r2:1, p1g2:1, p1b2:1, p2r1:1, p2g1:1, p2b1:1, p2r2:1, \
+    p2g2:1, p2b2:1, p3r1:1, p3g1:1, p3b1:1, p3r2:1, p3g2:1, p3b2:1 
+    
 #endif

@@ -45,17 +45,22 @@ public:
     };
 #endif
 
+#define PACKED_HUB75_FORMAT_PIXELS_PER_UNIT     4
+#define PACKED_HUB75_FORMAT_BYTES_PER_UNIT      3
+
     struct rowBitStruct {
-        uint8_t data[((((matrixWidth * matrixHeight) / CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT(panelType)) * DMA_UPDATES_PER_CLOCK))];
-        uint8_t rowAddress;
-        timerpair timerValues;
-#ifndef ADDX_UPDATE_ON_DATA_PINS
-        addresspair addressValues;
-#endif
+        uint8_t data[((((matrixWidth * matrixHeight) / CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT(panelType)) * PACKED_HUB75_FORMAT_BYTES_PER_UNIT)/PACKED_HUB75_FORMAT_PIXELS_PER_UNIT)];
     };
 
     struct rowDataStruct {
+        uint8_t startOfFrameByte;
+        uint8_t refreshRate;
+        uint8_t brightness;
+        uint8_t rowAddress;
+        uint8_t latchesPerRow;
+        uint8_t dataWidth;
         rowBitStruct rowbits[refreshDepth/COLOR_CHANNELS_PER_PIXEL];
+        uint8_t endOfFrameByte;
     };
 
     typedef void (*matrix_underrun_callback)(void);
@@ -79,14 +84,8 @@ private:
     // enable ISR access to private member variables
     template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
     friend void coprocessorSendRowCalculationISR(void);
-
-    #if defined(KINETISL)
-        template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
-        friend void coprocessorSendRowBitShiftCompleteISR(void);
-    #elif defined(KINETISK)
-        template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
-        friend void coprocessorSendRowShiftCompleteISR(void);
-    #endif
+    template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
+    friend void coprocessorSendRowShiftCompleteISR(void);
 
     // configuration helper functions
     static void calculateTimerLUT(void);

@@ -296,10 +296,10 @@ INLINE void SmartMatrixCoprocessorCalc<refreshDepth, matrixWidth, matrixHeight, 
     }
 
     union {
-        uint8_t word;
+        uint32_t word : 24;
         struct {
             // order of bits in word matches how GPIO connects to the display
-            uint8_t GPIO_WORD_ORDER_8BIT;
+            uint32_t PACKED_HUB75_WORD_ORDER;
         };
     } o0;
     
@@ -316,8 +316,9 @@ INLINE void SmartMatrixCoprocessorCalc<refreshDepth, matrixWidth, matrixHeight, 
 
         while(i < PIXELS_PER_LATCH) {
             // parse through matrixWith block of pixels, from left to right, or right to left, depending on C_SHAPE_STACKING options
-            for(int k=0; k < matrixWidth; k++) {
-                o0.word = 0x00;
+            int packedhub75offset=0;
+            for(int k=0; k < matrixWidth; k+=PACKED_HUB75_FORMAT_PIXELS_PER_UNIT) {
+                o0.word = 0x000000;
 
                 //fill temp0red, etc, or work directly from buffer?
                 if (tempRow0[i+k].red & mask)
@@ -333,36 +334,62 @@ INLINE void SmartMatrixCoprocessorCalc<refreshDepth, matrixWidth, matrixHeight, 
                 if (tempRow1[i+k].blue & mask)
                     o0.p0b2 = 1;
 
+                if (tempRow0[i+k + 1].red & mask)
+                    o0.p1r1 = 1;
+                if (tempRow0[i+k + 1].green & mask)
+                    o0.p1g1 = 1;
+                if (tempRow0[i+k + 1].blue & mask)
+                    o0.p1b1 = 1;
+                if (tempRow1[i+k + 1].red & mask)
+                    o0.p1r2 = 1;
+                if (tempRow1[i+k + 1].green & mask)
+                    o0.p1g2 = 1;
+                if (tempRow1[i+k + 1].blue & mask)
+                    o0.p1b2 = 1;
+
+                if (tempRow0[i+k + 2].red & mask)
+                    o0.p2r1 = 1;
+                if (tempRow0[i+k + 2].green & mask)
+                    o0.p2g1 = 1;
+                if (tempRow0[i+k + 2].blue & mask)
+                    o0.p2b1 = 1;
+                if (tempRow1[i+k + 2].red & mask)
+                    o0.p2r2 = 1;
+                if (tempRow1[i+k + 2].green & mask)
+                    o0.p2g2 = 1;
+                if (tempRow1[i+k + 2].blue & mask)
+                    o0.p2b2 = 1;
+
+                if (tempRow0[i+k + 3].red & mask)
+                    o0.p3r1 = 1;
+                if (tempRow0[i+k + 3].green & mask)
+                    o0.p3g1 = 1;
+                if (tempRow0[i+k + 3].blue & mask)
+                    o0.p3b1 = 1;
+                if (tempRow1[i+k + 3].red & mask)
+                    o0.p3r2 = 1;
+                if (tempRow1[i+k + 3].green & mask)
+                    o0.p3g2 = 1;
+                if (tempRow1[i+k + 3].blue & mask)
+                    o0.p3b2 = 1;
+
                 if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && !((i/matrixWidth)%2)) {
-                    currentRowDataPtr->rowbits[j].data[(((i+matrixWidth-1)-k)*DMA_UPDATES_PER_CLOCK)] = o0.word;
-                    o0.p0clk = 1;
-                    currentRowDataPtr->rowbits[j].data[(((i+matrixWidth-1)-k)*DMA_UPDATES_PER_CLOCK)+1] = o0.word;
+                    // TODO :rearrange above for C-shape stacking
                 } else {
-                    currentRowDataPtr->rowbits[j].data[((i+k)*DMA_UPDATES_PER_CLOCK)] = o0.word;
-                    o0.p0clk = 1;
-                    currentRowDataPtr->rowbits[j].data[((i+k)*DMA_UPDATES_PER_CLOCK)+1] = o0.word;
+                    currentRowDataPtr->rowbits[j].data[(i+packedhub75offset)] = o0.word;
                 }
+
+                packedhub75offset += PACKED_HUB75_FORMAT_BYTES_PER_UNIT;
             }
             i += matrixWidth;
         }
-        currentRowDataPtr->rowbits[j].rowAddress = currentRow;
     }
-
-#ifdef ADDX_UPDATE_ON_DATA_PINS
-        o0.word = 0x00000000;
-        o0.p0r1 = (currentRow & 0x01) ? 1 : 0;
-        o0.p0g1 = (currentRow & 0x02) ? 1 : 0;
-        o0.p0b1 = (currentRow & 0x04) ? 1 : 0;
-        o0.p0r2 = (currentRow & 0x08) ? 1 : 0;
-
-        for(int j=0; j<LATCHES_PER_ROW; j++) {
-            currentRowDataPtr->rowbits[j].rowAddress = o0.word;
-        }
-#endif
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 INLINE void SmartMatrixCoprocessorCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers24(rowDataStruct * currentRowDataPtr, unsigned char currentRow) {
+// TODO: 24-bit load matrix buffers after 48 is working
+#if 0
     int i;
 
     // static to avoid putting large buffer on the stack
@@ -482,11 +509,14 @@ INLINE void SmartMatrixCoprocessorCalc<refreshDepth, matrixWidth, matrixHeight, 
             currentRowDataPtr->rowbits[j].rowAddress = o0.word;
         }
 #endif
+#endif
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 INLINE void SmartMatrixCoprocessorCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers(unsigned char currentRow) {
     rowDataStruct * currentRowDataPtr = SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getNextRowBufferPtr();
+
+    currentRowDataPtr->rowAddress = currentRow;
 
     // TODO: support rgb36/48 with same function, copy function to rgb24
     if(LATCHES_PER_ROW == 16)
