@@ -45,7 +45,10 @@
     #define APA_TIMER_FREQUENCY     (F_BUS/128)
 #endif
 
-#define TICKS_PER_FRAME   (APA_TIMER_FREQUENCY/refreshRate)
+#define APA_TICKS_PER_FRAME   (APA_TIMER_FREQUENCY/refreshRate)
+
+// TODO: calculate a reasonable value based on timer overflow
+#define APA_MIN_REFRESH_RATE 1
 
 extern DMAChannel dmaClockOutDataApa;
 
@@ -128,10 +131,10 @@ void SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRefreshRate(uint8_t newRefreshRate) {
-    if(newRefreshRate > MIN_REFRESH_RATE)
+    if(newRefreshRate > APA_MIN_REFRESH_RATE)
         refreshRate = newRefreshRate;
     else
-        refreshRate = MIN_REFRESH_RATE;
+        refreshRate = APA_MIN_REFRESH_RATE;
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
@@ -169,7 +172,7 @@ void SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType
     // setup FTM2
     FTM2_SC = 0;
     FTM2_CNT = 0;
-    FTM2_MOD = TICKS_PER_FRAME;
+    FTM2_MOD = APA_TICKS_PER_FRAME;
 
 #if 0
     // for debug: latch pulse width wide enough to be seen on logic analyzer
