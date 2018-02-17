@@ -203,6 +203,10 @@ void apaRowCalculationISR(void) {
 #endif
 
     dmaClockOutDataApa.clearInterrupt();
+
+    // done with previous row, mark it as read
+    cbRead(&SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer);
+
     SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalcCallback(false);
 
 #ifdef DEBUG_PINS_ENABLED
@@ -217,10 +221,6 @@ void apaRowShiftCompleteISR(void) {
 #ifdef DEBUG_PINS_ENABLED
     digitalWriteFast(DEBUG_PIN_1, HIGH); // oscilloscope trigger
 #endif
-
-    // done with previous row, mark it as read
-    cbRead(&SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer);
-
     int currentRow = cbGetNextRead(&SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer);
 
     // TODO: if underrun
