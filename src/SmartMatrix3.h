@@ -129,17 +129,21 @@ private:
     static SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>* globalinstance;
 };
 
-#define SMARTMATRIX_HUB75_32ROW_MOD16SCAN             0
-#define SMARTMATRIX_HUB75_16ROW_MOD8SCAN              1
+#define SMARTMATRIX_HUB75_32ROW_MOD16SCAN   0
+#define SMARTMATRIX_HUB75_16ROW_MOD8SCAN    1
+#define SMARTMATRIX_HUB75_64ROW_MOD32SCAN   2
 
 #define CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT(x)   ((x == SMARTMATRIX_HUB75_32ROW_MOD16SCAN ? 32 : 0) | \
-                                                     (x == SMARTMATRIX_HUB75_16ROW_MOD8SCAN ? 16 : 0))
+                                                     (x == SMARTMATRIX_HUB75_16ROW_MOD8SCAN ? 16 : 0) | \
+                                                     (x == SMARTMATRIX_HUB75_64ROW_MOD32SCAN ? 64 : 0))
 
 #define CONVERT_PANELTYPE_TO_MATRIXROWPAIROFFSET(x)   ((x == SMARTMATRIX_HUB75_32ROW_MOD16SCAN ? 16 : 0) | \
-                                                     (x == SMARTMATRIX_HUB75_16ROW_MOD8SCAN ? 8 : 0))
+                                                     (x == SMARTMATRIX_HUB75_16ROW_MOD8SCAN ? 8 : 0) | \
+                                                     (x == SMARTMATRIX_HUB75_64ROW_MOD32SCAN ? 32 : 0))
 
 #define CONVERT_PANELTYPE_TO_MATRIXROWSPERFRAME(x)   ((x == SMARTMATRIX_HUB75_32ROW_MOD16SCAN ? 16 : 0) | \
-                                                     (x == SMARTMATRIX_HUB75_16ROW_MOD8SCAN ? 8 : 0))
+                                                     (x == SMARTMATRIX_HUB75_16ROW_MOD8SCAN ? 8 : 0) | \
+                                                     (x == SMARTMATRIX_HUB75_64ROW_MOD32SCAN ? 32 : 0))
 
 #define SMARTMATRIX_OPTIONS_NONE                    0
 #define SMARTMATRIX_OPTIONS_C_SHAPE_STACKING        (1 << 0)

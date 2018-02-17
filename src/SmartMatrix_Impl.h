@@ -957,21 +957,25 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     o0.p0g1 = (currentRow & 0x02) ? 1 : 0;
     o0.p0b1 = (currentRow & 0x04) ? 1 : 0;
     o0.p0r2 = (currentRow & 0x08) ? 1 : 0;
+    o0.p0g2 = (currentRow & 0x10) ? 1 : 0;
 
     o0.p1r1 = (currentRow & 0x01) ? 1 : 0;
     o0.p1g1 = (currentRow & 0x02) ? 1 : 0;
     o0.p1b1 = (currentRow & 0x04) ? 1 : 0;
     o0.p1r2 = (currentRow & 0x08) ? 1 : 0;
+    o0.p1g2 = (currentRow & 0x10) ? 1 : 0;
 
     o0.p2r1 = (currentRow & 0x01) ? 1 : 0;
     o0.p2g1 = (currentRow & 0x02) ? 1 : 0;
     o0.p2b1 = (currentRow & 0x04) ? 1 : 0;
     o0.p2r2 = (currentRow & 0x08) ? 1 : 0;
+    o0.p2g2 = (currentRow & 0x10) ? 1 : 0;
 
     o0.p3r1 = (currentRow & 0x01) ? 1 : 0;
     o0.p3g1 = (currentRow & 0x02) ? 1 : 0;
     o0.p3b1 = (currentRow & 0x04) ? 1 : 0;
     o0.p3r2 = (currentRow & 0x08) ? 1 : 0;
+    o0.p3g2 = (currentRow & 0x10) ? 1 : 0;
 
     // set pointer to the byte past the end of the pixel data to shift, and write the currentRow address
     uint32_t * tempptr2 = (uint32_t*)matrixUpdateData + ((freeRowBuffer*dmaBufferBytesPerRow)/sizeof(uint32_t)) + (((PIXELS_PER_LATCH)*dmaBufferBytesPerPixel)/sizeof(uint32_t));
@@ -1316,21 +1320,25 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     o0.p0g1 = (currentRow & 0x02) ? 1 : 0;
     o0.p0b1 = (currentRow & 0x04) ? 1 : 0;
     o0.p0r2 = (currentRow & 0x08) ? 1 : 0;
+    o0.p0g2 = (currentRow & 0x10) ? 1 : 0;
 
     o0.p1r1 = (currentRow & 0x01) ? 1 : 0;
     o0.p1g1 = (currentRow & 0x02) ? 1 : 0;
     o0.p1b1 = (currentRow & 0x04) ? 1 : 0;
     o0.p1r2 = (currentRow & 0x08) ? 1 : 0;
+    o0.p1g2 = (currentRow & 0x10) ? 1 : 0;
 
     o0.p2r1 = (currentRow & 0x01) ? 1 : 0;
     o0.p2g1 = (currentRow & 0x02) ? 1 : 0;
     o0.p2b1 = (currentRow & 0x04) ? 1 : 0;
     o0.p2r2 = (currentRow & 0x08) ? 1 : 0;
+    o0.p2g2 = (currentRow & 0x10) ? 1 : 0;
 
     o0.p3r1 = (currentRow & 0x01) ? 1 : 0;
     o0.p3g1 = (currentRow & 0x02) ? 1 : 0;
     o0.p3b1 = (currentRow & 0x04) ? 1 : 0;
     o0.p3r2 = (currentRow & 0x08) ? 1 : 0;
+    o0.p3g2 = (currentRow & 0x10) ? 1 : 0;
 
     // set pointer to the byte past the end of the pixel data to shift, and write the currentRow address
     uint32_t * tempptr2 = (uint32_t*)matrixUpdateData + ((freeRowBuffer*dmaBufferBytesPerRow)/sizeof(uint32_t)) + (((PIXELS_PER_LATCH)*dmaBufferBytesPerPixel)/sizeof(uint32_t));
@@ -1536,21 +1544,25 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     o0.p0g1 = (currentRow & 0x02) ? 1 : 0;
     o0.p0b1 = (currentRow & 0x04) ? 1 : 0;
     o0.p0r2 = (currentRow & 0x08) ? 1 : 0;
+    o0.p0g2 = (currentRow & 0x10) ? 1 : 0;
 
     o0.p1r1 = (currentRow & 0x01) ? 1 : 0;
     o0.p1g1 = (currentRow & 0x02) ? 1 : 0;
     o0.p1b1 = (currentRow & 0x04) ? 1 : 0;
     o0.p1r2 = (currentRow & 0x08) ? 1 : 0;
+    o0.p1g2 = (currentRow & 0x10) ? 1 : 0;
 
     o0.p2r1 = (currentRow & 0x01) ? 1 : 0;
     o0.p2g1 = (currentRow & 0x02) ? 1 : 0;
     o0.p2b1 = (currentRow & 0x04) ? 1 : 0;
     o0.p2r2 = (currentRow & 0x08) ? 1 : 0;
+    o0.p2g2 = (currentRow & 0x10) ? 1 : 0;
 
     o0.p3r1 = (currentRow & 0x01) ? 1 : 0;
     o0.p3g1 = (currentRow & 0x02) ? 1 : 0;
     o0.p3b1 = (currentRow & 0x04) ? 1 : 0;
     o0.p3r2 = (currentRow & 0x08) ? 1 : 0;
+    o0.p3g2 = (currentRow & 0x10) ? 1 : 0;
 
     // set pointer to the byte past the end of the pixel data to shift, and write the currentRow address
     uint32_t * tempptr2 = (uint32_t*)matrixUpdateData + ((freeRowBuffer*dmaBufferBytesPerRow)/sizeof(uint32_t)) + (((PIXELS_PER_LATCH)*dmaBufferBytesPerPixel)/sizeof(uint32_t));
