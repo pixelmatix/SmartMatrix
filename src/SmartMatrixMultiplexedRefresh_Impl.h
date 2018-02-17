@@ -50,7 +50,7 @@
 #define MIN_BLOCK_PERIOD_TICKS NS_TO_TICKS(MIN_BLOCK_PERIOD_NS)
 
 // slower refresh rates require larger timer values - get the min refresh rate from the largest MSB value that will fit in the timer (round up)
-#define MIN_REFRESH_RATE    (((TIMER_FREQUENCY/65535)/16/2) + 1)
+#define MIN_REFRESH_RATE    (((TIMER_FREQUENCY/65535)/ROWS_PER_FRAME/2) + 1)
 
 #define TIMER_REGISTERS_TO_UPDATE   2
 
