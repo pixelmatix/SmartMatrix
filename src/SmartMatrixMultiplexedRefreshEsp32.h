@@ -86,6 +86,9 @@ private:
     #elif defined(KINETISK)
         template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
         friend void rowShiftCompleteISR(void);
+    #elif defined(ESP32)
+        template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+        friend void frameShiftCompleteISR(void);    
     #endif
 
     // configuration helper functions

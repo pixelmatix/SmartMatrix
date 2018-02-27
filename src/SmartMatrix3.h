@@ -42,7 +42,15 @@
 #include "Layer_Background.h"
 
 #include "SmartMatrixMultiplexedCommon.h"
-#include "SmartMatrixMultiplexedRefresh.h"
+
+#if defined(__arm__) && defined(CORE_TEENSY)
+#include "SmartMatrixMultiplexedRefreshTeensy.h"
+#endif
+
+#if defined(ESP32)
+#include "SmartMatrixMultiplexedRefreshEsp32.h"
+#endif
+
 #include "SmartMatrixMultiplexedCalc.h"
 
 #include "SmartMatrixAPA102Refresh.h"
