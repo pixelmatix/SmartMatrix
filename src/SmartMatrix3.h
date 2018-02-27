@@ -83,11 +83,15 @@
     static RGB_TYPE(storage_depth) layer_name##Bitmap[2*width*height];                                        \
     static SMLayerBackground<RGB_TYPE(storage_depth), background_options> layer_name(layer_name##Bitmap, width, height)  
 
-
 // platform-specific
 #if defined(__arm__) && defined(CORE_TEENSY)
 #include "SmartMatrixMultiplexedRefreshTeensy_Impl.h"
 #include "SmartMatrixAPA102RefreshTeensy_Impl.h"
+#endif
+
+#if defined(ESP32)
+#include "SmartMatrixMultiplexedRefreshEsp32_Impl.h"
+#include "SmartMatrixAPA102RefreshEsp32_Impl.h"
 #endif
 
 #include "SmartMatrixMultiplexedCalc_Impl.h"
@@ -96,6 +100,5 @@
 #include "SmartMatrixCoprocessorCalc_Impl.h"
 
 #include "SmartMatrixAPA102Calc_Impl.h"
-
 
 #endif
