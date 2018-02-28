@@ -44,20 +44,22 @@
 #include "SmartMatrixMultiplexedCommon.h"
 
 #if defined(__arm__) && defined(CORE_TEENSY)
-#include "SmartMatrixMultiplexedRefreshTeensy.h"
+    #include "SmartMatrixMultiplexedRefreshTeensy.h"
+    #include "SmartMatrixMultiplexedCalcTeensy.h"
 #endif
 
 #if defined(ESP32)
-#include "SmartMatrixMultiplexedRefreshEsp32.h"
+    #include "SmartMatrixMultiplexedRefreshEsp32.h"
+    #include "SmartMatrixMultiplexedCalcEsp32.h"
 #endif
-
-#include "SmartMatrixMultiplexedCalc.h"
 
 #include "SmartMatrixAPA102Refresh.h"
 #include "SmartMatrixAPA102Calc.h"
 
-#include "SmartMatrixCoprocessorSend.h"
-#include "SmartMatrixCoprocessorCalc.h"
+#if defined(__arm__) && defined(CORE_TEENSY)
+    #include "SmartMatrixCoprocessorSend.h"
+    #include "SmartMatrixCoprocessorCalc.h"
+#endif
 
 #if 1
     #define SMARTMATRIX_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
@@ -93,19 +95,22 @@
 
 // platform-specific
 #if defined(__arm__) && defined(CORE_TEENSY)
-#include "SmartMatrixMultiplexedRefreshTeensy_Impl.h"
-#include "SmartMatrixAPA102RefreshTeensy_Impl.h"
+    #include "SmartMatrixMultiplexedRefreshTeensy_Impl.h"
+    #include "SmartMatrixAPA102RefreshTeensy_Impl.h"
+    #include "SmartMatrixMultiplexedCalcTeensy_Impl.h"
 #endif
 
 #if defined(ESP32)
-#include "SmartMatrixMultiplexedRefreshEsp32_Impl.h"
-#include "SmartMatrixAPA102RefreshEsp32_Impl.h"
+    #include "SmartMatrixMultiplexedRefreshEsp32_Impl.h"
+    //#include "SmartMatrixAPA102RefreshEsp32_Impl.h"
+    #include "SmartMatrixMultiplexedCalcEsp32_Impl.h"
 #endif
 
-#include "SmartMatrixMultiplexedCalc_Impl.h"
 
-#include "SmartMatrixCoprocessorSend_Impl.h"
-#include "SmartMatrixCoprocessorCalc_Impl.h"
+#if defined(__arm__) && defined(CORE_TEENSY)
+    #include "SmartMatrixCoprocessorSend_Impl.h"
+    #include "SmartMatrixCoprocessorCalc_Impl.h"
+#endif
 
 #include "SmartMatrixAPA102Calc_Impl.h"
 
