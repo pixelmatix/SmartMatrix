@@ -1,0 +1,318 @@
+// Copyright 2017 Espressif Systems (Shanghai) PTE LTD
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#include <stdio.h>
+#include <stdint.h>
+#include <stddef.h>
+#include <string.h>
+
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/semphr.h"
+#include "freertos/queue.h"
+
+#include "soc/i2s_struct.h"
+#include "soc/i2s_reg.h"
+#include "driver/periph_ctrl.h"
+#include "soc/io_mux_reg.h"
+#include "rom/lldesc.h"
+#include "esp_heap_caps.h"
+#include "anim.h"
+#include "val2pwm.h"
+#include "i2s_parallel.h"
+
+#define DEBUG_1_GPIO    GPIO_NUM_23
+
+typedef struct {
+    volatile lldesc_t *dmadesc_a, *dmadesc_b;
+    int desccount_a, desccount_b;
+} i2s_parallel_state_t;
+
+static i2s_parallel_state_t *i2s_state[2]={NULL, NULL};
+
+// hacky way to set active I2S device in ISR, use a global
+i2s_dev_t *i2sdevPtr = 0;
+int nextFrontBufferNumber = 0;
+
+static int i2snum(i2s_dev_t *dev) {
+    return (dev==&I2S0)?0:1;
+}
+
+static void IRAM_ATTR i2s_isr(void* arg) {
+    // Todo: handle IS20 (this is hard coded for I2S1 only)
+    REG_WRITE(I2S_INT_CLR_REG(1), (REG_READ(I2S_INT_RAW_REG(1)) & 0xffffffc0) | 0x3f);
+
+#ifdef DEBUG_1_GPIO
+    static bool debugoutstate = false;
+
+    if(!debugoutstate) {
+        gpio_set_level(DEBUG_1_GPIO, 1);
+        gpio_set_level(DEBUG_1_GPIO, 0);
+        gpio_set_level(DEBUG_1_GPIO, 1);
+        debugoutstate = true;
+    } else {
+        gpio_set_level(DEBUG_1_GPIO, 0);
+        gpio_set_level(DEBUG_1_GPIO, 1);
+        gpio_set_level(DEBUG_1_GPIO, 0);
+        debugoutstate = false;
+    }
+#endif
+
+    int no=i2snum(i2sdevPtr);
+
+    lldesc_t *active_dma_chain;
+    if (nextFrontBufferNumber==0) {
+        active_dma_chain=(lldesc_t*)&i2s_state[no]->dmadesc_a[0];
+    } else {
+        active_dma_chain=(lldesc_t*)&i2s_state[no]->dmadesc_b[0];
+    }
+
+    // point I2S DMA to next frame, start DMA
+    i2sdevPtr->out_link.addr=(uint32_t)active_dma_chain;
+    i2sdevPtr->out_link.start=1;
+    i2sdevPtr->conf.tx_start=1;
+}
+
+#define DMA_MAX (4096-4)
+
+//Calculate the amount of dma descs needed for a buffer desc
+static int calc_needed_dma_descs_for(i2s_parallel_buffer_desc_t *desc) {
+    int ret=0;
+    for (int i=0; desc[i].memory!=NULL; i++) {
+        ret+=(desc[i].size+DMA_MAX-1)/DMA_MAX;
+    }
+    return ret;
+}
+
+static void fill_dma_desc(volatile lldesc_t *dmadesc, i2s_parallel_buffer_desc_t *bufdesc) {
+    int n=0;
+    for (int i=0; bufdesc[i].memory!=NULL; i++) {
+        int len=bufdesc[i].size;
+        uint8_t *data=(uint8_t*)bufdesc[i].memory;
+        while(len) {
+            int dmalen=len;
+            if (dmalen>DMA_MAX) dmalen=DMA_MAX;
+            dmadesc[n].size=dmalen;
+            dmadesc[n].length=dmalen;
+            dmadesc[n].buf=data;
+            dmadesc[n].eof=0;
+            dmadesc[n].sosf=0;
+            dmadesc[n].owner=1;
+            dmadesc[n].qe.stqe_next=(lldesc_t*)&dmadesc[n+1];
+            dmadesc[n].offset=0;
+            len-=dmalen;
+            data+=dmalen;
+            n++;
+        }
+    }
+
+    // set EOF bit in last dma descriptor
+    dmadesc[n-1].eof=1;
+
+    printf("fill_dma_desc: filled %d descriptors\n", n);
+}
+
+static void gpio_setup_out(int gpio, int sig) {
+    if (gpio==-1) return;
+    PIN_FUNC_SELECT(GPIO_PIN_MUX_REG[gpio], PIN_FUNC_GPIO);
+    gpio_set_direction(gpio, GPIO_MODE_DEF_OUTPUT);
+    gpio_matrix_out(gpio, sig, false, false);
+}
+
+
+static void dma_reset(i2s_dev_t *dev) {
+    dev->lc_conf.in_rst=1; dev->lc_conf.in_rst=0;
+    dev->lc_conf.out_rst=1; dev->lc_conf.out_rst=0;
+}
+
+static void fifo_reset(i2s_dev_t *dev) {
+    dev->conf.rx_fifo_reset=1; dev->conf.rx_fifo_reset=0;
+    dev->conf.tx_fifo_reset=1; dev->conf.tx_fifo_reset=0;
+}
+
+void i2s_parallel_setup(i2s_dev_t *dev, const i2s_parallel_config_t *cfg) {
+    //Figure out which signal numbers to use for routing
+    printf("Setting up parallel I2S bus at I2S%d\n", i2snum(dev));
+    int sig_data_base, sig_clk;
+    if (dev==&I2S0) {
+        sig_data_base=I2S0O_DATA_OUT0_IDX;
+        sig_clk=I2S0O_WS_OUT_IDX;
+    } else {
+        if (cfg->bits==I2S_PARALLEL_BITS_32) {
+            sig_data_base=I2S1O_DATA_OUT0_IDX;
+        } else {
+            //Because of... reasons... the 16-bit values for i2s1 appear on d8...d23
+            sig_data_base=I2S1O_DATA_OUT8_IDX;
+        }
+        sig_clk=I2S1O_WS_OUT_IDX;
+    }
+    
+    i2sdevPtr = dev;
+
+    //Route the signals
+    for (int x=0; x<cfg->bits; x++) {
+        gpio_setup_out(cfg->gpio_bus[x], sig_data_base+x);
+    }
+    //ToDo: Clk/WS may need inversion?
+    gpio_setup_out(cfg->gpio_clk, sig_clk);
+    
+    // setup debug output
+#ifdef DEBUG_1_GPIO
+    gpio_pad_select_gpio(DEBUG_1_GPIO);
+    gpio_set_direction(DEBUG_1_GPIO, GPIO_MODE_OUTPUT);
+    gpio_set_level(DEBUG_1_GPIO, 1);
+    gpio_set_level(DEBUG_1_GPIO, 0);
+#endif
+
+    //Power on dev
+    if (dev==&I2S0) {
+        periph_module_enable(PERIPH_I2S0_MODULE);
+    } else {
+        periph_module_enable(PERIPH_I2S1_MODULE);
+    }
+    //Initialize I2S dev
+    dev->conf.rx_reset=1; dev->conf.rx_reset=0;
+    dev->conf.tx_reset=1; dev->conf.tx_reset=0;
+    dma_reset(dev);
+    fifo_reset(dev);
+    
+    //Enable LCD mode
+    dev->conf2.val=0;
+    dev->conf2.lcd_en=1;
+    
+    dev->sample_rate_conf.val=0;
+    dev->sample_rate_conf.rx_bits_mod=cfg->bits;
+    dev->sample_rate_conf.tx_bits_mod=cfg->bits;
+    dev->sample_rate_conf.rx_bck_div_num=4; //ToDo: Unsure about what this does...
+    //dev->sample_rate_conf.tx_bck_div_num=4;
+    dev->sample_rate_conf.tx_bck_div_num=2; // datasheet says this must be 2 or greater (but 1 seems to work)
+    
+    dev->clkm_conf.val=0;
+    dev->clkm_conf.clka_en=0;
+    dev->clkm_conf.clkm_div_a=63;
+    dev->clkm_conf.clkm_div_b=63;
+    //We ignore the possibility for fractional division here.
+    //dev->clkm_conf.clkm_div_num=80000000L/cfg->clkspeed_hz;
+    dev->clkm_conf.clkm_div_num=4; // datasheet says this must be 2 or greater (but lower values seem to work)
+    
+    // this combination is 20MHz
+    //dev->sample_rate_conf.tx_bck_div_num=1; // datasheet says this must be 2 or greater (but 1 seems to work)
+    //dev->clkm_conf.clkm_div_num=2; // datasheet says this must be 2 or greater (but lower values seem to work)
+
+    // this combination results in 25MHz, why?
+    //dev->sample_rate_conf.tx_bck_div_num=1; // datasheet says this must be 2 or greater (but 1 seems to work)
+    //dev->clkm_conf.clkm_div_num=2; // datasheet says this must be 2 or greater (but lower values seem to work)
+
+    // this combination is 20MHz
+    //dev->sample_rate_conf.tx_bck_div_num=1; // datasheet says this must be 2 or greater (but 1 seems to work)
+    //dev->clkm_conf.clkm_div_num=3; // datasheet says this must be 2 or greater (but lower values seem to work)
+
+    // 16 MHz
+    //dev->sample_rate_conf.tx_bck_div_num=1; // datasheet says this must be 2 or greater (but 1 seems to work)
+    //dev->clkm_conf.clkm_div_num=4; // datasheet says this must be 2 or greater (but lower values seem to work)
+
+    // 13MHz
+    //dev->sample_rate_conf.tx_bck_div_num=1; // datasheet says this must be 2 or greater (but 1 seems to work)
+    //dev->clkm_conf.clkm_div_num=5; // datasheet says this must be 2 or greater (but lower values seem to work)
+
+    // 11.3MHz
+    //dev->sample_rate_conf.tx_bck_div_num=1; // datasheet says this must be 2 or greater (but 1 seems to work)
+    //dev->clkm_conf.clkm_div_num=6; // datasheet says this must be 2 or greater (but lower values seem to work)
+
+    // 13.x MHz
+    //dev->sample_rate_conf.tx_bck_div_num=2; // datasheet says this must be 2 or greater (but 1 seems to work)
+    //dev->clkm_conf.clkm_div_num=2; // datasheet says this must be 2 or greater (but lower values seem to work)
+
+    // 10MHz
+    //dev->sample_rate_conf.tx_bck_div_num=2; // datasheet says this must be 2 or greater (but 1 seems to work)
+    //dev->clkm_conf.clkm_div_num=3; // datasheet says this must be 2 or greater (but lower values seem to work)
+
+    // 8MHz
+    //dev->sample_rate_conf.tx_bck_div_num=2; // datasheet says this must be 2 or greater (but 1 seems to work)
+    //dev->clkm_conf.clkm_div_num=4; // datasheet says this must be 2 or greater (but lower values seem to work)
+
+
+
+    dev->fifo_conf.val=0;
+    dev->fifo_conf.rx_fifo_mod_force_en=1;
+    dev->fifo_conf.tx_fifo_mod_force_en=1;
+    //dev->fifo_conf.tx_fifo_mod=1;
+    dev->fifo_conf.tx_fifo_mod=1;
+    dev->fifo_conf.rx_data_num=32; //Thresholds. 
+    dev->fifo_conf.tx_data_num=32;
+    dev->fifo_conf.dscr_en=1;
+    
+    dev->conf1.val=0;
+    dev->conf1.tx_stop_en=0;
+    dev->conf1.tx_pcm_bypass=1;
+    
+    dev->conf_chan.val=0;
+    dev->conf_chan.tx_chan_mod=1;
+    dev->conf_chan.rx_chan_mod=1;
+    
+    //Invert ws to be active-low... ToDo: make this configurable
+    //dev->conf.tx_right_first=1;
+    dev->conf.tx_right_first=0;
+    //dev->conf.rx_right_first=1;
+    dev->conf.rx_right_first=0;
+    
+    dev->timing.val=0;
+    
+    //Allocate DMA descriptors
+    i2s_state[i2snum(dev)]=malloc(sizeof(i2s_parallel_state_t));
+    i2s_parallel_state_t *st=i2s_state[i2snum(dev)];
+    st->desccount_a=calc_needed_dma_descs_for(cfg->bufa);
+    st->desccount_b=calc_needed_dma_descs_for(cfg->bufb);
+    st->dmadesc_a=heap_caps_malloc(st->desccount_a*sizeof(lldesc_t), MALLOC_CAP_DMA);
+    st->dmadesc_b=heap_caps_malloc(st->desccount_b*sizeof(lldesc_t), MALLOC_CAP_DMA);
+    
+    //and fill them
+    fill_dma_desc(st->dmadesc_a, cfg->bufa);
+    fill_dma_desc(st->dmadesc_b, cfg->bufb);
+    
+    //Reset FIFO/DMA -> needed? Doesn't dma_reset/fifo_reset do this?
+    dev->lc_conf.in_rst=1; dev->lc_conf.out_rst=1; dev->lc_conf.ahbm_rst=1; dev->lc_conf.ahbm_fifo_rst=1;
+    dev->lc_conf.in_rst=0; dev->lc_conf.out_rst=0; dev->lc_conf.ahbm_rst=0; dev->lc_conf.ahbm_fifo_rst=0;
+    dev->conf.tx_reset=1; dev->conf.tx_fifo_reset=1; dev->conf.rx_fifo_reset=1;
+    dev->conf.tx_reset=0; dev->conf.tx_fifo_reset=0; dev->conf.rx_fifo_reset=0;
+    
+// TODO: why are these defined here and not somewhere else?
+#define ETS_I2S0_INUM 13
+#define ETS_I2S1_INUM 13
+
+    // setup I2S Interrupt
+    if (dev==&I2S0) {
+        intr_matrix_set(0, ETS_I2S0_INTR_SOURCE, ETS_I2S0_INUM);
+        xt_set_interrupt_handler(ETS_I2S0_INUM, &i2s_isr, NULL);
+        SET_PERI_REG_BITS(I2S_INT_ENA_REG(0), I2S_OUT_EOF_INT_ENA_V, 1, I2S_OUT_EOF_INT_ENA_S);
+        ESP_INTR_ENABLE(ETS_I2S0_INUM);
+    } else {
+        intr_matrix_set(0, ETS_I2S1_INTR_SOURCE, ETS_I2S1_INUM);
+        xt_set_interrupt_handler(ETS_I2S1_INUM, &i2s_isr, NULL);
+        SET_PERI_REG_BITS(I2S_INT_ENA_REG(1), I2S_OUT_EOF_INT_ENA_V, 1, I2S_OUT_EOF_INT_ENA_S);
+        ESP_INTR_ENABLE(ETS_I2S1_INUM);
+    }
+
+    //Start dma on front buffer
+    dev->lc_conf.val=I2S_OUT_DATA_BURST_EN | I2S_OUTDSCR_BURST_EN | I2S_OUT_DATA_BURST_EN;
+    dev->out_link.addr=((uint32_t)(&st->dmadesc_a[0]));
+    dev->out_link.start=1;
+    dev->conf.tx_start=1;
+}
+
+
+//Flip to a buffer: 0 for bufa, 1 for bufb
+void i2s_parallel_flip_to_buffer(i2s_dev_t *dev, int bufid) {
+    nextFrontBufferNumber = bufid;
+}
