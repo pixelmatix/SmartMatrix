@@ -27,10 +27,11 @@
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 class SmartMatrix3 {
 public:
-    typedef typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowDataStruct rowDataStruct;
+    typedef typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::frameStruct frameStruct;
+    typedef typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::frameBitStruct frameBitStruct;
 
     // init
-    SmartMatrix3(uint8_t bufferrows, rowDataStruct * rowDataBuffer);
+    SmartMatrix3(frameStruct * frameBuffer);
     void begin(void);
     void addLayer(SM_Layer * newlayer);
 
@@ -57,9 +58,9 @@ private:
     static SM_Layer * baseLayer;
 
     // functions for refreshing
-    static void loadMatrixBuffers(unsigned char currentRow);
-    static void loadMatrixBuffers48(rowDataStruct * currentRowDataPtr, unsigned char currentRow);
-    static void loadMatrixBuffers24(rowDataStruct * currentRowDataPtr, unsigned char currentRow);
+    static void loadMatrixBuffers(void);
+    static void loadMatrixBuffers48(frameStruct * currentFrameDataPtr, int currentRow);
+    static void loadMatrixBuffers24(frameStruct * currentFrameDataPtr, int currentRow);
 
     // configuration
     static volatile bool brightnessChange;

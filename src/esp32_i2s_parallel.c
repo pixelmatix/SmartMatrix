@@ -28,9 +28,7 @@
 #include "soc/io_mux_reg.h"
 #include "rom/lldesc.h"
 #include "esp_heap_caps.h"
-#include "anim.h"
-#include "val2pwm.h"
-#include "i2s_parallel.h"
+#include "esp32_i2s_parallel.h"
 
 #define DEBUG_1_GPIO    GPIO_NUM_23
 
@@ -80,8 +78,18 @@ static void IRAM_ATTR i2s_isr(void* arg) {
 
     // point I2S DMA to next frame, start DMA
     i2sdevPtr->out_link.addr=(uint32_t)active_dma_chain;
+
+    // setting the restart bit seems more appropriate, but it can cause the transmission to stop
+    i2sdevPtr->out_link.stop=1;
     i2sdevPtr->out_link.start=1;
-    i2sdevPtr->conf.tx_start=1;
+
+    // seems to be unnecessary
+    //i2sdevPtr->conf.tx_start=1;
+
+#if 0
+    if(i2sdevPtr->state.tx_idle)
+        i2sdevPtr->conf.tx_start=1;
+#endif
 }
 
 #define DMA_MAX (4096-4)
@@ -204,7 +212,7 @@ void i2s_parallel_setup(i2s_dev_t *dev, const i2s_parallel_config_t *cfg) {
     dev->clkm_conf.clkm_div_b=63;
     //We ignore the possibility for fractional division here.
     //dev->clkm_conf.clkm_div_num=80000000L/cfg->clkspeed_hz;
-    dev->clkm_conf.clkm_div_num=4; // datasheet says this must be 2 or greater (but lower values seem to work)
+    dev->clkm_conf.clkm_div_num=16; // datasheet says this must be 2 or greater (but lower values seem to work)
     
     // this combination is 20MHz
     //dev->sample_rate_conf.tx_bck_div_num=1; // datasheet says this must be 2 or greater (but 1 seems to work)
@@ -287,23 +295,23 @@ void i2s_parallel_setup(i2s_dev_t *dev, const i2s_parallel_config_t *cfg) {
     dev->conf.tx_reset=1; dev->conf.tx_fifo_reset=1; dev->conf.rx_fifo_reset=1;
     dev->conf.tx_reset=0; dev->conf.tx_fifo_reset=0; dev->conf.rx_fifo_reset=0;
     
+    #if 1
 // TODO: why are these defined here and not somewhere else?
 #define ETS_I2S0_INUM 13
 #define ETS_I2S1_INUM 13
 
     // setup I2S Interrupt
     if (dev==&I2S0) {
+        // I2S0 likely won't work with Arduino, untested
         intr_matrix_set(0, ETS_I2S0_INTR_SOURCE, ETS_I2S0_INUM);
         xt_set_interrupt_handler(ETS_I2S0_INUM, &i2s_isr, NULL);
         SET_PERI_REG_BITS(I2S_INT_ENA_REG(0), I2S_OUT_EOF_INT_ENA_V, 1, I2S_OUT_EOF_INT_ENA_S);
         ESP_INTR_ENABLE(ETS_I2S0_INUM);
     } else {
-        intr_matrix_set(0, ETS_I2S1_INTR_SOURCE, ETS_I2S1_INUM);
-        xt_set_interrupt_handler(ETS_I2S1_INUM, &i2s_isr, NULL);
-        SET_PERI_REG_BITS(I2S_INT_ENA_REG(1), I2S_OUT_EOF_INT_ENA_V, 1, I2S_OUT_EOF_INT_ENA_S);
-        ESP_INTR_ENABLE(ETS_I2S1_INUM);
+        SET_PERI_REG_BITS(I2S_INT_ENA_REG(1), I2S_OUT_DONE_INT_ENA_V, 1, I2S_OUT_DONE_INT_ENA_S);
+        esp_intr_alloc(ETS_I2S1_INTR_SOURCE, (int)ESP_INTR_FLAG_IRAM, i2s_isr, NULL, NULL);
     }
-
+#endif
     //Start dma on front buffer
     dev->lc_conf.val=I2S_OUT_DATA_BURST_EN | I2S_OUTDSCR_BURST_EN | I2S_OUT_DATA_BURST_EN;
     dev->out_link.addr=((uint32_t)(&st->dmadesc_a[0]));

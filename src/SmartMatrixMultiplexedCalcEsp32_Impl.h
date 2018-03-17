@@ -44,7 +44,7 @@ template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char pan
 bool SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refreshRateChanged = true;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::SmartMatrix3(uint8_t bufferrows, rowDataStruct * rowDataBuffer) {
+SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::SmartMatrix3(frameStruct * frameBuffer) {
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
@@ -87,76 +87,37 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalculations(bool initial) {
-    static unsigned char currentRow = 0;
-    unsigned char numLoopsWithoutExit = 0;
-
     // only run the loop if there is free space, and fill the entire buffer before returning
-    while (SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::isRowBufferFree()) {
-        // check to see if the refresh rate is too high, and the application doesn't have time to run
-        if(++numLoopsWithoutExit > MAX_MATRIXCALCULATIONS_LOOPS_WITHOUT_EXIT) {
+    if (!SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::isFrameBufferFree())
+        return;
 
-            // minimum set to avoid overflowing timer at low refresh rates
-            if(!initial && calc_refreshRate > MIN_REFRESH_RATE) {
-                calc_refreshRate--;
-                SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRefreshRate(calc_refreshRate);
-                refreshRateLowered = true;
-                refreshRateChanged = true;
-            }
-
-            initial = false;
-            numLoopsWithoutExit = 0;
+    // do once-per-frame updates
+    if (rotationChange) {
+        SM_Layer * templayer = SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
+        while(templayer) {
+            templayer->setRotation(rotation);
+            templayer = templayer->nextLayer;
         }
-
-        // do once-per-frame updates
-        if (!currentRow) {
-            if (rotationChange) {
-                SM_Layer * templayer = SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
-                while(templayer) {
-                    templayer->setRotation(rotation);
-                    templayer = templayer->nextLayer;
-                }
-                rotationChange = false;
-            }
-
-            SM_Layer * templayer = SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
-            while(templayer) {
-                if(refreshRateChanged) {
-                    templayer->setRefreshRate(calc_refreshRate);
-                }
-                templayer->frameRefreshCallback();
-                templayer = templayer->nextLayer;
-            }
-            refreshRateChanged = false;
-            if (brightnessChange) {
-                SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setBrightness(brightness);
-                brightnessChange = false;
-            }
-        }
-
-        // do once-per-line updates
-        // none right now
-
-        // enqueue row
-        SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers(currentRow);
-        SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::writeRowBuffer(currentRow);
-
-        if (++currentRow >= ROWS_PER_FRAME)
-            currentRow = 0;
-
-        if(dmaBufferUnderrun) {
-            // if refreshrate is too high, lower - minimum set to avoid overflowing timer at low refresh rates
-            if(calc_refreshRate > MIN_REFRESH_RATE) {
-                calc_refreshRate--;
-                SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRefreshRate(calc_refreshRate);
-                refreshRateLowered = true;
-                refreshRateChanged = true;
-            }
-
-            SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::recoverFromDmaUnderrun();
-            dmaBufferUnderrunSinceLastCheck = true;
-            dmaBufferUnderrun = false;
-        }
+        rotationChange = false;
     }
+
+    SM_Layer * templayer = SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
+    while(templayer) {
+        if(refreshRateChanged) {
+            templayer->setRefreshRate(calc_refreshRate);
+        }
+        templayer->frameRefreshCallback();
+        templayer = templayer->nextLayer;
+    }
+    refreshRateChanged = false;
+    if (brightnessChange) {
+        SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setBrightness(brightness);
+        brightnessChange = false;
+    }
+
+    SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers();
+
+    SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::writeFrameBuffer(0);
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
@@ -241,7 +202,8 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers48(rowDataStruct * currentRowDataPtr, unsigned char currentRow) {
+INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers48(frameStruct * currentFrameDataPtr, int currentRow) {
+#if 0
     int i;
 
     // static to avoid putting large buffer on the stack
@@ -303,11 +265,11 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         };
     } o0;
     
-    for(int j=0; j<LATCHES_PER_ROW; j++) {
+    for(int j=0; j<COLOR_DEPTH_BITS; j++) {
         int maskoffset = 0;
-        if(LATCHES_PER_ROW == 12) // 36-bit color
+        if(COLOR_DEPTH_BITS == 12) // 36-bit color
             maskoffset = 4;
-        else if (LATCHES_PER_ROW == 16) // 48-bit color
+        else if (COLOR_DEPTH_BITS == 16) // 48-bit color
             maskoffset = 0;
 
         uint16_t mask = (1 << (j + maskoffset));
@@ -355,14 +317,16 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         o0.p0b1 = (currentRow & 0x04) ? 1 : 0;
         o0.p0r2 = (currentRow & 0x08) ? 1 : 0;
 
-        for(int j=0; j<LATCHES_PER_ROW; j++) {
+        for(int j=0; j<COLOR_DEPTH_BITS; j++) {
             currentRowDataPtr->rowbits[j].rowAddress = o0.word;
         }
+#endif
 #endif
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers24(rowDataStruct * currentRowDataPtr, unsigned char currentRow) {
+INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers24(frameStruct * frameBuffer, int currentRow) {
+#if 1
     int i;
 
     // static to avoid putting large buffer on the stack
@@ -424,75 +388,105 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         };
     } o0;
     
-    for(int j=0; j<LATCHES_PER_ROW; j++) {
+    for(int j=0; j<COLOR_DEPTH_BITS; j++) {
         int maskoffset = 0;
-        if(LATCHES_PER_ROW == 12)   // 36-bit color
+        if(COLOR_DEPTH_BITS == 12)   // 36-bit color
             maskoffset = 4;
-        else if (LATCHES_PER_ROW == 16) // 48-bit color
+        else if (COLOR_DEPTH_BITS == 16) // 48-bit color
             maskoffset = 0;
-        else if (LATCHES_PER_ROW == 8)  // 24-bit color
+        else if (COLOR_DEPTH_BITS == 8)  // 24-bit color
             maskoffset = 0;
 
         uint16_t mask = (1 << (j + maskoffset));
         
+        SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::frameBitStruct *p=&(frameBuffer->framebits[j]); //bitplane location to write to
+        
         int i=0;
-
         while(i < PIXELS_PER_LATCH) {
+
             // parse through matrixWith block of pixels, from left to right, or right to left, depending on C_SHAPE_STACKING options
             for(int k=0; k < matrixWidth; k++) {
-                o0.word = 0x00;
+                int v=0;
 
-                //fill temp0red, etc, or work directly from buffer?
+                // TODO: use actual brightness setting
+                brightness = 16;
+
+                //Do not show image while the line bits are changing
+                if (k>=brightness) v|=BIT_OE;
+
                 if (tempRow0[i+k].red & mask)
-                    o0.p0r1 = 1;
+                    v|=BIT_R1;
                 if (tempRow0[i+k].green & mask)
-                    o0.p0g1 = 1;
+                    v|=BIT_G1;
                 if (tempRow0[i+k].blue & mask)
-                    o0.p0b1 = 1;
+                    v|=BIT_B1;
                 if (tempRow1[i+k].red & mask)
-                    o0.p0r2 = 1;
+                    v|=BIT_R2;
                 if (tempRow1[i+k].green & mask)
-                    o0.p0g2 = 1;
+                    v|=BIT_G2;
                 if (tempRow1[i+k].blue & mask)
-                    o0.p0b2 = 1;
+                    v|=BIT_B2;
 
                 if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && !((i/matrixWidth)%2)) {
-                    currentRowDataPtr->rowbits[j].data[(((i+matrixWidth-1)-k)*DMA_UPDATES_PER_CLOCK)] = o0.word;
-                    o0.p0clk = 1;
-                    currentRowDataPtr->rowbits[j].data[(((i+matrixWidth-1)-k)*DMA_UPDATES_PER_CLOCK)+1] = o0.word;
+                    //currentRowDataPtr->rowbits[j].data[(((i+matrixWidth-1)-k)*DMA_UPDATES_PER_CLOCK)] = o0.word;
+                    //TODO: support C-shape stacking
                 } else {
-                    currentRowDataPtr->rowbits[j].data[((i+k)*DMA_UPDATES_PER_CLOCK)] = o0.word;
-                    o0.p0clk = 1;
-                    currentRowDataPtr->rowbits[j].data[((i+k)*DMA_UPDATES_PER_CLOCK)+1] = o0.word;
+                    //Save the calculated value to the bitplane memory in reverse order to account for I2S Tx FIFO mode1 ordering
+                    if(k%2){
+                        p->rowbits[currentRow].data[k-1] = v;
+                    } else {
+                        p->rowbits[currentRow].data[k+1] = v;
+                    }
                 }
             }
+
+            // TODO: insert latch data all at once at the end
+            for(int k=matrixWidth; k < matrixWidth + CLKS_DURING_LATCH; k++) {
+                int v = 0;
+                // after data is shifted in, pulse latch for one clock cycle
+                if(k == matrixWidth) {
+                    v|=BIT_LAT;
+                }
+
+                // set ADDX values to high while latch is high, keep them high while latch drops to clock it in to ADDX latch
+                if(k >= matrixWidth) {               
+                    if (currentRow&1) v|=BIT_R1;
+                    if (currentRow&2) v|=BIT_G1;
+                    if (currentRow&4) v|=BIT_B1;
+                    if (currentRow&8) v|=BIT_R2;
+                    // reserve G2 for currentRow&16
+                    // reserve B2 for OE SWITCH
+                }
+
+                //Save the calculated value to the bitplane memory in reverse order to account for I2S Tx FIFO mode1 ordering
+                if(k%2){
+                    p->rowbits[currentRow].data[k-1] = v;
+                } else {
+                    p->rowbits[currentRow].data[k+1] = v;
+                }
+            }
+
             i += matrixWidth;
         }
-        currentRowDataPtr->rowbits[j].rowAddress = currentRow;
     }
-
-#ifdef ADDX_UPDATE_ON_DATA_PINS
-        o0.word = 0x00000000;
-        o0.p0r1 = (currentRow & 0x01) ? 1 : 0;
-        o0.p0g1 = (currentRow & 0x02) ? 1 : 0;
-        o0.p0b1 = (currentRow & 0x04) ? 1 : 0;
-        o0.p0r2 = (currentRow & 0x08) ? 1 : 0;
-
-        for(int j=0; j<LATCHES_PER_ROW; j++) {
-            currentRowDataPtr->rowbits[j].rowAddress = o0.word;
-        }
 #endif
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers(unsigned char currentRow) {
-    rowDataStruct * currentRowDataPtr = SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getNextRowBufferPtr();
+INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers() {
+#if 1
+    unsigned char currentRow;
 
-    // TODO: support rgb36/48 with same function, copy function to rgb24
-    if(LATCHES_PER_ROW == 16)
-        loadMatrixBuffers48(currentRowDataPtr, currentRow);
-    else if(LATCHES_PER_ROW == 12)
-        loadMatrixBuffers48(currentRowDataPtr, currentRow);
-    else if(LATCHES_PER_ROW == 8)
-        loadMatrixBuffers24(currentRowDataPtr, currentRow);
+    frameStruct * currentFrameDataPtr = SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getNextFrameBufferPtr();
+
+    for(currentRow = 0; currentRow < ROWS_PER_FRAME; currentRow++) {
+        // TODO: support rgb36/48 with same function, copy function to rgb24
+        if(COLOR_DEPTH_BITS == 16)
+            loadMatrixBuffers48(currentFrameDataPtr, currentRow);
+        else if(COLOR_DEPTH_BITS == 12)
+            loadMatrixBuffers48(currentFrameDataPtr, currentRow);
+        else if(COLOR_DEPTH_BITS == 8)
+            loadMatrixBuffers24(currentFrameDataPtr, currentRow);
+    }
+#endif
 }

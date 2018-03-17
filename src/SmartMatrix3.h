@@ -61,6 +61,7 @@
     #include "SmartMatrixCoprocessorCalc.h"
 #endif
 
+#if defined(__arm__) && defined(CORE_TEENSY)
 #if 1
     #define SMARTMATRIX_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
         static DMAMEM SmartMatrix3RefreshMultiplexed<pwm_depth, width, height, panel_type, option_flags>::rowDataStruct rowsDataBuffer[buffer_rows]; \
@@ -71,6 +72,14 @@
         static DMAMEM SmartMatrix3CoprocessorSend<pwm_depth, width, height, panel_type, option_flags>::rowDataStruct rowsDataBuffer[buffer_rows]; \
         SmartMatrix3CoprocessorSend<pwm_depth, width, height, panel_type, option_flags> matrix_name##Refresh(buffer_rows, rowsDataBuffer); \
         SmartMatrixCoprocessorCalc<pwm_depth, width, height, panel_type, option_flags> matrix_name(buffer_rows, rowsDataBuffer)
+#endif
+#endif
+
+#if defined(ESP32)
+    #define SMARTMATRIX_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
+        SmartMatrix3RefreshMultiplexed<pwm_depth, width, height, panel_type, option_flags>::frameStruct *esp32FrameDataBuffer = (SmartMatrix3RefreshMultiplexed<pwm_depth, width, height, panel_type, option_flags>::frameStruct *)heap_caps_malloc(sizeof(SmartMatrix3RefreshMultiplexed<pwm_depth, width, height, panel_type, option_flags>::frameStruct) * ESP32_NUM_FRAME_BUFFERS, MALLOC_CAP_DMA); \
+        SmartMatrix3RefreshMultiplexed<pwm_depth, width, height, panel_type, option_flags> matrix_name##Refresh(esp32FrameDataBuffer); \
+        SmartMatrix3<pwm_depth, width, height, panel_type, option_flags> matrix_name(esp32FrameDataBuffer)
 #endif
 
 #define SMARTMATRIX_APA_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \

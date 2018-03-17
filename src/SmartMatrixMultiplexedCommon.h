@@ -43,6 +43,7 @@
                                                      (x == SMARTMATRIX_HUB75_16ROW_MOD8SCAN ? 8 : 0))
 
 #define LATCHES_PER_ROW (refreshDepth/COLOR_CHANNELS_PER_PIXEL)
+#define COLOR_DEPTH_BITS (refreshDepth/COLOR_CHANNELS_PER_PIXEL)
 #define ROWS_PER_FRAME (CONVERT_PANELTYPE_TO_MATRIXROWSPERFRAME(panelType))
 
 #define SMARTMATRIX_OPTIONS_NONE                    0

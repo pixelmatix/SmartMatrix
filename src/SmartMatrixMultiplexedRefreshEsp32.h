@@ -24,52 +24,38 @@
 #ifndef SmartMatrixMultiplexedRefresh_h
 #define SmartMatrixMultiplexedRefresh_h
 
+#include "esp32_i2s_parallel.h"
+
+#define CLKS_DURING_LATCH   2
+#define ESP32_NUM_FRAME_BUFFERS   2
+
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 class SmartMatrix3RefreshMultiplexed {
 public:
-    struct timerpair {
-        uint16_t timer_oe;
-        uint16_t timer_period;
-    };
-
-#ifndef ADDX_UPDATE_ON_DATA_PINS
-    struct addresspair {
-        uint16_t bits_to_clear;
-        uint16_t bits_to_set;
-    };
-
-    // gpiopair is 2x uint32_t to match size and spacing of values it is updating: GPIOx_PSOR and GPIOx_PCOR are 32-bit and adjacent to each other
-    struct gpiopair {
-        uint32_t  gpio_psor;
-        uint32_t  gpio_pcor;
-    };
-#endif
-
     struct rowBitStruct {
-        uint8_t data[((((matrixWidth * matrixHeight) / CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT(panelType)) * DMA_UPDATES_PER_CLOCK))];
-        uint8_t rowAddress; // must be directly after data - DMA transfers data[] + rowAddress continuous
-        timerpair timerValues;
-#ifndef ADDX_UPDATE_ON_DATA_PINS
-        addresspair addressValues;
-#endif
+        uint16_t data[((matrixWidth * matrixHeight) / CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT(panelType)) + CLKS_DURING_LATCH];
     };
 
-    struct rowDataStruct {
-        rowBitStruct rowbits[refreshDepth/COLOR_CHANNELS_PER_PIXEL];
+    struct frameBitStruct {
+        rowBitStruct rowbits[ROWS_PER_FRAME];
+    };
+
+    struct frameStruct {
+        frameBitStruct framebits[COLOR_DEPTH_BITS];
     };
 
     typedef void (*matrix_underrun_callback)(void);
     typedef void (*matrix_calc_callback)(bool initial);
 
     // init
-    SmartMatrix3RefreshMultiplexed(uint8_t bufferrows, rowDataStruct * rowDataBuffer);
+    SmartMatrix3RefreshMultiplexed(frameStruct * frameBuffer);
     static void begin(void);
 
     // refresh API
-    static rowDataStruct * getNextRowBufferPtr(void);
-    static void writeRowBuffer(uint8_t currentRow);
+    static frameStruct * getNextFrameBufferPtr(void);
+    static void writeFrameBuffer(uint8_t currentFrame);
     static void recoverFromDmaUnderrun(void);
-    static bool isRowBufferFree(void);
+    static bool isFrameBufferFree(void);
     static void setRefreshRate(uint8_t newRefreshRate);
     static void setBrightness(uint8_t newBrightness);
     static void setMatrixCalculationsCallback(matrix_calc_callback f);
@@ -78,39 +64,22 @@ public:
 private:
     // enable ISR access to private member variables
     template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
-    friend void rowCalculationISR(void);
+    friend void frameCalculationISR(void);
 
-    #if defined(KINETISL)
-        template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
-        friend void rowBitShiftCompleteISR(void);
-    #elif defined(KINETISK)
-        template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
-        friend void rowShiftCompleteISR(void);
-    #elif defined(ESP32)
-        template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-        friend void frameShiftCompleteISR(void);    
-    #endif
-
-    // configuration helper functions
-    static void calculateTimerLUT(void);
+    template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
+    friend void frameShiftCompleteISR(void);    
 
     static int dimmingFactor;
     static const int dimmingMaximum = 255;
-    static uint16_t rowBitStructBytesToShift;
     static uint8_t refreshRate;
-    static uint8_t dmaBufferNumRows;
-    static rowDataStruct * matrixUpdateRows;
+    static frameStruct * matrixUpdateFrames;
 
-    static timerpair timerLUT[LATCHES_PER_ROW];
-    static timerpair timerPairIdle;
-#ifndef ADDX_UPDATE_ON_DATA_PINS
-    static addresspair addressLUT[ROWS_PER_FRAME];
-    static gpiopair gpiosync;
-#endif
     static matrix_calc_callback matrixCalcCallback;
     static matrix_underrun_callback matrixUnderrunCallback;
 
     static CircularBuffer dmaBuffer;
+
+    static i2s_parallel_buffer_desc_t bufdesc[ESP32_NUM_FRAME_BUFFERS][1<<(COLOR_DEPTH_BITS)];
 };
 
 #endif
