@@ -1,6 +1,8 @@
 #ifndef I2S_PARALLEL_H
 #define I2S_PARALLEL_H
 
+#if defined(ESP32)
+
 #include <stdint.h>
 
 #ifdef __cplusplus
@@ -38,6 +40,8 @@ void setShiftCompleteCallback(callback f);
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif
 
 #endif
