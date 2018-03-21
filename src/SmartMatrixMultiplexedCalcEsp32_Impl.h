@@ -410,7 +410,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 // TODO: use actual brightness setting
                 brightness = 16;
 
-                //Do not show image while the line bits are changing
+                // stop showing image after a number of CLK cycles that scales with brightness
                 if (k>=brightness) v|=BIT_OE;
 
                 if (tempRow0[i+k].red & mask)
@@ -446,6 +446,9 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 if(k == matrixWidth) {
                     v|=BIT_LAT;
                 }
+
+                //Do not show image while the line bits are changing
+                v|=BIT_OE;
 
                 // set ADDX values to high while latch is high, keep them high while latch drops to clock it in to ADDX latch
                 if(k >= matrixWidth) {               
