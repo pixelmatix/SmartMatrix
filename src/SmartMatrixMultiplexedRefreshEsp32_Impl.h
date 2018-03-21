@@ -132,11 +132,7 @@ bool SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::frameStruct * SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getNextFrameBufferPtr(void) {
-#if 0
     return &(matrixUpdateFrames[cbGetNextWrite(&dmaBuffer)]);
-#else
-    return &(matrixUpdateFrames[0]);
-#endif
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
@@ -243,5 +239,15 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void frameShiftCompleteISR(void) {
-    // TODO: figure out how I2S can call this as an ISR
+#ifdef DEBUG_PINS_ENABLED
+    gpio_set_level(DEBUG_1_GPIO, 1);
+#endif
+    
+    if(!cbIsEmpty(&SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer))
+        cbRead(&SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer);
+    SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalcCallback();
+    
+#ifdef DEBUG_PINS_ENABLED
+    gpio_set_level(DEBUG_1_GPIO, 0);
+#endif
 }
