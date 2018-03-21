@@ -112,7 +112,7 @@
 #endif
 
 
-#define DEBUG_PINS_ENABLED
+//#define DEBUG_PINS_ENABLED
 #define DEBUG_1_GPIO    GPIO_NUM_23
 
 #endif
