@@ -51,7 +51,7 @@ public:
     void countFPS(void);
 
     // functions called by ISR
-    static void matrixCalculations(bool initial);
+    static void matrixCalculations();
     static void dmaBufferUnderrunCallback(void);
 
 private:

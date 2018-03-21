@@ -178,19 +178,11 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrix_underrun_callback SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUnderrunCallback;
-
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrix_calc_callback SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalcCallback;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setMatrixCalculationsCallback(matrix_calc_callback f) {
     matrixCalcCallback = f;
-}
-
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setMatrixUnderrunCallback(matrix_underrun_callback f) {
-    matrixUnderrunCallback = f;
 }
 
 // large factor = more dim, default is full brightness
@@ -217,7 +209,7 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
     setupTimer();
 
     // completely fill buffer with data before enabling DMA
-    matrixCalcCallback(true);
+    matrixCalcCallback();
 
     // *** TODO: rework this function so a much smaller bufdesc array can be used and we don't run out of memory/address space: lower bits only need one entry
 

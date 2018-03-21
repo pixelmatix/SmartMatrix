@@ -44,8 +44,7 @@ public:
         frameBitStruct framebits[COLOR_DEPTH_BITS];
     };
 
-    typedef void (*matrix_underrun_callback)(void);
-    typedef void (*matrix_calc_callback)(bool initial);
+    typedef void (*matrix_calc_callback)(void);
 
     // init
     SmartMatrix3RefreshMultiplexed(frameStruct * frameBuffer);
@@ -59,7 +58,6 @@ public:
     static void setRefreshRate(uint8_t newRefreshRate);
     static void setBrightness(uint8_t newBrightness);
     static void setMatrixCalculationsCallback(matrix_calc_callback f);
-    static void setMatrixUnderrunCallback(matrix_underrun_callback f);
 
 private:
     // enable ISR access to private member variables
@@ -75,7 +73,6 @@ private:
     static frameStruct * matrixUpdateFrames;
 
     static matrix_calc_callback matrixCalcCallback;
-    static matrix_underrun_callback matrixUnderrunCallback;
 
     static CircularBuffer dmaBuffer;
 
