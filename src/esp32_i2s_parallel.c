@@ -172,13 +172,9 @@ void i2s_parallel_setup(i2s_dev_t *dev, const i2s_parallel_config_t *cfg) {
     dev->clkm_conf.clkm_div_b=63;
     //We ignore the possibility for fractional division here.
     //dev->clkm_conf.clkm_div_num=80000000L/cfg->clkspeed_hz;
-    dev->clkm_conf.clkm_div_num=16; // datasheet says this must be 2 or greater (but lower values seem to work)
+    dev->clkm_conf.clkm_div_num=3; // datasheet says this must be 2 or greater (but lower values seem to work)
     
-    // this combination is 20MHz
-    //dev->sample_rate_conf.tx_bck_div_num=1; // datasheet says this must be 2 or greater (but 1 seems to work)
-    //dev->clkm_conf.clkm_div_num=2; // datasheet says this must be 2 or greater (but lower values seem to work)
-
-    // this combination results in 25MHz, why?
+    // this combination results in 25MHz
     //dev->sample_rate_conf.tx_bck_div_num=1; // datasheet says this must be 2 or greater (but 1 seems to work)
     //dev->clkm_conf.clkm_div_num=2; // datasheet says this must be 2 or greater (but lower values seem to work)
 
@@ -198,6 +194,8 @@ void i2s_parallel_setup(i2s_dev_t *dev, const i2s_parallel_config_t *cfg) {
     //dev->sample_rate_conf.tx_bck_div_num=1; // datasheet says this must be 2 or greater (but 1 seems to work)
     //dev->clkm_conf.clkm_div_num=6; // datasheet says this must be 2 or greater (but lower values seem to work)
 
+    // 2,1 = 10MHz
+
     // 13.x MHz
     //dev->sample_rate_conf.tx_bck_div_num=2; // datasheet says this must be 2 or greater (but 1 seems to work)
     //dev->clkm_conf.clkm_div_num=2; // datasheet says this must be 2 or greater (but lower values seem to work)
@@ -209,8 +207,6 @@ void i2s_parallel_setup(i2s_dev_t *dev, const i2s_parallel_config_t *cfg) {
     // 8MHz
     //dev->sample_rate_conf.tx_bck_div_num=2; // datasheet says this must be 2 or greater (but 1 seems to work)
     //dev->clkm_conf.clkm_div_num=4; // datasheet says this must be 2 or greater (but lower values seem to work)
-
-
 
     dev->fifo_conf.val=0;
     dev->fifo_conf.rx_fifo_mod_force_en=1;
