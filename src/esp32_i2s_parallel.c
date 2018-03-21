@@ -143,14 +143,6 @@ void i2s_parallel_setup(i2s_dev_t *dev, const i2s_parallel_config_t *cfg) {
     //ToDo: Clk/WS may need inversion?
     gpio_setup_out(cfg->gpio_clk, sig_clk);
     
-    // setup debug output
-#ifdef DEBUG_PINS_ENABLED
-    gpio_pad_select_gpio(DEBUG_1_GPIO);
-    gpio_set_direction(DEBUG_1_GPIO, GPIO_MODE_OUTPUT);
-    gpio_set_level(DEBUG_1_GPIO, 1);
-    gpio_set_level(DEBUG_1_GPIO, 0);
-#endif
-
     //Power on dev
     if (dev==&I2S0) {
         periph_module_enable(PERIPH_I2S0_MODULE);

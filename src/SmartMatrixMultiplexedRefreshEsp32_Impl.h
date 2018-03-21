@@ -38,28 +38,9 @@
 #include "i2s_parallel.h"
 #endif
 
-//Upper half RGB
-#define BIT_R1 (1<<0)   //connected to GPIO2 here
-#define BIT_G1 (1<<1)   //connected to GPIO15 here
-#define BIT_B1 (1<<2)   //connected to GPIO4 here
-//Lower half RGB
-#define BIT_R2 (1<<3)   //connected to GPIO16 here
-#define BIT_G2 (1<<4)   //connected to GPIO27 here
-#define BIT_B2 (1<<5)   //connected to GPIO17 here
-
-#define BIT_A (1<<8)    //connected to GPIO5 here
-#define BIT_B (1<<9)    //connected to GPIO18 here
-#define BIT_C (1<<10)   //connected to GPIO19 here
-#define BIT_D (1<<11)   //connected to GPIO21 here
-#define BIT_LAT (1<<12) //connected to GPIO26 here
-#define BIT_OE (1<<13)  //connected to GPIO25 here
-
 #include "driver/mcpwm.h"
 #include "soc/mcpwm_reg.h"
 #include "soc/mcpwm_struct.h"
-
-#define GPIO_PWM0A_OUT GPIO_NUM_32   //Set GPIO 19 as PWM0A
-#define GPIO_SYNC0_IN  GPIO_NUM_34   //Set GPIO 02 as SYNC0
 
 static void setupTimer(void) {
     // invert OE-PWM output
@@ -199,6 +180,14 @@ template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char pan
 void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin(void) {
     cbInit(&dmaBuffer, ESP32_NUM_FRAME_BUFFERS);
 
+    // setup debug output
+#ifdef DEBUG_PINS_ENABLED
+    gpio_pad_select_gpio(DEBUG_1_GPIO);
+    gpio_set_direction(DEBUG_1_GPIO, GPIO_MODE_OUTPUT);
+    gpio_set_level(DEBUG_1_GPIO, 1);
+    gpio_set_level(DEBUG_1_GPIO, 0);
+#endif
+
     setupTimer();
 
     // completely fill buffer with data before enabling DMA
@@ -234,8 +223,8 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
     bufdesc[1][((1<<COLOR_DEPTH_BITS)-1)].memory=NULL;
 
     i2s_parallel_config_t cfg={
-        .gpio_bus={2, 15, 4, 16, 27, 17, -1, -1, 5, 18, 19, 21, 26, 25, -1, -1},
-        .gpio_clk=22,
+        .gpio_bus={R1_PIN, G1_PIN, B1_PIN, R2_PIN, G2_PIN, B2_PIN, LAT_PIN, OE_PIN, A_PIN, B_PIN, C_PIN, D_PIN, -1, -1, -1, -1},
+        .gpio_clk=CLK_PIN,
         .clkspeed_hz=20*1000*1000,
         .bits=I2S_PARALLEL_BITS_16,
         .bufa=bufdesc[0],

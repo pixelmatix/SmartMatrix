@@ -28,10 +28,12 @@
 
 #include "Arduino.h"
 
-#ifdef V4HEADER
-    #include "MatrixHardware_KitV4.h"
-#else
-    #include "MatrixHardware_KitV1.h"
+#if defined(__arm__) && defined(CORE_TEENSY)
+    #if defined(V4HEADER)
+        #include "MatrixHardware_KitV4.h"
+    #else
+        #include "MatrixHardware_KitV1.h"
+    #endif
 #endif
 
 #if defined(ESP32)
@@ -123,8 +125,7 @@
 #if defined(__arm__) && defined(CORE_TEENSY)
     #include "SmartMatrixCoprocessorSend_Impl.h"
     #include "SmartMatrixCoprocessorCalc_Impl.h"
+    #include "SmartMatrixAPA102Calc_Impl.h"
 #endif
-
-#include "SmartMatrixAPA102Calc_Impl.h"
 
 #endif

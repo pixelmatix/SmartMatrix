@@ -24,6 +24,7 @@
 #ifndef SmartMatrixMultiplexedCommon_h
 #define SmartMatrixMultiplexedCommon_h
 
+
 #define MATRIX_PANEL_HEIGHT (CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT(panelType))
 #define MATRIX_STACK_HEIGHT (matrixHeight / MATRIX_PANEL_HEIGHT)
 
@@ -42,6 +43,7 @@
 #define CONVERT_PANELTYPE_TO_MATRIXROWSPERFRAME(x)   ((x == SMARTMATRIX_HUB75_32ROW_MOD16SCAN ? 16 : 0) | \
                                                      (x == SMARTMATRIX_HUB75_16ROW_MOD8SCAN ? 8 : 0))
 
+#define COLOR_CHANNELS_PER_PIXEL        3
 #define LATCHES_PER_ROW (refreshDepth/COLOR_CHANNELS_PER_PIXEL)
 #define COLOR_DEPTH_BITS (refreshDepth/COLOR_CHANNELS_PER_PIXEL)
 #define ROWS_PER_FRAME (CONVERT_PANELTYPE_TO_MATRIXROWSPERFRAME(panelType))
