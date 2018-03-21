@@ -34,6 +34,10 @@
     #include "MatrixHardware_KitV1.h"
 #endif
 
+#if defined(ESP32)
+    #include "MatrixHardware_ESP32_V0.h"
+#endif
+
 #include "MatrixCommon.h"
 #include "CircularBuffer.h"
 
