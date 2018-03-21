@@ -31,6 +31,10 @@ typedef struct {
 
 void i2s_parallel_setup(i2s_dev_t *dev, const i2s_parallel_config_t *cfg);
 void i2s_parallel_flip_to_buffer(i2s_dev_t *dev, int bufid);
+bool i2s_parallel_is_previous_buffer_free();
+
+typedef void (*callback)(void);
+void setShiftCompleteCallback(callback f);
 
 #ifdef __cplusplus
 }

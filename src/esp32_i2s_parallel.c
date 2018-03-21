@@ -30,8 +30,6 @@
 #include "esp_heap_caps.h"
 #include "esp32_i2s_parallel.h"
 
-#define DEBUG_1_GPIO    GPIO_NUM_23
-
 typedef struct {
     volatile lldesc_t *dmadesc_a, *dmadesc_b;
     int desccount_a, desccount_b;
@@ -39,57 +37,27 @@ typedef struct {
 
 static i2s_parallel_state_t *i2s_state[2]={NULL, NULL};
 
-// hacky way to set active I2S device in ISR, use a global
-i2s_dev_t *i2sdevPtr = 0;
-int nextFrontBufferNumber = 0;
+callback shiftCompleteCallback;
+
+void setShiftCompleteCallback(callback f) {
+    shiftCompleteCallback = f;
+}
+
+volatile bool previousBufferFree = true;
 
 static int i2snum(i2s_dev_t *dev) {
     return (dev==&I2S0)?0:1;
 }
 
+// Todo: handle IS20? (this is hard coded for I2S1 only)
 static void IRAM_ATTR i2s_isr(void* arg) {
-    // Todo: handle IS20 (this is hard coded for I2S1 only)
     REG_WRITE(I2S_INT_CLR_REG(1), (REG_READ(I2S_INT_RAW_REG(1)) & 0xffffffc0) | 0x3f);
 
-#ifdef DEBUG_1_GPIO
-    static bool debugoutstate = false;
+    // at this point, the previously active buffer is free, go ahead and write to it
+    previousBufferFree = true;
 
-    if(!debugoutstate) {
-        gpio_set_level(DEBUG_1_GPIO, 1);
-        gpio_set_level(DEBUG_1_GPIO, 0);
-        gpio_set_level(DEBUG_1_GPIO, 1);
-        debugoutstate = true;
-    } else {
-        gpio_set_level(DEBUG_1_GPIO, 0);
-        gpio_set_level(DEBUG_1_GPIO, 1);
-        gpio_set_level(DEBUG_1_GPIO, 0);
-        debugoutstate = false;
-    }
-#endif
-
-    int no=i2snum(i2sdevPtr);
-
-    lldesc_t *active_dma_chain;
-    if (nextFrontBufferNumber==0) {
-        active_dma_chain=(lldesc_t*)&i2s_state[no]->dmadesc_a[0];
-    } else {
-        active_dma_chain=(lldesc_t*)&i2s_state[no]->dmadesc_b[0];
-    }
-
-    // point I2S DMA to next frame, start DMA
-    i2sdevPtr->out_link.addr=(uint32_t)active_dma_chain;
-
-    // setting the restart bit seems more appropriate, but it can cause the transmission to stop
-    i2sdevPtr->out_link.stop=1;
-    i2sdevPtr->out_link.start=1;
-
-    // seems to be unnecessary
-    //i2sdevPtr->conf.tx_start=1;
-
-#if 0
-    if(i2sdevPtr->state.tx_idle)
-        i2sdevPtr->conf.tx_start=1;
-#endif
+    if(shiftCompleteCallback)
+        shiftCompleteCallback();
 }
 
 #define DMA_MAX (4096-4)
@@ -127,6 +95,8 @@ static void fill_dma_desc(volatile lldesc_t *dmadesc, i2s_parallel_buffer_desc_t
 
     // set EOF bit in last dma descriptor
     dmadesc[n-1].eof=1;
+    // link end of list back to beginning so current frame will be refreshed continously
+    dmadesc[n-1].qe.stqe_next=(lldesc_t*)&dmadesc[0];
 
     printf("fill_dma_desc: filled %d descriptors\n", n);
 }
@@ -166,8 +136,6 @@ void i2s_parallel_setup(i2s_dev_t *dev, const i2s_parallel_config_t *cfg) {
         sig_clk=I2S1O_WS_OUT_IDX;
     }
     
-    i2sdevPtr = dev;
-
     //Route the signals
     for (int x=0; x<cfg->bits; x++) {
         gpio_setup_out(cfg->gpio_bus[x], sig_data_base+x);
@@ -176,7 +144,7 @@ void i2s_parallel_setup(i2s_dev_t *dev, const i2s_parallel_config_t *cfg) {
     gpio_setup_out(cfg->gpio_clk, sig_clk);
     
     // setup debug output
-#ifdef DEBUG_1_GPIO
+#ifdef DEBUG_PINS_ENABLED
     gpio_pad_select_gpio(DEBUG_1_GPIO);
     gpio_set_direction(DEBUG_1_GPIO, GPIO_MODE_OUTPUT);
     gpio_set_level(DEBUG_1_GPIO, 1);
@@ -295,23 +263,11 @@ void i2s_parallel_setup(i2s_dev_t *dev, const i2s_parallel_config_t *cfg) {
     dev->conf.tx_reset=1; dev->conf.tx_fifo_reset=1; dev->conf.rx_fifo_reset=1;
     dev->conf.tx_reset=0; dev->conf.tx_fifo_reset=0; dev->conf.rx_fifo_reset=0;
     
-    #if 1
-// TODO: why are these defined here and not somewhere else?
-#define ETS_I2S0_INUM 13
-#define ETS_I2S1_INUM 13
-
     // setup I2S Interrupt
-    if (dev==&I2S0) {
-        // I2S0 likely won't work with Arduino, untested
-        intr_matrix_set(0, ETS_I2S0_INTR_SOURCE, ETS_I2S0_INUM);
-        xt_set_interrupt_handler(ETS_I2S0_INUM, &i2s_isr, NULL);
-        SET_PERI_REG_BITS(I2S_INT_ENA_REG(0), I2S_OUT_EOF_INT_ENA_V, 1, I2S_OUT_EOF_INT_ENA_S);
-        ESP_INTR_ENABLE(ETS_I2S0_INUM);
-    } else {
-        SET_PERI_REG_BITS(I2S_INT_ENA_REG(1), I2S_OUT_DONE_INT_ENA_V, 1, I2S_OUT_DONE_INT_ENA_S);
-        esp_intr_alloc(ETS_I2S1_INTR_SOURCE, (int)ESP_INTR_FLAG_IRAM, i2s_isr, NULL, NULL);
-    }
-#endif
+    SET_PERI_REG_BITS(I2S_INT_ENA_REG(1), I2S_OUT_EOF_INT_ENA_V, 1, I2S_OUT_EOF_INT_ENA_S);
+    // allocate a level 1 intterupt: lowest priority, as ISR isn't urgent and may take a long time to complete
+    esp_intr_alloc(ETS_I2S1_INTR_SOURCE, (int)(ESP_INTR_FLAG_IRAM | ESP_INTR_FLAG_LEVEL1), i2s_isr, NULL, NULL);
+
     //Start dma on front buffer
     dev->lc_conf.val=I2S_OUT_DATA_BURST_EN | I2S_OUTDSCR_BURST_EN | I2S_OUT_DATA_BURST_EN;
     dev->out_link.addr=((uint32_t)(&st->dmadesc_a[0]));
@@ -319,8 +275,27 @@ void i2s_parallel_setup(i2s_dev_t *dev, const i2s_parallel_config_t *cfg) {
     dev->conf.tx_start=1;
 }
 
-
 //Flip to a buffer: 0 for bufa, 1 for bufb
 void i2s_parallel_flip_to_buffer(i2s_dev_t *dev, int bufid) {
-    nextFrontBufferNumber = bufid;
+    int no=i2snum(dev);
+    if (i2s_state[no]==NULL) return;
+    lldesc_t *active_dma_chain;
+    if (bufid==0) {
+        active_dma_chain=(lldesc_t*)&i2s_state[no]->dmadesc_a[0];
+    } else {
+        active_dma_chain=(lldesc_t*)&i2s_state[no]->dmadesc_b[0];
+    }
+
+    // setup linked list to refresh from new buffer (continuously) when the end of the current list has been reached
+    i2s_state[no]->dmadesc_a[i2s_state[no]->desccount_a-1].qe.stqe_next=active_dma_chain;
+    i2s_state[no]->dmadesc_b[i2s_state[no]->desccount_b-1].qe.stqe_next=active_dma_chain;
+
+    // we're still refreshing the previously buffer, so it shouldn't be written to yet
+    previousBufferFree = false;
 }
+
+bool i2s_parallel_is_previous_buffer_free() {
+    return previousBufferFree;
+}
+
+#endif
