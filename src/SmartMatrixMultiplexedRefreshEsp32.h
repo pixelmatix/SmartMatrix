@@ -62,9 +62,6 @@ public:
 private:
     // enable ISR access to private member variables
     template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
-    friend void frameCalculationISR(void);
-
-    template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
     friend void frameShiftCompleteISR(void);    
 
     static int dimmingFactor;

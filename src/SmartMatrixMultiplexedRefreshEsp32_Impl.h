@@ -123,8 +123,6 @@ static void setupTimer(void) {
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void frameShiftCompleteISR(void);    
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void frameCalculationISR(void);
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 CircularBuffer SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer;
@@ -255,13 +253,6 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
     //printf("I2S setup done.\n");
 
 #endif
-}
-
-// low priority ISR triggered by software interrupt on a DMA channel that doesn't need interrupts otherwise
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void frameCalculationISR(void) {
-    // TODO: figure out how I2S ISR can call this in a low-priority non-blocking interrupt context
-    // TODO: figure out if this can be handled as a separate RTOS task, maybe even on a different CPU, without requiring a lot of work from the Arduino application
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
