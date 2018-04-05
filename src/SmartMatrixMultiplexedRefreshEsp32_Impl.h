@@ -112,7 +112,7 @@ template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char pan
 uint8_t SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refreshRate = 60;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-i2s_parallel_buffer_desc_t SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::bufdesc[ESP32_NUM_FRAME_BUFFERS][1<<(COLOR_DEPTH_BITS)];
+i2s_parallel_buffer_desc_t SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::bufdesc[2][ROWS_PER_FRAME + 1][1<<(COLOR_DEPTH_BITS - LSBMSB_TRANSITION_BIT - 1)];
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::frameStruct * SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateFrames;
@@ -189,42 +189,47 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
     // completely fill buffer with data before enabling DMA
     matrixCalcCallback();
 
-    // *** TODO: rework this function so a much smaller bufdesc array can be used and we don't run out of memory/address space: lower bits only need one entry
+    // setup DMA linked lists for both frames
+    for(int j=0; j<ROWS_PER_FRAME; j++) {
+        // first set of data is LSB through MSB, single pass - all color bits are displayed once, which takes care of everything below and inlcluding LSBMSB_TRANSITION_BIT
+        bufdesc[0][j][0].memory = &(matrixUpdateFrames[0].rowdata[j].rowbits[0].data);
+        bufdesc[0][j][0].size = sizeof(rowBitStruct) * COLOR_DEPTH_BITS;
+        bufdesc[1][j][0].memory = &(matrixUpdateFrames[1].rowdata[j].rowbits[0].data);
+        bufdesc[1][j][0].size = sizeof(rowBitStruct) * COLOR_DEPTH_BITS;
 
-    //Do binary time division setup. Essentially, we need n of plane 0, 2n of plane 1, 4n of plane 2 etc, but that
-    //needs to be divided evenly over time to stop flicker from happening. This little bit of code tries to do that
-    //more-or-less elegantly.
-    int times[COLOR_DEPTH_BITS]={0};
-    //printf("Bitplane order: ");
-    for (int i=0; i<((1<<COLOR_DEPTH_BITS)-1); i++) {
-        int ch=0;
-        //Find plane that needs insertion the most
-        for (int j=0; j<COLOR_DEPTH_BITS; j++) {
-            if (times[j]<=times[ch]) ch=j;
+        int nextBufdescIndex = 1;
+
+        //printf("row %d: \r\n", j);
+
+        for(int i=LSBMSB_TRANSITION_BIT + 1; i<COLOR_DEPTH_BITS; i++) {
+            // binary time division setup: we need 2 of bit (LSBMSB_TRANSITION_BIT + 1) four of (LSBMSB_TRANSITION_BIT + 2), etc
+            // because we sweep through to MSB each time, it divides the number of times we have to sweep in half (saving linked list RAM)
+            // we need 2^(i - LSBMSB_TRANSITION_BIT - 1) == 1 << (i - LSBMSB_TRANSITION_BIT - 1) passes from i to MSB
+            //printf("buffer %d: repeat %d times, size: %d, from %d - %d\r\n", nextBufdescIndex, 1<<(i - LSBMSB_TRANSITION_BIT - 1), (COLOR_DEPTH_BITS - i), i, COLOR_DEPTH_BITS-1);
+
+            for(int k=0; k < 1<<(i - LSBMSB_TRANSITION_BIT - 1); k++) {
+                bufdesc[0][j][nextBufdescIndex].memory = &(matrixUpdateFrames[0].rowdata[j].rowbits[i].data);
+                bufdesc[0][j][nextBufdescIndex].size = sizeof(rowBitStruct) * (COLOR_DEPTH_BITS - i);
+                bufdesc[1][j][nextBufdescIndex].memory = &(matrixUpdateFrames[1].rowdata[j].rowbits[i].data);
+                bufdesc[1][j][nextBufdescIndex].size = sizeof(rowBitStruct) * (COLOR_DEPTH_BITS - i);
+                nextBufdescIndex++;
+                //printf("i %d, j %d, k %d\r\n", i, j, k);
+            }
         }
-        //printf("%d ", ch);
-        //Insert the plane
-        for (int j=0; j<2; j++) {
-            bufdesc[j][i].memory=&(matrixUpdateFrames[j].framebits[ch]);
-            bufdesc[j][i].size=sizeof(frameBitStruct);
-        }
-        //Magic to make sure we choose this bitplane an appropriate time later next time
-        times[ch]+=(1<<(COLOR_DEPTH_BITS-ch));
     }
-    //printf("\n");
-#if 1
 
     //End markers
-    bufdesc[0][((1<<COLOR_DEPTH_BITS)-1)].memory=NULL;
-    bufdesc[1][((1<<COLOR_DEPTH_BITS)-1)].memory=NULL;
+    bufdesc[0][ROWS_PER_FRAME][0].memory=NULL;
+    bufdesc[1][ROWS_PER_FRAME][0].memory=NULL;
+    //printf("\n");
 
     i2s_parallel_config_t cfg={
         .gpio_bus={R1_PIN, G1_PIN, B1_PIN, R2_PIN, G2_PIN, B2_PIN, LAT_PIN, OE_PIN, A_PIN, B_PIN, C_PIN, D_PIN, -1, -1, -1, -1},
         .gpio_clk=CLK_PIN,
         .clkspeed_hz=20*1000*1000,
         .bits=I2S_PARALLEL_BITS_16,
-        .bufa=bufdesc[0],
-        .bufb=bufdesc[1],
+        .bufa=bufdesc[0][0],
+        .bufb=bufdesc[1][0],
     };
 
     //Setup I2S
@@ -233,8 +238,6 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
     setShiftCompleteCallback(frameShiftCompleteISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
 
     //printf("I2S setup done.\n");
-
-#endif
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>

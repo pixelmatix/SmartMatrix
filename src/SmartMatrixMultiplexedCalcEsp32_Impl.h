@@ -398,7 +398,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 
         uint16_t mask = (1 << (j + maskoffset));
         
-        SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::frameBitStruct *p=&(frameBuffer->framebits[j]); //bitplane location to write to
+        SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowBitStruct *p=&(frameBuffer->rowdata[currentRow].rowbits[j]); //bitplane location to write to
         
         int i=0;
         while(i < PIXELS_PER_LATCH) {
@@ -432,9 +432,9 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 } else {
                     //Save the calculated value to the bitplane memory in reverse order to account for I2S Tx FIFO mode1 ordering
                     if(k%2){
-                        p->rowbits[currentRow].data[k-1] = v;
+                        p->data[k-1] = v;
                     } else {
-                        p->rowbits[currentRow].data[k+1] = v;
+                        p->data[k+1] = v;
                     }
                 }
             }
@@ -462,9 +462,9 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 
                 //Save the calculated value to the bitplane memory in reverse order to account for I2S Tx FIFO mode1 ordering
                 if(k%2){
-                    p->rowbits[currentRow].data[k-1] = v;
+                    p->data[k-1] = v;
                 } else {
-                    p->rowbits[currentRow].data[k+1] = v;
+                    p->data[k+1] = v;
                 }
             }
 

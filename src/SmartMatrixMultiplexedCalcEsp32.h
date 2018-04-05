@@ -28,7 +28,8 @@ template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char pan
 class SmartMatrix3 {
 public:
     typedef typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::frameStruct frameStruct;
-    typedef typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::frameBitStruct frameBitStruct;
+    typedef typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowDataStruct rowDataStruct;
+    typedef typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowBitStruct rowBitStruct;
 
     // init
     SmartMatrix3(frameStruct * frameBuffer);

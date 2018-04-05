@@ -28,6 +28,7 @@
 
 #define CLKS_DURING_LATCH   2
 #define ESP32_NUM_FRAME_BUFFERS   2
+#define LSBMSB_TRANSITION_BIT   0
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 class SmartMatrix3RefreshMultiplexed {
@@ -36,12 +37,12 @@ public:
         uint16_t data[((matrixWidth * matrixHeight) / CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT(panelType)) + CLKS_DURING_LATCH];
     };
 
-    struct frameBitStruct {
-        rowBitStruct rowbits[ROWS_PER_FRAME];
+    struct rowDataStruct {
+        rowBitStruct rowbits[COLOR_DEPTH_BITS];
     };
 
     struct frameStruct {
-        frameBitStruct framebits[COLOR_DEPTH_BITS];
+        rowDataStruct rowdata[ROWS_PER_FRAME];
     };
 
     typedef void (*matrix_calc_callback)(void);
@@ -73,7 +74,7 @@ private:
 
     static CircularBuffer dmaBuffer;
 
-    static i2s_parallel_buffer_desc_t bufdesc[ESP32_NUM_FRAME_BUFFERS][1<<(COLOR_DEPTH_BITS)];
+    static i2s_parallel_buffer_desc_t bufdesc[2][ROWS_PER_FRAME + 1][1<<(COLOR_DEPTH_BITS - LSBMSB_TRANSITION_BIT - 1)];
 };
 
 #endif
