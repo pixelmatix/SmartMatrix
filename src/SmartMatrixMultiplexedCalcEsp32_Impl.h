@@ -158,12 +158,13 @@ volatile bool SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, o
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 rotationDegrees SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rotation = rotation0;
 
+// brightness scales from 0-PIXELS_PER_LATCH
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::brightness;
+int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::brightness = PIXELS_PER_LATCH;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setBrightness(uint8_t newBrightness) {
-    brightness = newBrightness;
+    brightness = (PIXELS_PER_LATCH*newBrightness)/255;
     brightnessChange = true;
 }
 
@@ -290,11 +291,17 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
             for(int k=0; k < matrixWidth; k++) {
                 int v=0;
 
-                // TODO: use actual brightness setting
-                brightness = 16;
+                // turn off OE after brightness value is reached - used for MSBs and LSB
+                // MSBs always output normal brightness
+                // LSB outputs normal brightness as MSB from previous row is being displayed
+                if((j > LSBMSB_TRANSITION_BIT || !j) && i >= brightness) v|=BIT_OE;
 
-                // stop showing image after a number of CLK cycles that scales with brightness
-                if (k>=brightness) v|=BIT_OE;
+                // special case for the bits *after* LSB through (LSBMSB_TRANSITION_BIT) - OE is output after data is shifted, so need to set OE to fractional brightness
+                if(j && j <= LSBMSB_TRANSITION_BIT) {
+                    // divide brightness in half for each bit below LSBMSB_TRANSITION_BIT
+                    int lsbBrightness = brightness >> (LSBMSB_TRANSITION_BIT - j + 1);
+                    if(i >= lsbBrightness) v|=BIT_OE;
+                }
 
                 if (tempRow0[i+k].red & mask)
                     v|=BIT_R1;
@@ -439,11 +446,17 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
             for(int k=0; k < matrixWidth; k++) {
                 int v=0;
 
-                // TODO: use actual brightness setting
-                brightness = 16;
+                // turn off OE after brightness value is reached - used for MSBs and LSB
+                // MSBs always output normal brightness
+                // LSB outputs normal brightness as MSB from previous row is being displayed
+                if((j > LSBMSB_TRANSITION_BIT || !j) && i >= brightness) v|=BIT_OE;
 
-                // stop showing image after a number of CLK cycles that scales with brightness
-                if (k>=brightness) v|=BIT_OE;
+                // special case for the bits *after* LSB through (LSBMSB_TRANSITION_BIT) - OE is output after data is shifted, so need to set OE to fractional brightness
+                if(j && j <= LSBMSB_TRANSITION_BIT) {
+                    // divide brightness in half for each bit below LSBMSB_TRANSITION_BIT
+                    int lsbBrightness = brightness >> (LSBMSB_TRANSITION_BIT - j + 1);
+                    if(i >= lsbBrightness) v|=BIT_OE;
+                }
 
                 if (tempRow0[i+k].red & mask)
                     v|=BIT_R1;
