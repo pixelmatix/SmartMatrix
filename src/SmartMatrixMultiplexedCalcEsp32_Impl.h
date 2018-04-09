@@ -294,13 +294,13 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 // turn off OE after brightness value is reached - used for MSBs and LSB
                 // MSBs always output normal brightness
                 // LSB outputs normal brightness as MSB from previous row is being displayed
-                if((j > LSBMSB_TRANSITION_BIT || !j) && i >= brightness) v|=BIT_OE;
+                if((j > LSBMSB_TRANSITION_BIT || !j) && (i+k) >= brightness) v|=BIT_OE;
 
                 // special case for the bits *after* LSB through (LSBMSB_TRANSITION_BIT) - OE is output after data is shifted, so need to set OE to fractional brightness
                 if(j && j <= LSBMSB_TRANSITION_BIT) {
                     // divide brightness in half for each bit below LSBMSB_TRANSITION_BIT
                     int lsbBrightness = brightness >> (LSBMSB_TRANSITION_BIT - j + 1);
-                    if(i >= lsbBrightness) v|=BIT_OE;
+                    if((i+k) >= lsbBrightness) v|=BIT_OE;
                 }
 
                 if (tempRow0[i+k].red & mask)
@@ -449,13 +449,13 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 // turn off OE after brightness value is reached - used for MSBs and LSB
                 // MSBs always output normal brightness
                 // LSB outputs normal brightness as MSB from previous row is being displayed
-                if((j > LSBMSB_TRANSITION_BIT || !j) && i >= brightness) v|=BIT_OE;
+                if((j > LSBMSB_TRANSITION_BIT || !j) && (i+k) >= brightness) v|=BIT_OE;
 
                 // special case for the bits *after* LSB through (LSBMSB_TRANSITION_BIT) - OE is output after data is shifted, so need to set OE to fractional brightness
                 if(j && j <= LSBMSB_TRANSITION_BIT) {
                     // divide brightness in half for each bit below LSBMSB_TRANSITION_BIT
                     int lsbBrightness = brightness >> (LSBMSB_TRANSITION_BIT - j + 1);
-                    if(i >= lsbBrightness) v|=BIT_OE;
+                    if((i+k) >= lsbBrightness) v|=BIT_OE;
                 }
 
                 if (tempRow0[i+k].red & mask)
