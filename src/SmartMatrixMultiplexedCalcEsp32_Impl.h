@@ -294,10 +294,10 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
             for(int k=0; k < matrixWidth; k++) {
                 int v=0;
 
-                // turn off OE after brightness value is reached - used for MSBs and LSB
+                // turn off OE after brightness value is reached when displaying MSBs
                 // MSBs always output normal brightness
-                // LSB outputs normal brightness as MSB from previous row is being displayed
-                if((j > LSBMSB_TRANSITION_BIT || !j) && (i+k) >= brightness) v|=BIT_OE;
+                // LSB (!j) outputs normal brightness as MSB from previous row is being displayed
+                if((j > LSBMSB_TRANSITION_BIT || !j) && ((i+k) >= brightness)) v|=BIT_OE;
 
 #ifndef OEPWM_TEST_ENABLE
                 // special case for the bits *after* LSB through (LSBMSB_TRANSITION_BIT) - OE is output after data is shifted, so need to set OE to fractional brightness
@@ -322,6 +322,8 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                     }
                 }                
 #endif
+                // need to turn off OE one clock before latch, otherwise can get ghosting
+                if((i+k)==PIXELS_PER_LATCH-1) v|=BIT_OE;
 
                 if (tempRow0[i+k].red & mask)
                     v|=BIT_R1;
@@ -474,10 +476,10 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
             for(int k=0; k < matrixWidth; k++) {
                 int v=0;
 
-                // turn off OE after brightness value is reached - used for MSBs and LSB
+                // turn off OE after brightness value is reached when displaying MSBs
                 // MSBs always output normal brightness
-                // LSB outputs normal brightness as MSB from previous row is being displayed
-                if((j > LSBMSB_TRANSITION_BIT || !j) && (i+k) >= brightness) v|=BIT_OE;
+                // LSB (!j) outputs normal brightness as MSB from previous row is being displayed
+                if((j > LSBMSB_TRANSITION_BIT || !j) && ((i+k) >= brightness)) v|=BIT_OE;
 
                 // special case for the bits *after* LSB through (LSBMSB_TRANSITION_BIT) - OE is output after data is shifted, so need to set OE to fractional brightness
                 if(j && j <= LSBMSB_TRANSITION_BIT) {
@@ -485,6 +487,9 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                     int lsbBrightness = brightness >> (LSBMSB_TRANSITION_BIT - j + 1);
                     if((i+k) >= lsbBrightness) v|=BIT_OE;
                 }
+
+                // need to turn off OE one clock before latch, otherwise can get ghosting
+                if((i+k)==PIXELS_PER_LATCH-1) v|=BIT_OE;
 
                 if (tempRow0[i+k].red & mask)
                     v|=BIT_R1;
