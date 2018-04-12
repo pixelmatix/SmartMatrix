@@ -73,8 +73,6 @@ private:
     static matrix_calc_callback matrixCalcCallback;
 
     static CircularBuffer dmaBuffer;
-
-    static i2s_parallel_buffer_desc_t bufdesc[2][ROWS_PER_FRAME + 1][1<<(COLOR_DEPTH_BITS - LSBMSB_TRANSITION_BIT - 1)];
 };
 
 #endif

@@ -41,6 +41,7 @@
 #include "driver/mcpwm.h"
 #include "soc/mcpwm_reg.h"
 #include "soc/mcpwm_struct.h"
+#include "rom/lldesc.h"
 
 static void setupTimer(void) {
     // invert OE-PWM output
@@ -110,9 +111,6 @@ CircularBuffer SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixH
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 uint8_t SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refreshRate = 60;
-
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-i2s_parallel_buffer_desc_t SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::bufdesc[2][ROWS_PER_FRAME + 1][1<<(COLOR_DEPTH_BITS - LSBMSB_TRANSITION_BIT - 1)];
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::frameStruct * SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateFrames;
@@ -189,16 +187,39 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
     // completely fill buffer with data before enabling DMA
     matrixCalcCallback();
 
-    // setup DMA linked lists for both frames
+    int numDescriptorsPerRow = 1;
+    for(int i=LSBMSB_TRANSITION_BIT + 1; i<COLOR_DEPTH_BITS; i++) {
+        numDescriptorsPerRow += 1<<(i - LSBMSB_TRANSITION_BIT - 1);
+    }
+
+    // malloc the DMA linked list descriptors that i2s_parallel will need
+    int desccount = numDescriptorsPerRow * ROWS_PER_FRAME;
+    lldesc_t * dmadesc_a = (lldesc_t *)heap_caps_malloc(desccount * sizeof(lldesc_t), MALLOC_CAP_DMA);
+    assert("Can't allocate descriptor buffer a");
+    if(!dmadesc_a) {
+        printf("can't malloc");
+        return;
+    }
+    lldesc_t * dmadesc_b = (lldesc_t *)heap_caps_malloc(desccount * sizeof(lldesc_t), MALLOC_CAP_DMA);
+    assert("Can't allocate descriptor buffer b");
+    if(!dmadesc_b) {
+        printf("can't malloc");
+        return;
+    }
+
+    lldesc_t *prevdmadesca = 0;
+    lldesc_t *prevdmadescb = 0;
+    int currentDescOffset = 0;
+
+    // fill DMA linked lists for both frames
     for(int j=0; j<ROWS_PER_FRAME; j++) {
         // first set of data is LSB through MSB, single pass - all color bits are displayed once, which takes care of everything below and inlcluding LSBMSB_TRANSITION_BIT
-        bufdesc[0][j][0].memory = &(matrixUpdateFrames[0].rowdata[j].rowbits[0].data);
-        bufdesc[0][j][0].size = sizeof(rowBitStruct) * COLOR_DEPTH_BITS;
-        bufdesc[1][j][0].memory = &(matrixUpdateFrames[1].rowdata[j].rowbits[0].data);
-        bufdesc[1][j][0].size = sizeof(rowBitStruct) * COLOR_DEPTH_BITS;
-
-        int nextBufdescIndex = 1;
-
+        // TODO: size must be less than DMA_MAX - worst case for SmartMatrix Library: 16-bpp with 256 pixels per row would exceed this, need to break into two
+        link_dma_desc(&dmadesc_a[currentDescOffset], prevdmadesca, &(matrixUpdateFrames[0].rowdata[j].rowbits[0].data), sizeof(rowBitStruct) * COLOR_DEPTH_BITS);
+        prevdmadesca = &dmadesc_a[currentDescOffset];
+        link_dma_desc(&dmadesc_b[currentDescOffset], prevdmadescb, &(matrixUpdateFrames[1].rowdata[j].rowbits[0].data), sizeof(rowBitStruct) * COLOR_DEPTH_BITS);
+        prevdmadescb = &dmadesc_b[currentDescOffset];
+        currentDescOffset++;
         //printf("row %d: \r\n", j);
 
         for(int i=LSBMSB_TRANSITION_BIT + 1; i<COLOR_DEPTH_BITS; i++) {
@@ -206,21 +227,24 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
             // because we sweep through to MSB each time, it divides the number of times we have to sweep in half (saving linked list RAM)
             // we need 2^(i - LSBMSB_TRANSITION_BIT - 1) == 1 << (i - LSBMSB_TRANSITION_BIT - 1) passes from i to MSB
             //printf("buffer %d: repeat %d times, size: %d, from %d - %d\r\n", nextBufdescIndex, 1<<(i - LSBMSB_TRANSITION_BIT - 1), (COLOR_DEPTH_BITS - i), i, COLOR_DEPTH_BITS-1);
-
             for(int k=0; k < 1<<(i - LSBMSB_TRANSITION_BIT - 1); k++) {
-                bufdesc[0][j][nextBufdescIndex].memory = &(matrixUpdateFrames[0].rowdata[j].rowbits[i].data);
-                bufdesc[0][j][nextBufdescIndex].size = sizeof(rowBitStruct) * (COLOR_DEPTH_BITS - i);
-                bufdesc[1][j][nextBufdescIndex].memory = &(matrixUpdateFrames[1].rowdata[j].rowbits[i].data);
-                bufdesc[1][j][nextBufdescIndex].size = sizeof(rowBitStruct) * (COLOR_DEPTH_BITS - i);
-                nextBufdescIndex++;
+                link_dma_desc(&dmadesc_a[currentDescOffset], prevdmadesca, &(matrixUpdateFrames[0].rowdata[j].rowbits[i].data), sizeof(rowBitStruct) * (COLOR_DEPTH_BITS - i));
+                prevdmadesca = &dmadesc_a[currentDescOffset];
+                link_dma_desc(&dmadesc_b[currentDescOffset], prevdmadescb, &(matrixUpdateFrames[1].rowdata[j].rowbits[i].data), sizeof(rowBitStruct) * (COLOR_DEPTH_BITS - i));
+                prevdmadescb = &dmadesc_b[currentDescOffset];
+
+                currentDescOffset++;
                 //printf("i %d, j %d, k %d\r\n", i, j, k);
             }
         }
     }
 
     //End markers
-    bufdesc[0][ROWS_PER_FRAME][0].memory=NULL;
-    bufdesc[1][ROWS_PER_FRAME][0].memory=NULL;
+    dmadesc_a[desccount-1].eof = 1;
+    dmadesc_b[desccount-1].eof = 1;
+    dmadesc_a[desccount-1].qe.stqe_next=(lldesc_t*)&dmadesc_a[0];
+    dmadesc_b[desccount-1].qe.stqe_next=(lldesc_t*)&dmadesc_b[0];
+
     //printf("\n");
 
     i2s_parallel_config_t cfg={
@@ -228,12 +252,16 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
         .gpio_clk=CLK_PIN,
         .clkspeed_hz=20*1000*1000,
         .bits=I2S_PARALLEL_BITS_16,
-        .bufa=bufdesc[0][0],
-        .bufb=bufdesc[1][0],
+        .bufa=0,
+        .bufb=0,
+        desccount,
+        desccount,
+        dmadesc_a,
+        dmadesc_b
     };
 
     //Setup I2S
-    i2s_parallel_setup(&I2S1, &cfg);
+    i2s_parallel_setup_without_malloc(&I2S1, &cfg);
 
     setShiftCompleteCallback(frameShiftCompleteISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
 
