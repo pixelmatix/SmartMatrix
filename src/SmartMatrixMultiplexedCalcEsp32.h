@@ -52,16 +52,16 @@ public:
     void countFPS(void);
 
     // functions called by ISR
-    static void matrixCalculations();
+    static void matrixCalculations(int lsbMsbTransitionBit);
     static void dmaBufferUnderrunCallback(void);
 
 private:
     static SM_Layer * baseLayer;
 
     // functions for refreshing
-    static void loadMatrixBuffers(void);
-    static void loadMatrixBuffers48(frameStruct * currentFrameDataPtr, int currentRow);
-    static void loadMatrixBuffers24(frameStruct * currentFrameDataPtr, int currentRow);
+    static void loadMatrixBuffers(int lsbMsbTransitionBit);
+    static void loadMatrixBuffers48(frameStruct * currentFrameDataPtr, int currentRow, int lsbMsbTransitionBit);
+    static void loadMatrixBuffers24(frameStruct * currentFrameDataPtr, int currentRow, int lsbMsbTransitionBit);
 
     // configuration
     static volatile bool brightnessChange;

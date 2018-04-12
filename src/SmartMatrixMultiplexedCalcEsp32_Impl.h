@@ -86,7 +86,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 #define NUM_REFRESH_FRAMES_BEFORE_CALCULATING  2
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalculations() {
+void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalculations(int lsbMsbTransitionBit) {
     static int refreshFramesSinceLastCalculation = 0;
 
     if(++refreshFramesSinceLastCalculation < NUM_REFRESH_FRAMES_BEFORE_CALCULATING)
@@ -122,7 +122,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
         brightnessChange = false;
     }
 
-    SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers();
+    SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers(lsbMsbTransitionBit);
 
     SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::writeFrameBuffer(0);
 }
@@ -212,7 +212,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 #define OEPWM_THRESHOLD_BIT 1
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers48(frameStruct * frameBuffer, int currentRow) {
+INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers48(frameStruct * frameBuffer, int currentRow, int lsbMsbTransitionBit) {
     int i;
 
     // static to avoid putting large buffer on the stack
@@ -297,27 +297,27 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 // turn off OE after brightness value is reached when displaying MSBs
                 // MSBs always output normal brightness
                 // LSB (!j) outputs normal brightness as MSB from previous row is being displayed
-                if((j > LSBMSB_TRANSITION_BIT || !j) && ((i+k) >= brightness)) v|=BIT_OE;
+                if((j > lsbMsbTransitionBit || !j) && ((i+k) >= brightness)) v|=BIT_OE;
 
 #ifndef OEPWM_TEST_ENABLE
-                // special case for the bits *after* LSB through (LSBMSB_TRANSITION_BIT) - OE is output after data is shifted, so need to set OE to fractional brightness
-                if(j && j <= LSBMSB_TRANSITION_BIT) {
-                    // divide brightness in half for each bit below LSBMSB_TRANSITION_BIT
-                    int lsbBrightness = brightness >> (LSBMSB_TRANSITION_BIT - j + 1);
+                // special case for the bits *after* LSB through (lsbMsbTransitionBit) - OE is output after data is shifted, so need to set OE to fractional brightness
+                if(j && j <= lsbMsbTransitionBit) {
+                    // divide brightness in half for each bit below lsbMsbTransitionBit
+                    int lsbBrightness = brightness >> (lsbMsbTransitionBit - j + 1);
                     if((i+k) >= lsbBrightness) v|=BIT_OE;
                 }
 #else
-                // special case for the bits *after* LSB through (LSBMSB_TRANSITION_BIT) - OE is output after data is shifted, so need to set OE to fractional brightness
-                if(j && j <= LSBMSB_TRANSITION_BIT) {
+                // special case for the bits *after* LSB through (lsbMsbTransitionBit) - OE is output after data is shifted, so need to set OE to fractional brightness
+                if(j && j <= lsbMsbTransitionBit) {
                     // all bits through OEPWM_THRESHOLD_BIT we handle by toggling short PWM pulses smaller than one clock cycle
                     if(j >= 1 && j <= OEPWM_THRESHOLD_BIT) {
                         // width of pwm OE pulse is ~1/2 the width of a DMA OE pulse (so shift lsbPwmBrightnessPulses one fewer times than lsbBrightness)
-                        int lsbPwmBrightnessPulses = (brightness) >> (LSBMSB_TRANSITION_BIT - j + 1 - 1);
+                        int lsbPwmBrightnessPulses = (brightness) >> (lsbMsbTransitionBit - j + 1 - 1);
                         // now setting brightness for LSB, use PWM OE
                         if((k%2) || k >= (2 * lsbPwmBrightnessPulses)) v|=BIT_OE;
                     } else {
-                        // divide brightness in half for each bit below LSBMSB_TRANSITION_BIT
-                        int lsbBrightness = brightness >> (LSBMSB_TRANSITION_BIT - j + 1);
+                        // divide brightness in half for each bit below lsbMsbTransitionBit
+                        int lsbBrightness = brightness >> (lsbMsbTransitionBit - j + 1);
                         if((i+k) >= lsbBrightness) v|=BIT_OE;
                     }
                 }                
@@ -394,7 +394,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers24(frameStruct * frameBuffer, int currentRow) {
+INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers24(frameStruct * frameBuffer, int currentRow, int lsbMsbTransitionBit) {
     int i;
 
     // static to avoid putting large buffer on the stack
@@ -479,12 +479,12 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 // turn off OE after brightness value is reached when displaying MSBs
                 // MSBs always output normal brightness
                 // LSB (!j) outputs normal brightness as MSB from previous row is being displayed
-                if((j > LSBMSB_TRANSITION_BIT || !j) && ((i+k) >= brightness)) v|=BIT_OE;
+                if((j > lsbMsbTransitionBit || !j) && ((i+k) >= brightness)) v|=BIT_OE;
 
-                // special case for the bits *after* LSB through (LSBMSB_TRANSITION_BIT) - OE is output after data is shifted, so need to set OE to fractional brightness
-                if(j && j <= LSBMSB_TRANSITION_BIT) {
-                    // divide brightness in half for each bit below LSBMSB_TRANSITION_BIT
-                    int lsbBrightness = brightness >> (LSBMSB_TRANSITION_BIT - j + 1);
+                // special case for the bits *after* LSB through (lsbMsbTransitionBit) - OE is output after data is shifted, so need to set OE to fractional brightness
+                if(j && j <= lsbMsbTransitionBit) {
+                    // divide brightness in half for each bit below lsbMsbTransitionBit
+                    int lsbBrightness = brightness >> (lsbMsbTransitionBit - j + 1);
                     if((i+k) >= lsbBrightness) v|=BIT_OE;
                 }
 
@@ -552,7 +552,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers() {
+INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers(int lsbMsbTransitionBit) {
 #if 1
     unsigned char currentRow;
 
@@ -561,11 +561,11 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     for(currentRow = 0; currentRow < ROWS_PER_FRAME; currentRow++) {
         // TODO: support rgb36/48 with same function, copy function to rgb24
         if(COLOR_DEPTH_BITS == 16)
-            loadMatrixBuffers48(currentFrameDataPtr, currentRow);
+            loadMatrixBuffers48(currentFrameDataPtr, currentRow, lsbMsbTransitionBit);
         else if(COLOR_DEPTH_BITS == 12)
-            loadMatrixBuffers48(currentFrameDataPtr, currentRow);
+            loadMatrixBuffers48(currentFrameDataPtr, currentRow, lsbMsbTransitionBit);
         else if(COLOR_DEPTH_BITS == 8)
-            loadMatrixBuffers24(currentFrameDataPtr, currentRow);
+            loadMatrixBuffers24(currentFrameDataPtr, currentRow, lsbMsbTransitionBit);
     }
 #endif
 }

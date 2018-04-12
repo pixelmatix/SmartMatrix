@@ -28,7 +28,6 @@
 
 #define CLKS_DURING_LATCH   2
 #define ESP32_NUM_FRAME_BUFFERS   2
-#define LSBMSB_TRANSITION_BIT   0
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 class SmartMatrix3RefreshMultiplexed {
@@ -45,7 +44,7 @@ public:
         rowDataStruct rowdata[ROWS_PER_FRAME];
     };
 
-    typedef void (*matrix_calc_callback)(void);
+    typedef void (*matrix_calc_callback)(int lsbMsbTransitionBit);
 
     // init
     SmartMatrix3RefreshMultiplexed(frameStruct * frameBuffer);
@@ -68,6 +67,7 @@ private:
     static int dimmingFactor;
     static const int dimmingMaximum = 255;
     static uint8_t refreshRate;
+    static uint8_t lsbMsbTransitionBit;
     static frameStruct * matrixUpdateFrames;
 
     static matrix_calc_callback matrixCalcCallback;

@@ -110,7 +110,10 @@ template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char pan
 CircularBuffer SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-uint8_t SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refreshRate = 60;
+uint8_t SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refreshRate = 120;
+
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+uint8_t SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::lsbMsbTransitionBit = 0;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::frameStruct * SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateFrames;
@@ -184,12 +187,77 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
 
     setupTimer();
 
-    // completely fill buffer with data before enabling DMA
-    matrixCalcCallback();
+    // calculate the lowest LSBMSB_TRANSITION_BIT value that will fit in memory
+    int numDescriptorsPerRow;
+    lsbMsbTransitionBit = 0;
+    while(1) {
+        numDescriptorsPerRow = 1;
+        for(int i=lsbMsbTransitionBit + 1; i<COLOR_DEPTH_BITS; i++) {
+            numDescriptorsPerRow += 1<<(i - lsbMsbTransitionBit - 1);
+        }
 
-    int numDescriptorsPerRow = 1;
-    for(int i=LSBMSB_TRANSITION_BIT + 1; i<COLOR_DEPTH_BITS; i++) {
-        numDescriptorsPerRow += 1<<(i - LSBMSB_TRANSITION_BIT - 1);
+        int ramrequired = numDescriptorsPerRow * ROWS_PER_FRAME * ESP32_NUM_FRAME_BUFFERS * sizeof(lldesc_t);
+        int largestblockfree = heap_caps_get_largest_free_block(MALLOC_CAP_DMA);
+
+        printf("lsbMsbTransitionBit of %d requires %d RAM, %d available: \r\n", lsbMsbTransitionBit, ramrequired, largestblockfree);
+
+        if(ramrequired < largestblockfree)
+            break;
+
+        if(lsbMsbTransitionBit < COLOR_DEPTH_BITS - 1)
+            lsbMsbTransitionBit++;
+        else
+            break;
+    }
+
+    if(numDescriptorsPerRow * ROWS_PER_FRAME * ESP32_NUM_FRAME_BUFFERS * sizeof(lldesc_t) > heap_caps_get_largest_free_block(MALLOC_CAP_DMA)){
+        assert("not enough RAM for SmartMatrix descriptors");
+        printf("not enough RAM for SmartMatrix descriptors\r\n");
+        return;
+    }
+
+    printf("lsbMsbTransitionBit of %d will fit in RAM\r\n", lsbMsbTransitionBit);
+
+    // calculate the lowest LSBMSB_TRANSITION_BIT value that will fit in memory that will meet or exceed the configured refresh rate
+    while(1) {
+        int psPerClock = 1000000000000UL/ESP32_I2S_CLOCK_SPEED;
+        int nsPerLatch = ((PIXELS_PER_LATCH + CLKS_DURING_LATCH) * psPerClock) / 1000;
+        printf("ns per latch: %d: \r\n", nsPerLatch);        
+
+        // add time to shift out LSBs + LSB-MSB transition bit - this ignores fractions...
+        int nsPerRow = COLOR_DEPTH_BITS * nsPerLatch;
+
+        // add time to shift out MSBs
+        for(int i=lsbMsbTransitionBit + 1; i<COLOR_DEPTH_BITS; i++)
+            nsPerRow += (1<<(i - lsbMsbTransitionBit - 1)) * (COLOR_DEPTH_BITS - i) * nsPerLatch;
+
+        printf("nsPerRow: %d: \r\n", nsPerRow);        
+
+        int nsPerFrame = nsPerRow * ROWS_PER_FRAME;
+        printf("nsPerFrame: %d: \r\n", nsPerFrame);        
+
+        int actualRefreshRate = 1000000000UL/(nsPerFrame);
+
+        printf("lsbMsbTransitionBit of %d gives %d Hz refresh, %d requested: \r\n", lsbMsbTransitionBit, actualRefreshRate, refreshRate);        
+
+        if(actualRefreshRate >= refreshRate)
+            break;
+
+        if(lsbMsbTransitionBit < COLOR_DEPTH_BITS - 1)
+            lsbMsbTransitionBit++;
+        else
+            break;
+    }
+
+    // lsbMsbTransition Bit is now finalized - redo descriptor count in case it changed to hit min refresh rate
+    numDescriptorsPerRow = 1;
+    for(int i=lsbMsbTransitionBit + 1; i<COLOR_DEPTH_BITS; i++) {
+        numDescriptorsPerRow += 1<<(i - lsbMsbTransitionBit - 1);
+    }
+
+    // completely fill buffer with data before enabling DMA
+    matrixCalcCallback(lsbMsbTransitionBit);
+
     }
 
     // malloc the DMA linked list descriptors that i2s_parallel will need
@@ -222,12 +290,12 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
         currentDescOffset++;
         //printf("row %d: \r\n", j);
 
-        for(int i=LSBMSB_TRANSITION_BIT + 1; i<COLOR_DEPTH_BITS; i++) {
+        for(int i=lsbMsbTransitionBit + 1; i<COLOR_DEPTH_BITS; i++) {
             // binary time division setup: we need 2 of bit (LSBMSB_TRANSITION_BIT + 1) four of (LSBMSB_TRANSITION_BIT + 2), etc
             // because we sweep through to MSB each time, it divides the number of times we have to sweep in half (saving linked list RAM)
             // we need 2^(i - LSBMSB_TRANSITION_BIT - 1) == 1 << (i - LSBMSB_TRANSITION_BIT - 1) passes from i to MSB
             //printf("buffer %d: repeat %d times, size: %d, from %d - %d\r\n", nextBufdescIndex, 1<<(i - LSBMSB_TRANSITION_BIT - 1), (COLOR_DEPTH_BITS - i), i, COLOR_DEPTH_BITS-1);
-            for(int k=0; k < 1<<(i - LSBMSB_TRANSITION_BIT - 1); k++) {
+            for(int k=0; k < 1<<(i - lsbMsbTransitionBit - 1); k++) {
                 link_dma_desc(&dmadesc_a[currentDescOffset], prevdmadesca, &(matrixUpdateFrames[0].rowdata[j].rowbits[i].data), sizeof(rowBitStruct) * (COLOR_DEPTH_BITS - i));
                 prevdmadesca = &dmadesc_a[currentDescOffset];
                 link_dma_desc(&dmadesc_b[currentDescOffset], prevdmadescb, &(matrixUpdateFrames[1].rowdata[j].rowbits[i].data), sizeof(rowBitStruct) * (COLOR_DEPTH_BITS - i));
@@ -276,7 +344,7 @@ void frameShiftCompleteISR(void) {
     
     if(!cbIsEmpty(&SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer))
         cbRead(&SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer);
-    SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalcCallback();
+    SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalcCallback(SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::lsbMsbTransitionBit);
     
 #ifdef DEBUG_PINS_ENABLED
     gpio_set_level(DEBUG_1_GPIO, 0);
