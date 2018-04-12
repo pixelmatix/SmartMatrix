@@ -208,6 +208,9 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin();
 }
 
+//#define OEPWM_TEST_ENABLE
+#define OEPWM_THRESHOLD_BIT 1
+
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers48(frameStruct * frameBuffer, int currentRow) {
     int i;
@@ -296,12 +299,29 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 // LSB outputs normal brightness as MSB from previous row is being displayed
                 if((j > LSBMSB_TRANSITION_BIT || !j) && (i+k) >= brightness) v|=BIT_OE;
 
+#ifndef OEPWM_TEST_ENABLE
                 // special case for the bits *after* LSB through (LSBMSB_TRANSITION_BIT) - OE is output after data is shifted, so need to set OE to fractional brightness
                 if(j && j <= LSBMSB_TRANSITION_BIT) {
                     // divide brightness in half for each bit below LSBMSB_TRANSITION_BIT
                     int lsbBrightness = brightness >> (LSBMSB_TRANSITION_BIT - j + 1);
                     if((i+k) >= lsbBrightness) v|=BIT_OE;
                 }
+#else
+                // special case for the bits *after* LSB through (LSBMSB_TRANSITION_BIT) - OE is output after data is shifted, so need to set OE to fractional brightness
+                if(j && j <= LSBMSB_TRANSITION_BIT) {
+                    // all bits through OEPWM_THRESHOLD_BIT we handle by toggling short PWM pulses smaller than one clock cycle
+                    if(j >= 1 && j <= OEPWM_THRESHOLD_BIT) {
+                        // width of pwm OE pulse is ~1/2 the width of a DMA OE pulse (so shift lsbPwmBrightnessPulses one fewer times than lsbBrightness)
+                        int lsbPwmBrightnessPulses = (brightness) >> (LSBMSB_TRANSITION_BIT - j + 1 - 1);
+                        // now setting brightness for LSB, use PWM OE
+                        if((k%2) || k >= (2 * lsbPwmBrightnessPulses)) v|=BIT_OE;
+                    } else {
+                        // divide brightness in half for each bit below LSBMSB_TRANSITION_BIT
+                        int lsbBrightness = brightness >> (LSBMSB_TRANSITION_BIT - j + 1);
+                        if((i+k) >= lsbBrightness) v|=BIT_OE;
+                    }
+                }                
+#endif
 
                 if (tempRow0[i+k].red & mask)
                     v|=BIT_R1;
@@ -348,6 +368,14 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                     if (currentRow&8) v|=BIT_R2;
                     // reserve G2 for currentRow&16
                     // reserve B2 for OE SWITCH
+#ifdef OEPWM_TEST_ENABLE
+                    //if(j == 0) {
+                    // set the MUX to output PWM_OE instead of DMA_OE, for the latches corresponding to bit 0 - OEPWM_THRESHOLD_BIT
+                    if(j < OEPWM_THRESHOLD_BIT) {
+                        // now setting brightness for LSB, use PWM OE
+                        v|=BIT_B2;
+                    }
+#endif
                 }
 
                 //Save the calculated value to the bitplane memory in reverse order to account for I2S Tx FIFO mode1 ordering

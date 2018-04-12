@@ -72,11 +72,11 @@ static void setupTimer(void) {
         periph_module_enable((periph_module_t)(PERIPH_PWM0_MODULE + mcpwm_num));
         MCPWM[mcpwm_num]->clk_cfg.prescale = MATRIX_MCPWM_CLK_PRESCL;
 
-        // set period to max, we never intend for it to wrap, compa to 1 tick
+        // set period to max, we never intend for it to wrap, compa to 4 ticks (~25 ns, around the lowest visible OE pulse)
         MCPWM[mcpwm_num]->timer[timer_num].period.prescale = MATRIX_TIMER_CLK_PRESCALE;
         MCPWM[mcpwm_num]->timer[timer_num].period.period = 0xFFFF;
         MCPWM[mcpwm_num]->timer[timer_num].period.upmethod = 0;
-        MCPWM[mcpwm_num]->channel[timer_num].cmpr_value[0].cmpr_val = 1;
+        MCPWM[mcpwm_num]->channel[timer_num].cmpr_value[0].cmpr_val = 4;
         MCPWM[mcpwm_num]->channel[timer_num].cmpr_cfg.a_upmethod = 0;
 
         MCPWM[mcpwm_num]->timer[timer_num].mode.mode = MCPWM_UP_COUNTER;
