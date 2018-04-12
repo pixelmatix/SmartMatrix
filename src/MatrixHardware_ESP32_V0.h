@@ -25,6 +25,8 @@
 
 #ifndef MATRIX_HARDWARE_H
 #define MATRIX_HARDWARE_H
+// formula used is 80000000L/(cfg->clkspeed_hz + 1), must result in >=2.  Acceptable values 26.67MHz, 20MHz, 16MHz, 13.34MHz...
+#define ESP32_I2S_CLOCK_SPEED (16000000UL)
 
 #define ESP32_FORUM_PINOUT 0
 #define SMARTLED_SHIELD_V0_PINOUT 1

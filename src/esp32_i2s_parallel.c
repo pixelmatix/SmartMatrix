@@ -186,49 +186,14 @@ void i2s_parallel_setup(i2s_dev_t *dev, const i2s_parallel_config_t *cfg) {
     dev->sample_rate_conf.tx_bits_mod=cfg->bits;
     dev->sample_rate_conf.rx_bck_div_num=4; //ToDo: Unsure about what this does...
     //dev->sample_rate_conf.tx_bck_div_num=4;
-    dev->sample_rate_conf.tx_bck_div_num=2; // datasheet says this must be 2 or greater (but 1 seems to work)
+    dev->sample_rate_conf.tx_bck_div_num=1; // datasheet says this must be 2 or greater (but 1 seems to work)
     
     dev->clkm_conf.val=0;
     dev->clkm_conf.clka_en=0;
     dev->clkm_conf.clkm_div_a=63;
     dev->clkm_conf.clkm_div_b=63;
-    //We ignore the possibility for fractional division here.
-    //dev->clkm_conf.clkm_div_num=80000000L/cfg->clkspeed_hz;
-    dev->clkm_conf.clkm_div_num=3; // datasheet says this must be 2 or greater (but lower values seem to work)
-    
-    // this combination results in 25MHz
-    //dev->sample_rate_conf.tx_bck_div_num=1; // datasheet says this must be 2 or greater (but 1 seems to work)
-    //dev->clkm_conf.clkm_div_num=2; // datasheet says this must be 2 or greater (but lower values seem to work)
-
-    // this combination is 20MHz
-    //dev->sample_rate_conf.tx_bck_div_num=1; // datasheet says this must be 2 or greater (but 1 seems to work)
-    //dev->clkm_conf.clkm_div_num=3; // datasheet says this must be 2 or greater (but lower values seem to work)
-
-    // 16 MHz
-    //dev->sample_rate_conf.tx_bck_div_num=1; // datasheet says this must be 2 or greater (but 1 seems to work)
-    //dev->clkm_conf.clkm_div_num=4; // datasheet says this must be 2 or greater (but lower values seem to work)
-
-    // 13MHz
-    //dev->sample_rate_conf.tx_bck_div_num=1; // datasheet says this must be 2 or greater (but 1 seems to work)
-    //dev->clkm_conf.clkm_div_num=5; // datasheet says this must be 2 or greater (but lower values seem to work)
-
-    // 11.3MHz
-    //dev->sample_rate_conf.tx_bck_div_num=1; // datasheet says this must be 2 or greater (but 1 seems to work)
-    //dev->clkm_conf.clkm_div_num=6; // datasheet says this must be 2 or greater (but lower values seem to work)
-
-    // 2,1 = 10MHz
-
-    // 13.x MHz
-    //dev->sample_rate_conf.tx_bck_div_num=2; // datasheet says this must be 2 or greater (but 1 seems to work)
-    //dev->clkm_conf.clkm_div_num=2; // datasheet says this must be 2 or greater (but lower values seem to work)
-
-    // 10MHz
-    //dev->sample_rate_conf.tx_bck_div_num=2; // datasheet says this must be 2 or greater (but 1 seems to work)
-    //dev->clkm_conf.clkm_div_num=3; // datasheet says this must be 2 or greater (but lower values seem to work)
-
-    // 8MHz
-    //dev->sample_rate_conf.tx_bck_div_num=2; // datasheet says this must be 2 or greater (but 1 seems to work)
-    //dev->clkm_conf.clkm_div_num=4; // datasheet says this must be 2 or greater (but lower values seem to work)
+    //We ignore the possibility for fractional division here, clkspeed_hz must round up for a fractional clock speed, must result in >= 2
+    dev->clkm_conf.clkm_div_num=80000000L/(cfg->clkspeed_hz + 1);
 
     dev->fifo_conf.val=0;
     dev->fifo_conf.rx_fifo_mod_force_en=1;
@@ -337,43 +302,8 @@ void i2s_parallel_setup_without_malloc(i2s_dev_t *dev, const i2s_parallel_config
     dev->clkm_conf.clka_en=0;
     dev->clkm_conf.clkm_div_a=63;
     dev->clkm_conf.clkm_div_b=63;
-    //We ignore the possibility for fractional division here.
-    //dev->clkm_conf.clkm_div_num=80000000L/cfg->clkspeed_hz;
-    dev->clkm_conf.clkm_div_num=4; // datasheet says this must be 2 or greater (but lower values seem to work)
-    
-    // this combination results in 25MHz
-    //dev->sample_rate_conf.tx_bck_div_num=1; // datasheet says this must be 2 or greater (but 1 seems to work)
-    //dev->clkm_conf.clkm_div_num=2; // datasheet says this must be 2 or greater (but lower values seem to work)
-
-    // this combination is 20MHz
-    //dev->sample_rate_conf.tx_bck_div_num=1; // datasheet says this must be 2 or greater (but 1 seems to work)
-    //dev->clkm_conf.clkm_div_num=3; // datasheet says this must be 2 or greater (but lower values seem to work)
-
-    // 16 MHz
-    //dev->sample_rate_conf.tx_bck_div_num=1; // datasheet says this must be 2 or greater (but 1 seems to work)
-    //dev->clkm_conf.clkm_div_num=4; // datasheet says this must be 2 or greater (but lower values seem to work)
-
-    // 13MHz
-    //dev->sample_rate_conf.tx_bck_div_num=1; // datasheet says this must be 2 or greater (but 1 seems to work)
-    //dev->clkm_conf.clkm_div_num=5; // datasheet says this must be 2 or greater (but lower values seem to work)
-
-    // 11.3MHz
-    //dev->sample_rate_conf.tx_bck_div_num=1; // datasheet says this must be 2 or greater (but 1 seems to work)
-    //dev->clkm_conf.clkm_div_num=6; // datasheet says this must be 2 or greater (but lower values seem to work)
-
-    // 2,1 = 10MHz
-
-    // 13.x MHz
-    //dev->sample_rate_conf.tx_bck_div_num=2; // datasheet says this must be 2 or greater (but 1 seems to work)
-    //dev->clkm_conf.clkm_div_num=2; // datasheet says this must be 2 or greater (but lower values seem to work)
-
-    // 10MHz
-    //dev->sample_rate_conf.tx_bck_div_num=2; // datasheet says this must be 2 or greater (but 1 seems to work)
-    //dev->clkm_conf.clkm_div_num=3; // datasheet says this must be 2 or greater (but lower values seem to work)
-
-    // 8MHz
-    //dev->sample_rate_conf.tx_bck_div_num=2; // datasheet says this must be 2 or greater (but 1 seems to work)
-    //dev->clkm_conf.clkm_div_num=4; // datasheet says this must be 2 or greater (but lower values seem to work)
+    //We ignore the possibility for fractional division here, clkspeed_hz must round up for a fractional clock speed, must result in >= 2
+    dev->clkm_conf.clkm_div_num=80000000L/(cfg->clkspeed_hz + 1);
 
     dev->fifo_conf.val=0;
     dev->fifo_conf.rx_fifo_mod_force_en=1;
