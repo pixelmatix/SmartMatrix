@@ -21,6 +21,7 @@
   * Only updating panel buffers when there are Layer changes, reducing CPU usage even further
   * Refresh buffer reduction in 1/2 if possible (only uint8_t size data is required in I2S buffer but uint16_t is currently used)
   * Add (optional?) printfs inside matrix.begin() to more clearly state how much memory is available and how much is used by SmartMatrix Library, now that dynamic memory is being used
+  * Need to add esp32 to Arduino library preferences so the IDE doesn't group the library into "INCOMPATIBLE"
 
 ## Overview
 
