@@ -34,6 +34,7 @@ template <typename RGB, unsigned int optionFlags>
 class SMLayerBackground : public SM_Layer {
     public:
         SMLayerBackground(RGB * buffer, uint16_t width, uint16_t height);
+        SMLayerBackground(uint16_t width, uint16_t height);
         void begin(void);
         void frameRefreshCallback();
         void fillRefreshRow(uint16_t hardwareY, rgb48 refreshRow[]);

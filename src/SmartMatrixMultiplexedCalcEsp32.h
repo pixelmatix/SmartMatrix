@@ -32,7 +32,7 @@ public:
     typedef typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowBitStruct rowBitStruct;
 
     // init
-    SmartMatrix3(frameStruct * frameBuffer);
+    SmartMatrix3(void);
     void begin(void);
     void addLayer(SM_Layer * newlayer);
 

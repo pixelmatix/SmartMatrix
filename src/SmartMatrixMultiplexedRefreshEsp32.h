@@ -47,7 +47,7 @@ public:
     typedef void (*matrix_calc_callback)(int lsbMsbTransitionBit);
 
     // init
-    SmartMatrix3RefreshMultiplexed(frameStruct * frameBuffer);
+    SmartMatrix3RefreshMultiplexed();
     static void begin(void);
 
     // refresh API

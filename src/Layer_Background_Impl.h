@@ -32,8 +32,30 @@ SMLayerBackground<RGB, optionFlags>::SMLayerBackground(RGB * buffer, uint16_t wi
     this->matrixHeight = height;
 }
 
+// call this when buffer should be sourced from malloc inside begin()
+template <typename RGB, unsigned int optionFlags>
+SMLayerBackground<RGB, optionFlags>::SMLayerBackground(uint16_t width, uint16_t height) {
+    this->matrixWidth = width;
+    this->matrixHeight = height;
+}
+
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackground<RGB, optionFlags>::begin(void) {
+#if defined(ESP32)
+    if(!backgroundBuffers[0] && !backgroundBuffers[1]) {
+        //printf("largest free block %d: \r\n", heap_caps_get_largest_free_block(MALLOC_CAP_DMA));
+        backgroundBuffers[0] = (RGB *)malloc(sizeof(RGB) * this->matrixWidth * this->matrixHeight);
+        assert("malloc error");
+        //printf("largest free block %d: \r\n", heap_caps_get_largest_free_block(MALLOC_CAP_DMA));
+        backgroundBuffers[1] = (RGB *)malloc(sizeof(RGB) * this->matrixWidth * this->matrixHeight);
+        assert("malloc error");
+        //printf("largest free block %d: \r\n", heap_caps_get_largest_free_block(MALLOC_CAP_DMA));
+        memset(backgroundBuffers[0], 0x00, sizeof(RGB) * this->matrixWidth * this->matrixHeight);
+        memset(backgroundBuffers[1], 0x00, sizeof(RGB) * this->matrixWidth * this->matrixHeight);
+        //printf("largest free block %d: \r\n", heap_caps_get_largest_free_block(MALLOC_CAP_DMA));
+    }
+#endif
+    
     currentDrawBuffer = 0;
     currentRefreshBuffer = 1;
     swapPending = false;
