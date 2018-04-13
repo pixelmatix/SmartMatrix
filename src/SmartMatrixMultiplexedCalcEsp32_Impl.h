@@ -358,6 +358,8 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
             }
 
             // TODO: insert latch data all at once at the end
+            // TODO: only insert latch data when PIXELS_PER_LATCH has been reached
+            // TODO: prefill latch and brightness data across all frames and only need to update when brightness changed?
             for(int k=matrixWidth; k < matrixWidth + CLKS_DURING_LATCH; k++) {
                 int v = 0;
                 // after data is shifted in, pulse latch for one clock cycle
