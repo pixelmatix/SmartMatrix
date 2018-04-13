@@ -35,6 +35,10 @@ SMLayerScrolling<RGB, optionFlags>::SMLayerScrolling(uint8_t * bitmap, uint16_t 
 }
 
 template <typename RGB, unsigned int optionFlags>
+void SMLayerScrolling<RGB, optionFlags>::begin(void) {
+}
+
+template <typename RGB, unsigned int optionFlags>
 void SMLayerScrolling<RGB, optionFlags>::frameRefreshCallback(void) {
     updateScrollingText();
 }

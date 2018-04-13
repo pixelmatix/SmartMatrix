@@ -39,6 +39,10 @@ SMLayerIndexed<RGB, optionFlags>::SMLayerIndexed(uint8_t * bitmap, uint16_t widt
 }
 
 template <typename RGB, unsigned int optionFlags>
+void SMLayerIndexed<RGB, optionFlags>::begin(void) {
+}
+
+template <typename RGB, unsigned int optionFlags>
 void SMLayerIndexed<RGB, optionFlags>::frameRefreshCallback(void) {
     handleBufferCopy();
 }

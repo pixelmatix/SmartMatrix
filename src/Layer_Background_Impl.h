@@ -23,19 +23,24 @@
 
 #include <stdlib.h>     
 
+// call when buffer is allocated outside of class
 template <typename RGB, unsigned int optionFlags>
 SMLayerBackground<RGB, optionFlags>::SMLayerBackground(RGB * buffer, uint16_t width, uint16_t height) {
-    backgroundBuffer = buffer;
+    backgroundBuffers[0] = buffer;
+    backgroundBuffers[1] = buffer + (width * height);
     this->matrixWidth = width;
     this->matrixHeight = height;
+}
 
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::begin(void) {
     currentDrawBuffer = 0;
     currentRefreshBuffer = 1;
     swapPending = false;
     font = (bitmap_font *) &apple3x5;
 
-    currentDrawBufferPtr = &backgroundBuffer[0 * (this->matrixWidth * this->matrixHeight)];
-    currentRefreshBufferPtr = &backgroundBuffer[1 * (this->matrixWidth * this->matrixHeight)];
+    currentDrawBufferPtr = backgroundBuffers[0];
+    currentRefreshBufferPtr = backgroundBuffers[1];
 }
 
 template <typename RGB, unsigned int optionFlags>
@@ -863,8 +868,8 @@ void SMLayerBackground<RGB, optionFlags>::handleBufferSwap(void) {
     currentRefreshBuffer = currentDrawBuffer;
     currentDrawBuffer = newDrawBuffer;
 
-    currentRefreshBufferPtr = &backgroundBuffer[currentRefreshBuffer * (this->matrixWidth * this->matrixHeight)];
-    currentDrawBufferPtr = &backgroundBuffer[currentDrawBuffer * (this->matrixWidth * this->matrixHeight)];
+    currentRefreshBufferPtr = backgroundBuffers[currentRefreshBuffer];
+    currentDrawBufferPtr = backgroundBuffers[currentDrawBuffer];
 
     swapPending = false;
 }
@@ -938,7 +943,7 @@ const RGB SMLayerBackground<RGB, optionFlags>::readPixel(int16_t x, int16_t y) {
 
 template<typename RGB, unsigned int optionFlags>
 RGB *SMLayerBackground<RGB, optionFlags>::getRealBackBuffer() {
-  return &backgroundBuffer[currentDrawBuffer * (this->matrixWidth * this->matrixHeight)];
+  return backgroundBuffers[currentDrawBuffer];
 }
 
 template<typename RGB, unsigned int optionFlags>

@@ -28,6 +28,7 @@
 
 class SM_Layer {
     public:
+        virtual void begin();
         virtual void frameRefreshCallback();
 
         // fills refreshRow with matrixWidth values - hardwareY is < matrixHeight, not localHeight
