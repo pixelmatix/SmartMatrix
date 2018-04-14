@@ -106,8 +106,8 @@ class SMLayerBackground : public SM_Layer {
         bitmap_font *font;
 
         // keeping track of drawing buffers
-        unsigned char currentDrawBuffer;
-        unsigned char currentRefreshBuffer;
+        volatile unsigned char currentDrawBuffer;
+        volatile unsigned char currentRefreshBuffer;
         volatile bool swapPending;
         void handleBufferSwap(void);
 };
