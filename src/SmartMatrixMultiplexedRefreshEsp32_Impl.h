@@ -260,8 +260,6 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
     // completely fill buffer with data before enabling DMA
     matrixCalcCallback(lsbMsbTransitionBit);
 
-    }
-
     // malloc the DMA linked list descriptors that i2s_parallel will need
     int desccount = numDescriptorsPerRow * ROWS_PER_FRAME;
     lldesc_t * dmadesc_a = (lldesc_t *)heap_caps_malloc(desccount * sizeof(lldesc_t), MALLOC_CAP_DMA);
