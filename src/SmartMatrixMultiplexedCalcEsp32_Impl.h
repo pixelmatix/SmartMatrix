@@ -29,7 +29,7 @@
 #define NUM_REFRESH_FRAMES_BEFORE_CALCULATING  2
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-uint8_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::calc_refreshRate = 120/NUM_REFRESH_FRAMES_BEFORE_CALCULATING
+uint8_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::calc_refreshRate = 120/NUM_REFRESH_FRAMES_BEFORE_CALCULATING;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 SM_Layer * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
