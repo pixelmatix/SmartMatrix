@@ -35,6 +35,12 @@ template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char pan
 SM_Layer * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+void * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::tempRow0Ptr;
+
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+void * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::tempRow1Ptr;
+
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 volatile bool SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBufferUnderrun = false;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
@@ -210,6 +216,17 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
         templayer = templayer->nextLayer;
     }
 
+#if defined(ESP32)
+    // malloc temporary buffers needed for loadMatrixBuffers
+    if((COLOR_DEPTH_BITS == 12) || (COLOR_DEPTH_BITS == 16)){
+        tempRow0Ptr = malloc(sizeof(rgb48) * PIXELS_PER_LATCH);
+        tempRow1Ptr = malloc(sizeof(rgb48) * PIXELS_PER_LATCH);
+    } else {
+        tempRow0Ptr = malloc(sizeof(rgb24) * PIXELS_PER_LATCH);
+        tempRow1Ptr = malloc(sizeof(rgb24) * PIXELS_PER_LATCH);
+    }
+#endif
+
     SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setMatrixCalculationsCallback(matrixCalculations);
     SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin();
 }
@@ -221,13 +238,18 @@ template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char pan
 INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers48(frameStruct * frameBuffer, int currentRow, int lsbMsbTransitionBit) {
     int i;
 
+#if defined(ESP32)
+    // use buffers malloc'd previously
+    rgb48 * tempRow0 = (rgb48*)tempRow0Ptr;
+    rgb48 * tempRow1 = (rgb48*)tempRow1Ptr;
+#else
     // static to avoid putting large buffer on the stack
     static rgb48 tempRow0[PIXELS_PER_LATCH];
     static rgb48 tempRow1[PIXELS_PER_LATCH];
-
+#endif
     // clear buffer to prevent garbage data showing through transparent layers
-    memset(tempRow0, 0x00, sizeof(tempRow0));
-    memset(tempRow1, 0x00, sizeof(tempRow1));
+    memset(tempRow0, 0x00, sizeof(rgb48) * PIXELS_PER_LATCH);
+    memset(tempRow1, 0x00, sizeof(rgb48) * PIXELS_PER_LATCH);
 
     // get pixel data from layers
     SM_Layer * templayer = SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
@@ -405,13 +427,19 @@ template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char pan
 INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers24(frameStruct * frameBuffer, int currentRow, int lsbMsbTransitionBit) {
     int i;
 
+#if defined(ESP32)
+    // use buffers malloc'd previously
+    rgb24 * tempRow0 = (rgb24*)tempRow0Ptr;
+    rgb24 * tempRow1 = (rgb24*)tempRow1Ptr;
+#else
     // static to avoid putting large buffer on the stack
     static rgb24 tempRow0[PIXELS_PER_LATCH];
     static rgb24 tempRow1[PIXELS_PER_LATCH];
+#endif
 
     // clear buffer to prevent garbage data showing through transparent layers
-    memset(tempRow0, 0x00, sizeof(tempRow0));
-    memset(tempRow1, 0x00, sizeof(tempRow1));
+    memset(tempRow0, 0x00, sizeof(rgb24) * PIXELS_PER_LATCH);
+    memset(tempRow1, 0x00, sizeof(rgb24) * PIXELS_PER_LATCH);
 
     // get pixel data from layers
     SM_Layer * templayer = SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;

@@ -58,6 +58,9 @@ public:
 private:
     static SM_Layer * baseLayer;
 
+    static void * tempRow0Ptr;
+    static void * tempRow1Ptr;
+
     // functions for refreshing
     static void loadMatrixBuffers(int lsbMsbTransitionBit);
     static void loadMatrixBuffers48(frameStruct * currentFrameDataPtr, int currentRow, int lsbMsbTransitionBit);
