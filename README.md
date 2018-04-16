@@ -16,12 +16,13 @@
   * Chaining of panels to create multiple rows is broken
   * /32 Scan panels
   * Refresh rate isn't being passed to the Layers correctly, so scrolling text may not be scrolling at the speed you expect
-  * AnimatedGIFs sketch hasn't been tested
   * Fully decoupling Layer refresh rate from Panel refresh rate.
   * Only updating panel buffers when there are Layer changes, reducing CPU usage even further
   * Refresh buffer reduction in 1/2 if possible (only uint8_t size data is required in I2S buffer but uint16_t is currently used)
   * Add (optional?) printfs inside matrix.begin() to more clearly state how much memory is available and how much is used by SmartMatrix Library, now that dynamic memory is being used
   * Need to add esp32 to Arduino library preferences so the IDE doesn't group the library into "INCOMPATIBLE"
+  * AnimatedGIFs sketch is a bit fragile because of the ESP32 SD library 
+    * In general, resetting a sketch while the SD library is connected to the SD card can result communication with the SD card not working after reset - fix it with a power cycle
 
 ## Overview
 
