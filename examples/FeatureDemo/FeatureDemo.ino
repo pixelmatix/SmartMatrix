@@ -1372,6 +1372,10 @@ void loop() {
         scrollingLayer.setOffsetFromTop(0);
         scrollingLayer.start("Change Refresh Rate", 1);
 
+#if defined(ESP32)
+        scrollingLayer.start("Changing Refresh Rate is Currently Broken in ESP32", 1);
+#endif
+
         backgroundLayer.fillScreen({0,0,0});
         drawBitmap(0,0,&colorwheel);
         backgroundLayer.swapBuffers();
