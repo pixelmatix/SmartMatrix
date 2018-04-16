@@ -12,7 +12,11 @@
   * Memory must be dynamically allocated for the ESP32, so the global buffer sizes printed by Arduino compilation are hiding a significant amount of memory that won't be available for your sketch
 
 * Not Yet Fully Working
-  * Brightness must be set before calling matrix.begin(), and cannot be changed during the sketch
+  * Need a ~10ms delay between matrix.begin() and drawing to backgroundLayer or starting scrolling text (or drawing to indexed layer?) or initial drawing will not be displayed
+  * Still seeing some crashes related to memory usage - try replacing all significant buffers in SmartMatrix Library with malloc for ESP32
+    - IndexedLayer
+    - ScrollingText
+    - Background Layer loadMatrixBuffers()
   * Chaining of panels to create multiple rows is broken
   * /32 Scan panels
   * Refresh rate isn't being passed to the Layers correctly, so scrolling text may not be scrolling at the speed you expect
