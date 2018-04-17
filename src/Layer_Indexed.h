@@ -36,6 +36,7 @@ template <typename RGB, unsigned int optionFlags>
 class SMLayerIndexed : public SM_Layer {
     public:
         SMLayerIndexed(uint8_t * bitmap, uint16_t width, uint16_t height);
+        SMLayerIndexed(uint16_t width, uint16_t height);
         void begin(void);
         void frameRefreshCallback();
         void fillRefreshRow(uint16_t hardwareY, rgb48 refreshRow[]);

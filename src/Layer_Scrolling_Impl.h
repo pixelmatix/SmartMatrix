@@ -35,6 +35,15 @@ SMLayerScrolling<RGB, optionFlags>::SMLayerScrolling(uint8_t * bitmap, uint16_t 
 }
 
 template <typename RGB, unsigned int optionFlags>
+SMLayerScrolling<RGB, optionFlags>::SMLayerScrolling(uint16_t width, uint16_t height) {
+    scrollingBitmap = (uint8_t *)malloc(width * (height / 8));
+    memset(scrollingBitmap, 0x00, width * (height / 8));
+    this->matrixWidth = width;
+    this->matrixHeight = height;
+    this->textcolor = rgb48(0xffff, 0xffff, 0xffff);
+}
+
+template <typename RGB, unsigned int optionFlags>
 void SMLayerScrolling<RGB, optionFlags>::begin(void) {
 }
 

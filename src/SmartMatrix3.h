@@ -73,7 +73,28 @@
         static DMAMEM SmartMatrix3RefreshMultiplexed<pwm_depth, width, height, panel_type, option_flags>::rowDataStruct rowsDataBuffer[buffer_rows]; \
         SmartMatrix3RefreshMultiplexed<pwm_depth, width, height, panel_type, option_flags> matrix_name##Refresh(buffer_rows, rowsDataBuffer); \
         SmartMatrix3<pwm_depth, width, height, panel_type, option_flags> matrix_name(buffer_rows, rowsDataBuffer)
+
+    #define SMARTMATRIX_APA_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
+        static DMAMEM SmartMatrixAPA102Refresh<pwm_depth, width, height, panel_type, option_flags>::frameDataStruct frameDataBuffer[buffer_rows]; \
+        SmartMatrixAPA102Refresh<pwm_depth, width, height, panel_type, option_flags> matrix_name##Refresh(buffer_rows, frameDataBuffer); \
+        SmartMatrixApaCalc<pwm_depth, width, height, panel_type, option_flags> matrix_name(buffer_rows, frameDataBuffer)
+
+        #define SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(layer_name, width, height, storage_depth, scrolling_options) \
+            typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
+            static uint8_t layer_name##Bitmap[width * (height / 8)];                                              \
+            static SMLayerScrolling<RGB_TYPE(storage_depth), scrolling_options> layer_name(layer_name##Bitmap, width, height)  
+
+        #define SMARTMATRIX_ALLOCATE_INDEXED_LAYER(layer_name, width, height, storage_depth, indexed_options) \
+            typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
+            static uint8_t layer_name##Bitmap[2 * width * (height / 8)];                                              \
+            static SMLayerIndexed<RGB_TYPE(storage_depth), indexed_options> layer_name(layer_name##Bitmap, width, height)  
+
+        #define SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(layer_name, width, height, storage_depth, background_options) \
+            typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
+            static RGB_TYPE(storage_depth) layer_name##Bitmap[2*width*height];                                        \
+            static SMLayerBackground<RGB_TYPE(storage_depth), background_options> layer_name(layer_name##Bitmap, width, height)  
 #else
+    // SmartMatrix Co-processor test code, assume not working at this point
     #define SMARTMATRIX_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
         static DMAMEM SmartMatrix3CoprocessorSend<pwm_depth, width, height, panel_type, option_flags>::rowDataStruct rowsDataBuffer[buffer_rows]; \
         SmartMatrix3CoprocessorSend<pwm_depth, width, height, panel_type, option_flags> matrix_name##Refresh(buffer_rows, rowsDataBuffer); \
@@ -85,32 +106,18 @@
     #define SMARTMATRIX_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
         SmartMatrix3RefreshMultiplexed<pwm_depth, width, height, panel_type, option_flags> matrix_name##Refresh; \
         SmartMatrix3<pwm_depth, width, height, panel_type, option_flags> matrix_name
-#endif
 
-#define SMARTMATRIX_APA_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
-    static DMAMEM SmartMatrixAPA102Refresh<pwm_depth, width, height, panel_type, option_flags>::frameDataStruct frameDataBuffer[buffer_rows]; \
-    SmartMatrixAPA102Refresh<pwm_depth, width, height, panel_type, option_flags> matrix_name##Refresh(buffer_rows, frameDataBuffer); \
-    SmartMatrixApaCalc<pwm_depth, width, height, panel_type, option_flags> matrix_name(buffer_rows, frameDataBuffer)
-
-#define SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(layer_name, width, height, storage_depth, scrolling_options) \
-    typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
-    static uint8_t layer_name##Bitmap[width * (height / 8)];                                              \
-    static SMLayerScrolling<RGB_TYPE(storage_depth), scrolling_options> layer_name(layer_name##Bitmap, width, height)  
-
-#define SMARTMATRIX_ALLOCATE_INDEXED_LAYER(layer_name, width, height, storage_depth, indexed_options) \
-    typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
-    static uint8_t layer_name##Bitmap[2 * width * (height / 8)];                                              \
-    static SMLayerIndexed<RGB_TYPE(storage_depth), indexed_options> layer_name(layer_name##Bitmap, width, height)  
-
-#if defined(ESP32)
     #define SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(layer_name, width, height, storage_depth, background_options) \
         typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
         static SMLayerBackground<RGB_TYPE(storage_depth), background_options> layer_name(width, height)  
-#else
-    #define SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(layer_name, width, height, storage_depth, background_options) \
+
+    #define SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(layer_name, width, height, storage_depth, scrolling_options) \
         typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
-        static RGB_TYPE(storage_depth) layer_name##Bitmap[2*width*height];                                        \
-        static SMLayerBackground<RGB_TYPE(storage_depth), background_options> layer_name(layer_name##Bitmap, width, height)  
+        static SMLayerScrolling<RGB_TYPE(storage_depth), scrolling_options> layer_name(width, height)  
+
+    #define SMARTMATRIX_ALLOCATE_INDEXED_LAYER(layer_name, width, height, storage_depth, indexed_options) \
+        typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
+        static SMLayerIndexed<RGB_TYPE(storage_depth), indexed_options> layer_name(width, height)  
 #endif
 
 // platform-specific
