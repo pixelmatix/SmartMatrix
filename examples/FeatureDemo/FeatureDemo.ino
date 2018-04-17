@@ -49,7 +49,7 @@ void setup() {
   // initialize the digital pin as an output.
   pinMode(ledPin, OUTPUT);
 
-  Serial.begin(38400);
+  Serial.begin(115200);
 
   matrix.addLayer(&backgroundLayer); 
   matrix.addLayer(&scrollingLayer); 
