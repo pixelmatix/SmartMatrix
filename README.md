@@ -10,7 +10,7 @@
   * The method of refreshing the panel is different from Teensy.  With the current method, there is a strong tradeoff between color depth and refresh rate vs maximum brightness.  If you set a higher color depth or refresh rate, you may find that the panel isn't refreshing as bright as it was previously.
   * Refresh Rate is calculated very granularly, in powers of 2, and the calculation is based on color depth and matrix size, and will double until it reaches a maximum value, or exceeds the minimum value you set (or the default of 120 Hz).  e.g. If the minimum refresh rate is set to 120, and the refresh rate calculated for your color depth is 115 Hz (very close to 120 Hz but still lower), the library will double it and your refresh rate will be 230Hz, sacrificing maximum brightness and using up.  Refresh Rate details are printed the serial terminal so you can tweak Sketch parameters to get the best refresh rate for your situation.
   * kDmaBufferRows is not used by the ESP32 port
-  * Memory must be dynamically allocated for the ESP32, so the global buffer sizes printed by Arduino compilation are hiding a significant amount of memory that won't be available for your sketch
+  * Memory must be dynamically allocated for the ESP32, so the global buffer sizes printed by Arduino compilation are hiding a significant amount of memory that won't be available for your sketch.  matrix.begin() includes printfs() with debug information on memory usage and memory available
 
 * Not Yet Fully Working
   * Still seeing some crashes related to memory usage early in sketch when other memory intensive objects (e.g. WiFi library) are included in the sketch?  Need to reproduce and track down
