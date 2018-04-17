@@ -189,6 +189,8 @@ template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char pan
 void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setCalcRefreshRateDivider(uint8_t newDivider) {
     // TODO: improve so fractional results don't screw up the calc_refreshRate divider
     // TODO: improve to get actual refresh rate from refresh class
+    if(newDivider == 0)
+        newDivider = 1;
 
     calc_refreshRate = (calc_refreshRate * calc_refreshRateDivider) / newDivider;
     calc_refreshRateDivider = newDivider;
