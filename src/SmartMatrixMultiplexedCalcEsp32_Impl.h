@@ -372,53 +372,52 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 } else {
                     //Save the calculated value to the bitplane memory in reverse order to account for I2S Tx FIFO mode1 ordering
                     if(k%2){
-                        p->data[k-1] = v;
+                        p->data[(i+k)-1] = v;
                     } else {
-                        p->data[k+1] = v;
+                        p->data[(i+k)+1] = v;
                     }
-                }
-            }
-
-            // TODO: insert latch data all at once at the end
-            // TODO: only insert latch data when PIXELS_PER_LATCH has been reached
-            // TODO: prefill latch and brightness data across all frames and only need to update when brightness changed?
-            for(int k=matrixWidth; k < matrixWidth + CLKS_DURING_LATCH; k++) {
-                int v = 0;
-                // after data is shifted in, pulse latch for one clock cycle
-                if(k == matrixWidth) {
-                    v|=BIT_LAT;
-                }
-
-                //Do not show image while the line bits are changing
-                v|=BIT_OE;
-
-                // set ADDX values to high while latch is high, keep them high while latch drops to clock it in to ADDX latch
-                if(k >= matrixWidth) {               
-                    if (currentRow & 0x01) v|=BIT_R1;
-                    if (currentRow & 0x02) v|=BIT_G1;
-                    if (currentRow & 0x04) v|=BIT_B1;
-                    if (currentRow & 0x08) v|=BIT_R2;
-                    if (currentRow & 0x10) v|=BIT_G2;
-                    // reserve B2 for OE SWITCH
-#ifdef OEPWM_TEST_ENABLE
-                    //if(j == 0) {
-                    // set the MUX to output PWM_OE instead of DMA_OE, for the latches corresponding to bit 0 - OEPWM_THRESHOLD_BIT
-                    if(j < OEPWM_THRESHOLD_BIT) {
-                        // now setting brightness for LSB, use PWM OE
-                        v|=BIT_B2;
-                    }
-#endif
-                }
-
-                //Save the calculated value to the bitplane memory in reverse order to account for I2S Tx FIFO mode1 ordering
-                if(k%2){
-                    p->data[k-1] = v;
-                } else {
-                    p->data[k+1] = v;
                 }
             }
 
             i += matrixWidth;
+        }
+
+        // TODO: insert latch data for all color depth bits all at once at the end, saving a few cycles?
+        // TODO: prefill latch across all frames during begin() and only need to update when brightness/refreshrate changed?
+        for(int k=PIXELS_PER_LATCH; k < PIXELS_PER_LATCH + CLKS_DURING_LATCH; k++) {
+            int v = 0;
+            // after data is shifted in, pulse latch for one clock cycle
+            if(k == PIXELS_PER_LATCH) {
+                v|=BIT_LAT;
+            }
+
+            //Do not show image while the line bits are changing
+            v|=BIT_OE;
+
+            // set ADDX values to high while latch is high, keep them high while latch drops to clock it in to ADDX latch
+            if(k >= PIXELS_PER_LATCH) {               
+                if (currentRow & 0x01) v|=BIT_R1;
+                if (currentRow & 0x02) v|=BIT_G1;
+                if (currentRow & 0x04) v|=BIT_B1;
+                if (currentRow & 0x08) v|=BIT_R2;
+                if (currentRow & 0x10) v|=BIT_G2;
+                // reserve B2 for OE SWITCH
+#ifdef OEPWM_TEST_ENABLE
+                //if(j == 0) {
+                // set the MUX to output PWM_OE instead of DMA_OE, for the latches corresponding to bit 0 - OEPWM_THRESHOLD_BIT
+                if(j < OEPWM_THRESHOLD_BIT) {
+                    // now setting brightness for LSB, use PWM OE
+                    v|=BIT_B2;
+                }
+#endif
+            }
+
+            //Save the calculated value to the bitplane memory in reverse order to account for I2S Tx FIFO mode1 ordering
+            if(k%2){
+                p->data[k-1] = v;
+            } else {
+                p->data[k+1] = v;
+            }
         }
     }
 }
@@ -546,43 +545,42 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 } else {
                     //Save the calculated value to the bitplane memory in reverse order to account for I2S Tx FIFO mode1 ordering
                     if(k%2){
-                        p->data[k-1] = v;
+                        p->data[(i+k)-1] = v;
                     } else {
-                        p->data[k+1] = v;
+                        p->data[(i+k)+1] = v;
                     }
                 }
             }
 
-            // TODO: insert latch data all at once at the end
-            for(int k=matrixWidth; k < matrixWidth + CLKS_DURING_LATCH; k++) {
-                int v = 0;
-                // after data is shifted in, pulse latch for one clock cycle
-                if(k == matrixWidth) {
-                    v|=BIT_LAT;
-                }
+            i += matrixWidth;
+        }
 
-                //Do not show image while the line bits are changing
-                v|=BIT_OE;
-
-                // set ADDX values to high while latch is high, keep them high while latch drops to clock it in to ADDX latch
-                if(k >= matrixWidth) {               
-                    if (currentRow & 0x01) v|=BIT_R1;
-                    if (currentRow & 0x02) v|=BIT_G1;
-                    if (currentRow & 0x04) v|=BIT_B1;
-                    if (currentRow & 0x08) v|=BIT_R2;
-                    if (currentRow & 0x10) v|=BIT_G2;
-                    // reserve B2 for OE SWITCH
-                }
-
-                //Save the calculated value to the bitplane memory in reverse order to account for I2S Tx FIFO mode1 ordering
-                if(k%2){
-                    p->data[k-1] = v;
-                } else {
-                    p->data[k+1] = v;
-                }
+        for(int k=PIXELS_PER_LATCH; k < PIXELS_PER_LATCH + CLKS_DURING_LATCH; k++) {
+            int v = 0;
+            // after data is shifted in, pulse latch for one clock cycle
+            if(k == PIXELS_PER_LATCH) {
+                v|=BIT_LAT;
             }
 
-            i += matrixWidth;
+            //Do not show image while the line bits are changing
+            v|=BIT_OE;
+
+            // set ADDX values to high while latch is high, keep them high while latch drops to clock it in to ADDX latch
+            if(k >= PIXELS_PER_LATCH) {               
+                if (currentRow & 0x01) v|=BIT_R1;
+                if (currentRow & 0x02) v|=BIT_G1;
+                if (currentRow & 0x04) v|=BIT_B1;
+                if (currentRow & 0x08) v|=BIT_R2;
+                if (currentRow & 0x10) v|=BIT_G2;
+                // reserve B2 for OE SWITCH
+            }
+
+            //Save the calculated value to the bitplane memory in reverse order to account for I2S Tx FIFO mode1 ordering
+            if(k%2){
+                p->data[k-1] = v;
+            } else {
+                p->data[k+1] = v;
+            }
         }
     }
 }
