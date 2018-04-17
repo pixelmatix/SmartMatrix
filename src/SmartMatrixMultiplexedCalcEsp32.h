@@ -40,6 +40,7 @@ public:
     void setRotation(rotationDegrees rotation);
     void setBrightness(uint8_t newBrightness);
     void setRefreshRate(uint8_t newRefreshRate);
+    void setCalcRefreshRateDivider(uint8_t newDivider);
 
     // get info
     uint16_t getScreenWidth(void) const;
@@ -73,6 +74,7 @@ private:
     static int brightness;
     static rotationDegrees rotation;
     static uint8_t calc_refreshRate;   
+    static uint8_t calc_refreshRateDivider;
     static bool dmaBufferUnderrunSinceLastCheck;
     static bool refreshRateLowered;
     static bool refreshRateChanged;

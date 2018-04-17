@@ -26,10 +26,11 @@
 #define INLINE __attribute__( ( always_inline ) ) inline
 
 // to avoid 100% CPU usage, we by default don't calculate on every frame.  Calc refresh rate will be a fraction of Refresh refresh rate
-#define NUM_REFRESH_FRAMES_BEFORE_CALCULATING  2
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+uint8_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::calc_refreshRateDivider = 2;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-uint8_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::calc_refreshRate = 120/NUM_REFRESH_FRAMES_BEFORE_CALCULATING;
+uint8_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::calc_refreshRate = 120/SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::calc_refreshRateDivider;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 SM_Layer * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
@@ -97,7 +98,7 @@ template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char pan
 void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalculations(int lsbMsbTransitionBit) {
     static int refreshFramesSinceLastCalculation = 0;
 
-    if(++refreshFramesSinceLastCalculation < NUM_REFRESH_FRAMES_BEFORE_CALCULATING)
+    if(++refreshFramesSinceLastCalculation < SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::calc_refreshRateDivider)
         return;
 
     refreshFramesSinceLastCalculation = 0;
@@ -178,10 +179,20 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRefreshRate(uint8_t newRefreshRate) {
-    calc_refreshRate = newRefreshRate/NUM_REFRESH_FRAMES_BEFORE_CALCULATING;
+    calc_refreshRate = newRefreshRate/SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::calc_refreshRateDivider;
 
     refreshRateChanged = true;
     SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRefreshRate(newRefreshRate);
+}
+
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setCalcRefreshRateDivider(uint8_t newDivider) {
+    // TODO: improve so fractional results don't screw up the calc_refreshRate divider
+    // TODO: improve to get actual refresh rate from refresh class
+
+    calc_refreshRate = (calc_refreshRate * calc_refreshRateDivider) / newDivider;
+    calc_refreshRateDivider = newDivider;
+    refreshRateChanged = true;
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
