@@ -360,6 +360,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         o0.p0g1 = (currentRow & 0x02) ? 1 : 0;
         o0.p0b1 = (currentRow & 0x04) ? 1 : 0;
         o0.p0r2 = (currentRow & 0x08) ? 1 : 0;
+        o0.p0g2 = (currentRow & 0x10) ? 1 : 0;
 
         for(int j=0; j<LATCHES_PER_ROW; j++) {
             currentRowDataPtr->rowbits[j].rowAddress = o0.word;
@@ -483,6 +484,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         o0.p0g1 = (currentRow & 0x02) ? 1 : 0;
         o0.p0b1 = (currentRow & 0x04) ? 1 : 0;
         o0.p0r2 = (currentRow & 0x08) ? 1 : 0;
+        o0.p0g2 = (currentRow & 0x10) ? 1 : 0;
 
         for(int j=0; j<LATCHES_PER_ROW; j++) {
             currentRowDataPtr->rowbits[j].rowAddress = o0.word;

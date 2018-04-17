@@ -394,11 +394,11 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 
                 // set ADDX values to high while latch is high, keep them high while latch drops to clock it in to ADDX latch
                 if(k >= matrixWidth) {               
-                    if (currentRow&1) v|=BIT_R1;
-                    if (currentRow&2) v|=BIT_G1;
-                    if (currentRow&4) v|=BIT_B1;
-                    if (currentRow&8) v|=BIT_R2;
-                    // reserve G2 for currentRow&16
+                    if (currentRow & 0x01) v|=BIT_R1;
+                    if (currentRow & 0x02) v|=BIT_G1;
+                    if (currentRow & 0x04) v|=BIT_B1;
+                    if (currentRow & 0x08) v|=BIT_R2;
+                    if (currentRow & 0x10) v|=BIT_G2;
                     // reserve B2 for OE SWITCH
 #ifdef OEPWM_TEST_ENABLE
                     //if(j == 0) {
@@ -566,11 +566,11 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 
                 // set ADDX values to high while latch is high, keep them high while latch drops to clock it in to ADDX latch
                 if(k >= matrixWidth) {               
-                    if (currentRow&1) v|=BIT_R1;
-                    if (currentRow&2) v|=BIT_G1;
-                    if (currentRow&4) v|=BIT_B1;
-                    if (currentRow&8) v|=BIT_R2;
-                    // reserve G2 for currentRow&16
+                    if (currentRow & 0x01) v|=BIT_R1;
+                    if (currentRow & 0x02) v|=BIT_G1;
+                    if (currentRow & 0x04) v|=BIT_B1;
+                    if (currentRow & 0x08) v|=BIT_R2;
+                    if (currentRow & 0x10) v|=BIT_G2;
                     // reserve B2 for OE SWITCH
                 }
 
