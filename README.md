@@ -4,7 +4,8 @@
 
 * Changes from Teensy Platform
   * Because of more RAM available and the DMA architecture on the ESP32, two entire refresh frames are used.  Refreshing the panel can take up little to no CPU usage with some more SmartMatrix changes.
-  * Layer update rate is decoupled from the panel refresh rate.  Currently as a hack to avoid calculations climbing to 100% CPU usage, the Layer refresh rate is set to half of the panel refresh rate.  e.g. if you set matrix.refreshRate() to 120, and repeatedly call backgroundLayer.swapBuffers(), it will swap at max 60 times per second.
+  * Layer update rate is decoupled from the panel refresh rate.  By default, the Layer refresh rate is set to half of the panel refresh rate.  e.g. if you set matrix.refreshRate() to 120, and repeatedly call backgroundLayer.swapBuffers(), it will swap at max 60 times per second.
+  - Call matrix.setCalcRefreshRateDivider(uint8_t newDivider) to change the division from the default of 2 to something else.  Be careful with setting to 1 with a high refresh rate, as you can end up with no CPU left to run your sketch (this will look like a blank display)
   * Refresh rate is not set exactly, it is a minimum value.  It must be set before calling matrix.begin(), or the default 120 Hz will be used
   * The method of refreshing the panel is different from Teensy.  With the current method, there is a strong tradeoff between color depth and refresh rate vs maximum brightness.  If you set a higher color depth or refresh rate, you may find that the panel isn't refreshing as bright as it was previously.
   * Refresh Rate is calculated very granularly, in powers of 2, and the calculation is based on color depth and matrix size, and will double until it reaches a maximum value, or exceeds the minimum value you set (or the default of 120 Hz).  e.g. If the minimum refresh rate is set to 120, and the refresh rate calculated for your color depth is 115 Hz (very close to 120 Hz but still lower), the library will double it and your refresh rate will be 230Hz, sacrificing maximum brightness and using up.  Refresh Rate details are printed the serial terminal so you can tweak Sketch parameters to get the best refresh rate for your situation.
@@ -12,22 +13,17 @@
   * Memory must be dynamically allocated for the ESP32, so the global buffer sizes printed by Arduino compilation are hiding a significant amount of memory that won't be available for your sketch
 
 * Not Yet Fully Working
+  * Still seeing some crashes related to memory usage early in sketch when other memory intensive objects (e.g. WiFi library) are included in the sketch?  Need to reproduce and track down
   * Need a ~10ms delay between matrix.begin() and drawing to backgroundLayer or starting scrolling text (or drawing to indexed layer?) or initial drawing will not be displayed
-  * Still seeing some crashes related to memory usage - try replacing all significant buffers in SmartMatrix Library with malloc for ESP32
-    - IndexedLayer
-    - ScrollingText
-    - Background Layer loadMatrixBuffers()
-  * Chaining of panels to create multiple rows is broken
-  * /32 Scan panels
-  * Refresh rate isn't being passed to the Layers correctly, so scrolling text may not be scrolling at the speed you expect
-  * Fully decoupling Layer refresh rate from Panel refresh rate.
-  * Only updating panel buffers when there are Layer changes, reducing CPU usage even further
+  * Safety check to automatically lower calculation refresh rate and free up CPU for sketch if divider is set too low for a high refresh rate
+  * matrix.getRefreshRate() doesn't return the actual refresh rate
   * Refresh buffer reduction in 1/2 if possible (only uint8_t size data is required in I2S buffer but uint16_t is currently used)
-  * Add (optional?) printfs inside matrix.begin() to more clearly state how much memory is available and how much is used by SmartMatrix Library, now that dynamic memory is being used
-  * Need to add esp32 to Arduino library preferences so the IDE doesn't group the library into "INCOMPATIBLE"
   * AnimatedGIFs sketch is a bit fragile because of the ESP32 SD library 
     * In general, resetting a sketch while the SD library is connected to the SD card can result communication with the SD card not working after reset - fix it with a power cycle
-
+  * Only updating panel buffers when there are Layer changes, reducing CPU usage even further
+  * APA102 strip support (bringing to parity with the new Teensy APA102 driver that's in this branch)
+  * C-shaped Chaining of panels to create multiple rows is broken (Z-shaped is working)
+  
 ## Overview
 
 The SmartMatrix Library is designed to make it easy to display graphics and scrolling text on multiplexed RGB LED matrix panels connected to a Teensy 3.
