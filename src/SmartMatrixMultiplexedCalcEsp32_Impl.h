@@ -210,11 +210,18 @@ bool SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin(void)
 {
+    printf("\r\nStarting SmartMatrix Mallocs\r\n");
+    printf("Heap Memory Available: %d bytes total, %d bytes largest free block: \r\n", heap_caps_get_free_size(0), heap_caps_get_largest_free_block(0));
+    printf("DMA Memory Available: %d bytes total, %d bytes largest free block: \r\n", heap_caps_get_free_size(MALLOC_CAP_DMA), heap_caps_get_largest_free_block(MALLOC_CAP_DMA));
+
     SM_Layer * templayer = baseLayer;
     while(templayer) {
         templayer->begin();
         templayer = templayer->nextLayer;
     }
+
+    printf("SmartMatrix Layers Allocated from Heap:\r\n");
+    printf("Heap Memory Available: %d bytes total, %d bytes largest free block: \r\n", heap_caps_get_free_size(0), heap_caps_get_largest_free_block(0));
 
 #if defined(ESP32)
     // malloc temporary buffers needed for loadMatrixBuffers

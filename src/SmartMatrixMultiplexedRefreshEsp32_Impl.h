@@ -176,8 +176,13 @@ template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char pan
 void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin(void) {
     cbInit(&dmaBuffer, ESP32_NUM_FRAME_BUFFERS);
 
+    printf("Starting SmartMatrix DMA Mallocs\r\n");
+
     matrixUpdateFrames = (frameStruct *)heap_caps_malloc(sizeof(frameStruct) * ESP32_NUM_FRAME_BUFFERS, MALLOC_CAP_DMA);
     assert("can't allocate SmartMatrix frameStructs");
+
+    printf("Allocating refresh buffer:\r\nDMA Memory Available: %d bytes total, %d bytes largest free block: \r\n", heap_caps_get_free_size(MALLOC_CAP_DMA), heap_caps_get_largest_free_block(MALLOC_CAP_DMA));
+
 
     // setup debug output
 #ifdef DEBUG_PINS_ENABLED
@@ -218,13 +223,13 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
         return;
     }
 
-    printf("lsbMsbTransitionBit of %d will fit in RAM\r\n", lsbMsbTransitionBit);
+    printf("Raised lsbMsbTransitionBit to %d/%d to fit in RAM\r\n", lsbMsbTransitionBit, COLOR_DEPTH_BITS - 1);
 
     // calculate the lowest LSBMSB_TRANSITION_BIT value that will fit in memory that will meet or exceed the configured refresh rate
     while(1) {
         int psPerClock = 1000000000000UL/ESP32_I2S_CLOCK_SPEED;
         int nsPerLatch = ((PIXELS_PER_LATCH + CLKS_DURING_LATCH) * psPerClock) / 1000;
-        printf("ns per latch: %d: \r\n", nsPerLatch);        
+        //printf("ns per latch: %d: \r\n", nsPerLatch);        
 
         // add time to shift out LSBs + LSB-MSB transition bit - this ignores fractions...
         int nsPerRow = COLOR_DEPTH_BITS * nsPerLatch;
@@ -233,10 +238,10 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
         for(int i=lsbMsbTransitionBit + 1; i<COLOR_DEPTH_BITS; i++)
             nsPerRow += (1<<(i - lsbMsbTransitionBit - 1)) * (COLOR_DEPTH_BITS - i) * nsPerLatch;
 
-        printf("nsPerRow: %d: \r\n", nsPerRow);        
+        //printf("nsPerRow: %d: \r\n", nsPerRow);        
 
         int nsPerFrame = nsPerRow * ROWS_PER_FRAME;
-        printf("nsPerFrame: %d: \r\n", nsPerFrame);        
+        //printf("nsPerFrame: %d: \r\n", nsPerFrame);        
 
         int actualRefreshRate = 1000000000UL/(nsPerFrame);
 
@@ -251,14 +256,18 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
             break;
     }
 
+    printf("Raised lsbMsbTransitionBit to %d/%d to meet minimum refresh rate\r\n", lsbMsbTransitionBit, COLOR_DEPTH_BITS - 1);
+
+    // completely fill buffer with data before enabling DMA
+    matrixCalcCallback(lsbMsbTransitionBit);
+
     // lsbMsbTransition Bit is now finalized - redo descriptor count in case it changed to hit min refresh rate
     numDescriptorsPerRow = 1;
     for(int i=lsbMsbTransitionBit + 1; i<COLOR_DEPTH_BITS; i++) {
         numDescriptorsPerRow += 1<<(i - lsbMsbTransitionBit - 1);
     }
 
-    // completely fill buffer with data before enabling DMA
-    matrixCalcCallback(lsbMsbTransitionBit);
+    printf("Descriptors for lsbMsbTransitionBit %d/%d with %d rows require %d bytes of DMA RAM\r\n", lsbMsbTransitionBit, COLOR_DEPTH_BITS - 1, ROWS_PER_FRAME, 2 * numDescriptorsPerRow * ROWS_PER_FRAME * sizeof(lldesc_t));
 
     // malloc the DMA linked list descriptors that i2s_parallel will need
     int desccount = numDescriptorsPerRow * ROWS_PER_FRAME;
@@ -274,6 +283,10 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
         printf("can't malloc");
         return;
     }
+
+    printf("SmartMatrix Mallocs Complete\r\n");
+    printf("Heap Memory Available: %d bytes total, %d bytes largest free block: \r\n", heap_caps_get_free_size(0), heap_caps_get_largest_free_block(0));
+    printf("DMA Memory Available: %d bytes total, %d bytes largest free block: \r\n", heap_caps_get_free_size(MALLOC_CAP_DMA), heap_caps_get_largest_free_block(MALLOC_CAP_DMA));
 
     lldesc_t *prevdmadesca = 0;
     lldesc_t *prevdmadescb = 0;
