@@ -26,7 +26,6 @@
 
 #include "esp32_i2s_parallel.h"
 
-#define CLKS_DURING_LATCH   2
 #define ESP32_NUM_FRAME_BUFFERS   2
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
