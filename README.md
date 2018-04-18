@@ -25,6 +25,10 @@
   * APA102 strip support (bringing to parity with the new Teensy APA102 driver that's in this branch)
   * C-shaped Chaining of panels to create multiple rows is broken (Z-shaped is working)
   * Refresh fails at higher display sizes: 128x32 is largest that has been seen working
+  * Not all examples work on the ESP32 platform
+    - SpectrumAnalyzer requires Teensy
+    - MatrixClock hasn't been tested
+    - FASTLED_Panel_Plus_APA hasn't been tested
   
 ## Overview
 
