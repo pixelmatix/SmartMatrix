@@ -2,6 +2,10 @@
 
 ## Changes for ESP32
 
+*Overview*
+
+The SmartMatrix Library ESP32 port at a low level is based on Sprite_TM's [ESP32 I2S Parallel example](https://esp32.com/viewtopic.php?f=17&t=3188).  The ESP32 can continuously shift data from RAM through the I2S peripheral in parallel to GPIO pins, without using up CPU cycles.  This wasn't obvious to me from reading through the reference manual, and this peripheral doesn't have great documentation or example code besides Sprite_TM's example, so this was an invaluable start to the project.  It was a challenge to move from the example with 21-bit color refresh to approaching the SmartMatrix Library's performance on the Teensy with up to 48-bit color and high refresh rates.  The example code didn't scale well in RAM usage or refresh rate when increasing color depth.  The architecture of the ESP32 and the Freescale processors used in the Teensy 3 family are so different a lot of the tricks I used on the Teensy 3 wouldn't port over.  There are some significant changes from the Teensy Platform, but in general, sketches that used the Teensy SmartMatrix Library should work with the ESP32 SmartMatrix Library.
+
 * Changes from Teensy Platform
   * Because of more RAM available and the DMA architecture on the ESP32, two entire refresh frames are used.  Refreshing the panel can take up little to no CPU usage with some more SmartMatrix changes.
   * Layer update rate is decoupled from the panel refresh rate.  By default, the Layer refresh rate is set to half of the panel refresh rate.  e.g. if you set matrix.refreshRate() to 120, and repeatedly call backgroundLayer.swapBuffers(), it will swap at max 60 times per second.
