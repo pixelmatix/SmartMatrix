@@ -36,7 +36,7 @@ const int defaultBrightness = 100*(255/100);    // full brightness
 const SM_RGB clockColor = {0xff, 0xff, 0xff};
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   delay(200);
   Serial.println("DS1307RTC Read Test");
   Serial.println("-------------------");

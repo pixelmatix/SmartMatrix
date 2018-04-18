@@ -56,8 +56,8 @@ uint8_t noise[kMatrixWidth][kMatrixHeight];
 
 void setup() {
   // uncomment the following lines if you want to see FPS count information
-  // Serial.begin(38400);
   // Serial.println("resetting!");
+  Serial.begin(115200);
   delay(3000);
 
   matrix.addLayer(&backgroundLayer); 

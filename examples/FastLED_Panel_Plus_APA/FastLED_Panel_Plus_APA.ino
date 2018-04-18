@@ -76,7 +76,7 @@ uint8_t noise[MAX_DIMENSION_OVERALL][MAX_DIMENSION_OVERALL];
 
 void setup() {
   // uncomment the following lines if you want to see FPS count information
-  // Serial.begin(38400);
+  // Serial.begin(115200);
   // Serial.println("resetting!");
   delay(3000);
 

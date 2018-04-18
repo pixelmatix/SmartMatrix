@@ -69,7 +69,7 @@ byte status = 0;
 
 void setup()
 {
-    Serial.begin(9600);
+    Serial.begin(115200);
 
     // Initialize Matrix
     matrix.addLayer(&backgroundLayer); 
