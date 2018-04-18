@@ -342,6 +342,26 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
             for(int k=0; k < matrixWidth; k++) {
                 int v=0;
 
+#if (CLKS_DURING_LATCH == 0)
+                // if there is no latch to hold address, output ADDX lines directly to GPIO and latch data at end of cycle
+                int gpioRowAddress = currentRow;
+                // normally output current rows ADDX, special case for LSB, output previous row's ADDX (as previous row is being displayed for one latch cycle)
+                if(j == 0)
+                    gpioRowAddress = currentRow-1;
+
+                if (gpioRowAddress & 0x01) v|=BIT_A;
+                if (gpioRowAddress & 0x02) v|=BIT_B;
+                if (gpioRowAddress & 0x04) v|=BIT_C;
+                if (gpioRowAddress & 0x08) v|=BIT_D;
+                if (gpioRowAddress & 0x10) v|=BIT_E;
+
+                // need to disable OE before latch to hide row transition
+                if((i+k) >= PIXELS_PER_LATCH-2) v|=BIT_OE;
+
+                // drive latch while shifting out last bit of RGB data
+                if((i+k) == PIXELS_PER_LATCH-1) v|=BIT_LAT;
+#endif
+
                 // turn off OE after brightness value is reached when displaying MSBs
                 // MSBs always output normal brightness
                 // LSB (!j) outputs normal brightness as MSB from previous row is being displayed
@@ -404,6 +424,8 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 
         // TODO: insert latch data for all color depth bits all at once at the end, saving a few cycles?
         // TODO: prefill latch across all frames during begin() and only need to update when brightness/refreshrate changed?
+#if (CLKS_DURING_LATCH > 0)
+        // if external latch is used to hold ADDX lines, load the ADDX latch and latch the RGB data here
         for(int k=PIXELS_PER_LATCH; k < PIXELS_PER_LATCH + CLKS_DURING_LATCH; k++) {
             int v = 0;
             // after data is shifted in, pulse latch for one clock cycle
@@ -439,6 +461,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 p->data[k+1] = v;
             }
         }
+#endif
     }
 }
 
@@ -531,6 +554,26 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
             for(int k=0; k < matrixWidth; k++) {
                 int v=0;
 
+#if (CLKS_DURING_LATCH == 0)
+                // if there is no latch to hold address, output ADDX lines directly to GPIO and latch data at end of cycle
+                int gpioRowAddress = currentRow;
+                // normally output current rows ADDX, special case for LSB, output previous row's ADDX (as previous row is being displayed for one latch cycle)
+                if(j == 0)
+                    gpioRowAddress = currentRow-1;
+
+                if (gpioRowAddress & 0x01) v|=BIT_A;
+                if (gpioRowAddress & 0x02) v|=BIT_B;
+                if (gpioRowAddress & 0x04) v|=BIT_C;
+                if (gpioRowAddress & 0x08) v|=BIT_D;
+                if (gpioRowAddress & 0x10) v|=BIT_E;
+
+                // need to disable OE before latch to hide row transition
+                if((i+k) >= PIXELS_PER_LATCH-2) v|=BIT_OE;
+
+                // drive latch while shifting out last bit of RGB data
+                if((i+k) == PIXELS_PER_LATCH-1) v|=BIT_LAT;
+#endif
+
                 // turn off OE after brightness value is reached when displaying MSBs
                 // MSBs always output normal brightness
                 // LSB (!j) outputs normal brightness as MSB from previous row is being displayed
@@ -575,6 +618,8 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
             i += matrixWidth;
         }
 
+#if (CLKS_DURING_LATCH > 0)
+        // if external latch is used to hold ADDX lines, load the ADDX latch and latch the RGB data here
         for(int k=PIXELS_PER_LATCH; k < PIXELS_PER_LATCH + CLKS_DURING_LATCH; k++) {
             int v = 0;
             // after data is shifted in, pulse latch for one clock cycle
@@ -602,6 +647,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 p->data[k+1] = v;
             }
         }
+#endif
     }
 }
 
