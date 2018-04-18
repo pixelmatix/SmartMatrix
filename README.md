@@ -2,7 +2,7 @@
 
 ## Changes for ESP32
 
-*Overview*
+### Overview
 
 The SmartMatrix Library ESP32 port at a low level is based on Sprite_TM's [ESP32 I2S Parallel example](https://esp32.com/viewtopic.php?f=17&t=3188).  The ESP32 can continuously shift data from RAM through the I2S peripheral in parallel to GPIO pins, without using up CPU cycles.  This wasn't obvious to me from reading through the reference manual, and this peripheral doesn't have great documentation or example code besides Sprite_TM's example, so this was an invaluable start to the project.  It was a challenge to move from the example with 21-bit color refresh to approaching the SmartMatrix Library's performance on the Teensy with up to 48-bit color and high refresh rates.  The example code didn't scale well in RAM usage or refresh rate when increasing color depth.  The architecture of the ESP32 and the Freescale processors used in the Teensy 3 family are so different a lot of the tricks I used on the Teensy 3 wouldn't port over.  There are some significant changes from the Teensy Platform, but in general, sketches that used the Teensy SmartMatrix Library should work with the ESP32 SmartMatrix Library.
 
@@ -33,7 +33,25 @@ The SmartMatrix Library ESP32 port at a low level is based on Sprite_TM's [ESP32
     - SpectrumAnalyzer requires Teensy
     - MatrixClock hasn't been tested
     - FASTLED_Panel_Plus_APA hasn't been tested
-  
+  * Extensive testing on Teensy code in this branch
+    - The Teensy portion of the library should work identical to how it did before, but the code has been extensively refactored.  There may be some errors.
+    - There is a new APA102 driver using SmartMatrix Library to get pseudo-13-bit color out of the normally 8-bit per color APA102 LEDs.  See FastLED_Panel_Plus_APA example
+
+### Hardware
+
+The library has only been tested with Espressif's ESP32 Dev Kit C.
+
+You can hook the ESP32 Dev Kit C directly up to a panel, following the circuit that's documented in code in Sprite_TM's example, and in the `MatrixHardware_ESP32_V0.h` header.  You'll need to change the definition of `GPIOPINOUT` in that header to `ESP32_FORUM_PINOUT` if you're not using the SmartLED Shield circuit.
+
+Some panels won't work with the 3.3V levels output by the ESP32, and you'll need 5V level shifting buffers like the shields I designed use.  Additionally, the shields have some other features that make them preferable to using just an ESP32 (and optionally level shifting buffers).
+
+- The 5x ADDX lines are output using the RGB data lines and stored using an external latch, freeing up more pins on the ESP32
+- With the addition of the external latch, there are only 8 bits of data to output via I2S, and so each clock cycle's data fits into a uint8_t instead of uint16_t.  I'm hoping the I2S peripheral will be able to operate in 8-bit mode and the amount of RAM used to store refresh buffers can be cut in half
+- There's an additional circuit that uses the MCPWM peripheral to output short OE pulses - shorter than can be output by the I2S peripheral - enabling displaying at least an extra bit's worth of color depth at high refresh rates or lower brightnesses.
+- Wiring is so much easier
+
+Schematicls, Eagle PCB files, and BOMs are in the `extras/hardware` folder.  There's both a THT and SMT shield, neither have been fully tested.  I've tested the THT version excluding the APA102 LED circuit.  A contributor to the project has tested the matrix driving portion of the SMT shield.  The THT shield was used for initial library dev and won't be maintained after a V1 of the SMT shield is released.  You can find some parts for the THT shield in the SMT BOM listed under a "THT" column.  I will be selling an assembled SmartLED Shield for ESP32 V1 for sale, hopefully through Adafruit, when it is available.
+
 ## Overview
 
 The SmartMatrix Library is designed to make it easy to display graphics and scrolling text on multiplexed RGB LED matrix panels connected to a Teensy 3.
