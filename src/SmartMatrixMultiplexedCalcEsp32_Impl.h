@@ -355,8 +355,8 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 if (gpioRowAddress & 0x08) v|=BIT_D;
                 if (gpioRowAddress & 0x10) v|=BIT_E;
 
-                // need to disable OE before latch to hide row transition
-                if((i+k) >= PIXELS_PER_LATCH-2) v|=BIT_OE;
+                // need to disable OE after latch to hide row transition
+                if((i+k) == 0) v|=BIT_OE;
 
                 // drive latch while shifting out last bit of RGB data
                 if((i+k) == PIXELS_PER_LATCH-1) v|=BIT_LAT;
@@ -567,8 +567,8 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 if (gpioRowAddress & 0x08) v|=BIT_D;
                 if (gpioRowAddress & 0x10) v|=BIT_E;
 
-                // need to disable OE before latch to hide row transition
-                if((i+k) >= PIXELS_PER_LATCH-2) v|=BIT_OE;
+                // need to disable OE after latch to hide row transition
+                if((i+k) == 0) v|=BIT_OE;
 
                 // drive latch while shifting out last bit of RGB data
                 if((i+k) == PIXELS_PER_LATCH-1) v|=BIT_LAT;
