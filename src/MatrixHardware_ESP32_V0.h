@@ -160,7 +160,7 @@
     #define CLK_PIN 26
 
     #define GPIO_PWM0A_OUT GPIO_NUM_33
-    #define GPIO_SYNC0_IN  GPIO_NUM_35
+    #define GPIO_SYNC0_IN  GPIO_NUM_32
 #endif
 
 //#define DEBUG_PINS_ENABLED
