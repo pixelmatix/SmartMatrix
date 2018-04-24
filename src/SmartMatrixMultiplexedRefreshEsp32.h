@@ -47,7 +47,7 @@ public:
 
     // init
     SmartMatrix3RefreshMultiplexed();
-    static void begin(void);
+    static void begin(uint32_t dmaRamToKeepFreeBytes = 0);
 
     // refresh API
     static frameStruct * getNextFrameBufferPtr(void);

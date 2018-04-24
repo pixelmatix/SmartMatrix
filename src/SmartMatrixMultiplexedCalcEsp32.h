@@ -33,7 +33,7 @@ public:
 
     // init
     SmartMatrix3(void);
-    void begin(void);
+    void begin(uint32_t dmaRamToKeepFreeBytes = 0);
     void addLayer(SM_Layer * newlayer);
 
     // configuration

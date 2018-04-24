@@ -18,6 +18,8 @@ The SmartMatrix Library ESP32 port at a low level is based on Sprite_TM's [ESP32
 
 * Not Yet Fully Working
   * Still seeing some crashes related to memory usage early in sketch when other memory intensive objects (e.g. WiFi library) are included in the sketch?  Need to reproduce and track down
+  - May see a rolling reset before the sketch can do much
+  - May see some libraries failing, e.g. in AnimatedGIFs sketch with a large panel and high color depth, calling SD.begin() after matrix.begin() results in "No SD Card" error, likely because there was not enough RAM (specifically DMA-capable RAM) available for the SD library.  Moving the matrix.begin() call later works as the SmartMatrix Library adapts its DMA descriptor memory usage to the amount of DMA RAM available.  Also using the new `dmaRamToKeepFreeBytes` parameter when calling matrix.begin() will try to keep that amount of DMA RAM free.  The SD Library requires around 28000 bytes free, so you can call `matrix.begin(28000)` before SD.begin().
   * Need a ~10ms delay between matrix.begin() and drawing to backgroundLayer or starting scrolling text (or drawing to indexed layer?) or initial drawing will not be displayed or might be corrupted (e.g. scrolling text shown on top of previous position of text)
   * Refresh buffer reduction in 1/2 if possible (only uint8_t size data is required in I2S buffer but uint16_t is currently used when used with SmartLED Shield circuit)
   * AnimatedGIFs sketch is a bit fragile because of the ESP32 SD library 

@@ -181,7 +181,7 @@ uint16_t SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight,
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin(void) {
+void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin(uint32_t dmaRamToKeepFreeBytes) {
     cbInit(&dmaBuffer, ESP32_NUM_FRAME_BUFFERS);
 
     printf("Starting SmartMatrix DMA Mallocs\r\n");
@@ -213,9 +213,9 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
         int ramrequired = numDescriptorsPerRow * ROWS_PER_FRAME * ESP32_NUM_FRAME_BUFFERS * sizeof(lldesc_t);
         int largestblockfree = heap_caps_get_largest_free_block(MALLOC_CAP_DMA);
 
-        printf("lsbMsbTransitionBit of %d requires %d RAM, %d available: \r\n", lsbMsbTransitionBit, ramrequired, largestblockfree);
+        printf("lsbMsbTransitionBit of %d requires %d RAM, %d available, leaving %d free: \r\n", lsbMsbTransitionBit, ramrequired, largestblockfree, largestblockfree - ramrequired);
 
-        if(ramrequired < largestblockfree)
+        if(ramrequired < (largestblockfree - dmaRamToKeepFreeBytes))
             break;
 
         if(lsbMsbTransitionBit < COLOR_DEPTH_BITS - 1)
