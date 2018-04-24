@@ -39,13 +39,13 @@ public:
     // configuration
     void setRotation(rotationDegrees rotation);
     void setBrightness(uint8_t newBrightness);
-    void setRefreshRate(uint8_t newRefreshRate);
+    void setRefreshRate(uint16_t newRefreshRate);
     void setCalcRefreshRateDivider(uint8_t newDivider);
 
     // get info
     uint16_t getScreenWidth(void) const;
     uint16_t getScreenHeight(void) const;
-    uint8_t getRefreshRate(void);
+    uint16_t getRefreshRate(void);
     bool getdmaBufferUnderrunFlag(void);
     bool getRefreshRateLoweredFlag(void);
 
@@ -73,7 +73,7 @@ private:
     static volatile bool dmaBufferUnderrun;
     static int brightness;
     static rotationDegrees rotation;
-    static uint8_t calc_refreshRate;   
+    static uint16_t calc_refreshRate;   
     static uint8_t calc_refreshRateDivider;
     static bool dmaBufferUnderrunSinceLastCheck;
     static bool refreshRateLowered;

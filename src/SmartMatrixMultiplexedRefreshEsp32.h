@@ -54,7 +54,8 @@ public:
     static void writeFrameBuffer(uint8_t currentFrame);
     static void recoverFromDmaUnderrun(void);
     static bool isFrameBufferFree(void);
-    static void setRefreshRate(uint8_t newRefreshRate);
+    static void setRefreshRate(uint16_t newRefreshRate);
+    static uint16_t getRefreshRate(void);
     static void setBrightness(uint8_t newBrightness);
     static void setMatrixCalculationsCallback(matrix_calc_callback f);
 
@@ -65,7 +66,8 @@ private:
 
     static int dimmingFactor;
     static const int dimmingMaximum = 255;
-    static uint8_t refreshRate;
+    static uint16_t refreshRate;
+    static uint16_t minRefreshRate;
     static uint8_t lsbMsbTransitionBit;
     static frameStruct * matrixUpdateFrames;
 

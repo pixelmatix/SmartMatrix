@@ -110,7 +110,10 @@ template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char pan
 CircularBuffer SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-uint8_t SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refreshRate = 120;
+uint16_t SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refreshRate = 120;
+
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+uint16_t SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::minRefreshRate = 120;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 uint8_t SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::lsbMsbTransitionBit = 0;
@@ -165,11 +168,16 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRefreshRate(uint8_t newRefreshRate) {
+void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRefreshRate(uint16_t newRefreshRate) {
     if(newRefreshRate > MIN_REFRESH_RATE)
-        refreshRate = newRefreshRate;
+        minRefreshRate = newRefreshRate;
     else
-        refreshRate = MIN_REFRESH_RATE;
+        minRefreshRate = MIN_REFRESH_RATE;
+}
+
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+uint16_t SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getRefreshRate(void) {
+    return refreshRate;
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
@@ -245,9 +253,11 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
 
         int actualRefreshRate = 1000000000UL/(nsPerFrame);
 
-        printf("lsbMsbTransitionBit of %d gives %d Hz refresh, %d requested: \r\n", lsbMsbTransitionBit, actualRefreshRate, refreshRate);        
+        refreshRate = actualRefreshRate;
 
-        if(actualRefreshRate >= refreshRate)
+        printf("lsbMsbTransitionBit of %d gives %d Hz refresh, %d requested: \r\n", lsbMsbTransitionBit, actualRefreshRate, minRefreshRate);        
+
+        if(actualRefreshRate >= minRefreshRate)
             break;
 
         if(lsbMsbTransitionBit < COLOR_DEPTH_BITS - 1)
