@@ -19,7 +19,6 @@ The SmartMatrix Library ESP32 port at a low level is based on Sprite_TM's [ESP32
 * Not Yet Fully Working
   * Still seeing some crashes related to memory usage early in sketch when other memory intensive objects (e.g. WiFi library) are included in the sketch?  Need to reproduce and track down
   * Need a ~10ms delay between matrix.begin() and drawing to backgroundLayer or starting scrolling text (or drawing to indexed layer?) or initial drawing will not be displayed or might be corrupted (e.g. scrolling text shown on top of previous position of text)
-  * Safety check to automatically lower calculation refresh rate and free up CPU for sketch if divider is set too low for a high refresh rate
   * Refresh buffer reduction in 1/2 if possible (only uint8_t size data is required in I2S buffer but uint16_t is currently used when used with SmartLED Shield circuit)
   * AnimatedGIFs sketch is a bit fragile because of the ESP32 SD library 
     * In general, resetting a sketch while the SD library is connected to the SD card can result communication with the SD card not working after reset - fix it with a power cycle

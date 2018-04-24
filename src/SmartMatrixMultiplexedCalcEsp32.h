@@ -40,7 +40,6 @@ public:
     void setRotation(rotationDegrees rotation);
     void setBrightness(uint8_t newBrightness);
     void setRefreshRate(uint16_t newRefreshRate);
-    void setCalcRefreshRateDivider(uint8_t newDivider);
 
     // get info
     uint16_t getScreenWidth(void) const;
@@ -48,6 +47,7 @@ public:
     uint16_t getRefreshRate(void);
     bool getdmaBufferUnderrunFlag(void);
     bool getRefreshRateLoweredFlag(void);
+    void setMaxCalculationCpuPercentage(uint8_t newMaxCpuPercentage);
 
     // debug
     void countFPS(void);
@@ -55,6 +55,8 @@ public:
     // functions called by ISR
     static void matrixCalculations(int lsbMsbTransitionBit);
     static void dmaBufferUnderrunCallback(void);
+    static void setCalcRefreshRateDivider(uint8_t newDivider);
+    static uint8_t getCalcRefreshRateDivider(void);
 
 private:
     static SM_Layer * baseLayer;
@@ -76,6 +78,7 @@ private:
     static uint16_t calc_refreshRate;   
     static uint8_t calc_refreshRateDivider;
     static bool dmaBufferUnderrunSinceLastCheck;
+    static uint8_t maxCalcCpuPercentage;
     static bool refreshRateLowered;
     static bool refreshRateChanged;
 };

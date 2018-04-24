@@ -191,7 +191,6 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
 
     printf("Allocating refresh buffer:\r\nDMA Memory Available: %d bytes total, %d bytes largest free block: \r\n", heap_caps_get_free_size(MALLOC_CAP_DMA), heap_caps_get_largest_free_block(MALLOC_CAP_DMA));
 
-
     // setup debug output
 #ifdef DEBUG_PINS_ENABLED
     gpio_pad_select_gpio(DEBUG_1_GPIO);
