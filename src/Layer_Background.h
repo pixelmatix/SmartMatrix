@@ -90,6 +90,8 @@ class SMLayerBackground : public SM_Layer {
 
         RGB *getCurrentRefreshRow(uint16_t y);
 
+        void loadPixelToDrawBuffer(int16_t hwx, int16_t hwy, const RGB& color);
+        const RGB readPixelFromDrawBuffer(int16_t hwx, int16_t hwy);
         void getBackgroundRefreshPixel(uint16_t x, uint16_t y, RGB &refreshPixel);
         bool getForegroundRefreshPixel(uint16_t x, uint16_t y, RGB &xyPixel);
 

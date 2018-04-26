@@ -119,6 +119,19 @@ void SMLayerBackground<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb
 extern volatile int totalFramesToInterpolate;
 extern volatile int framesInterpolated;
 
+#define INLINE __attribute__( ( always_inline ) ) inline
+
+template <typename RGB, unsigned int optionFlags>
+INLINE void SMLayerBackground<RGB, optionFlags>::loadPixelToDrawBuffer(int16_t hwx, int16_t hwy, const RGB& color) {
+    currentDrawBufferPtr[(hwy * this->matrixWidth) + hwx] = color;
+}
+
+template <typename RGB, unsigned int optionFlags>
+INLINE const RGB SMLayerBackground<RGB, optionFlags>::readPixelFromDrawBuffer(int16_t hwx, int16_t hwy) {
+    RGB pixel = currentDrawBufferPtr[(hwy * this->matrixWidth) + hwx];
+    return pixel;
+}
+
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackground<RGB, optionFlags>::drawPixel(int16_t x, int16_t y, const RGB& color) {
     int hwx, hwy;
@@ -142,7 +155,7 @@ void SMLayerBackground<RGB, optionFlags>::drawPixel(int16_t x, int16_t y, const 
         hwy = (this->matrixHeight - 1) - x;
     }
 
-    currentDrawBufferPtr[(hwy * this->matrixWidth) + hwx] = color;
+    loadPixelToDrawBuffer(hwx, hwy, color);
 }
 
 #define SWAPint(X,Y) { \
@@ -157,7 +170,7 @@ void SMLayerBackground<RGB, optionFlags>::drawHardwareHLine(uint16_t x0, uint16_
     int i;
 
     for (i = x0; i <= x1; i++) {
-        currentDrawBufferPtr[(y * this->matrixWidth) + i] = color;
+        loadPixelToDrawBuffer(i, y, color);
     }
 }
 
@@ -167,7 +180,7 @@ void SMLayerBackground<RGB, optionFlags>::drawHardwareVLine(uint16_t x, uint16_t
     int i;
 
     for (i = y0; i <= y1; i++) {
-        currentDrawBufferPtr[(i * this->matrixWidth) + x] = color;
+        loadPixelToDrawBuffer(x, i, color);
     }
 }
 
@@ -976,7 +989,7 @@ const RGB SMLayerBackground<RGB, optionFlags>::readPixel(int16_t x, int16_t y) {
         hwy = (this->matrixHeight - 1) - x;
     }
 
-    return currentDrawBufferPtr[(hwy * this->matrixWidth) + hwx];
+    return readPixelFromDrawBuffer(hwx, hwy);
 }
 
 template<typename RGB, unsigned int optionFlags>
