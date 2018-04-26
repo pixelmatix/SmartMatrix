@@ -15,6 +15,7 @@ The SmartMatrix Library ESP32 port at a low level is based on Sprite_TM's [ESP32
   * Refresh Rate is calculated very granularly, in powers of 2, and the calculation is based on color depth and matrix size, and will double until it reaches a maximum value, or exceeds the minimum value you set (or the default of 120 Hz).  e.g. If the minimum refresh rate is set to 120, and the refresh rate calculated for your color depth is 115 Hz (very close to 120 Hz but still lower), the library will double it and your refresh rate will be 230Hz, sacrificing maximum brightness and using up more CPU to update the frames more frequently.  Refresh Rate details are printed to the serial terminal so you can tweak Sketch parameters to get the best refresh rate for your situation.
   * kDmaBufferRows is not used by the ESP32 port
   * Memory must be dynamically allocated for the ESP32, so the global buffer sizes printed by Arduino compilation are hiding a significant amount of memory that won't be available for your sketch.  matrix.begin() includes printfs() with debug information on memory usage and memory available
+  - matrix.begin() can be called with an optional argument of minimum number of bytes of DMA capable memory to keep free (so other code can malloc them after matrix.begin()).  More details below.
 
 * Not Yet Fully Working
   * Still seeing some crashes related to memory usage early in sketch when other memory intensive objects (e.g. WiFi library) are included in the sketch?  Need to reproduce and track down
@@ -24,10 +25,11 @@ The SmartMatrix Library ESP32 port at a low level is based on Sprite_TM's [ESP32
   * Refresh buffer reduction in 1/2 if possible (only uint8_t size data is required in I2S buffer but uint16_t is currently used when used with SmartLED Shield circuit)
   * AnimatedGIFs sketch is a bit fragile because of the ESP32 SD library 
     * In general, resetting a sketch while the SD library is connected to the SD card can result communication with the SD card not working after reset - fix it with a power cycle
+  * AnumatedGIFs sketch could have performance improved: there's a lot of time spent waiting for a swapBuffers() call to complete, as it needs to wait for the next frame transition, which is just wasting time if the frame rate is set relatively low to allow more sketch CPU time for GIF decoding).
   * Only updating panel buffers when there are Layer changes, reducing CPU usage even further
   * APA102 strip support (bringing to parity with the new Teensy APA102 driver that's in this branch)
   * C-shaped Chaining of panels to create multiple rows is broken (Z-shaped is working)
-  * Refresh fails at higher display sizes: 128x32 is largest that has been seen working
+  * Refresh fails at higher display sizes: 128x32 is largest that has been seen working.  Not sure about cause of failure
   * Not all examples work on the ESP32 platform
     - SpectrumAnalyzer requires Teensy
     - MatrixClock hasn't been tested
@@ -50,7 +52,7 @@ Some panels won't work with the 3.3V levels output by the ESP32, and you'll need
 - There's an additional circuit that uses the MCPWM peripheral to output short OE pulses - shorter than can be output by the I2S peripheral - enabling displaying at least an extra bit's worth of color depth at high refresh rates or lower brightnesses.
 - Wiring is so much easier
 
-Schematicls, Eagle PCB files, and BOMs are in the `extras/hardware` folder.  There's both a THT and SMT shield, neither have been fully tested.  I've tested the THT version excluding the APA102 LED circuit.  A contributor to the project has tested the matrix driving portion of the SMT shield.  The THT shield was used for initial library dev and won't be maintained after a V1 of the SMT shield is released.  You can find some parts for the THT shield in the SMT BOM listed under a "THT" column.  I will be selling an assembled SmartLED Shield for ESP32 V1 for sale, hopefully through Adafruit, when it is available.
+Schematics, Eagle PCB files, and BOMs are in the `extras/hardware` folder.  There's both a THT and SMT shield, neither have been fully tested.  I've tested the THT version excluding the APA102 LED circuit.  A contributor to the project has tested the matrix driving portion of the SMT shield.  The THT shield was used for initial library dev and won't be maintained after a V1 of the SMT shield is released.  You can find some parts for the THT shield in the SMT BOM listed under a "THT" column.  If there is sufficient interest, I can finalize SmartLED Shield for ESP32 V1, and make an assembled version for sale.
 
 ## Overview
 
