@@ -53,7 +53,8 @@ public:
     void countFPS(void);
 
     // functions called by ISR
-    static void matrixCalculations(int lsbMsbTransitionBit);
+    static void matrixCalculations(void);
+    static void matrixCalculationsSignal(int newLsbMsbTransitionBit);
     static void dmaBufferUnderrunCallback(void);
     static void setCalcRefreshRateDivider(uint8_t newDivider);
     static uint8_t getCalcRefreshRateDivider(void);
@@ -68,6 +69,7 @@ private:
     static void loadMatrixBuffers(int lsbMsbTransitionBit);
     static void loadMatrixBuffers48(frameStruct * currentFrameDataPtr, int currentRow, int lsbMsbTransitionBit);
     static void loadMatrixBuffers24(frameStruct * currentFrameDataPtr, int currentRow, int lsbMsbTransitionBit);
+    static void calcTask(void* pvParameters);
 
     // configuration
     static volatile bool brightnessChange;
@@ -81,6 +83,9 @@ private:
     static uint8_t maxCalcCpuPercentage;
     static bool refreshRateLowered;
     static bool refreshRateChanged;
+    static uint8_t lsbMsbTransitionBit;
+    static TaskHandle_t calcTaskHandle;
+    static SemaphoreHandle_t calcTaskSemaphore;
 };
 
 #endif

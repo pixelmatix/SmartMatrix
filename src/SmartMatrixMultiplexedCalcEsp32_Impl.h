@@ -58,6 +58,9 @@ template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char pan
 bool SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refreshRateChanged = true;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+uint8_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::lsbMsbTransitionBit;
+
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::SmartMatrix3(void) {
 }
 
@@ -98,15 +101,32 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalculations(int lsbMsbTransitionBit) {
+void IRAM_ATTR SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalculationsSignal(int newLsbMsbTransitionBit) {
     static int refreshFramesSinceLastCalculation = 0;
-    static unsigned long lastMillisStart;
-    static unsigned long lastMillisEnd;
 
     if(++refreshFramesSinceLastCalculation < calc_refreshRateDivider)
         return;
 
     refreshFramesSinceLastCalculation = 0;
+
+    lsbMsbTransitionBit = newLsbMsbTransitionBit;
+
+    static BaseType_t xHigherPriorityTaskWoken;
+    xHigherPriorityTaskWoken = pdFALSE;
+    // Unblock the task by releasing the semaphore.
+    xSemaphoreGiveFromISR(calcTaskSemaphore, &xHigherPriorityTaskWoken );
+    if( xHigherPriorityTaskWoken != pdFALSE )
+    {
+        // We can force a context switch here.  Context switching from an
+        // ISR uses port specific syntax.  Check the demo task for your port
+        // to find the syntax required.
+    }
+}
+
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalculations() {
+    static unsigned long lastMillisStart;
+    static unsigned long lastMillisEnd;
 
     // safety check - if using up too much CPU, increase refresh rate divider to give more time for sketch to run
     unsigned long calculationCpuTime = lastMillisEnd - lastMillisStart;
@@ -252,6 +272,25 @@ bool SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+TaskHandle_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::calcTaskHandle;
+
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+SemaphoreHandle_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::calcTaskSemaphore;
+
+/* Task2 with priority 2 */
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::calcTask(void* pvParameters)
+{        
+    while(1) {   
+        if( xSemaphoreTake(calcTaskSemaphore, portMAX_DELAY) == pdTRUE ) {
+            matrixCalculations();
+        }
+    }
+}
+
+#define MATRIX_CALC_TASK_PRIORTY 2
+
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin(uint32_t dmaRamToKeepFreeBytes)
 {
     printf("\r\nStarting SmartMatrix Mallocs\r\n");
@@ -280,11 +319,14 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     }
 #endif
 
-    SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setMatrixCalculationsCallback(matrixCalculations);
+    SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setMatrixCalculationsCallback(matrixCalculationsSignal);
     SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin(dmaRamToKeepFreeBytes);
 
     // refresh rate is now set, update calc refresh rate
     setCalcRefreshRateDivider(calc_refreshRateDivider);
+
+    calcTaskSemaphore = xSemaphoreCreateBinary();
+    xTaskCreate(calcTask, "SmartMatrixCalc", 10000, NULL, MATRIX_CALC_TASK_PRIORTY, &calcTaskHandle);
 }
 
 //#define OEPWM_TEST_ENABLE
