@@ -296,6 +296,10 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
         templayer = templayer->nextLayer;
     }
 
+    calcTaskSemaphore = xSemaphoreCreateBinary();
+    // TODO: fine tune stack size: 1000 works with 64x64/32-24bit, 500 doesn't, does it change based on matrix size, depth?
+    xTaskCreate(calcTask, "SmartMatrixCalc", 1000, NULL, MATRIX_CALC_TASK_PRIORTY, &calcTaskHandle);
+
     printf("SmartMatrix Layers Allocated from Heap:\r\n");
     printf("Heap Memory Available: %d bytes total, %d bytes largest free block: \r\n", heap_caps_get_free_size(0), heap_caps_get_largest_free_block(0));
 
@@ -317,8 +321,6 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     setCalcRefreshRateDivider(calc_refreshRateDivider);
     lsbMsbTransitionBit = SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getLsbMsbTransitionBit();
 
-    calcTaskSemaphore = xSemaphoreCreateBinary();
-    xTaskCreate(calcTask, "SmartMatrixCalc", 10000, NULL, MATRIX_CALC_TASK_PRIORTY, &calcTaskHandle);
 }
 
 //#define OEPWM_TEST_ENABLE
