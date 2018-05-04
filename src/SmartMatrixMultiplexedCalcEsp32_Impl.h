@@ -101,32 +101,15 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void IRAM_ATTR SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalculationsSignal(int newLsbMsbTransitionBit) {
+void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalculations() {
+    static unsigned long lastMillisStart;
+    static unsigned long lastMillisEnd;
     static int refreshFramesSinceLastCalculation = 0;
 
     if(++refreshFramesSinceLastCalculation < calc_refreshRateDivider)
         return;
 
     refreshFramesSinceLastCalculation = 0;
-
-    lsbMsbTransitionBit = newLsbMsbTransitionBit;
-
-    static BaseType_t xHigherPriorityTaskWoken;
-    xHigherPriorityTaskWoken = pdFALSE;
-    // Unblock the task by releasing the semaphore.
-    xSemaphoreGiveFromISR(calcTaskSemaphore, &xHigherPriorityTaskWoken );
-    if( xHigherPriorityTaskWoken != pdFALSE )
-    {
-        // We can force a context switch here.  Context switching from an
-        // ISR uses port specific syntax.  Check the demo task for your port
-        // to find the syntax required.
-    }
-}
-
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalculations() {
-    static unsigned long lastMillisStart;
-    static unsigned long lastMillisEnd;
 
     // safety check - if using up too much CPU, increase refresh rate divider to give more time for sketch to run
     unsigned long calculationCpuTime = lastMillisEnd - lastMillisStart;
@@ -274,16 +257,24 @@ bool SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 TaskHandle_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::calcTaskHandle;
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-SemaphoreHandle_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::calcTaskSemaphore;
-
 /* Task2 with priority 2 */
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::calcTask(void* pvParameters)
 {        
     while(1) {   
         if( xSemaphoreTake(calcTaskSemaphore, portMAX_DELAY) == pdTRUE ) {
+#ifdef DEBUG_PINS_ENABLED
+            gpio_set_level(DEBUG_1_GPIO, 1);
+#endif
+
+            // we usually do this with an ISR in the refresh class, but ESP32 doesn't let us store a templated method in IRAM (at least not easily) so we call this from the calc task
+            SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::markRefreshComplete();
+
             matrixCalculations();
+
+#ifdef DEBUG_PINS_ENABLED
+            gpio_set_level(DEBUG_1_GPIO, 0);
+#endif
         }
     }
 }
@@ -324,6 +315,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 
     // refresh rate is now set, update calc refresh rate
     setCalcRefreshRateDivider(calc_refreshRateDivider);
+    lsbMsbTransitionBit = SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getLsbMsbTransitionBit();
 
     calcTaskSemaphore = xSemaphoreCreateBinary();
     xTaskCreate(calcTask, "SmartMatrixCalc", 10000, NULL, MATRIX_CALC_TASK_PRIORTY, &calcTaskHandle);

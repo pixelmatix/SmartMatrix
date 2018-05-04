@@ -155,6 +155,7 @@ typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight,
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setMatrixCalculationsCallback(matrix_calc_callback f) {
+    setShiftCompleteCallback(f);
     matrixCalcCallback = f;
 }
 
@@ -267,8 +268,8 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
 
     printf("Raised lsbMsbTransitionBit to %d/%d to meet minimum refresh rate\r\n", lsbMsbTransitionBit, COLOR_DEPTH_BITS - 1);
 
-    // completely fill buffer with data before enabling DMA
-    matrixCalcCallback(lsbMsbTransitionBit);
+    // TODO: completely fill buffer with data before enabling DMA - can't do this now, lsbMsbTransition bit isn't set in the calc class - also this call will probably have no effect as matrixCalcDivider will skip the first call
+    //matrixCalcCallback();
 
     // lsbMsbTransition Bit is now finalized - redo descriptor count in case it changed to hit min refresh rate
     numDescriptorsPerRow = 1;
@@ -355,22 +356,16 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
     //Setup I2S
     i2s_parallel_setup_without_malloc(&I2S1, &cfg);
 
-    setShiftCompleteCallback(frameShiftCompleteISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
-
     //printf("I2S setup done.\n");
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void frameShiftCompleteISR(void) {
-#ifdef DEBUG_PINS_ENABLED
-    gpio_set_level(DEBUG_1_GPIO, 1);
-#endif
-    
+void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::markRefreshComplete(void) {
     if(!cbIsEmpty(&SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer))
         cbRead(&SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer);
-    SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalcCallback(SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::lsbMsbTransitionBit);
-    
-#ifdef DEBUG_PINS_ENABLED
-    gpio_set_level(DEBUG_1_GPIO, 0);
-#endif
+}
+
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+uint8_t SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getLsbMsbTransitionBit(void) {
+    return lsbMsbTransitionBit;
 }

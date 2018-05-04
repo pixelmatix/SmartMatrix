@@ -24,6 +24,9 @@
 #ifndef SmartMatrixMultiplexedCalc_h
 #define SmartMatrixMultiplexedCalc_h
 
+extern SemaphoreHandle_t calcTaskSemaphore;
+extern void matrixCalculationsSignal(void);
+
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 class SmartMatrix3 {
 public:
@@ -54,7 +57,6 @@ public:
 
     // functions called by ISR
     static void matrixCalculations(void);
-    static void matrixCalculationsSignal(int newLsbMsbTransitionBit);
     static void dmaBufferUnderrunCallback(void);
     static void setCalcRefreshRateDivider(uint8_t newDivider);
     static uint8_t getCalcRefreshRateDivider(void);
@@ -85,7 +87,6 @@ private:
     static bool refreshRateChanged;
     static uint8_t lsbMsbTransitionBit;
     static TaskHandle_t calcTaskHandle;
-    static SemaphoreHandle_t calcTaskSemaphore;
 };
 
 #endif

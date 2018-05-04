@@ -43,7 +43,7 @@ public:
         rowDataStruct rowdata[ROWS_PER_FRAME];
     };
 
-    typedef void (*matrix_calc_callback)(int lsbMsbTransitionBit);
+    typedef void (*matrix_calc_callback)(void);
 
     // init
     SmartMatrix3RefreshMultiplexed();
@@ -58,12 +58,10 @@ public:
     static uint16_t getRefreshRate(void);
     static void setBrightness(uint8_t newBrightness);
     static void setMatrixCalculationsCallback(matrix_calc_callback f);
+    static void markRefreshComplete(void);
+    static uint8_t getLsbMsbTransitionBit(void);
 
 private:
-    // enable ISR access to private member variables
-    template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
-    friend void frameShiftCompleteISR(void);    
-
     static int dimmingFactor;
     static const int dimmingMaximum = 255;
     static uint16_t refreshRate;
