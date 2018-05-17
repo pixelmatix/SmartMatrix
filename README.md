@@ -16,7 +16,7 @@ The SmartMatrix Library ESP32 port at a low level is based on Sprite_TM's [ESP32
   * kDmaBufferRows is not used by the ESP32 port
   * Memory must be dynamically allocated for the ESP32, so the global buffer sizes printed by Arduino compilation are hiding a significant amount of memory that won't be available for your sketch.  matrix.begin() includes printfs() with debug information on memory usage and memory available
     - matrix.begin() can be called with an optional argument of minimum number of bytes of DMA capable memory to keep free (so other code can malloc them after matrix.begin()).  More details below.
-    - Note that the "32-bit Memory" in the printfs and included in the "Heap Memory" can't be allocated by the SmartMatrix Library or most other ESP32 Arduino libraries, so it's effectively unusable RAM.  The amount of 8-bit and DMA RAM are more important stats as those are required for most libraries.
+    - Note that the values of "32-bit Memory" and "Heap Memory" in the printfs is a bit deceiving as not all of that can be allocated by the SmartMatrix Library or most other ESP32 Arduino libraries, so it's effectively unusable RAM.  The amount of 8-bit and DMA RAM are more important stats as those are required for most libraries.
 
 * Not Yet Fully Working
   * Still seeing some crashes related to memory usage early in sketch when other memory intensive objects (e.g. WiFi library) are included in the sketch?  Need to reproduce and track down
@@ -25,7 +25,6 @@ The SmartMatrix Library ESP32 port at a low level is based on Sprite_TM's [ESP32
     - May see some libraries failing, e.g. in AnimatedGIFs sketch with a large panel and high color depth, calling SD.begin() after matrix.begin() results in "No SD Card" error, likely because there was not enough RAM (specifically DMA-capable RAM) available for the SD library.  Moving the matrix.begin() call later works as the SmartMatrix Library adapts its DMA descriptor memory usage to the amount of DMA RAM available.  Also using the new `dmaRamToKeepFreeBytes` parameter when calling matrix.begin() will try to keep that amount of DMA RAM free.  The SD Library requires around 28000 bytes free, so you can call `matrix.begin(28000)` before SD.begin().
   * Need a ~10ms delay between matrix.begin() and drawing to backgroundLayer or starting scrolling text (or drawing to indexed layer?) or initial drawing will not be displayed or might be corrupted (e.g. scrolling text shown on top of previous position of text)
     - Is this because the first call to matrixCalcCallback() from refresh will be skipped by the calcRefreshRateDivider?
-  * Refresh buffer reduction in 1/2 if possible (only uint8_t size data is required in I2S buffer but uint16_t is currently used when used with SmartLED Shield circuit)
   * AnimatedGIFs sketch is a bit fragile because of the ESP32 SD library 
     * In general, resetting a sketch while the SD library is connected to the SD card can result communication with the SD card not working after reset - fix it with a power cycle
   * AnumatedGIFs sketch could have performance improved: there's a lot of time spent waiting for a swapBuffers() call to complete, as it needs to wait for the next frame transition, which is just wasting time if the frame rate is set relatively low to allow more sketch CPU time for GIF decoding).
@@ -51,7 +50,7 @@ You can hook the ESP32 Dev Kit C directly up to a panel, following the circuit t
 Some panels won't work with the 3.3V levels output by the ESP32, and you'll need 5V level shifting buffers like the shields I designed use.  Additionally, the shields have some other features that make them preferable to using just an ESP32 (and optionally level shifting buffers).
 
 - The 5x ADDX lines are output using the RGB data lines and stored using an external latch, freeing up more pins on the ESP32
-- With the addition of the external latch, there are only 8 bits of data to output via I2S, and so each clock cycle's data fits into a uint8_t instead of uint16_t.  I'm hoping the I2S peripheral will be able to operate in 8-bit mode and the amount of RAM used to store refresh buffers can be cut in half
+- With the addition of the external latch, there are only 8 bits of data to output via I2S, and so each clock cycle's data fits into a uint8_t instead of uint16_t.  With the I2S peripheral in 8-bit mode instead of 16-bit mode, the amount of RAM used to store refresh buffers is cut in half
 - There's an additional circuit that uses the MCPWM peripheral to output short OE pulses - shorter than can be output by the I2S peripheral - enabling displaying at least an extra bit's worth of color depth at high refresh rates or lower brightnesses.
 - Wiring is so much easier
 
