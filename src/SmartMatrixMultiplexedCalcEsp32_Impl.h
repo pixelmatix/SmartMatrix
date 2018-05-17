@@ -482,12 +482,25 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                     //currentRowDataPtr->rowbits[j].data[(((i+matrixWidth-1)-k)*DMA_UPDATES_PER_CLOCK)] = o0.word;
                     //TODO: support C-shape stacking
                 } else {
+#if MATRIX_I2S_MODE == I2S_PARALLEL_BITS_8
+                    //Save the calculated value to the bitplane memory in 16-bit reversed order to account for I2S Tx FIFO mode1 ordering
+                    if(k%4 == 0){
+                        p->data[(i+k)+2] = v;
+                    } else if(k%4 == 1) {
+                        p->data[(i+k)+2] = v;
+                    } else if(k%4 == 2) {
+                        p->data[(i+k)-2] = v;
+                    } else { //if(k%4 == 3)
+                        p->data[(i+k)-2] = v;
+                    }
+#else
                     //Save the calculated value to the bitplane memory in reverse order to account for I2S Tx FIFO mode1 ordering
                     if(k%2){
                         p->data[(i+k)-1] = v;
                     } else {
                         p->data[(i+k)+1] = v;
                     }
+#endif
                 }
             }
 
@@ -526,12 +539,25 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 #endif
             }
 
+#if MATRIX_I2S_MODE == I2S_PARALLEL_BITS_8
+            //Save the calculated value to the bitplane memory in 16-bit reversed order to account for I2S Tx FIFO mode1 ordering
+            if(k%4 == 0){
+                p->data[k+2] = v;
+            } else if(k%4 == 1) {
+                p->data[k+2] = v;
+            } else if(k%4 == 2) {
+                p->data[k-2] = v;
+            } else { //if(k%4 == 3)
+                p->data[k-2] = v;
+            }
+#else
             //Save the calculated value to the bitplane memory in reverse order to account for I2S Tx FIFO mode1 ordering
             if(k%2){
                 p->data[k-1] = v;
             } else {
                 p->data[k+1] = v;
             }
+#endif
         }
 #endif
     }
@@ -678,12 +704,25 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                     //currentRowDataPtr->rowbits[j].data[(((i+matrixWidth-1)-k)*DMA_UPDATES_PER_CLOCK)] = o0.word;
                     //TODO: support C-shape stacking
                 } else {
+#if MATRIX_I2S_MODE == I2S_PARALLEL_BITS_8
+                    //Save the calculated value to the bitplane memory in 16-bit reversed order to account for I2S Tx FIFO mode1 ordering
+                    if(k%4 == 0){
+                        p->data[(i+k)+2] = v;
+                    } else if(k%4 == 1) {
+                        p->data[(i+k)+2] = v;
+                    } else if(k%4 == 2) {
+                        p->data[(i+k)-2] = v;
+                    } else { //if(k%4 == 3)
+                        p->data[(i+k)-2] = v;
+                    }
+#else
                     //Save the calculated value to the bitplane memory in reverse order to account for I2S Tx FIFO mode1 ordering
                     if(k%2){
                         p->data[(i+k)-1] = v;
                     } else {
                         p->data[(i+k)+1] = v;
                     }
+#endif
                 }
             }
 
@@ -712,12 +751,25 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 // reserve B2 for OE SWITCH
             }
 
+#if MATRIX_I2S_MODE == I2S_PARALLEL_BITS_8
+            //Save the calculated value to the bitplane memory in 16-bit reversed order to account for I2S Tx FIFO mode1 ordering
+            if(k%4 == 0){
+                p->data[k+2] = v;
+            } else if(k%4 == 1) {
+                p->data[k+2] = v;
+            } else if(k%4 == 2) {
+                p->data[k-2] = v;
+            } else { //if(k%4 == 3)
+                p->data[k-2] = v;
+            }
+#else
             //Save the calculated value to the bitplane memory in reverse order to account for I2S Tx FIFO mode1 ordering
             if(k%2){
                 p->data[k-1] = v;
             } else {
                 p->data[k+1] = v;
             }
+#endif
         }
 #endif
     }

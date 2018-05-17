@@ -151,9 +151,11 @@ void i2s_parallel_setup(i2s_dev_t *dev, const i2s_parallel_config_t *cfg) {
     } else {
         if (cfg->bits==I2S_PARALLEL_BITS_32) {
             sig_data_base=I2S1O_DATA_OUT0_IDX;
-        } else {
+        } else if (cfg->bits==I2S_PARALLEL_BITS_16) {
             //Because of... reasons... the 16-bit values for i2s1 appear on d8...d23
             sig_data_base=I2S1O_DATA_OUT8_IDX;
+        } else { // I2S_PARALLEL_BITS_8
+            sig_data_base=I2S1O_DATA_OUT0_IDX;
         }
         sig_clk=I2S1O_WS_OUT_IDX;
     }
@@ -180,13 +182,21 @@ void i2s_parallel_setup(i2s_dev_t *dev, const i2s_parallel_config_t *cfg) {
     //Enable LCD mode
     dev->conf2.val=0;
     dev->conf2.lcd_en=1;
+
+    // Enable "One datum will be written twice in LCD mode" - for some reason, if we don't do this in 8-bit mode, data is updated on half-clocks not clocks
+    if(cfg->bits == I2S_PARALLEL_BITS_8)
+        dev->conf2.lcd_tx_wrx2_en=1;
     
     dev->sample_rate_conf.val=0;
     dev->sample_rate_conf.rx_bits_mod=cfg->bits;
     dev->sample_rate_conf.tx_bits_mod=cfg->bits;
     dev->sample_rate_conf.rx_bck_div_num=4; //ToDo: Unsure about what this does...
-    //dev->sample_rate_conf.tx_bck_div_num=4;
-    dev->sample_rate_conf.tx_bck_div_num=1; // datasheet says this must be 2 or greater (but 1 seems to work)
+
+    // because conf2.lcd_tx_wrx2_en is set for 8-bit mode, the clock speed is doubled, drop it in half here
+    if(cfg->bits == I2S_PARALLEL_BITS_8)
+        dev->sample_rate_conf.tx_bck_div_num=2;
+    else
+        dev->sample_rate_conf.tx_bck_div_num=1; // datasheet says this must be 2 or greater (but 1 seems to work)
     
     dev->clkm_conf.val=0;
     dev->clkm_conf.clka_en=0;
@@ -261,9 +271,11 @@ void i2s_parallel_setup_without_malloc(i2s_dev_t *dev, const i2s_parallel_config
     } else {
         if (cfg->bits==I2S_PARALLEL_BITS_32) {
             sig_data_base=I2S1O_DATA_OUT0_IDX;
-        } else {
+        } else if (cfg->bits==I2S_PARALLEL_BITS_16) {
             //Because of... reasons... the 16-bit values for i2s1 appear on d8...d23
             sig_data_base=I2S1O_DATA_OUT8_IDX;
+        } else { // I2S_PARALLEL_BITS_8
+            sig_data_base=I2S1O_DATA_OUT0_IDX;
         }
         sig_clk=I2S1O_WS_OUT_IDX;
     }
@@ -290,13 +302,21 @@ void i2s_parallel_setup_without_malloc(i2s_dev_t *dev, const i2s_parallel_config
     //Enable LCD mode
     dev->conf2.val=0;
     dev->conf2.lcd_en=1;
-    
+        
+    // Enable "One datum will be written twice in LCD mode" - for some reason, if we don't do this in 8-bit mode, data is updated on half-clocks not clocks
+    if(cfg->bits == I2S_PARALLEL_BITS_8)
+        dev->conf2.lcd_tx_wrx2_en=1;
+
     dev->sample_rate_conf.val=0;
     dev->sample_rate_conf.rx_bits_mod=cfg->bits;
     dev->sample_rate_conf.tx_bits_mod=cfg->bits;
     dev->sample_rate_conf.rx_bck_div_num=4; //ToDo: Unsure about what this does...
-    //dev->sample_rate_conf.tx_bck_div_num=4;
-    dev->sample_rate_conf.tx_bck_div_num=1; // datasheet says this must be 2 or greater (but 1 seems to work)
+
+    // because conf2.lcd_tx_wrx2_en is set for 8-bit mode, the clock speed is doubled, drop it in half here
+    if(cfg->bits == I2S_PARALLEL_BITS_8)
+        dev->sample_rate_conf.tx_bck_div_num=2;
+    else
+        dev->sample_rate_conf.tx_bck_div_num=1; // datasheet says this must be 2 or greater (but 1 seems to work)
     
     dev->clkm_conf.val=0;
     dev->clkm_conf.clka_en=0;

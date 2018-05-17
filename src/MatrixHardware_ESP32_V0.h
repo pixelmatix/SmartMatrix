@@ -33,12 +33,14 @@
 #define SMARTLED_SHIELD_V0_PINOUT       2
 
 //#define GPIOPINOUT ESP32_FORUM_PINOUT
-//#define GPIOPINOUT ESP32_FORUM_PINOUT_WITH_LATCH
+//#define GPIOPINOUT ESP32_FORUM_PINOUT_WITH_LATCH // note this mode is untested as of 2018-05-17 - not being used anymore now that SmartMatrix Shield is available
 #define GPIOPINOUT SMARTLED_SHIELD_V0_PINOUT
 
 #if (GPIOPINOUT == ESP32_FORUM_PINOUT)
     // ADDX is output directly using GPIO
     #define CLKS_DURING_LATCH   0 
+    #define MATRIX_I2S_MODE I2S_PARALLEL_BITS_16
+    #define MATRIX_DATA_STORAGE_TYPE uint16_t
 
     //Upper half RGB
     #define BIT_R1  (1<<0)   
@@ -81,8 +83,10 @@
 #endif
 
 #if (GPIOPINOUT == ESP32_FORUM_PINOUT_WITH_LATCH)
-    // ADDX is output on RGB pins and stored in external latch
-    #define CLKS_DURING_LATCH   2
+    // ADDX is output on RGB pins and stored in external latch (need multiple of 32-bits for full data struct, so pad 2 CLKs to 4 here)
+    #define MATRIX_I2S_MODE I2S_PARALLEL_BITS_8
+    #define MATRIX_DATA_STORAGE_TYPE uint8_t
+    #define CLKS_DURING_LATCH   4
 
     //Upper half RGB
     #define BIT_R1  (1<<0)   
@@ -125,8 +129,10 @@
 #endif
 
 #if (GPIOPINOUT == SMARTLED_SHIELD_V0_PINOUT)
-    // ADDX is output on RGB pins and stored in external latch
-    #define CLKS_DURING_LATCH   2
+    // ADDX is output on RGB pins and stored in external latch (need multiple of 32-bits for full data struct, so pad 2 CLKs to 4 here)
+    #define MATRIX_I2S_MODE I2S_PARALLEL_BITS_8
+    #define MATRIX_DATA_STORAGE_TYPE uint8_t
+    #define CLKS_DURING_LATCH   4
 
     //Upper half RGB
     #define BIT_R1 (1<<0)  
