@@ -483,7 +483,6 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                     //TODO: support C-shape stacking
                 } else {
                     if(MATRIX_I2S_MODE == I2S_PARALLEL_BITS_8) {
-                        //#error "asdf"
                         //Save the calculated value to the bitplane memory in 16-bit reversed order to account for I2S Tx FIFO mode1 ordering
                         if(k%4 == 0){
                             p->data[(i+k)+2] = v;
