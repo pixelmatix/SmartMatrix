@@ -352,11 +352,7 @@ void i2s_parallel_setup_without_malloc(i2s_dev_t *dev, const i2s_parallel_config
     
     //Allocate DMA descriptors
     i2s_state[i2snum(dev)]=malloc(sizeof(i2s_parallel_state_t));
-    if(!i2s_state[i2snum(dev)]) {
-        printf("can't malloc");
-        while(1);
-    }
-    assert("Can't allocate i2s state");
+    assert(i2s_state[i2snum(dev)] != NULL);
     i2s_parallel_state_t *st=i2s_state[i2snum(dev)];
 
     st->desccount_a = cfg->desccount_a;

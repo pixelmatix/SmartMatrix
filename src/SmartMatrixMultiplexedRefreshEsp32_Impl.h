@@ -228,7 +228,6 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
     }
 
     if(numDescriptorsPerRow * ROWS_PER_FRAME * ESP32_NUM_FRAME_BUFFERS * sizeof(lldesc_t) > heap_caps_get_largest_free_block(MALLOC_CAP_DMA)){
-        assert("not enough RAM for SmartMatrix descriptors");
         printf("not enough RAM for SmartMatrix descriptors\r\n");
         return;
     }
@@ -284,15 +283,13 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
     // malloc the DMA linked list descriptors that i2s_parallel will need
     int desccount = numDescriptorsPerRow * ROWS_PER_FRAME;
     lldesc_t * dmadesc_a = (lldesc_t *)heap_caps_malloc(desccount * sizeof(lldesc_t), MALLOC_CAP_DMA);
-    assert("Can't allocate descriptor buffer a");
     if(!dmadesc_a) {
-        printf("can't malloc");
+        printf("can't malloc dmadesc_a");
         return;
     }
     lldesc_t * dmadesc_b = (lldesc_t *)heap_caps_malloc(desccount * sizeof(lldesc_t), MALLOC_CAP_DMA);
-    assert("Can't allocate descriptor buffer b");
     if(!dmadesc_b) {
-        printf("can't malloc");
+        printf("can't malloc dmadesc_b");
         return;
     }
 

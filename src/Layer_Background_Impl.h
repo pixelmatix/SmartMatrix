@@ -45,10 +45,10 @@ void SMLayerBackground<RGB, optionFlags>::begin(void) {
     if(!backgroundBuffers[0] && !backgroundBuffers[1]) {
         //printf("largest free block %d: \r\n", heap_caps_get_largest_free_block(MALLOC_CAP_DMA));
         backgroundBuffers[0] = (RGB *)malloc(sizeof(RGB) * this->matrixWidth * this->matrixHeight);
-        assert("malloc error");
+        assert(backgroundBuffers[0] != NULL);
         //printf("largest free block %d: \r\n", heap_caps_get_largest_free_block(MALLOC_CAP_DMA));
         backgroundBuffers[1] = (RGB *)malloc(sizeof(RGB) * this->matrixWidth * this->matrixHeight);
-        assert("malloc error");
+        assert(backgroundBuffers[1] != NULL);
         //printf("largest free block %d: \r\n", heap_caps_get_largest_free_block(MALLOC_CAP_DMA));
         memset(backgroundBuffers[0], 0x00, sizeof(RGB) * this->matrixWidth * this->matrixHeight);
         memset(backgroundBuffers[1], 0x00, sizeof(RGB) * this->matrixWidth * this->matrixHeight);

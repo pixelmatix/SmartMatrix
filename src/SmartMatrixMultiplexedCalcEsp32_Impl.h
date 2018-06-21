@@ -312,6 +312,9 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
         tempRow0Ptr = malloc(sizeof(rgb24) * PIXELS_PER_LATCH);
         tempRow1Ptr = malloc(sizeof(rgb24) * PIXELS_PER_LATCH);
     }
+
+    assert(tempRow0Ptr != NULL);
+    assert(tempRow1Ptr != NULL);
 #endif
 
     SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setMatrixCalculationsCallback(matrixCalculationsSignal);
