@@ -1,5 +1,7 @@
 #include "SmartMatrix3.h"
 
+#if defined(ESP32)
+
 SemaphoreHandle_t calcTaskSemaphore;
 
 void IRAM_ATTR matrixCalculationsSignal(void) {
@@ -14,3 +16,4 @@ void IRAM_ATTR matrixCalculationsSignal(void) {
         // to find the syntax required.
     }
 }
+#endif
