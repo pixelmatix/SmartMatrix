@@ -42,7 +42,11 @@ template <typename RGB, unsigned int optionFlags>
 SMLayerIndexed<RGB, optionFlags>::SMLayerIndexed(uint16_t width, uint16_t height) {
     // size of bitmap is 2 * INDEXED_BUFFER_SIZE
     indexedBitmap = (uint8_t*)malloc(2 * width * (height / 8));
+#ifdef ESP32
+    assert(indexedBitmap != NULL);
+#else
     this->assert(indexedBitmap != NULL);
+#endif
     memset(indexedBitmap, 0x00, 2 * width * (height / 8));
     this->matrixWidth = width;
     this->matrixHeight = height;
