@@ -67,7 +67,7 @@ private:
     static uint16_t refreshRate;
     static uint16_t minRefreshRate;
     static uint8_t lsbMsbTransitionBit;
-    static frameStruct * matrixUpdateFrames;
+    static frameStruct * matrixUpdateFrames[ESP32_NUM_FRAME_BUFFERS];
 
     static matrix_calc_callback matrixCalcCallback;
 
