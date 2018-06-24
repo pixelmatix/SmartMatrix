@@ -23,6 +23,8 @@ The SmartMatrix Library ESP32 port at a low level is based on Sprite_TM's [ESP32
     - May see a rolling reset before the sketch can do much
       - This is hopefully fixed now.  Please post to the [SmartMatrix Community](community.pixelmatix.com) or create a GitHub Issue if you see this error: "Guru Meditation Error: Core 1 panic'ed (Cache disabled but cached memory region accessed)"
     - May see some libraries failing, e.g. in AnimatedGIFs sketch with a large panel and high color depth, calling SD.begin() after matrix.begin() results in "No SD Card" error, likely because there was not enough RAM (specifically DMA-capable RAM) available for the SD library.  Moving the matrix.begin() call later works as the SmartMatrix Library adapts its DMA descriptor memory usage to the amount of DMA RAM available.  Also using the new `dmaRamToKeepFreeBytes` parameter when calling matrix.begin() will try to keep that amount of DMA RAM free.  The SD Library requires around 28000 bytes free, so you can call `matrix.begin(28000)` before SD.begin().
+    - Todo: malloc matrixUpdateFrames buffers before other smaller buffers as they are (by far) the largest buffers to allocate?
+
   * Need a ~10ms delay between matrix.begin() and drawing to backgroundLayer or starting scrolling text (or drawing to indexed layer?) or initial drawing will not be displayed or might be corrupted (e.g. scrolling text shown on top of previous position of text)
     - Is this because the first call to matrixCalcCallback() from refresh will be skipped by the calcRefreshRateDivider?
   * AnimatedGIFs sketch is a bit fragile because of the ESP32 SD library 
