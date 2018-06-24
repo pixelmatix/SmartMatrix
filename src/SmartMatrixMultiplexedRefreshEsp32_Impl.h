@@ -187,10 +187,21 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
 
     printf("Starting SmartMatrix DMA Mallocs\r\n");
 
+    // TODO: malloc this buffer before other smaller buffers as this is (by far) the largest buffer to allocate?
     matrixUpdateFrames[0] = (frameStruct *)heap_caps_malloc(sizeof(frameStruct), MALLOC_CAP_DMA);
     assert(matrixUpdateFrames[0] != NULL);
     matrixUpdateFrames[1] = (frameStruct *)heap_caps_malloc(sizeof(frameStruct), MALLOC_CAP_DMA);
     assert(matrixUpdateFrames[1] != NULL);
+
+    printf("sizeof framestruct: %08X\r\n", (uint32_t)sizeof(frameStruct));
+    printf("matrixUpdateFrames[0] pointer: %08X\r\n", (uint32_t)matrixUpdateFrames[0]);
+    printf("matrixUpdateFrames[1] pointer: %08X\r\n", (uint32_t)matrixUpdateFrames[1]);
+
+    printf("Frame Structs Allocated from Heap:\r\n");
+    printf("Heap Memory Available: %d bytes total, %d bytes largest free block: \r\n", heap_caps_get_free_size(0), heap_caps_get_largest_free_block(0));
+    printf("8-bit Accessible Memory Available: %d bytes total, %d bytes largest free block: \r\n", heap_caps_get_free_size(MALLOC_CAP_8BIT), heap_caps_get_largest_free_block(MALLOC_CAP_8BIT));
+    printf("32-bit Memory Available: %d bytes total, %d bytes largest free block: \r\n", heap_caps_get_free_size(MALLOC_CAP_32BIT), heap_caps_get_largest_free_block(MALLOC_CAP_32BIT));
+    printf("DMA Memory Available: %d bytes total, %d bytes largest free block: \r\n", heap_caps_get_free_size(MALLOC_CAP_DMA), heap_caps_get_largest_free_block(MALLOC_CAP_DMA));
 
     printf("Allocating refresh buffer:\r\nDMA Memory Available: %d bytes total, %d bytes largest free block: \r\n", heap_caps_get_free_size(MALLOC_CAP_DMA), heap_caps_get_largest_free_block(MALLOC_CAP_DMA));
 
@@ -218,7 +229,7 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
 
         printf("lsbMsbTransitionBit of %d requires %d RAM, %d available, leaving %d free: \r\n", lsbMsbTransitionBit, ramrequired, largestblockfree, largestblockfree - ramrequired);
 
-        if(ramrequired < (largestblockfree - dmaRamToKeepFreeBytes))
+        if(largestblockfree > dmaRamToKeepFreeBytes && ramrequired < (largestblockfree - dmaRamToKeepFreeBytes))
             break;
 
         if(lsbMsbTransitionBit < COLOR_DEPTH_BITS - 1)
