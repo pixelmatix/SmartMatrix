@@ -23,7 +23,7 @@ SMLayerIndexed	KEYWORD1
 begin	KEYWORD2
 addLayer	KEYWORD2
 
-setRotation KEYWORD2
+setRotation	KEYWORD2
 setBrightness	KEYWORD2
 setRefreshRate	KEYWORD2
 
@@ -33,7 +33,7 @@ getRefreshRate	KEYWORD2
 getdmaBufferUnderrunFlag	KEYWORD2
 getRefreshRateLoweredFlag	KEYWORD2
 
-countFPS KEYWORD2
+countFPS	KEYWORD2
 
 # Layer class
 frameRefreshCallback	KEYWORD2
