@@ -24,8 +24,8 @@ SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeig
 SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
 SMARTMATRIX_ALLOCATE_INDEXED_LAYER(indexedLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kIndexedLayerOptions);
 
-const int defaultBrightness = 100*(255/100);    // full brightness
-//const int defaultBrightness = 15*(255/100);    // dim: 15% brightness
+const int defaultBrightness = (100*255)/100;        // full (100%) brightness
+//const int defaultBrightness = (15*255)/100;       // dim: 15% brightness
 const int defaultScrollOffset = 6;
 const rgb24 defaultBackgroundColor = {0x40, 0, 0};
 
