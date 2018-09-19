@@ -30,8 +30,8 @@ const uint8_t kIndexedLayerOptions = (SM_INDEXED_OPTIONS_NONE);
 SMARTMATRIX_ALLOCATE_BUFFERS(matrix, kMatrixWidth, kMatrixHeight, kRefreshDepth, kDmaBufferRows, kPanelType, kMatrixOptions);
 SMARTMATRIX_ALLOCATE_INDEXED_LAYER(indexedLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kIndexedLayerOptions);
 
-const int defaultBrightness = 100*(255/100);    // full brightness
-//const int defaultBrightness = 15*(255/100);    // dim: 15% brightness
+const int defaultBrightness = (100*255)/100;    // full (100%) brightness
+//const int defaultBrightness = (15*255)/100;    // dim: 15% brightness
 
 const SM_RGB clockColor = {0xff, 0xff, 0xff};
 
