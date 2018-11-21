@@ -1189,12 +1189,16 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 
         uint32_t * tempptr = (uint32_t*)matrixUpdateData + ((freeRowBuffer*dmaBufferBytesPerRow)/sizeof(uint32_t)) + ((i*dmaBufferBytesPerPixel)/sizeof(uint32_t));
         *tempptr = o0.word;
+        *(tempptr + (1*latchesPerRow)/sizeof(uint32_t)) = o0.word;
 
-        *(tempptr + latchesPerRow/sizeof(uint32_t)) = o0.word | clkset.word;
+        *(tempptr + (2*latchesPerRow)/sizeof(uint32_t)) = o0.word | clkset.word;
+        *(tempptr + (3*latchesPerRow)/sizeof(uint32_t)) = o0.word | clkset.word;
 
         *(++tempptr) = o1.word;
+        *(tempptr + (1*latchesPerRow)/sizeof(uint32_t)) = o1.word;
 
-        *(tempptr + latchesPerRow/sizeof(uint32_t)) = o1.word | clkset.word;
+        *(tempptr + (2*latchesPerRow)/sizeof(uint32_t)) = o1.word | clkset.word;
+        *(tempptr + (3*latchesPerRow)/sizeof(uint32_t)) = o1.word | clkset.word;
  
         //if(latchesPerRow >= 12) {
             union {
@@ -1244,8 +1248,10 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
             o2.p3b2 = temp1blue    >> (3 + 2 * sizeof(uint32_t));
 
             *(++tempptr) = o2.word;
-            
-            *(tempptr + latchesPerRow/sizeof(uint32_t)) = o2.word | clkset.word;
+            *(tempptr + (1*latchesPerRow)/sizeof(uint32_t)) = o2.word;
+
+            *(tempptr + (2*latchesPerRow)/sizeof(uint32_t)) = o2.word | clkset.word;
+            *(tempptr + (3*latchesPerRow)/sizeof(uint32_t)) = o2.word | clkset.word;
         //}
 #ifdef DEBUG_PINS_ENABLED
     digitalWriteFast(DEBUG_PIN_3, LOW); // oscilloscope trigger
