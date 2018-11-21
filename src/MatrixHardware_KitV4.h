@@ -44,7 +44,8 @@
 
 // measured <3400ns to transfer 32 pixels at 96MHz, <6600ns to transfer 32 pixels at 48MHz
 // for now, until DMA sharing complications (brought to light by Teensy 3.6 SDIO) can be worked out, enable DMA Bandwidth Control, which approximately doubles this estimated time
-#define PANEL_32_PIXELDATA_TRANSFER_MAXIMUM_NS  (uint32_t)((2 * 3400 * 96000000.0) / F_CPU)
+// doubled for DMA_UPDATES_PER_CLOCK = 4
+#define PANEL_32_PIXELDATA_TRANSFER_MAXIMUM_NS  (uint32_t)((2 * 2 * 3400 * 96000000.0) / F_CPU)
 
 /* this section describes how the microcontroller is attached to the display */
 
