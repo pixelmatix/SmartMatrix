@@ -1,6 +1,6 @@
 # SmartMatrix Library for Teensy 3
 
-The SmartMatrix Library is designed to make it easy to display graphics and scrolling text on multiplexed RGB LED matrix panels connected to a Teensy 3.
+The SmartMatrix Library is designed to make it easy to display graphics and scrolling text on multiplexed RGB LED matrix panels connected to a Teensy 3 (Supports Teensy 3.1/3.2, 3.5, 3.6).
 
 Version 3.0 is a significant upgrade from 2.x, with a new API that is not backwards compatible.  See the [release notes on GitHub](https://github.com/pixelmatix/SmartMatrix/releases) for more details, and [MIGRATION.md](https://github.com/pixelmatix/SmartMatrix/blob/sm3.0/MIGRATION.md) for details on migrating sketches from SmartMatrix 2.x to 3.0.  You can have SmartMatrix3 installed in parallel with an existing SmartMatrix_32x32 or SmartMatrix_16x32 library without conflicts.
 
@@ -10,18 +10,18 @@ More documentation Here:
 To download in Arduino Library form, see [Releases](https://github.com/pixelmatix/SmartMatrix/releases) on GitHub, or just add the files in the /src directory to your Arduino project.
 
 ### Software and Teensy Setup
-This documentation assumes you have a general knowledge of the Teensy 3.1/3.2, how to use the Arduino IDE, and the Teensyduino addon.  If you need an overview of any of those tools, please use these references:
+This documentation assumes you have a general knowledge of the Teensy 3, how to use the Arduino IDE, and the Teensyduino addon.  If you need an overview of any of those tools, please use these references:
 
 * [PJRC - Teensyduino](http://www.pjrc.com/teensy/teensyduino.html)
 * [Arduino - Getting Started with Arduino](http://arduino.cc/en/Guide/HomePage)
-* For general Teensy 3.1/3.2 support, not related to the SmartMatrix Shield or SmartMatrix Library, post a question at the [PJRC Forum](http://forum.pjrc.com/forums/3-Technical-Support-amp-Questions)
+* For general Teensy 3 support, not related to the SmartMatrix Shield or SmartMatrix Library, post a question at the [PJRC Forum](http://forum.pjrc.com/forums/3-Technical-Support-amp-Questions)
 
 Make sure you have a supported version of the Arduino IDE and Teensyduino add-on installed.
 
 * [Arduino IDE](http://arduino.cc/en/main/software) - version 1.6.5 or later recommended
 * [Teensyduino](http://www.pjrc.com/teensy/td_download.html) - use the latest version
 
-Before continuing, use the blink example in the Arduino IDE to verify you can compile and run a sketch on your Teensy 3.1/3.2.
+Before continuing, use the blink example in the Arduino IDE to verify you can compile and run a sketch on your Teensy 3.
 
 Download the latest version of the SmartMatrix Library:  
 [SmartMatrix Releases - GitHub](https://github.com/pixelmatix/SmartMatrix/releases)
