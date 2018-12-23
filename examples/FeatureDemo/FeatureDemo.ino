@@ -29,9 +29,6 @@ const int defaultBrightness = (100*255)/100;    // full (100%) brightness
 const int defaultScrollOffset = 6;
 const rgb24 defaultBackgroundColor = {0x40, 0, 0};
 
-// Teensy 3.0 has the LED on pin 13
-const int ledPin = 13;
-
 void drawBitmap(int16_t x, int16_t y, const gimp32x32bitmap* bitmap) {
   for(unsigned int i=0; i < bitmap->height; i++) {
     for(unsigned int j=0; j < bitmap->width; j++) {
@@ -46,9 +43,6 @@ void drawBitmap(int16_t x, int16_t y, const gimp32x32bitmap* bitmap) {
 
 // the setup() method runs once, when the sketch starts
 void setup() {
-  // initialize the digital pin as an output.
-  pinMode(ledPin, OUTPUT);
-
   Serial.begin(38400);
 
   matrix.addLayer(&backgroundLayer); 
