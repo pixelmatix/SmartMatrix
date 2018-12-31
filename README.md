@@ -4,6 +4,11 @@ The SmartMatrix Library is designed to make it easy to display graphics and scro
 
 Version 3.0 is a significant upgrade from 2.x, with a new API that is not backwards compatible.  See the [release notes on GitHub](https://github.com/pixelmatix/SmartMatrix/releases) for more details, and [MIGRATION.md](https://github.com/pixelmatix/SmartMatrix/blob/sm3.0/MIGRATION.md) for details on migrating sketches from SmartMatrix 2.x to 3.0.  You can have SmartMatrix3 installed in parallel with an existing SmartMatrix_32x32 or SmartMatrix_16x32 library without conflicts.
 
+Preliminary ESP32 support was added in the teensylc branch. See https://community.pixelmatix.com/t/smartmatrix-library-esp32-port/272/48
+
+This library supports HUB75 RGB Panels in 1/32, 1/16, and 1/8 scan. It also supports panels with 3 (A, B, C, used in 32x16 panels), 4 (A, B, C, D, used in 64x32 panels) and 5 (A, B, C, D, E, used in 64x64 panels) address lines.  
+If you have an uncommon 32x32 1/8th scan panel, try this library instead: https://github.com/sparkfunX/RGBmatrixPanelHalfScan
+
 More documentation Here:  
 [docs.pixelmatix.com/SmartMatrix](http://docs.pixelmatix.com/SmartMatrix)
 
@@ -42,7 +47,7 @@ Important note for SmartLED Shield V4: This line needs to be included before (or
 
 You should already have most of the correct Arduino settings to load the FeatureDemo sketch on your Teensy, from running the blink example earlier.  Under Tools, CPU Speed, make sure either 48 MHz or 96MHz (overclock) is selected.  (Some libraries are not compatible with the 72MHz CPU)
 
-The examples are configured to run on a 32x32-pixel panel.  If your resolution is different, adjust the `kMatrixWidth` and `kMatrixHeight` variables at the top of the sketch.  If you are using a 16x32-pixel panel, also change `kPanelType` to `SMARTMATRIX_HUB75_16ROW_MOD8SCAN`.  If you are using a 64x64-pixel panel, also change `kPanelType` to `SMARTMATRIX_HUB75_64ROW_MOD32SCAN`.
+The examples are configured to run on a 32x32-pixel panel.  If your resolution is different, adjust the `kMatrixWidth` and `kMatrixHeight` variables at the top of the sketch.  If you are using a 16x32-pixel panel, also change `kPanelType` to `SMARTMATRIX_HUB75_16ROW_MOD8SCAN`.  If you are using a 64x64-pixel panel, also change `kPanelType` to `SMARTMATRIX_HUB75_64ROW_MOD32SCAN`. See SmartMatrixMultiplexedCommon.h for those definition and future ones that could be added. 
 
 New with SmartMatrix Library 3.0, you can chain several panels together to create a wider or taller display than one panel would allow.  Set `kMatrixWidth` and `kMatrixHeight` to the overall width and height of your display.  If your display is more than one panel high, set `kMatrixOptions` to how you tiled your panels:  
 
