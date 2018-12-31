@@ -1,6 +1,6 @@
 # SmartMatrix Library for Teensy 3
 
-The SmartMatrix Library is designed to make it easy to display graphics and scrolling text on multiplexed RGB LED matrix panels connected to a Teensy 3 (Supports Teensy 3.1/3.2, 3.5, 3.6).
+The SmartMatrix Library is designed to make it easy to display graphics and scrolling text on multiplexed RGB LED matrix panels connected to a Teensy 3 (Supports Teensy 3.1/3.2, 3.5, 3.6). Teensy 3.5 or better is greatly recommended for panel sizes of 64x64 or larger to maintain an acceptable refresh rate.
 
 Version 3.0 is a significant upgrade from 2.x, with a new API that is not backwards compatible.  See the [release notes on GitHub](https://github.com/pixelmatix/SmartMatrix/releases) for more details, and [MIGRATION.md](https://github.com/pixelmatix/SmartMatrix/blob/sm3.0/MIGRATION.md) for details on migrating sketches from SmartMatrix 2.x to 3.0.  You can have SmartMatrix3 installed in parallel with an existing SmartMatrix_32x32 or SmartMatrix_16x32 library without conflicts.
 
