@@ -389,13 +389,15 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         templayer = templayer->nextLayer;        
     }
 
+    /* 
     union {
         uint8_t word;
         struct {
             // order of bits in word matches how GPIO connects to the display
             uint8_t GPIO_WORD_ORDER_8BIT;
         };
-    } o0;
+    } o0; 
+    */
     
     for(int j=0; j<COLOR_DEPTH_BITS; j++) {
         int maskoffset = 0;
@@ -627,6 +629,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         templayer = templayer->nextLayer;        
     }
 
+    /*
     union {
         uint8_t word;
         struct {
@@ -634,6 +637,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
             uint8_t GPIO_WORD_ORDER_8BIT;
         };
     } o0;
+    */
     
     for(int j=0; j<COLOR_DEPTH_BITS; j++) {
         int maskoffset = 0;
