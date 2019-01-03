@@ -298,7 +298,9 @@ You can find example code here: https://github.com/marcmerlin/FastLED_NeoMatrix_
 While this file shows how you switch from SmartMatrix to FastLED and back with a single "#define SMARTMATRIX": 
 https://github.com/marcmerlin/FastLED_NeoMatrix_SmartMatrix_LEDMatrix_GFX_Demos/blob/master/config.h 
 
-## Update FastLED Sketch
+## Porting FastLED Sketch to SmartMatrix
+If you'd like to properly port code from FastLED to SmartMatrix instead of using the SmartMatrix::GFX compat layer, read on:
+
 FastLED's `SMART_MATRIX` controller was based on SmartMatrix 2.x, and is incompatible with SmartMatrix 3.0.  You can get similar features by using FastLED's helper functions but drawing to the SmartMatrix background layer directly instead of through FastLED.  [Let us know](http://community.pixelmatix.com) if you want to see support for the FastLED `SMART_MATRIX` controller in the future.
 
 ### `#Include`
