@@ -40,16 +40,21 @@
                                                     (x == SMARTMATRIX_HUB75_16ROW_MOD8SCAN ? 8 : 0) | \
                                                     (x == SMARTMATRIX_HUB75_64ROW_MOD32SCAN ? 32 : 0))
 
+#define CONVERT_PANELTYPE_TO_MATRIXPHYSICALROWSPERREFRESHROW(x) ((x == SMARTMATRIX_HUB75_32ROW_MOD16SCAN ? 1 : 0) | \
+                                                                (x == SMARTMATRIX_HUB75_16ROW_MOD8SCAN ? 1 : 0) | \
+                                                                (x == SMARTMATRIX_HUB75_64ROW_MOD32SCAN ? 1 : 0))
+
 #define MATRIX_PANEL_HEIGHT (CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT(panelType))
 #define MATRIX_STACK_HEIGHT (matrixHeight / MATRIX_PANEL_HEIGHT)
-
-#define PIXELS_PER_LATCH    ((matrixWidth * matrixHeight) / MATRIX_PANEL_HEIGHT)
-#define ROW_PAIR_OFFSET (CONVERT_PANELTYPE_TO_MATRIXROWPAIROFFSET(panelType))
 
 #define COLOR_CHANNELS_PER_PIXEL        3
 #define LATCHES_PER_ROW (refreshDepth/COLOR_CHANNELS_PER_PIXEL)
 #define COLOR_DEPTH_BITS (refreshDepth/COLOR_CHANNELS_PER_PIXEL)
 #define ROWS_PER_FRAME (CONVERT_PANELTYPE_TO_MATRIXROWSPERFRAME(panelType))
+#define PHYSICAL_ROWS_PER_REFRESH_ROW (CONVERT_PANELTYPE_TO_MATRIXPHYSICALROWSPERREFRESHROW(panelType))
+#define ROW_PAIR_OFFSET (CONVERT_PANELTYPE_TO_MATRIXROWPAIROFFSET(panelType))
+
+#define PIXELS_PER_LATCH    ((matrixWidth * matrixHeight) / MATRIX_PANEL_HEIGHT * PHYSICAL_ROWS_PER_REFRESH_ROW)
 
 #define SMARTMATRIX_OPTIONS_NONE                    0
 #define SMARTMATRIX_OPTIONS_C_SHAPE_STACKING        (1 << 0)

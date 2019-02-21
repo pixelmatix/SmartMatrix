@@ -32,7 +32,7 @@ template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char pan
 class SmartMatrix3RefreshMultiplexed {
 public:
     struct rowBitStruct {
-        MATRIX_DATA_STORAGE_TYPE data[((matrixWidth * matrixHeight) / CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT(panelType)) + CLKS_DURING_LATCH];
+        MATRIX_DATA_STORAGE_TYPE data[PIXELS_PER_LATCH + CLKS_DURING_LATCH];
     };
 
     struct rowDataStruct {
