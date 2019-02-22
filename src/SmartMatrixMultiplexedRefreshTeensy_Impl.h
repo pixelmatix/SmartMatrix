@@ -44,13 +44,13 @@
 #endif
 
 #define LATCH_TIMER_PULSE_WIDTH_TICKS   NS_TO_TICKS(LATCH_TIMER_PULSE_WIDTH_NS)
-#define TICKS_PER_ROW   (TIMER_FREQUENCY/refreshRate/ROWS_PER_FRAME)
+#define TICKS_PER_ROW   (TIMER_FREQUENCY/refreshRate/MATRIX_SCAN_MOD)
 #define IDEAL_MSB_BLOCK_TICKS     (TICKS_PER_ROW/2)
 #define MIN_BLOCK_PERIOD_NS (LATCH_TO_CLK_DELAY_NS + ((PANEL_32_PIXELDATA_TRANSFER_MAXIMUM_NS*PIXELS_PER_LATCH)/32))
 #define MIN_BLOCK_PERIOD_TICKS NS_TO_TICKS(MIN_BLOCK_PERIOD_NS)
 
 // slower refresh rates require larger timer values - get the min refresh rate from the largest MSB value that will fit in the timer (round up)
-#define MIN_REFRESH_RATE    (((TIMER_FREQUENCY/65535)/ROWS_PER_FRAME/2) + 1)
+#define MIN_REFRESH_RATE    (((TIMER_FREQUENCY/65535)/MATRIX_SCAN_MOD/2) + 1)
 
 #define TIMER_REGISTERS_TO_UPDATE   2
 
@@ -93,7 +93,7 @@ uint16_t SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight,
 
 #ifndef ADDX_UPDATE_ON_DATA_PINS
     template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-    typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::addresspair SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::addressLUT[ROWS_PER_FRAME];
+    typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::addresspair SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::addressLUT[MATRIX_SCAN_MOD];
 
     template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
     typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::gpiopair SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::gpiosync;
@@ -302,7 +302,7 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
 #ifndef ADDX_UPDATE_ON_DATA_PINS
     int i;
     // fill addressLUT
-    for (i = 0; i < ROWS_PER_FRAME; i++) {
+    for (i = 0; i < MATRIX_SCAN_MOD; i++) {
 
         // set all bits that are 1 in address
         addressLUT[i].bits_to_set = 0x00;

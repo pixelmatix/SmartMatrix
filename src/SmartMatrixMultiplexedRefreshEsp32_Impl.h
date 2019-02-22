@@ -224,7 +224,7 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
             numDescriptorsPerRow += 1<<(i - lsbMsbTransitionBit - 1);
         }
 
-        int ramrequired = numDescriptorsPerRow * ROWS_PER_FRAME * ESP32_NUM_FRAME_BUFFERS * sizeof(lldesc_t);
+        int ramrequired = numDescriptorsPerRow * MATRIX_SCAN_MOD * ESP32_NUM_FRAME_BUFFERS * sizeof(lldesc_t);
         int largestblockfree = heap_caps_get_largest_free_block(MALLOC_CAP_DMA);
 
         printf("lsbMsbTransitionBit of %d requires %d RAM, %d available, leaving %d free: \r\n", lsbMsbTransitionBit, ramrequired, largestblockfree, largestblockfree - ramrequired);
@@ -238,7 +238,7 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
             break;
     }
 
-    if(numDescriptorsPerRow * ROWS_PER_FRAME * ESP32_NUM_FRAME_BUFFERS * sizeof(lldesc_t) > heap_caps_get_largest_free_block(MALLOC_CAP_DMA)){
+    if(numDescriptorsPerRow * MATRIX_SCAN_MOD * ESP32_NUM_FRAME_BUFFERS * sizeof(lldesc_t) > heap_caps_get_largest_free_block(MALLOC_CAP_DMA)){
         printf("not enough RAM for SmartMatrix descriptors\r\n");
         return;
     }
@@ -260,7 +260,7 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
 
         //printf("nsPerRow: %d: \r\n", nsPerRow);        
 
-        int nsPerFrame = nsPerRow * ROWS_PER_FRAME;
+        int nsPerFrame = nsPerRow * MATRIX_SCAN_MOD;
         //printf("nsPerFrame: %d: \r\n", nsPerFrame);        
 
         int actualRefreshRate = 1000000000UL/(nsPerFrame);
@@ -289,10 +289,10 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
         numDescriptorsPerRow += 1<<(i - lsbMsbTransitionBit - 1);
     }
 
-    printf("Descriptors for lsbMsbTransitionBit %d/%d with %d rows require %d bytes of DMA RAM\r\n", lsbMsbTransitionBit, COLOR_DEPTH_BITS - 1, ROWS_PER_FRAME, 2 * numDescriptorsPerRow * ROWS_PER_FRAME * sizeof(lldesc_t));
+    printf("Descriptors for lsbMsbTransitionBit %d/%d with %d rows require %d bytes of DMA RAM\r\n", lsbMsbTransitionBit, COLOR_DEPTH_BITS - 1, MATRIX_SCAN_MOD, 2 * numDescriptorsPerRow * MATRIX_SCAN_MOD * sizeof(lldesc_t));
 
     // malloc the DMA linked list descriptors that i2s_parallel will need
-    int desccount = numDescriptorsPerRow * ROWS_PER_FRAME;
+    int desccount = numDescriptorsPerRow * MATRIX_SCAN_MOD;
     lldesc_t * dmadesc_a = (lldesc_t *)heap_caps_malloc(desccount * sizeof(lldesc_t), MALLOC_CAP_DMA);
     if(!dmadesc_a) {
         printf("can't malloc dmadesc_a");
@@ -315,7 +315,7 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
     int currentDescOffset = 0;
 
     // fill DMA linked lists for both frames
-    for(int j=0; j<ROWS_PER_FRAME; j++) {
+    for(int j=0; j<MATRIX_SCAN_MOD; j++) {
         // first set of data is LSB through MSB, single pass - all color bits are displayed once, which takes care of everything below and inlcluding LSBMSB_TRANSITION_BIT
         // TODO: size must be less than DMA_MAX - worst case for SmartMatrix Library: 16-bpp with 256 pixels per row would exceed this, need to break into two
         link_dma_desc(&dmadesc_a[currentDescOffset], prevdmadesca, matrixUpdateFrames[0]->rowdata[j].rowbits[0].data, sizeof(rowBitStruct) * COLOR_DEPTH_BITS);

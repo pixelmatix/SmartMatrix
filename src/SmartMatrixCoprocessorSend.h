@@ -100,7 +100,7 @@ private:
     static timerpair timerLUT[LATCHES_PER_ROW];
     static timerpair timerPairIdle;
 #ifndef ADDX_UPDATE_ON_DATA_PINS
-    static addresspair addressLUT[ROWS_PER_FRAME];
+    static addresspair addressLUT[MATRIX_SCAN_MOD];
     static gpiopair gpiosync;
 #endif
     static matrix_calc_callback matrixCalcCallback;

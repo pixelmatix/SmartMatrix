@@ -40,7 +40,7 @@ public:
     };
 
     struct frameStruct {
-        rowDataStruct rowdata[ROWS_PER_FRAME];
+        rowDataStruct rowdata[MATRIX_SCAN_MOD];
     };
 
     typedef void (*matrix_calc_callback)(void);
