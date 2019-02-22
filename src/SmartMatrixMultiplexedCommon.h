@@ -24,35 +24,48 @@
 #ifndef SmartMatrixMultiplexedCommon_h
 #define SmartMatrixMultiplexedCommon_h
 
+#define DEFAULT_PANEL_WIDTH_FOR_LINEAR_PANELS       32
+#define HUB75_RGB_COLOR_CHANNELS_IN_PARALLEL        2
+
 #define SMARTMATRIX_HUB75_32ROW_MOD16SCAN           0
 #define SMARTMATRIX_HUB75_16ROW_MOD8SCAN            1
 #define SMARTMATRIX_HUB75_64ROW_MOD32SCAN           2
 #define SMARTMATRIX_HUB75_4ROW_MOD2SCAN             3
 #define SMARTMATRIX_HUB75_8ROW_MOD4SCAN             4
+#define SMARTMATRIX_HUB75_16ROW_32COL_MOD2SCAN      5
+#define SMARTMATRIX_HUB12_16ROW_32COL_MOD4SCAN      6   // HUB12 panels have limited support, the height needs to be doubled to account for the fact they only use one RGB channel, though SmartMatrix Library will fill the second channel
 
 #define CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT(x)   ((x == SMARTMATRIX_HUB75_32ROW_MOD16SCAN ? 32 : 0) | \
                                                     (x == SMARTMATRIX_HUB75_16ROW_MOD8SCAN ? 16 : 0) | \
+                                                    (x == SMARTMATRIX_HUB75_16ROW_32COL_MOD2SCAN ? 16 : 0) | \
                                                     (x == SMARTMATRIX_HUB75_4ROW_MOD2SCAN ? 4 : 0) | \
                                                     (x == SMARTMATRIX_HUB75_8ROW_MOD4SCAN ? 8 : 0) | \
+                                                    (x == SMARTMATRIX_HUB12_16ROW_32COL_MOD4SCAN ? 16*2 : 0) | \
                                                     (x == SMARTMATRIX_HUB75_64ROW_MOD32SCAN ? 64 : 0))
 
 #define CONVERT_PANELTYPE_TO_MATRIXROWPAIROFFSET(x) ((x == SMARTMATRIX_HUB75_32ROW_MOD16SCAN ? 16 : 0) | \
                                                     (x == SMARTMATRIX_HUB75_16ROW_MOD8SCAN ? 8 : 0) | \
+                                                    (x == SMARTMATRIX_HUB75_16ROW_32COL_MOD2SCAN ? 8 : 0) | \
                                                     (x == SMARTMATRIX_HUB75_4ROW_MOD2SCAN ? 2 : 0) | \
                                                     (x == SMARTMATRIX_HUB75_8ROW_MOD4SCAN ? 4 : 0) | \
+                                                    (x == SMARTMATRIX_HUB12_16ROW_32COL_MOD4SCAN ? 8*2 : 0) | \
                                                     (x == SMARTMATRIX_HUB75_64ROW_MOD32SCAN ? 32 : 0))
 
 #define CONVERT_PANELTYPE_TO_MATRIXSCANMOD(x)  ((x == SMARTMATRIX_HUB75_32ROW_MOD16SCAN ? 16 : 0) | \
                                                     (x == SMARTMATRIX_HUB75_16ROW_MOD8SCAN ? 8 : 0) | \
+                                                    (x == SMARTMATRIX_HUB75_16ROW_32COL_MOD2SCAN ? 2 : 0) | \
                                                     (x == SMARTMATRIX_HUB75_4ROW_MOD2SCAN ? 2 : 0) | \
                                                     (x == SMARTMATRIX_HUB75_8ROW_MOD4SCAN ? 4 : 0) | \
+                                                    (x == SMARTMATRIX_HUB12_16ROW_32COL_MOD4SCAN ? 4 : 0) | \
                                                     (x == SMARTMATRIX_HUB75_64ROW_MOD32SCAN ? 32 : 0))
 
-#define CONVERT_PANELTYPE_TO_MATRIXPHYSICALROWSPERREFRESHROW(x) ((x == SMARTMATRIX_HUB75_32ROW_MOD16SCAN ? 1 : 0) | \
-                                                                (x == SMARTMATRIX_HUB75_16ROW_MOD8SCAN ? 1 : 0) | \
-                                                                (x == SMARTMATRIX_HUB75_4ROW_MOD2SCAN ? 1 : 0) | \
-                                                                (x == SMARTMATRIX_HUB75_8ROW_MOD4SCAN ? 1 : 0) | \
-                                                                (x == SMARTMATRIX_HUB75_64ROW_MOD32SCAN ? 1 : 0))
+#define CONVERT_PANELTYPE_TO_MATRIXPANELWIDTH(x)  ((x == SMARTMATRIX_HUB75_32ROW_MOD16SCAN ? DEFAULT_PANEL_WIDTH_FOR_LINEAR_PANELS : 0) | \
+                                                    (x == SMARTMATRIX_HUB75_16ROW_MOD8SCAN ? DEFAULT_PANEL_WIDTH_FOR_LINEAR_PANELS : 0) | \
+                                                    (x == SMARTMATRIX_HUB75_16ROW_32COL_MOD2SCAN ? 32 : 0) | \
+                                                    (x == SMARTMATRIX_HUB75_4ROW_MOD2SCAN ? DEFAULT_PANEL_WIDTH_FOR_LINEAR_PANELS : 0) | \
+                                                    (x == SMARTMATRIX_HUB75_8ROW_MOD4SCAN ? DEFAULT_PANEL_WIDTH_FOR_LINEAR_PANELS : 0) | \
+                                                    (x == SMARTMATRIX_HUB12_16ROW_32COL_MOD4SCAN ? 32 : 0) | \
+                                                    (x == SMARTMATRIX_HUB75_64ROW_MOD32SCAN ? DEFAULT_PANEL_WIDTH_FOR_LINEAR_PANELS : 0))
 
 #define MATRIX_PANEL_HEIGHT (CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT(panelType))
 #define MATRIX_STACK_HEIGHT (matrixHeight / MATRIX_PANEL_HEIGHT)
@@ -61,7 +74,8 @@
 #define LATCHES_PER_ROW (refreshDepth/COLOR_CHANNELS_PER_PIXEL)
 #define COLOR_DEPTH_BITS (refreshDepth/COLOR_CHANNELS_PER_PIXEL)
 #define MATRIX_SCAN_MOD (CONVERT_PANELTYPE_TO_MATRIXSCANMOD(panelType))
-#define PHYSICAL_ROWS_PER_REFRESH_ROW (CONVERT_PANELTYPE_TO_MATRIXPHYSICALROWSPERREFRESHROW(panelType))
+#define COLS_PER_PANEL (CONVERT_PANELTYPE_TO_MATRIXPANELWIDTH(panelType))
+#define PHYSICAL_ROWS_PER_REFRESH_ROW (MATRIX_PANEL_HEIGHT / MATRIX_SCAN_MOD / HUB75_RGB_COLOR_CHANNELS_IN_PARALLEL)
 #define ROW_PAIR_OFFSET (CONVERT_PANELTYPE_TO_MATRIXROWPAIROFFSET(panelType))
 
 #define PIXELS_PER_LATCH    ((matrixWidth * matrixHeight) / MATRIX_PANEL_HEIGHT * PHYSICAL_ROWS_PER_REFRESH_ROW)
