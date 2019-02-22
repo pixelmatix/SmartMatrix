@@ -49,6 +49,8 @@
 
 #include "SmartMatrixMultiplexedCommon.h"
 
+#include "SmartMatrixPanelMaps.h"
+
 #if defined(__arm__) && defined(CORE_TEENSY)
     #include "SmartMatrixMultiplexedRefreshTeensy.h"
     #include "SmartMatrixMultiplexedCalcTeensy.h"
