@@ -44,7 +44,23 @@
  *   {6, 40,   8},
  *   {6, 56,   8},
  *   {0, 0, 0}   // last entry is all zeros
- * Add this map and panel definition to SmartMatrix Library (instructions TBD)
+ * Add this map and panel definition to SmartMatrix Library
+ *
+ * How to add a map and new panel config to SmartMatrix Library
+ * - Follow the format in PanelMaps.cpp, and add your map with a unique name
+ * - Open SmartMatrixMultiplexedCommon.h, add a new definition at the top for your panel.  Give it the format
+ * - SMARTMATRIX_HUB75_NUMROW_NUMCOL_MODNSCAN filling in NUMROW, NUMCOL, MODNSCAN 
+ * - Add entries for your new panelType to the CONVERT_PANELTYPE_TO_... Definitions
+ *   - CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT - height of your panel
+ *   - CONVERT_PANELTYPE_TO_MATRIXROWPAIROFFSET - HUB75 panels fill two rows in parallel, what's the spacing?  (normally half of panel height)
+ *   - CONVERT_PANELTYPE_TO_MATRIXROWSPERFRAME - This is just the MOD_N_SCAN value for your panel
+ *   - CONVERT_PANELTYPE_TO_MATRIXPANELWIDTH - What's the width of your panel? (This doesn't have to be exact for non-multi-row-scan panels, 32 is used by default)
+ *   - CONVERT_PANELTYPE_TO_MATRIXPHYSICALROWSPERREFRESHROW - how many physical rows get lit up with one address?  (how many rows are in the diagram you made above?)
+ * - Open PanelMaps.h
+ * - Add new case for your new panelType, returning your new panelMap
+ * - Now test your new panelType with the MODE_MAP_TESTING mode of this sketch
+ * 
+ * Testing Example 32x16 /2 Panel:
  * Now this same sketch can be used to check if the mapping is being applied correctly to the panel
  * Change the width/height/paneltype to match the actual panel (not unwrapped)
  * kMatrixWidth = 32
@@ -94,6 +110,9 @@ void setup() {
   matrix.begin();
 
   matrix.setBrightness(128);
+
+  // do a (normally unnecessary) swapBuffers call to work around ESP32 bug where first swap is ignored
+  backgroundLayer.swapBuffers();   
 }
 
 void loop() {
