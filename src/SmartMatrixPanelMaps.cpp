@@ -49,12 +49,42 @@ const PanelMappingEntry panelMapHub12_32x16Mod4[] =
     {0, 0, 0}   // last entry is all zeros
 };
 
+const PanelMappingEntry panelMap32x16Mod4[] =
+{
+    {0, 0,  8},
+    {0, 16, 8},
+    {0, 32, 8},
+    {0, 48, 8},
+    {4, 8,  8},
+    {4, 24, 8},
+    {4, 40, 8},
+    {4, 56, 8}, 
+    {0, 0, 0}   // last entry is all zeros
+};
+
+const PanelMappingEntry panelMap32x16Mod4V2[] =
+{
+    {0, 15, -8},
+    {0, 31, -8},
+    {0, 47, -8},
+    {0, 63, -8},
+    {4, 0,   8},
+    {4, 16,  8},
+    {4, 32,  8},
+    {4, 48,  8}, 
+    {0, 0, 0}   // last entry is all zeros
+};
+
 const PanelMappingEntry * getMultiRowRefreshPanelMap(unsigned char panelType) {
     switch(panelType) {
         case SMARTMATRIX_HUB75_16ROW_32COL_MOD2SCAN:
             return panelMap32x16Mod2;
         case SMARTMATRIX_HUB12_16ROW_32COL_MOD4SCAN:
             return panelMapHub12_32x16Mod4;
+        case SMARTMATRIX_HUB75_16ROW_32COL_MOD4SCAN:
+            return panelMap32x16Mod4;
+        case SMARTMATRIX_HUB75_16ROW_32COL_MOD4SCAN_V2:
+            return panelMap32x16Mod4V2;
         default:
             return defaultPanelMap;            
     }
