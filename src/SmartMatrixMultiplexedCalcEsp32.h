@@ -72,7 +72,14 @@ private:
     static void loadMatrixBuffers48(frameStruct * currentFrameDataPtr, int currentRow, int lsbMsbTransitionBit);
     static void loadMatrixBuffers24(frameStruct * currentFrameDataPtr, int currentRow, int lsbMsbTransitionBit);
     static void calcTask(void* pvParameters);
-
+    static void resetMultiRowRefreshMapPosition(void);
+    static void resetMultiRowRefreshMapPositionPixelGroupToStartOfRow(void);
+    static void advanceMultiRowRefreshMapToNextRow(void);
+    static void advanceMultiRowRefreshMapToNextPixelGroup(void);
+    static int getMultiRowRefreshRowOffset(void);
+    static int getMultiRowRefreshNumPixelsToMap(void);
+    static int getMultiRowRefreshPixelGroupOffset(void);
+    
     // configuration
     static volatile bool brightnessChange;
     static volatile bool rotationChange;
@@ -87,6 +94,11 @@ private:
     static bool refreshRateChanged;
     static uint8_t lsbMsbTransitionBit;
     static TaskHandle_t calcTaskHandle;
+    
+    static int multiRowRefresh_mapIndex_CurrentRowGroups;
+    static int multiRowRefresh_mapIndex_CurrentPixelGroup;
+    static int multiRowRefresh_PixelOffsetFromPanelsAlreadyMapped;
+    static int multiRowRefresh_NumPanelsAlreadyMapped;
 };
 
 #endif
