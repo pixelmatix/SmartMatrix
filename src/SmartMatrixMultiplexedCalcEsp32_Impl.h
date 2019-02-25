@@ -632,6 +632,22 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                     if (tempRow1[i+k].blue & mask)
                         v|=BIT_B2;
 
+                    if(optionFlags & SMARTMATRIX_OPTIONS_HUB12_MODE) {
+                        // HUB12 format inverts the data (assume we're only using R1 for now), and OE signals
+
+                        if(v & BIT_OE) {
+                            v = v & ~(BIT_OE);
+                        } else {
+                            v |= BIT_OE;
+                        }
+
+                        if(v & BIT_R1) {
+                            v = v & ~(BIT_R1);
+                        } else {
+                            v |= BIT_R1;
+                        }
+                    }               
+
                     if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && !((i/matrixWidth)%2)) {
                         //currentRowDataPtr->rowbits[j].data[(((i+matrixWidth-1)-k)*DMA_UPDATES_PER_CLOCK)] = o0.word;
                         //TODO: support C-shape stacking
@@ -694,6 +710,13 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 #endif
                 }
 
+                if(optionFlags & SMARTMATRIX_OPTIONS_HUB12_MODE) {
+                    // HUB12 inverts data (irrelevant here) and OE signals
+                    if(v & BIT_OE) {
+                        v = v & ~(BIT_OE);
+                    } else {
+                        v |= BIT_OE;
+                    }
                 }
 
                 if(MATRIX_I2S_MODE == I2S_PARALLEL_BITS_8) {
