@@ -617,7 +617,11 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                     }                
 #endif
                     // need to turn off OE one clock before latch, otherwise can get ghosting
+#if (CLKS_DURING_LATCH > 0)
                     if((refreshBufferPosition)==PIXELS_PER_LATCH-1) v|=BIT_OE;
+#else
+                    if((refreshBufferPosition)>=PIXELS_PER_LATCH-2) v|=BIT_OE;
+#endif
 
                     if (tempRow0[i+k].red & mask)
                         v|=BIT_R1;
@@ -871,7 +875,11 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 }
 
                 // need to turn off OE one clock before latch, otherwise can get ghosting
+#if (CLKS_DURING_LATCH > 0)
                 if((i+k)==PIXELS_PER_LATCH-1) v|=BIT_OE;
+#else
+                if((i+k)>=PIXELS_PER_LATCH-2) v|=BIT_OE;
+#endif
 
                 if (tempRow0[i+k].red & mask)
                     v|=BIT_R1;
