@@ -552,7 +552,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 printf("currentMapOffset = %d\r\n", currentMapOffset);
 #endif
 
-                // parse through matrixWith block of pixels, from left to right, or right to left, depending on C_SHAPE_STACKING options
+                // parse through grouping of pixels, loading from temp buffer and writing to refresh buffer
                 for(int k=0; k < numPixelsToMap; k++) {
                     int v=0;
 
@@ -616,6 +616,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                         }
                     }                
 #endif
+                    
                     // need to turn off OE one clock before latch, otherwise can get ghosting
 #if (CLKS_DURING_LATCH > 0)
                     if((refreshBufferPosition)==PIXELS_PER_LATCH-1) v|=BIT_OE;
@@ -756,6 +757,8 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers24(frameStruct * frameBuffer, int currentRow, int lsbMsbTransitionBit) {
     int i;
+    int multiRowRefreshRowOffset = 0;
+    int numPixelsPerTempRow = PIXELS_PER_LATCH/PHYSICAL_ROWS_PER_REFRESH_ROW;
 
 #if defined(ESP32)
     // use buffers malloc'd previously
@@ -763,210 +766,269 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     rgb24 * tempRow1 = (rgb24*)tempRow1Ptr;
 #else
     // static to avoid putting large buffer on the stack
-    static rgb24 tempRow0[PIXELS_PER_LATCH];
-    static rgb24 tempRow1[PIXELS_PER_LATCH];
+    static rgb24 tempRow0[numPixelsPerTempRow];
+    static rgb24 tempRow1[numPixelsPerTempRow];
 #endif
 
-    // clear buffer to prevent garbage data showing through transparent layers
-    memset(tempRow0, 0x00, sizeof(rgb24) * PIXELS_PER_LATCH);
-    memset(tempRow1, 0x00, sizeof(rgb24) * PIXELS_PER_LATCH);
+    int c = 0;
+    resetMultiRowRefreshMapPosition();
 
-    // get pixel data from layers
-    SM_Layer * templayer = SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
-    while(templayer) {
-        for(i=0; i<MATRIX_STACK_HEIGHT; i++) {
-            // Z-shape, bottom to top
-            if(!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
-                (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
-                // fill data from bottom to top, so bottom panel is the one closest to Teensy
-                templayer->fillRefreshRow(currentRow + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
-                templayer->fillRefreshRow(currentRow + ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
-            // Z-shape, top to bottom
-            } else if(!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
-                !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
-                // fill data from top to bottom, so top panel is the one closest to Teensy
-                templayer->fillRefreshRow(currentRow + i*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
-                templayer->fillRefreshRow(currentRow + ROW_PAIR_OFFSET + i*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
-            // C-shape, bottom to top
-            } else if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
-                (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
-                // alternate direction of filling (or loading) for each matrixwidth
-                // swap row order from top to bottom for each stack (tempRow1 filled with top half of panel, tempRow0 filled with bottom half)
-                if((MATRIX_STACK_HEIGHT-i+1)%2) {
-                    templayer->fillRefreshRow((MATRIX_SCAN_MOD-currentRow-1) + ROW_PAIR_OFFSET + (i)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
-                    templayer->fillRefreshRow((MATRIX_SCAN_MOD-currentRow-1) + (i)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
-                } else {
-                    templayer->fillRefreshRow(currentRow + (i)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
-                    templayer->fillRefreshRow(currentRow + ROW_PAIR_OFFSET + (i)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
-                }
-            // C-shape, top to bottom
-            } else if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && 
-                !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
-                if((MATRIX_STACK_HEIGHT-i)%2) {
-                    templayer->fillRefreshRow(currentRow + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
-                    templayer->fillRefreshRow(currentRow + ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
-                } else {
-                    templayer->fillRefreshRow((MATRIX_SCAN_MOD-currentRow-1) + ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
-                    templayer->fillRefreshRow((MATRIX_SCAN_MOD-currentRow-1) + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
-                }
-            }
-        }
-        templayer = templayer->nextLayer;        
-    }
+    // go through this process for each physical row that is contained in the refresh row
+    do {
+        // clear buffer to prevent garbage data showing through transparent layers
+        memset(tempRow0, 0x00, sizeof(rgb24) * numPixelsPerTempRow);
+        memset(tempRow1, 0x00, sizeof(rgb24) * numPixelsPerTempRow);
 
-    union {
-        uint8_t word;
-        struct {
-            // order of bits in word matches how GPIO connects to the display
-            uint8_t GPIO_WORD_ORDER_8BIT;
-        };
-    } o0;
-    
-    for(int j=0; j<COLOR_DEPTH_BITS; j++) {
-        int maskoffset = 0;
-        if(COLOR_DEPTH_BITS == 12)   // 36-bit color
-            maskoffset = 4;
-        else if (COLOR_DEPTH_BITS == 16) // 48-bit color
-            maskoffset = 0;
-        else if (COLOR_DEPTH_BITS == 8)  // 24-bit color
-            maskoffset = 0;
-
-        uint16_t mask = (1 << (j + maskoffset));
-        
-        SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowBitStruct *p=&(frameBuffer->rowdata[currentRow].rowbits[j]); //bitplane location to write to
-        
-        int i=0;
-        while(i < PIXELS_PER_LATCH) {
-
-            // parse through matrixWith block of pixels, from left to right, or right to left, depending on C_SHAPE_STACKING options
-            for(int k=0; k < matrixWidth; k++) {
-                int v=0;
-
-#if (CLKS_DURING_LATCH == 0)
-                // if there is no latch to hold address, output ADDX lines directly to GPIO and latch data at end of cycle
-                int gpioRowAddress = currentRow;
-                // normally output current rows ADDX, special case for LSB, output previous row's ADDX (as previous row is being displayed for one latch cycle)
-                if(j == 0)
-                    gpioRowAddress = currentRow-1;
-
-                if (gpioRowAddress & 0x01) v|=BIT_A;
-                if (gpioRowAddress & 0x02) v|=BIT_B;
-                if (gpioRowAddress & 0x04) v|=BIT_C;
-                if (gpioRowAddress & 0x08) v|=BIT_D;
-                if (gpioRowAddress & 0x10) v|=BIT_E;
-
-                // need to disable OE after latch to hide row transition
-                if((i+k) == 0) v|=BIT_OE;
-
-                // drive latch while shifting out last bit of RGB data
-                if((i+k) == PIXELS_PER_LATCH-1) v|=BIT_LAT;
-#endif
-
-                // turn off OE after brightness value is reached when displaying MSBs
-                // MSBs always output normal brightness
-                // LSB (!j) outputs normal brightness as MSB from previous row is being displayed
-                if((j > lsbMsbTransitionBit || !j) && ((i+k) >= brightness)) v|=BIT_OE;
-
-                // special case for the bits *after* LSB through (lsbMsbTransitionBit) - OE is output after data is shifted, so need to set OE to fractional brightness
-                if(j && j <= lsbMsbTransitionBit) {
-                    // divide brightness in half for each bit below lsbMsbTransitionBit
-                    int lsbBrightness = brightness >> (lsbMsbTransitionBit - j + 1);
-                    if((i+k) >= lsbBrightness) v|=BIT_OE;
-                }
-
-                // need to turn off OE one clock before latch, otherwise can get ghosting
-#if (CLKS_DURING_LATCH > 0)
-                if((i+k)==PIXELS_PER_LATCH-1) v|=BIT_OE;
-#else
-                if((i+k)>=PIXELS_PER_LATCH-2) v|=BIT_OE;
-#endif
-
-                if (tempRow0[i+k].red & mask)
-                    v|=BIT_R1;
-                if (tempRow0[i+k].green & mask)
-                    v|=BIT_G1;
-                if (tempRow0[i+k].blue & mask)
-                    v|=BIT_B1;
-                if (tempRow1[i+k].red & mask)
-                    v|=BIT_R2;
-                if (tempRow1[i+k].green & mask)
-                    v|=BIT_G2;
-                if (tempRow1[i+k].blue & mask)
-                    v|=BIT_B2;
-
-                if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && !((i/matrixWidth)%2)) {
-                    //currentRowDataPtr->rowbits[j].data[(((i+matrixWidth-1)-k)*DMA_UPDATES_PER_CLOCK)] = o0.word;
-                    //TODO: support C-shape stacking
-                } else {
-                    if(MATRIX_I2S_MODE == I2S_PARALLEL_BITS_8) {
-                        //Save the calculated value to the bitplane memory in 16-bit reversed order to account for I2S Tx FIFO mode1 ordering
-                        if(k%4 == 0){
-                            p->data[(i+k)+2] = v;
-                        } else if(k%4 == 1) {
-                            p->data[(i+k)+2] = v;
-                        } else if(k%4 == 2) {
-                            p->data[(i+k)-2] = v;
-                        } else { //if(k%4 == 3)
-                            p->data[(i+k)-2] = v;
-                        }
+        // get a row of physical pixel data (HUB75 paired) from the layers
+        SM_Layer * templayer = SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
+        while(templayer) {
+            for(i=0; i<MATRIX_STACK_HEIGHT; i++) {
+                // Z-shape, bottom to top
+                if(!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
+                    (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
+                    // fill data from bottom to top, so bottom panel is the one closest to Teensy
+                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+                // Z-shape, top to bottom
+                } else if(!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
+                    !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
+                    // fill data from top to bottom, so top panel is the one closest to Teensy
+                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + i*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + ROW_PAIR_OFFSET + i*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+                // C-shape, bottom to top
+                } else if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
+                    (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
+                    // alternate direction of filling (or loading) for each matrixwidth
+                    // swap row order from top to bottom for each stack (tempRow1 filled with top half of panel, tempRow0 filled with bottom half)
+                    if((MATRIX_STACK_HEIGHT-i+1)%2) {
+                        templayer->fillRefreshRow((MATRIX_SCAN_MOD-(currentRow + multiRowRefreshRowOffset)-1) + ROW_PAIR_OFFSET + (i)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                        templayer->fillRefreshRow((MATRIX_SCAN_MOD-(currentRow + multiRowRefreshRowOffset)-1) + (i)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
                     } else {
-                        //Save the calculated value to the bitplane memory in reverse order to account for I2S Tx FIFO mode1 ordering
-                        if(k%2){
-                            p->data[(i+k)-1] = v;
-                        } else {
-                            p->data[(i+k)+1] = v;
-                        }
+                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + (i)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + ROW_PAIR_OFFSET + (i)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+                    }
+                // C-shape, top to bottom
+                } else if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && 
+                    !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
+                    if((MATRIX_STACK_HEIGHT-i)%2) {
+                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+                    } else {
+                        templayer->fillRefreshRow((MATRIX_SCAN_MOD-(currentRow + multiRowRefreshRowOffset)-1) + ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                        templayer->fillRefreshRow((MATRIX_SCAN_MOD-(currentRow + multiRowRefreshRowOffset)-1) + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
                     }
                 }
             }
-
-            i += matrixWidth;
+            templayer = templayer->nextLayer;        
         }
+
+        union {
+            uint8_t word;
+            struct {
+                // order of bits in word matches how GPIO connects to the display
+                uint8_t GPIO_WORD_ORDER_8BIT;
+            };
+        } o0;
+        
+        for(int j=0; j<COLOR_DEPTH_BITS; j++) {
+            int maskoffset = 0;
+            if(COLOR_DEPTH_BITS == 12)   // 36-bit color
+                maskoffset = 4;
+            else if (COLOR_DEPTH_BITS == 16) // 48-bit color
+                maskoffset = 0;
+            else if (COLOR_DEPTH_BITS == 8)  // 24-bit color
+                maskoffset = 0;
+
+            uint16_t mask = (1 << (j + maskoffset));
+            
+            SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowBitStruct *p=&(frameBuffer->rowdata[currentRow].rowbits[j]); //bitplane location to write to
+            
+            int i=0;
+
+            // reset pixel map offset so we start filling from the first panel again
+            resetMultiRowRefreshMapPositionPixelGroupToStartOfRow();
+
+            while(i < numPixelsPerTempRow) {
+                // get number of pixels to go through with current pass
+                int numPixelsToMap = getMultiRowRefreshNumPixelsToMap();
+
+                bool reversePixelBlock = false;
+                if(numPixelsToMap < 0) {
+                    reversePixelBlock = true;
+                    numPixelsToMap = abs(numPixelsToMap);
+                }
+
+                // get offset where pixels are written in the refresh buffer
+                int currentMapOffset = getMultiRowRefreshPixelGroupOffset();
+
+                // parse through grouping of pixels, loading from temp buffer and writing to refresh buffer
+                for(int k=0; k < numPixelsToMap; k++) {
+                    int v=0;
+
+                    int refreshBufferPosition;
+                    if(reversePixelBlock) {
+                        refreshBufferPosition = currentMapOffset-k;
+                    } else {
+                        refreshBufferPosition = currentMapOffset+k;
+                    }
+
+#if (CLKS_DURING_LATCH == 0)
+                    // if there is no latch to hold address, output ADDX lines directly to GPIO and latch data at end of cycle
+                    int gpioRowAddress = currentRow;
+                    // normally output current rows ADDX, special case for LSB, output previous row's ADDX (as previous row is being displayed for one latch cycle)
+                    if(j == 0)
+                        gpioRowAddress = currentRow-1;
+
+                    if (gpioRowAddress & 0x01) v|=BIT_A;
+                    if (gpioRowAddress & 0x02) v|=BIT_B;
+                    if (gpioRowAddress & 0x04) v|=BIT_C;
+                    if (gpioRowAddress & 0x08) v|=BIT_D;
+                    if (gpioRowAddress & 0x10) v|=BIT_E;
+
+                    // need to disable OE after latch to hide row transition
+                    if((refreshBufferPosition) == 0) v|=BIT_OE;
+
+                    // drive latch while shifting out last bit of RGB data
+                    if((refreshBufferPosition) == PIXELS_PER_LATCH-1) v|=BIT_LAT;
+#endif
+
+                    // turn off OE after brightness value is reached when displaying MSBs
+                    // MSBs always output normal brightness
+                    // LSB (!j) outputs normal brightness as MSB from previous row is being displayed
+                    if((j > lsbMsbTransitionBit || !j) && ((refreshBufferPosition) >= brightness)) v|=BIT_OE;
+
+                    // special case for the bits *after* LSB through (lsbMsbTransitionBit) - OE is output after data is shifted, so need to set OE to fractional brightness
+                    if(j && j <= lsbMsbTransitionBit) {
+                        // divide brightness in half for each bit below lsbMsbTransitionBit
+                        int lsbBrightness = brightness >> (lsbMsbTransitionBit - j + 1);
+                        if((refreshBufferPosition) >= lsbBrightness) v|=BIT_OE;
+                    }
+
+                    // need to turn off OE one clock before latch, otherwise can get ghosting
+#if (CLKS_DURING_LATCH > 0)
+                    if((refreshBufferPosition)==PIXELS_PER_LATCH-1) v|=BIT_OE;
+#else
+                    if((refreshBufferPosition)>=PIXELS_PER_LATCH-2) v|=BIT_OE;
+#endif
+
+                    if (tempRow0[i+k].red & mask)
+                        v|=BIT_R1;
+                    if (tempRow0[i+k].green & mask)
+                        v|=BIT_G1;
+                    if (tempRow0[i+k].blue & mask)
+                        v|=BIT_B1;
+                    if (tempRow1[i+k].red & mask)
+                        v|=BIT_R2;
+                    if (tempRow1[i+k].green & mask)
+                        v|=BIT_G2;
+                    if (tempRow1[i+k].blue & mask)
+                        v|=BIT_B2;
+
+                    if(optionFlags & SMARTMATRIX_OPTIONS_HUB12_MODE) {
+                        // HUB12 format inverts the data (assume we're only using R1 for now), and OE signals
+
+                        if(v & BIT_OE) {
+                            v = v & ~(BIT_OE);
+                        } else {
+                            v |= BIT_OE;
+                        }
+
+                        if(v & BIT_R1) {
+                            v = v & ~(BIT_R1);
+                        } else {
+                            v |= BIT_R1;
+                        }
+                    }               
+
+                    if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && !((i/matrixWidth)%2)) {
+                        //currentRowDataPtr->rowbits[j].data[(((i+matrixWidth-1)-k)*DMA_UPDATES_PER_CLOCK)] = o0.word;
+                        //TODO: support C-shape stacking
+                    } else {
+                        if(MATRIX_I2S_MODE == I2S_PARALLEL_BITS_8) {
+                            //Save the calculated value to the bitplane memory in 16-bit reversed order to account for I2S Tx FIFO mode1 ordering
+                            if(refreshBufferPosition%4 == 0){
+                                p->data[(refreshBufferPosition)+2] = v;
+                            } else if(refreshBufferPosition%4 == 1) {
+                                p->data[(refreshBufferPosition)+2] = v;
+                            } else if(refreshBufferPosition%4 == 2) {
+                                p->data[(refreshBufferPosition)-2] = v;
+                            } else { //if(refreshBufferPosition%4 == 3)
+                                p->data[(refreshBufferPosition)-2] = v;
+                            }
+                        } else {
+                            //Save the calculated value to the bitplane memory in reverse order to account for I2S Tx FIFO mode1 ordering
+                            if(refreshBufferPosition%2){
+                                p->data[(refreshBufferPosition)-1] = v;
+                            } else {
+                                p->data[(refreshBufferPosition)+1] = v;
+                            }
+                        }
+                    }
+                }
+
+                i += numPixelsToMap; // keep track of current position on this temp buffer
+                advanceMultiRowRefreshMapToNextPixelGroup();
+            }
 
 #if (CLKS_DURING_LATCH > 0)
-        // if external latch is used to hold ADDX lines, load the ADDX latch and latch the RGB data here
-        for(int k=PIXELS_PER_LATCH; k < PIXELS_PER_LATCH + CLKS_DURING_LATCH; k++) {
-            int v = 0;
-            // after data is shifted in, pulse latch for one clock cycle
-            if(k == PIXELS_PER_LATCH) {
-                v|=BIT_LAT;
-            }
-
-            //Do not show image while the line bits are changing
-            v|=BIT_OE;
-
-            // set ADDX values to high while latch is high, keep them high while latch drops to clock it in to ADDX latch
-            if(k >= PIXELS_PER_LATCH) {               
-                if (currentRow & 0x01) v|=BIT_R1;
-                if (currentRow & 0x02) v|=BIT_G1;
-                if (currentRow & 0x04) v|=BIT_B1;
-                if (currentRow & 0x08) v|=BIT_R2;
-                if (currentRow & 0x10) v|=BIT_G2;
-                // reserve B2 for OE SWITCH
-            }
-
-            if(MATRIX_I2S_MODE == I2S_PARALLEL_BITS_8) {
-                //Save the calculated value to the bitplane memory in 16-bit reversed order to account for I2S Tx FIFO mode1 ordering
-                if(k%4 == 0){
-                    p->data[k+2] = v;
-                } else if(k%4 == 1) {
-                    p->data[k+2] = v;
-                } else if(k%4 == 2) {
-                    p->data[k-2] = v;
-                } else { //if(k%4 == 3)
-                    p->data[k-2] = v;
+            // if external latch is used to hold ADDX lines, load the ADDX latch and latch the RGB data here
+            for(int k=PIXELS_PER_LATCH; k < PIXELS_PER_LATCH + CLKS_DURING_LATCH; k++) {
+                int v = 0;
+                // after data is shifted in, pulse latch for one clock cycle
+                if(k == PIXELS_PER_LATCH) {
+                    v|=BIT_LAT;
                 }
-            } else {
-                //Save the calculated value to the bitplane memory in reverse order to account for I2S Tx FIFO mode1 ordering
-                if(k%2){
-                    p->data[k-1] = v;
+
+                //Do not show image while the line bits are changing
+                v|=BIT_OE;
+
+                // set ADDX values to high while latch is high, keep them high while latch drops to clock it in to ADDX latch
+                if(k >= PIXELS_PER_LATCH) {               
+                    if (currentRow & 0x01) v|=BIT_R1;
+                    if (currentRow & 0x02) v|=BIT_G1;
+                    if (currentRow & 0x04) v|=BIT_B1;
+                    if (currentRow & 0x08) v|=BIT_R2;
+                    if (currentRow & 0x10) v|=BIT_G2;
+                    // reserve B2 for OE SWITCH
+                }
+
+                if(optionFlags & SMARTMATRIX_OPTIONS_HUB12_MODE) {
+                    // HUB12 inverts data (irrelevant here) and OE signals
+                    if(v & BIT_OE) {
+                        v = v & ~(BIT_OE);
+                    } else {
+                        v |= BIT_OE;
+                    }
+                }
+
+                if(MATRIX_I2S_MODE == I2S_PARALLEL_BITS_8) {
+                    //Save the calculated value to the bitplane memory in 16-bit reversed order to account for I2S Tx FIFO mode1 ordering
+                    if(k%4 == 0){
+                        p->data[k+2] = v;
+                    } else if(k%4 == 1) {
+                        p->data[k+2] = v;
+                    } else if(k%4 == 2) {
+                        p->data[k-2] = v;
+                    } else { //if(k%4 == 3)
+                        p->data[k-2] = v;
+                    }
                 } else {
-                    p->data[k+1] = v;
+                    //Save the calculated value to the bitplane memory in reverse order to account for I2S Tx FIFO mode1 ordering
+                    if(k%2){
+                        p->data[k-1] = v;
+                    } else {
+                        p->data[k+1] = v;
+                    }
                 }
             }
-        }
 #endif
-    }
+        }
+
+        c += numPixelsPerTempRow; // keep track of cumulative number of pixels filled in refresh buffer before this temp buffer
+
+        advanceMultiRowRefreshMapToNextRow();
+        multiRowRefreshRowOffset = getMultiRowRefreshRowOffset();
+    } while (multiRowRefreshRowOffset > 0);
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
