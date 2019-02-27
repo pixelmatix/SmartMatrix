@@ -46,7 +46,7 @@ public:
 #endif
 
     struct rowBitStruct {
-        uint8_t data[((((matrixWidth * matrixHeight) / CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT(panelType)) * DMA_UPDATES_PER_CLOCK))];
+        uint8_t data[PIXELS_PER_LATCH * DMA_UPDATES_PER_CLOCK];
         uint8_t rowAddress; // must be directly after data - DMA transfers data[] + rowAddress continuous
         timerpair timerValues;
 #ifndef ADDX_UPDATE_ON_DATA_PINS
