@@ -451,7 +451,6 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                         refreshBufferPosition = currentMapOffset+k;
                     }
 
-                    //fill temp0red, etc, or work directly from buffer?
                     if (tempRow0[i+k].red & mask)
                         o0.p0r1 = 1;
                     if (tempRow0[i+k].green & mask)
@@ -464,6 +463,14 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                         o0.p0g2 = 1;
                     if (tempRow1[i+k].blue & mask)
                         o0.p0b2 = 1;
+
+                    if(optionFlags & SMARTMATRIX_OPTIONS_HUB12_MODE) {
+                        // HUB12 format inverts the data (assume we're only using R1 for now)
+                        if (tempRow0[i+k].red & mask)
+                            o0.p0r1 = 0;
+                        else
+                            o0.p0r1 = 1;                        
+                    }               
 
                     if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && !((i/matrixWidth)%2)) {
                         // TODO: fix C_Shape_stacking after applying multi-row-refresh support
@@ -612,7 +619,6 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                         refreshBufferPosition = currentMapOffset+k;
                     }
 
-                    //fill temp0red, etc, or work directly from buffer?
                     if (tempRow0[i+k].red & mask)
                         o0.p0r1 = 1;
                     if (tempRow0[i+k].green & mask)
@@ -625,6 +631,14 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                         o0.p0g2 = 1;
                     if (tempRow1[i+k].blue & mask)
                         o0.p0b2 = 1;
+
+                    if(optionFlags & SMARTMATRIX_OPTIONS_HUB12_MODE) {
+                        // HUB12 format inverts the data (assume we're only using R1 for now)
+                        if (tempRow0[i+k].red & mask)
+                            o0.p0r1 = 0;
+                        else
+                            o0.p0r1 = 1;                        
+                    }               
 
                     if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && !((i/matrixWidth)%2)) {
                         // TODO: fix C_Shape_stacking after applying multi-row-refresh support

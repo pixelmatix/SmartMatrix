@@ -444,6 +444,11 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
     // output OE signal - set to max at first to disable OE
     FTM1_C1V = IDEAL_MSB_BLOCK_TICKS;
 
+    if(optionFlags & SMARTMATRIX_OPTIONS_HUB12_MODE) {
+        // HUB12 format inverts the OE channel
+        FTM1_POL = FTM_POL_POL1;
+    }
+
     // setup PWM outputs
     ENABLE_LATCH_PWM_OUTPUT();
     ENABLE_OE_PWM_OUTPUT();
