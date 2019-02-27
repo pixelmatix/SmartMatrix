@@ -9,11 +9,11 @@ The SmartMatrix Library ESP32 port at a low level is based on Sprite_TM's [ESP32
 * Major (ESP32 and Teensy 3 platform) new features in this branch vs the main SmartMatrix Library branch
   * Support for multi-row-mapped panels: these are typically large panels that light up multiple rows per color channel for a brighter output overall.  e.g. a P10 32x16 /4 scan panel, which would light up two rows per color channel, doubling the brightness vs a P10 32x16 /8 scan panel.  See `MultiRowRefreshMapping.ino` sketch for more details on how to find out what mapping your panel has, and how to a new one if SmartMatrix Library doesn't already have a mapping.
   * Initial support for HUB12 panels (e.g. Freetronics DMD panels).  These panels have a single color channel, and invert the data and OE signals.  Because SmartMatrix Library is designed for HUB75 with two parallel color channels, you need to double the physical matrix height in the sketch to allow SmartMatrix Library to refresh the panel with just the first color channel.
-    * Usage example with 32x16 /4 scan HUB12 panel: `kMatrixWidth = 32; kMatrixHeight = 16*2; panelType = SMARTMATRIX_HUB12_16ROW_32COL_MOD4SCAN;`
+    * Usage example with 32x16 /4 scan HUB12 panel: `kMatrixWidth = 32; kMatrixHeight = 16*2; panelType = SMARTMATRIX_HUB12_16ROW_32COL_MOD4SCAN; kMatrixOptions = (SMARTMATRIX_OPTIONS_HUB12_MODE);`
     * Pinout (HUB12->HUB75): OE=OE, A = ADX0, B = ADX1, C=ADX2 (not necessary for /4 scan), CLK/S = CLK, SCK/L = LAT, R = R1, GND=GND, No connect: E/G, D
     * Only the R1 data line is inverted at this time.  It could be possible to refresh six HUB12 panels in parallel (three from each color channel, two color channels), with some minor changes to the library, but would require a lot more work in mapping to keep track of which X/Y/color set goes to which physical pixel on the panels.
 
-* Changes from Teensy Platform
+* ESP32 Port Differences from Teensy
   * Because of more RAM available and the DMA architecture on the ESP32, two entire refresh frames are used.  Refreshing the panel can take up little to no CPU usage with some more SmartMatrix changes.
   * Layer update rate is decoupled from the panel refresh rate.  By default, the Layer refresh rate is set to half of the panel refresh rate.  e.g. if you set matrix.refreshRate() to 120, and repeatedly call backgroundLayer.swapBuffers(), it will swap at max 60 times per second.
     - Call matrix.setCalcRefreshRateDivider(uint8_t newDivider) to change the division from the default of 2 to something else.  Be careful with setting to 1 with a high refresh rate, as you can end up with no CPU left to run your sketch (this will look like a blank display)
