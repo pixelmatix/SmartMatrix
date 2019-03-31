@@ -38,6 +38,7 @@
 #include "i2s_parallel.h"
 #endif
 
+#include "ESP32MemDisplay.h"
 #include "driver/mcpwm.h"
 #include "soc/mcpwm_reg.h"
 #include "soc/mcpwm_struct.h"
@@ -194,16 +195,15 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
     assert(matrixUpdateFrames[1] != NULL);
 
     printf("sizeof framestruct: %08X\r\n", (uint32_t)sizeof(frameStruct));
+    show_esp32_dma_mem("DMA Memory Available before ptr1 alloc");
     printf("matrixUpdateFrames[0] pointer: %08X\r\n", (uint32_t)matrixUpdateFrames[0]);
+    show_esp32_dma_mem("DMA Memory Available before ptr2 alloc");
     printf("matrixUpdateFrames[1] pointer: %08X\r\n", (uint32_t)matrixUpdateFrames[1]);
 
     printf("Frame Structs Allocated from Heap:\r\n");
-    printf("Heap Memory Available: %d bytes total, %d bytes largest free block: \r\n", heap_caps_get_free_size(0), heap_caps_get_largest_free_block(0));
-    printf("8-bit Accessible Memory Available: %d bytes total, %d bytes largest free block: \r\n", heap_caps_get_free_size(MALLOC_CAP_8BIT), heap_caps_get_largest_free_block(MALLOC_CAP_8BIT));
-    printf("32-bit Memory Available: %d bytes total, %d bytes largest free block: \r\n", heap_caps_get_free_size(MALLOC_CAP_32BIT), heap_caps_get_largest_free_block(MALLOC_CAP_32BIT));
-    printf("DMA Memory Available: %d bytes total, %d bytes largest free block: \r\n", heap_caps_get_free_size(MALLOC_CAP_DMA), heap_caps_get_largest_free_block(MALLOC_CAP_DMA));
+    show_esp32_all_mem();
 
-    printf("Allocating refresh buffer:\r\nDMA Memory Available: %d bytes total, %d bytes largest free block: \r\n", heap_caps_get_free_size(MALLOC_CAP_DMA), heap_caps_get_largest_free_block(MALLOC_CAP_DMA));
+    printf("Allocating refresh buffer:\r\n");
 
     // setup debug output
 #ifdef DEBUG_PINS_ENABLED
@@ -305,10 +305,7 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
     }
 
     printf("SmartMatrix Mallocs Complete\r\n");
-    printf("Heap Memory Available: %d bytes total, %d bytes largest free block: \r\n", heap_caps_get_free_size(0), heap_caps_get_largest_free_block(0));
-    printf("8-bit Accessible Memory Available: %d bytes total, %d bytes largest free block: \r\n", heap_caps_get_free_size(MALLOC_CAP_8BIT), heap_caps_get_largest_free_block(MALLOC_CAP_8BIT));
-    printf("32-bit Memory Available: %d bytes total, %d bytes largest free block: \r\n", heap_caps_get_free_size(MALLOC_CAP_32BIT), heap_caps_get_largest_free_block(MALLOC_CAP_32BIT));
-    printf("DMA Memory Available: %d bytes total, %d bytes largest free block: \r\n", heap_caps_get_free_size(MALLOC_CAP_DMA), heap_caps_get_largest_free_block(MALLOC_CAP_DMA));
+    show_esp32_all_mem();
 
     lldesc_t *prevdmadesca = 0;
     lldesc_t *prevdmadescb = 0;
