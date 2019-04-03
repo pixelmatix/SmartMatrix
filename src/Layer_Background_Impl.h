@@ -832,12 +832,7 @@ void SMLayerBackground<RGB, optionFlags>::drawString(int16_t x, int16_t y, const
     int xcnt, ycnt, i = 0, offset = 0;
     char character;
 
-    // limit text to 10 chars, why?
-    for (i = 0; i < 10; i++) {
-        character = text[offset++];
-        if (character == '\0')
-            return;
-
+    while ((character = text[offset++]) != '\0') {
         for (ycnt = 0; ycnt < font->Height; ycnt++) {
             for (xcnt = 0; xcnt < font->Width; xcnt++) {
                 if (getBitmapFontPixelAtXY(character, xcnt, ycnt, font)) {
@@ -855,12 +850,7 @@ void SMLayerBackground<RGB, optionFlags>::drawString(int16_t x, int16_t y, const
     int xcnt, ycnt, i = 0, offset = 0;
     char character;
 
-    // limit text to 10 chars, why?
-    for (i = 0; i < 10; i++) {
-        character = text[offset++];
-        if (character == '\0')
-            return;
-
+    while ((character = text[offset++]) != '\0') {
         for (ycnt = 0; ycnt < font->Height; ycnt++) {
             for (xcnt = 0; xcnt < font->Width; xcnt++) {
                 if (getBitmapFontPixelAtXY(character, xcnt, ycnt, font)) {
