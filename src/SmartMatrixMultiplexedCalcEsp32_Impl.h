@@ -505,6 +505,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
             templayer = templayer->nextLayer;        
         }
 
+        /*
         union {
             uint8_t word;
             struct {
@@ -512,6 +513,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 uint8_t GPIO_WORD_ORDER_8BIT;
             };
         } o0;
+        */
         
         for(int j=0; j<COLOR_DEPTH_BITS; j++) {
             int maskoffset = 0;
@@ -822,6 +824,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
             templayer = templayer->nextLayer;        
         }
 
+/*
         union {
             uint8_t word;
             struct {
@@ -829,7 +832,8 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 uint8_t GPIO_WORD_ORDER_8BIT;
             };
         } o0;
-        
+  */
+  
         for(int j=0; j<COLOR_DEPTH_BITS; j++) {
             int maskoffset = 0;
             if(COLOR_DEPTH_BITS == 12)   // 36-bit color
