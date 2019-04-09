@@ -9,6 +9,8 @@ More documentation Here:
 
 To download in Arduino Library form, see [Releases](https://github.com/pixelmatix/SmartMatrix/releases) on GitHub, or just add the files in the /src directory to your Arduino project.
 
+A lot of work went into writing SmartMatrix and designing the shields. If they are useful to you and you'd like to say thank you, you can make a [donation via paypal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=56RA5NKYXHCLJ&source=https://github.com/pixelmatix/SmartMatrix)
+
 ### Software and Teensy Setup
 This documentation assumes you have a general knowledge of the Teensy 3, how to use the Arduino IDE, and the Teensyduino addon.  If you need an overview of any of those tools, please use these references:
 
