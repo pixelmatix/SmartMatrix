@@ -48,6 +48,7 @@ The SmartMatrix Library ESP32 port at a low level is based on Sprite_TM's [ESP32
     - The Teensy portion of the library should work identical to how it did before, but the code has been extensively refactored.  There may be some errors.
     - There is a new APA102 driver using SmartMatrix Library to get pseudo-13-bit color out of the normally 8-bit per color APA102 LEDs.  See FastLED_Panel_Plus_APA example
   * Scrolling text speed is maximum one pixel shift per frame, which is quite slow with slow calculation framerates - need to allow scrolling text more than once per frame?
+  * Scrolling text has been reported to be scrolling backwards
   * Use the 96k 32-bit addressible RAM for something, so it doesn't go to waste, and more of the 8-bit addressible DMA RAM is available to drive larger panels?
     - 96kB fits two frames of 128x128xRGB24, a good fit for a double-buffered background layer.  Problem is RGB24 fits in 3 bytes and is normally accessed a byte at a time to set individual colors.  It would need to be accessed 32-bit aligned, which would be a bit of overhead, reading (up to) two 32-bit words and writing (up to) two words back to change values in a RGB24 struct.  Backbuffer() wouldn't work well as you can't provide a RGB24 pointer to the user.  
 

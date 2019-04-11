@@ -22,6 +22,7 @@
  */
 
 #include "SmartMatrix3.h"
+#include "ESP32MemDisplay.h"
 
 #define INLINE __attribute__( ( always_inline ) ) inline
 
@@ -297,10 +298,7 @@ template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char pan
 void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin(uint32_t dmaRamToKeepFreeBytes)
 {
     printf("\r\nStarting SmartMatrix Mallocs\r\n");
-    printf("Heap Memory Available: %d bytes total, %d bytes largest free block: \r\n", heap_caps_get_free_size(0), heap_caps_get_largest_free_block(0));
-    printf("8-bit Accessible Memory Available: %d bytes total, %d bytes largest free block: \r\n", heap_caps_get_free_size(MALLOC_CAP_8BIT), heap_caps_get_largest_free_block(MALLOC_CAP_8BIT));
-    printf("32-bit Memory Available: %d bytes total, %d bytes largest free block: \r\n", heap_caps_get_free_size(MALLOC_CAP_32BIT), heap_caps_get_largest_free_block(MALLOC_CAP_32BIT));
-    printf("DMA Memory Available: %d bytes total, %d bytes largest free block: \r\n", heap_caps_get_free_size(MALLOC_CAP_DMA), heap_caps_get_largest_free_block(MALLOC_CAP_DMA));
+    show_esp32_all_mem();
 
     SM_Layer * templayer = baseLayer;
     while(templayer) {
@@ -313,7 +311,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     xTaskCreate(calcTask, "SmartMatrixCalc", 1000, NULL, MATRIX_CALC_TASK_PRIORTY, &calcTaskHandle);
 
     printf("SmartMatrix Layers Allocated from Heap:\r\n");
-    printf("Heap Memory Available: %d bytes total, %d bytes largest free block: \r\n", heap_caps_get_free_size(0), heap_caps_get_largest_free_block(0));
+    show_esp32_heap_mem();
 
 #if defined(ESP32)
     // malloc temporary buffers needed for loadMatrixBuffers
@@ -505,6 +503,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
             templayer = templayer->nextLayer;        
         }
 
+        /*
         union {
             uint8_t word;
             struct {
@@ -512,6 +511,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 uint8_t GPIO_WORD_ORDER_8BIT;
             };
         } o0;
+        */
         
         for(int j=0; j<COLOR_DEPTH_BITS; j++) {
             int maskoffset = 0;
@@ -822,6 +822,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
             templayer = templayer->nextLayer;        
         }
 
+/*
         union {
             uint8_t word;
             struct {
@@ -829,7 +830,8 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 uint8_t GPIO_WORD_ORDER_8BIT;
             };
         } o0;
-        
+  */
+  
         for(int j=0; j<COLOR_DEPTH_BITS; j++) {
             int maskoffset = 0;
             if(COLOR_DEPTH_BITS == 12)   // 36-bit color
