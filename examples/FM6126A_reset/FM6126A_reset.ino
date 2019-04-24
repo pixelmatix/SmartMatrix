@@ -5,9 +5,10 @@
 
 // Temporary workaround to enable output on FM6126A chip driven RGBPanels
 // Run this code first, and then your sketch.
-// FIXME: this does not properly enable colors on the 2nd half of a 64x32 panel
 
-int MaxLed = 256; // original code has 128, python code uses 256. Which is it?
+// how many pixels wide if you chain panels
+// 4 panels of 64x32 is 256 wie.
+int MaxLed = 256; 
 
 #define GPIO_PIN_CLK_TEENSY_PIN    14
 #define GPIO_PIN_LATCH_TEENSY_PIN   3
@@ -44,7 +45,7 @@ void setup() {
 
     // Send Data to control register 11
     digitalWrite (GPIO_PIN_OE_TEENSY_PIN, LOW); // Display reset
-    digitalWrite (GPIO_PIN_LATCH_TEENSY_PIN, LOW);
+    digitalWrite (GPIO_PIN_LATCH_TEENSY_PIN, HIGH);
     digitalWrite (GPIO_PIN_CLK_TEENSY_PIN, LOW);
     for (int l=0; l< MaxLed; l++) {    
       int y=l%16;
