@@ -44,8 +44,8 @@ void setup() {
     pinMode(ADDX_TEENSY_PIN_3, OUTPUT);
 
     // Send Data to control register 11
-    digitalWrite (GPIO_PIN_OE_TEENSY_PIN, LOW); // Display reset
-    digitalWrite (GPIO_PIN_LATCH_TEENSY_PIN, HIGH);
+    digitalWrite (GPIO_PIN_OE_TEENSY_PIN, HIGH); // Display reset
+    digitalWrite (GPIO_PIN_LATCH_TEENSY_PIN, LOW);
     digitalWrite (GPIO_PIN_CLK_TEENSY_PIN, LOW);
     for (int l=0; l< MaxLed; l++) {    
       int y=l%16;
