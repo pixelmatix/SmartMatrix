@@ -17,7 +17,7 @@ int MaxLed = 256;
 #define GPIO_PIN_R0_TEENSY_PIN      2
 #define GPIO_PIN_R1_TEENSY_PIN      21
 #define GPIO_PIN_G0_TEENSY_PIN      5
-#define GPIO_PIN_G1_TEENSY_PIN      7
+#define GPIO_PIN_G1_TEENSY_PIN      8
 #define GPIO_PIN_B1_TEENSY_PIN      20
 #define ADDX_TEENSY_PIN_0   9
 #define ADDX_TEENSY_PIN_1   10
