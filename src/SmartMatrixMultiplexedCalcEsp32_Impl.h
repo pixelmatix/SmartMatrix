@@ -292,7 +292,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     }
 }
 
-#define MATRIX_CALC_TASK_PRIORTY 2
+#define MATRIX_CALC_TASK_PRIORTY 1
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin(uint32_t dmaRamToKeepFreeBytes)
