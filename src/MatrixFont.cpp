@@ -70,7 +70,7 @@ bool getBitmapFontPixelAtXY(unsigned char letter, unsigned char x, unsigned char
         offset += 1;
     }
 
-    // round up teh font width in bits to the width in bytes
+    // round up the font width in bits to the width in bytes
     uint8_t width_bytes = ((font->Width + 7) & -8) / 8;
 
     if (font->Bitmap[(location * font->Height*width_bytes) + y*width_bytes + offset] & (0x80 >> x))
