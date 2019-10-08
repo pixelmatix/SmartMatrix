@@ -190,6 +190,17 @@ void SMLayerIndexed<RGB, optionFlags>::setFont(fontChoices newFont) {
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerIndexed<RGB, optionFlags>::drawChar(int16_t x, int16_t y, uint8_t index, char character) {
+    if (layerFont->Width > 8)
+    {
+        for (int ycnt = 0; ycnt < layerFont->Height; ycnt++) {
+            for (int xcnt = 0; xcnt < layerFont->Width; xcnt++) {
+                if (getBitmapFontPixelAtXY(character, xcnt, ycnt, layerFont)) {
+                    drawPixel(x + xcnt, y + ycnt, index);
+                }
+            }
+        }
+        return;
+    }
     uint8_t tempBitmask;
     int k;
 
