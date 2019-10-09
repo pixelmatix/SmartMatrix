@@ -374,6 +374,23 @@ void SMLayerScrolling<RGB, optionFlags>::redrawScrollingText(void) {
             uint8_t tempBitmask;
             // draw character from top to bottom
             for (k = charY0; k < charY1; k++) {
+                if (scrollFont->Width > 8)
+                {
+                    //
+                    // fontwidth > 8 so we go pixel by pixel.
+                    //
+                    for(int char_x = 0; char_x < scrollFont->Width; ++char_x)
+                    {
+                        if (charPosition+char_x < 0)
+                            continue;
+
+                        if (getBitmapFontPixelAtXY(text[textPosition], char_x, k, scrollFont))
+                        {
+                            setBitmapPixelAtXY(charPosition+char_x, j + k - charY0, this->localWidth, this->localHeight, scrollingBitmap);
+                        }
+                    }
+                    continue;
+                }
                 tempBitmask = getBitmapFontRowAtXY(text[textPosition], k, scrollFont);
                 //tempBitmask = 0xAA;
                 if (charPosition < 0) {
@@ -403,3 +420,13 @@ bool SMLayerScrolling<RGB, optionFlags>::getBitmapPixelAtXY(uint8_t x, uint8_t y
     return (mask & bitmap[cell]);
 }
 
+template <typename RGB, unsigned int optionFlags>
+void SMLayerScrolling<RGB, optionFlags>::setBitmapPixelAtXY(int8_t x, int8_t y, uint8_t width, uint8_t height, uint8_t *bitmap) {
+    if (x < 0 || y < 0 || x > width || y > height)
+        return;
+
+    int cell = (y * (width / 8)) + (x / 8);
+
+    uint8_t mask = 0x80 >> (x % 8);
+    bitmap[cell] |= mask;
+}
