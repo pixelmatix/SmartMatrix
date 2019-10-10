@@ -50,13 +50,28 @@ int getBitmapFontLocation(unsigned char letter, const bitmap_font *font) {
     return -1;
 }
 
+uint16_t  getBitmapFontRowLocation(unsigned char letter, unsigned char y, const bitmap_font *font) {
+    int location;
+    if (y >= font->Height)
+        return 0x0000;
+
+    location = getBitmapFontLocation(letter, font);
+
+    if (location < 0)
+        return 0x0000;
+
+    // round up the font width in bits to the width in bytes
+    uint8_t width_bytes = ((font->Width + 7) & -8) / 8;
+    return((location * font->Height * width_bytes) + y * width_bytes);
+}
+
 bool getBitmapFontPixelAtXY(unsigned char letter, unsigned char x, unsigned char y, const bitmap_font *font)
 {
     int location;
     if (y >= font->Height)
         return false;
 
-    location = getBitmapFontLocation(letter, font);
+    location = getBitmapFontRowLocation(letter, y, font);
 
     if (location < 0)
         return false;
@@ -69,11 +84,7 @@ bool getBitmapFontPixelAtXY(unsigned char letter, unsigned char x, unsigned char
         x -= 8;
         offset += 1;
     }
-
-    // round up the font width in bits to the width in bytes
-    uint8_t width_bytes = ((font->Width + 7) & -8) / 8;
-
-    if (font->Bitmap[(location * font->Height*width_bytes) + y*width_bytes + offset] & (0x80 >> x))
+    if (font->Bitmap[location + offset] & (0x80 >> x))
         return true;
     else
         return false;
@@ -84,14 +95,15 @@ uint16_t getBitmapFontRowAtXY(unsigned char letter, unsigned char y, const bitma
     if (y >= font->Height)
         return 0x0000;
 
-    location = getBitmapFontLocation(letter, font);
+    location = getBitmapFontRowLocation(letter, y, font);
 
     if (location < 0)
         return 0x0000;
 
-    return(font->Bitmap[(location * font->Height) + y]);
+    return(font->Bitmap[location]);
 }
 
+#if !defined(USE_FONT_POINTERS)
 // order needs to match fontChoices enum
 static const bitmap_font *fontArray[] = {
     &apple3x5,
@@ -101,7 +113,12 @@ static const bitmap_font *fontArray[] = {
     &gohufont6x11,
     &gohufont6x11b,
 };
+#endif
 
 const bitmap_font *fontLookup(fontChoices font) {
+#if defined(USE_FONT_POINTERS)
+    return font;
+#else
     return fontArray[font];
+#endif
 }
