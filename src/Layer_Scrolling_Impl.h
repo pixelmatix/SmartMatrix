@@ -422,7 +422,7 @@ bool SMLayerScrolling<RGB, optionFlags>::getBitmapPixelAtXY(uint8_t x, uint8_t y
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerScrolling<RGB, optionFlags>::setBitmapPixelAtXY(int8_t x, int8_t y, uint8_t width, uint8_t height, uint8_t *bitmap) {
-    if (x < 0 || y < 0 || x > width || y > height)
+    if (x < 0 || y < 0 || x >= width || y >= height)
         return;
 
     int cell = (y * (width / 8)) + (x / 8);
