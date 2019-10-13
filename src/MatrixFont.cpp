@@ -90,7 +90,7 @@ bool getBitmapFontPixelAtXY(unsigned char letter, unsigned char x, unsigned char
         return false;
 }
 
-uint16_t getBitmapFontRowAtXY(unsigned char letter, unsigned char y, const bitmap_font *font) {
+uint16_t getBitmapFontRowAtXY(unsigned char letter, unsigned char y, unsigned char byte_offset, const bitmap_font *font) {
     int location;
     if (y >= font->Height)
         return 0x0000;
@@ -100,7 +100,7 @@ uint16_t getBitmapFontRowAtXY(unsigned char letter, unsigned char y, const bitma
     if (location < 0)
         return 0x0000;
 
-    return(font->Bitmap[location]);
+    return(font->Bitmap[location+byte_offset]);
 }
 
 #if !defined(USE_FONT_POINTERS)
