@@ -211,6 +211,7 @@ template <typename RGB, unsigned int optionFlags>
 void SMLayerIndexed<RGB, optionFlags>::drawChar(int16_t x, int16_t y, uint8_t index, char character) {
     uint8_t tempBitmask;
     int k;
+    int byte_offset;
 
     // only draw if character is on the screen
     if (x + scrollFont->Width < 0 || x >= this->localWidth) {
@@ -222,14 +223,24 @@ void SMLayerIndexed<RGB, optionFlags>::drawChar(int16_t x, int16_t y, uint8_t in
         if(k < 0) continue;
         if (k >= this->localHeight) return;
 
-        tempBitmask = getBitmapFontRowAtXY(character, k - y, layerFont);
-        if (x < 0) {
-            indexedBitmap[indexedDrawBuffer*INDEXED_BUFFER_SIZE + (k * INDEXED_BUFFER_ROW_SIZE) + 0] |= tempBitmask << -x;
-        } else {
-            indexedBitmap[indexedDrawBuffer*INDEXED_BUFFER_SIZE + (k * INDEXED_BUFFER_ROW_SIZE) + (x/8)] |= tempBitmask >> (x%8);
-            // do two writes if the shifted 8-bit wide bitmask is still on the screen
-            if(x + 8 < this->localWidth && x % 8)
-                indexedBitmap[indexedDrawBuffer*INDEXED_BUFFER_SIZE + (k * INDEXED_BUFFER_ROW_SIZE) + (x/8) + 1] |= tempBitmask << (8-(x%8));
+        int index = indexedDrawBuffer*INDEXED_BUFFER_SIZE + (k * INDEXED_BUFFER_ROW_SIZE);
+
+        uint8_t width_bytes = ((layerFont->Width + 7) & -8) / 8;
+        for (byte_offset = 0; byte_offset < width_bytes && x+(byte_offset*8) < this->localWidth; ++byte_offset) {
+            tempBitmask = getBitmapFontRowAtXY(character, k - y, byte_offset, layerFont);
+            if (x < 0) {
+                if (byte_offset + (x/8) >= 0 )
+                    indexedBitmap[index + byte_offset + (x/8)] |= tempBitmask << -(x%8);
+                //  write bits into the previous byte if the previous byte is on the same row
+                //if (x + (byte_offset * 8) - 8 >= 0)
+                if (byte_offset + (x/8) - 1 >= 0)
+                    indexedBitmap[index + byte_offset + (x/8) - 1] |= tempBitmask >> (8+(x%8));
+            } else {
+                indexedBitmap[index + byte_offset + (x/8)] |= tempBitmask >> (x%8);
+                // do two writes if the shifted 8-bit wide bitmask is still on the screen
+                if((x+(byte_offset*8) + 8) < this->localWidth && x % 8)
+                    indexedBitmap[index + byte_offset + (x/8) + 1] |= tempBitmask << (8-(x%8));
+            }
         }
     }
 }

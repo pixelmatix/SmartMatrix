@@ -347,7 +347,7 @@ void SMLayerScrolling<RGB, optionFlags>::setStartOffsetFromLeft(int offset) {
 // if font size or position changed since the last call, redraw the whole frame
 template <typename RGB, unsigned int optionFlags>
 void SMLayerScrolling<RGB, optionFlags>::redrawScrollingText(void) {
-    int j, k;
+    int j, k, byte_offset;
     int charPosition, textPosition;
     uint16_t charY0, charY1;
 
@@ -389,18 +389,29 @@ void SMLayerScrolling<RGB, optionFlags>::redrawScrollingText(void) {
         }
 
         while (textPosition < textlen && charPosition < this->localWidth) {
+            
             uint8_t tempBitmask;
             // draw character from top to bottom
             for (k = charY0; k < charY1; k++) {
-                tempBitmask = getBitmapFontRowAtXY(text[textPosition], k, scrollFont);
-                //tempBitmask = 0xAA;
-                if (charPosition < 0) {
-                    scrollingBitmap[((j + k - charY0) * SCROLLING_BUFFER_ROW_SIZE) + 0] |= tempBitmask << -charPosition;
-                } else {
-                    scrollingBitmap[((j + k - charY0) * SCROLLING_BUFFER_ROW_SIZE) + (charPosition/8)] |= tempBitmask >> (charPosition%8);
-                    // do two writes if the shifted 8-bit wide bitmask is still on the screen
-                    if(charPosition + 8 < this->localWidth && charPosition % 8)
-                        scrollingBitmap[((j + k - charY0) * SCROLLING_BUFFER_ROW_SIZE) + (charPosition/8) + 1] |= tempBitmask << (8-(charPosition%8));
+                int index = (j + k - charY0) * SCROLLING_BUFFER_ROW_SIZE;
+                uint8_t width_bytes = ((scrollFont->Width + 7) & -8) / 8;
+                for (byte_offset = 0; byte_offset < width_bytes && charPosition+(byte_offset*8) < this->localWidth; ++byte_offset) {
+                    tempBitmask = getBitmapFontRowAtXY(text[textPosition], k, byte_offset, scrollFont);
+                    //tempBitmask = 0xAA;
+                    if (charPosition < 0) {
+                        // only write if part of this byte is on the screen
+                        if (byte_offset + (charPosition/8) >= 0)
+                            scrollingBitmap[index + byte_offset + (charPosition/8)] |= tempBitmask << -(charPosition % 8);
+                        // maybe do two writes if the shifted 8-bit wide bitmask is still on the screen
+                        //if (charPosition+(byte_offset*8)-8 >= 0)
+                        if (byte_offset + (charPosition/8) - 1 >= 0)
+                            scrollingBitmap[index + byte_offset + (charPosition/8) - 1] |= tempBitmask >> (8 + (charPosition % 8));
+                    } else {
+                        scrollingBitmap[index + byte_offset + (charPosition/8)] |= tempBitmask >> (charPosition%8);
+                        // do two writes if the shifted 8-bit wide bitmask is still on the screen
+                        if(charPosition+(byte_offset*8) + 8 < this->localWidth && charPosition % 8)
+                            scrollingBitmap[index + byte_offset + (charPosition/8) + 1] |= tempBitmask << (8-(charPosition%8));
+                    }
                 }
             }
 
@@ -421,3 +432,13 @@ bool SMLayerScrolling<RGB, optionFlags>::getBitmapPixelAtXY(uint8_t x, uint8_t y
     return (mask & bitmap[cell]);
 }
 
+template <typename RGB, unsigned int optionFlags>
+void SMLayerScrolling<RGB, optionFlags>::setBitmapPixelAtXY(int8_t x, int8_t y, uint8_t width, uint8_t height, uint8_t *bitmap) {
+    if (x < 0 || y < 0 || x >= width || y >= height)
+        return;
+
+    int cell = (y * (width / 8)) + (x / 8);
+
+    uint8_t mask = 0x80 >> (x % 8);
+    bitmap[cell] |= mask;
+}

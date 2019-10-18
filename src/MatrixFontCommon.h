@@ -45,6 +45,15 @@ extern const bitmap_font apple8x13;
 extern const bitmap_font gohufont6x11;
 extern const bitmap_font gohufont6x11b;
 
+#if defined(USE_FONT_POINTERS)
+typedef const bitmap_font* fontChoices;
+#define font3x5     (&apple3x5)
+#define font5x7     (&apple5x7)
+#define font6x10    (&apple6x10)
+#define font8x13    (&apple8x13)
+#define gohufont11  (&gohufont6x11)
+#define gohufont11b (&gohufont6x11b)
+#else
 typedef enum fontChoices {
     font3x5,
     font5x7,
@@ -53,10 +62,11 @@ typedef enum fontChoices {
     gohufont11,
     gohufont11b
 } fontChoices;
+#endif
 
 bool getBitmapFontPixelAtXY(unsigned char letter, unsigned char x, unsigned char y, const bitmap_font *font);
 const bitmap_font *fontLookup(fontChoices font);
-uint16_t getBitmapFontRowAtXY(unsigned char letter, unsigned char y, const bitmap_font *font);
+uint16_t getBitmapFontRowAtXY(unsigned char letter, unsigned char y, unsigned char byte_offset, const bitmap_font *font);
 
 /// @{ defines to have human readable font files
 #define ________ 0x00
