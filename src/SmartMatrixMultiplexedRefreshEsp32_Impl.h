@@ -44,60 +44,6 @@
 #include "soc/mcpwm_struct.h"
 #include "rom/lldesc.h"
 
-static void setupTimer(void) {
-    // invert OE-PWM output
-    mcpwm_gpio_init(MCPWM_UNIT_0, MCPWM0A, GPIO_PWM0A_OUT);
-    gpio_matrix_out(GPIO_PWM0A_OUT, PWM0_OUT0A_IDX, true, false);
-
-    // setup GPIO for sync from OE-DMA (invert signal)
-    mcpwm_gpio_init(MCPWM_UNIT_0, MCPWM_SYNC_0, GPIO_SYNC0_IN);
-    gpio_matrix_in(GPIO_SYNC0_IN, PWM0_SYNC0_IN_IDX, true);
-    gpio_pulldown_en(GPIO_SYNC0_IN);   //Enable pull down on SYNC0 signal
-
-    // can't use the library function directly as library has hardcoded large prescale values
-    //mcpwm_init(MCPWM_UNIT_0, MCPWM_TIMER_0, &pwm_config);   //Configure PWM0A & PWM0B with above settings
-
-    mcpwm_unit_t mcpwm_num = MCPWM_UNIT_0;
-    mcpwm_timer_t timer_num = MCPWM_TIMER_0;
-
-    //esp_err_t mcpwm_init(mcpwm_unit_t mcpwm_num, mcpwm_timer_t timer_num, const mcpwm_config_t *mcpwm_conf)
-    {
-
-        #define MATRIX_MCPWM_CLK_PRESCL 0       //MCPWM clock prescale 
-        #define MATRIX_TIMER_CLK_PRESCALE 0      //MCPWM timer prescales
-        #define MATRIX_MCPWM_BASE_CLK (2 * APB_CLK_FREQ)   //2*APB_CLK_FREQ 160Mhz
-        #define MATRIX_MCPWM_CLK (MATRIX_MCPWM_BASE_CLK/(MATRIX_MCPWM_CLK_PRESCL +1))
-
-        mcpwm_dev_t *MCPWM[2] = {&MCPWM0, &MCPWM1};
-
-        periph_module_enable((periph_module_t)(PERIPH_PWM0_MODULE + mcpwm_num));
-        MCPWM[mcpwm_num]->clk_cfg.prescale = MATRIX_MCPWM_CLK_PRESCL;
-
-        // set period to max, we never intend for it to wrap, compa to 4 ticks (~25 ns, around the lowest visible OE pulse)
-        MCPWM[mcpwm_num]->timer[timer_num].period.prescale = MATRIX_TIMER_CLK_PRESCALE;
-        MCPWM[mcpwm_num]->timer[timer_num].period.period = 0xFFFF;
-        MCPWM[mcpwm_num]->timer[timer_num].period.upmethod = 0;
-        MCPWM[mcpwm_num]->channel[timer_num].cmpr_value[0].cmpr_val = 4;
-        MCPWM[mcpwm_num]->channel[timer_num].cmpr_cfg.a_upmethod = 0;
-
-        MCPWM[mcpwm_num]->timer[timer_num].mode.mode = MCPWM_UP_COUNTER;
-        mcpwm_set_duty_type(mcpwm_num, timer_num, MCPWM_OPR_A, MCPWM_DUTY_MODE_0);
-
-        mcpwm_start(mcpwm_num, timer_num);
-        MCPWM[mcpwm_num]->timer_sel.operator0_sel = 0;
-        MCPWM[mcpwm_num]->timer_sel.operator1_sel = 1;
-        MCPWM[mcpwm_num]->timer_sel.operator2_sel = 2;
-        MCPWM[mcpwm_num]->update_cfg.global_up_en = 1;
-        MCPWM[mcpwm_num]->update_cfg.global_force_up = 1;
-        MCPWM[mcpwm_num]->update_cfg.global_force_up = 0;
-    }
-
-    //6. Syncronization configuration
-    mcpwm_sync_enable(MCPWM_UNIT_0, MCPWM_TIMER_0, MCPWM_SELECT_SYNC0, 0);    //Load counter value with 20% of period counter of mcpwm timer 1 when sync 0 occurs
-}
-
-
-
 #define INLINE __attribute__( ( always_inline ) ) inline
 
 
@@ -212,8 +158,6 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
     gpio_set_level(DEBUG_1_GPIO, 1);
     gpio_set_level(DEBUG_1_GPIO, 0);
 #endif
-
-    setupTimer();
 
     // calculate the lowest LSBMSB_TRANSITION_BIT value that will fit in memory
     int numDescriptorsPerRow;
