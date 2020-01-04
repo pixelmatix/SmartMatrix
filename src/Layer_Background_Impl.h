@@ -829,7 +829,7 @@ void SMLayerBackground<RGB, optionFlags>::drawChar(int16_t x, int16_t y, const R
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackground<RGB, optionFlags>::drawString(int16_t x, int16_t y, const RGB& charColor, const char text[]) {
-    int xcnt, ycnt, i = 0, offset = 0;
+    int xcnt, ycnt, offset = 0;
     char character;
 
     while ((character = text[offset++]) != '\0') {
@@ -847,7 +847,7 @@ void SMLayerBackground<RGB, optionFlags>::drawString(int16_t x, int16_t y, const
 // draw string while clearing background
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackground<RGB, optionFlags>::drawString(int16_t x, int16_t y, const RGB& charColor, const RGB& backColor, const char text[]) {
-    int xcnt, ycnt, i = 0, offset = 0;
+    int xcnt, ycnt, offset = 0;
     char character;
 
     while ((character = text[offset++]) != '\0') {

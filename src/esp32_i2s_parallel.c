@@ -64,6 +64,8 @@ static void IRAM_ATTR i2s_isr(void* arg) {
 
 #define DMA_MAX (4096-4)
 
+// commenting out to avoid working on the wrong similar-looking code
+#ifdef COMMENTED_BECAUSE_UNUSED
 //Calculate the amount of dma descs needed for a buffer desc
 static int calc_needed_dma_descs_for(i2s_parallel_buffer_desc_t *desc) {
     int ret=0;
@@ -102,6 +104,7 @@ static void fill_dma_desc(volatile lldesc_t *dmadesc, i2s_parallel_buffer_desc_t
 
     printf("fill_dma_desc: filled %d descriptors\n", n);
 }
+#endif
 
 // size must be less than DMA_MAX - need to handle breaking long transfer into two descriptors before call
 void link_dma_desc(volatile lldesc_t *dmadesc, volatile lldesc_t *prevdmadesc, void *memory, size_t size) {
@@ -147,7 +150,7 @@ static void fifo_reset(i2s_dev_t *dev) {
 }
 
 // commenting out to avoid working on the wrong similar-looking code
-#if 0
+#ifdef COMMENTED_BECAUSE_UNUSED
 void i2s_parallel_setup(i2s_dev_t *dev, const i2s_parallel_config_t *cfg) {
     //Figure out which signal numbers to use for routing
     printf("Setting up parallel I2S bus at I2S%d\n", i2snum(dev));
