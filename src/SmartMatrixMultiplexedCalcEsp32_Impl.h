@@ -295,7 +295,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 #define MATRIX_CALC_TASK_PRIORTY 2
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin(uint32_t dmaRamToKeepFreeBytes)
+void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin(uint32_t dmaRamToKeepFreeBytes, uint32_t core)
 {
     printf("\r\nStarting SmartMatrix Mallocs\r\n");
     show_esp32_all_mem();
@@ -308,7 +308,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 
     calcTaskSemaphore = xSemaphoreCreateBinary();
     // TODO: fine tune stack size: 1000 works with 64x64/32-24bit, 500 doesn't, does it change based on matrix size, depth?
-    xTaskCreate(calcTask, "SmartMatrixCalc", 1000, NULL, MATRIX_CALC_TASK_PRIORTY, &calcTaskHandle);
+    xTaskCreatePinnedToCore(calcTask, "SmartMatrixCalc", 1000, NULL, MATRIX_CALC_TASK_PRIORTY, &calcTaskHandle, core);
 
     printf("SmartMatrix Layers Allocated from Heap:\r\n");
     show_esp32_heap_mem();
