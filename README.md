@@ -88,9 +88,9 @@ For both problems, you can use https://github.com/hzeller/rpi-rgb-led-matrix/ , 
 Thankfully, there is now a solution from Marc MERLIN:
 [Running FastLED, Adafruit::GFX, and LEDMatrix code on High Resolution RGBPanels with a Raspberry Pi](http://marc.merlins.org/perso/arduino/post_2020-01-01_Running-FastLED_-Adafruit_GFX_-and-LEDMatrix-code-on-High-Resolution-RGBPanels-with-a-Raspberry-Pi.html).  
 This solution allows you to build arduino code so that it works on linux and uses these layers:
-- https://github.com/marcmerlin/ArduinoOnPc-FastLED-GFX-LEDMatrix
-- https://github.com/marcmerlin/Framebuffer_GFX is the base arduino framebuffer that supports more 2D arduino code
-- https://github.com/marcmerlin/FastLED_RPIRGBPanel_GFX is the driver that bridges that framebuffer and the APIs it supports (FastLED, Adafruit::GFX, and LEDMatrix), with rpi-rgb-led-matrix for display
+- https://github.com/marcmerlin/ArduinoOnPc-FastLED-GFX-LEDMatrix (run arduino code on linux)
+- https://github.com/marcmerlin/Framebuffer_GFX is the base arduino framebuffer that supports most 2D arduino code
+- https://github.com/marcmerlin/FastLED_RPIRGBPanel_GFX is the driver that bridges that framebuffer and the APIs it supports (FastLED, Adafruit::GFX, and LEDMatrix), with rpi-rgb-led-matrix for display. This replaces SmartMatrix;:GFX and allows your same code to run on a rPi.
 
 Here is a demo of arduino code running on 3x 128x64 ABCDE panels connected via the active-3 board, running at 400Hz:
 ![image](https://user-images.githubusercontent.com/1369412/71642449-9cce0a80-2cab-11ea-876d-8c9bd6ef3b72.png)
