@@ -32,6 +32,7 @@
 #define ESP32_FORUM_PINOUT_WITH_LATCH   1
 #define SMARTLED_SHIELD_V0_PINOUT       2
 #define ESP32_JC_RIBBON_PINOUT          3
+#define ESP32_JC_RIBBON_PINOUT_WEMOS    4
 
 #ifndef GPIOPINOUT
 #define GPIOPINOUT ESP32_FORUM_PINOUT
@@ -60,9 +61,10 @@
 
 
 #if (GPIOPINOUT == ESP32_JC_RIBBON_PINOUT)
-    #pragma message "Jason Coon ESP32 shield wiring"
+    #pragma message "Jason Coon ESP32 NodeMCU shield wiring"
 // This pinout takes a ribbon cable and flattens it, pin order is 1, 9, 2, 10 ...
 // it connects to https://www.tindie.com/products/jasoncoon/16-output-nodemcu-esp32-wifi-ble-led-controller/
+// https://cdn.tindiemedia.com/images/resize/byvBO67Uofqr3gmoYuaBRB-dLXE=/p/fit-in/1370x912/filters:fill(fff)/i/13194/products/2018-10-27T20%3A22%3A44.751Z-IMG_20181026_082016725.jpg
 // *** WARNING, I cut the trace on Jason's board that went to pin 3, and patched a wire
 // to pin 27 so that I can use RX/TX serial debugging ****
 // That shield's pinout is this for the output of the level shifters:
@@ -124,6 +126,79 @@
     #define E_PIN   17
 
     #define CLK_PIN 15
+    #define LAT_PIN 14
+    #define OE_PIN  12
+
+    #define GPIO_PWM0A_OUT GPIO_NUM_32
+    #define GPIO_SYNC0_IN  GPIO_NUM_34
+
+#elif (GPIOPINOUT == ESP32_JC_RIBBON_PINOUT_WEMOS)
+    #pragma message "Jason Coon ESP32 Wemos/Lolin shield wiring"
+// This pinout takes a ribbon cable and flattens it, pin order is 1, 9, 2, 10 ...
+// it connects to https://www.tindie.com/products/jasoncoon/16-output-wemos-d32-wifi-ble-led-controller/
+// https://cdn.tindiemedia.com/images/resize/CAcVhrbEJscOrGie3xfCipyhNMU=/p/fit-in/1370x912/filters:fill(fff)/i/13194/products/2019-12-22T16%3A13%3A12.396Z-Board%20Top.png
+// *** WARNING, I cut the trace on Jason's board that went to pin 3, and patched a wire
+// to pin 27 so that I can use RX/TX serial debugging ****
+// That shield's pinout is this for the output of the level shifters:
+// NodeMCU:    23, 22, 27 (was 3), 21,   19, 18, 5, 17,   16, 4,  0,  2,   15, 14, 12, 13
+// WemosLolin: 23, 22, 27 (was 3), 21,   19, 18, 5, 4,     0, 2, 15, 25,   26, 14, 12, 13
+
+    // ADDX is output directly using GPIO
+    #define CLKS_DURING_LATCH   0 
+    #define MATRIX_I2S_MODE I2S_PARALLEL_BITS_16
+    #define MATRIX_DATA_STORAGE_TYPE uint16_t
+
+    /*
+    HUB 75 pinout
+    01 02 B0
+    03 04 Gnd
+    05 06 G1
+    07 08 E
+
+    09 10 B
+    11 12 D
+    13 14 STB/Latch
+    15 16 Gnd
+
+                        ESP32 pin / comment
+    1	R0	23	Red Data (columns 1-16)
+    2	G0	22   	Green Data (columns 1-16)
+
+    3	B0	27	(was 3) Blue Data (columns 1-16)
+    4	GND	21/GND	Ground
+
+    5	R1	19	Red Data (columns 17-32)
+    6	G1	18 	Green Data (columns 17-32)
+
+    7	B1	5    	Blue Data (columns 17-32)
+    8	E	17/TX2	Demux Input E for 64x64 panels
+
+    9	A	16/RX2	Demux Input A0
+    10	B	4	Demux Input A1
+    
+    11	C	0/Boot	Demux Input A2
+    12	D	2 	Demux Input E1, E3 (32x32 panels only)
+
+    13	CLK	15 	LED Drivers' Clock
+    14	STB	14 	LED Drivers' Latch
+    
+    15	OE	12	LED Drivers' Output Enable
+    16	GND	13/GND	Ground
+    */ 
+    #define R1_PIN  23
+    #define G1_PIN  22
+    #define B1_PIN  27
+    #define R2_PIN  19
+    #define G2_PIN  18
+    #define B2_PIN  5
+
+    #define A_PIN   0
+    #define B_PIN   2
+    #define C_PIN   15
+    #define D_PIN   25
+    #define E_PIN   4
+
+    #define CLK_PIN 26
     #define LAT_PIN 14
     #define OE_PIN  12
 
