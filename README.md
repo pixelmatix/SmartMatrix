@@ -77,3 +77,20 @@ https://github.com/FastLED/FastLED/releases
 
 **Teensy Audio Library**  
 The SpectrumAnalyzer sketch requires the [Teensy Audio Library](http://www.pjrc.com/teensy/td_libs_Audio.html), which is included in Teensyduino.  If you have trouble compiling, first make sure you can compile either the FastLED example, as FastLED 3.x is also a requirement for this sketch.  If you're missing the Audio library, the best way to install is by running the Teensyduino installer.  Make sure the "Audio" library is checked during the install, but don't check all libraries as you might downgrade FastLED.
+
+Running arduino on Raspberry Pi for resolutions of 128x128 or higher, and unsupported panels
+--------------------------------------------------------------------------------------------
+Currently, running displays of 128x128 or higher, doesn't work on ESP32 due to lack of DMA RAM, and while it can work on teensy 3.6 with some panels, it is slow and looks bad. Getting a faster chip is needed.  
+Similarly, if you have unsupported panels (AB or AC), and you'd like to use them, another driver is needed.
+
+For both problems, you can use https://github.com/hzeller/rpi-rgb-led-matrix/ , however it requires you to use a raspberry pi, which is a problem if your current code is arduino.
+
+Thankfully, there is now a solution from Marc MERLIN:
+[Running FastLED, Adafruit::GFX, and LEDMatrix code on High Resolution RGBPanels with a Raspberry Pi](http://marc.merlins.org/perso/arduino/post_2020-01-01_Running-FastLED_-Adafruit_GFX_-and-LEDMatrix-code-on-High-Resolution-RGBPanels-with-a-Raspberry-Pi.html).  
+This solution allows you to build arduino code so that it works on linux and uses these layers:
+- https://github.com/marcmerlin/ArduinoOnPc-FastLED-GFX-LEDMatrix (run arduino code on linux)
+- https://github.com/marcmerlin/Framebuffer_GFX is the base arduino framebuffer that supports most 2D arduino code
+- https://github.com/marcmerlin/FastLED_RPIRGBPanel_GFX is the driver that bridges that framebuffer and the APIs it supports (FastLED, Adafruit::GFX, and LEDMatrix), with rpi-rgb-led-matrix for display. This replaces SmartMatrix;:GFX and allows your same code to run on a rPi.
+
+Here is a demo of arduino code running on 3x 128x64 ABCDE panels connected via the active-3 board, running at 400Hz:
+![image](https://user-images.githubusercontent.com/1369412/71642449-9cce0a80-2cab-11ea-876d-8c9bd6ef3b72.png)
