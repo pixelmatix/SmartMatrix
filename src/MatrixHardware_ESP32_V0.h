@@ -34,10 +34,14 @@
 #define ESP32_JC_RIBBON_PINOUT          3
 #define HUB75_ADAPTER_PINOUT            4
 #define HUB75_ADAPTER_LATCH_BREADBOARD_PINOUT            5
+#define HUB75_ADAPTER_V0_THT_PINOUT     6
+#define HUB75_ADAPTER_V0_SMT_PINOUT     7
 
 #ifndef GPIOPINOUT
-#define GPIOPINOUT HUB75_ADAPTER_PINOUT
-#define GPIOPINOUT HUB75_ADAPTER_LATCH_BREADBOARD_PINOUT
+//#define GPIOPINOUT HUB75_ADAPTER_PINOUT
+//#define GPIOPINOUT HUB75_ADAPTER_LATCH_BREADBOARD_PINOUT
+//#define GPIOPINOUT HUB75_ADAPTER_V0_THT_PINOUT
+#define GPIOPINOUT HUB75_ADAPTER_V0_SMT_PINOUT
 #endif
 //#define GPIOPINOUT ESP32_FORUM_PINOUT_WITH_LATCH // note this mode is untested as of 2018-05-17 - not being used anymore now that SmartMatrix Shield is available
 //#define GPIOPINOUT SMARTLED_SHIELD_V0_PINOUT
@@ -327,7 +331,7 @@
     #undef BIT_D
     #undef BIT_E
 
-    #define R1_PIN  14
+    #define R1_PIN  12
     #define G1_PIN  2
     #define B1_PIN  15
     #define R2_PIN  26
@@ -345,10 +349,77 @@
 
     #define CLK_PIN 4
 
+#elif (GPIOPINOUT == HUB75_ADAPTER_V0_THT_PINOUT)
+
+    #pragma message "HUB75 Adapter V0 THT pinout"
+
+    // ADDX is output on RGB pins and stored in external latch (need multiple of 32-bits for full data struct, so pad 2 CLKs to 4 here)
+    #define MATRIX_I2S_MODE I2S_PARALLEL_BITS_8
+    #define MATRIX_DATA_STORAGE_TYPE uint8_t
+    #define CLKS_DURING_LATCH   4
+
+    #undef BIT_A
+    #undef BIT_B
+    #undef BIT_C
+    #undef BIT_D
+    #undef BIT_E
+
+    #define R1_PIN  12
+    #define G1_PIN  2
+    #define B1_PIN  15
+    #define R2_PIN  26
+    #define G2_PIN  25
+    #define B2_PIN  21
+
+    #define A_PIN   -1
+    #define B_PIN   -1
+    #define C_PIN   -1
+    #define D_PIN   -1
+    #define E_PIN   -1
+
+    #define LAT_PIN 22
+    #define OE_PIN  19
+
+    #define CLK_PIN 4
+
+#elif (GPIOPINOUT == HUB75_ADAPTER_V0_SMT_PINOUT)
+
+    #pragma message "HUB75 Adapter V0 SMT pinout"
+
+    // ADDX is output on RGB pins and stored in external latch (need multiple of 32-bits for full data struct, so pad 2 CLKs to 4 here)
+    #define MATRIX_I2S_MODE I2S_PARALLEL_BITS_8
+    #define MATRIX_DATA_STORAGE_TYPE uint8_t
+    #define CLKS_DURING_LATCH   4
+
+    #undef BIT_A
+    #undef BIT_B
+    #undef BIT_C
+    #undef BIT_D
+    #undef BIT_E
+
+    #define R1_PIN  12
+    #define G1_PIN  27
+    #define B1_PIN  26
+    #define R2_PIN  2
+    #define G2_PIN  25
+    #define B2_PIN  15
+
+    #define A_PIN   -1
+    #define B_PIN   -1
+    #define C_PIN   -1
+    #define D_PIN   -1
+    #define E_PIN   -1
+
+    #define LAT_PIN 10
+    #define OE_PIN  9
+
+    #define CLK_PIN 4
+
 #endif
 
-#define DEBUG_PINS_ENABLED
-#define DEBUG_1_GPIO    GPIO_NUM_23
+//#define DEBUG_PINS_ENABLED
+// NOTE: ESP32 PICO and Dev Kit C based boards use conflicting pins for debug: (GPIO9 is a Flash pin on Dev Kit C)
+//#define DEBUG_1_GPIO    GPIO_NUM_9
 //#define DEBUG_2_GPIO    GPIO_NUM_12
 
 #endif
