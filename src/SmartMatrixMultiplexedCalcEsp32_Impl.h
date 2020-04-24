@@ -335,6 +335,11 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     // refresh rate is now set, update calc refresh rate
     setCalcRefreshRateDivider(calc_refreshRateDivider);
     lsbMsbTransitionBit = SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getLsbMsbTransitionBit();
+
+    // fill initial buffer and set Layer properties that are only set after first pass through matrixCalculations()
+    if( xSemaphoreTake(calcTaskSemaphore, portMAX_DELAY) == pdTRUE ) {
+        matrixCalculations();
+    }
 }
 
 #define IS_LAST_PANEL_MAP_ENTRY(x) (!x.rowOffset && !x.bufferOffset && !x.numPixels)
