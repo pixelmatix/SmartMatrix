@@ -336,9 +336,9 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     setCalcRefreshRateDivider(calc_refreshRateDivider);
     lsbMsbTransitionBit = SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getLsbMsbTransitionBit();
 
-    // fill initial buffer and set Layer properties that are only set after first pass through matrixCalculations()
-    if( xSemaphoreTake(calcTaskSemaphore, portMAX_DELAY) == pdTRUE ) {
-        matrixCalculations();
+    // wait for matrixCalculations to be run for first time inside calcTask - fill initial buffer and set Layer properties that are only set after first pass through matrixCalculations()
+    while(rotationChange) {
+        delay(1);
     }
 }
 
