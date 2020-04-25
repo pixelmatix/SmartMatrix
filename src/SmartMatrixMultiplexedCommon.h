@@ -99,6 +99,8 @@
 #define SMARTMATRIX_OPTIONS_C_SHAPE_STACKING        (1 << 0)
 #define SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING  (1 << 1)
 #define SMARTMATRIX_OPTIONS_HUB12_MODE              (1 << 2)
+#define SMARTMATRIX_OPTIONS_MATRIXCALC_LOWPRIORITY  (1 << 3)
+#define SMARTMATRIX_OPTIONS_ESP32_INVERT_CLK        (1 << 4)
 
 // defines data bit order from bit 0-7, four times to fit in uint32_t
 #define PACKED_HUB75_WORD_ORDER p0r1:1, p0g1:1, p0b1:1, p0r2:1, p0g2:1, p0b2:1, p1r1:1, p1g1:1, \

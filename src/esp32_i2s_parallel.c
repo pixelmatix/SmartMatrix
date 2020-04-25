@@ -128,6 +128,12 @@ static void gpio_setup_out(int gpio, int sig) {
     gpio_matrix_out(gpio, sig, false, false);
 }
 
+static void gpio_setup_out_invert(int gpio, int sig) {      
+     if (gpio==-1) return;      
+     PIN_FUNC_SELECT(GPIO_PIN_MUX_REG[gpio], PIN_FUNC_GPIO);        
+     gpio_set_direction(gpio, GPIO_MODE_DEF_OUTPUT);        
+     gpio_matrix_out(gpio, sig, true, false);       
+ }
 
 static void dma_reset(i2s_dev_t *dev) {
     dev->lc_conf.in_rst=1; dev->lc_conf.in_rst=0;
@@ -284,8 +290,11 @@ void i2s_parallel_setup_without_malloc(i2s_dev_t *dev, const i2s_parallel_config
     for (int x=0; x<cfg->bits; x++) {
         gpio_setup_out(cfg->gpio_bus[x], sig_data_base+x);
     }
-    //ToDo: Clk/WS may need inversion?
-    gpio_setup_out(cfg->gpio_clk, sig_clk);
+
+    if(cfg->clk_inversion)
+        gpio_setup_out_invert(cfg->gpio_clk, sig_clk);
+    else
+        gpio_setup_out(cfg->gpio_clk, sig_clk);
     
     //Power on dev
     if (dev==&I2S0) {
