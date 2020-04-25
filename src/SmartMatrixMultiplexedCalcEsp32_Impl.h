@@ -97,12 +97,10 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 
   loops++;
   if(currentMillis - lastMillis >= 1000){
-#if defined(USB_SERIAL)
     if(Serial) {
         Serial.print("Loops last second:");
         Serial.println(loops);
     }
-#endif    
     lastMillis = currentMillis;
     loops = 0;
   }
