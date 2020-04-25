@@ -32,6 +32,10 @@
 #define ESP32_FORUM_PINOUT_WITH_LATCH   1
 #define SMARTLED_SHIELD_V0_PINOUT       2
 #define ESP32_JC_RIBBON_PINOUT          3
+#define HUB75_ADAPTER_PINOUT            4
+#define HUB75_ADAPTER_LATCH_BREADBOARD_PINOUT            5
+#define HUB75_ADAPTER_V0_THT_PINOUT     6
+#define HUB75_ADAPTER_V0_SMT_PINOUT     7
 
 #ifndef GPIOPINOUT
 #define GPIOPINOUT ESP32_FORUM_PINOUT
@@ -127,9 +131,6 @@
     #define LAT_PIN 14
     #define OE_PIN  12
 
-    #define GPIO_PWM0A_OUT GPIO_NUM_32
-    #define GPIO_SYNC0_IN  GPIO_NUM_34
-
 #elif (GPIOPINOUT == ESP32_FORUM_PINOUT)
 
     #pragma message "ESP32 forum wiring"
@@ -192,8 +193,67 @@
 
     #define CLK_PIN 22
 
-    #define GPIO_PWM0A_OUT GPIO_NUM_32
-    #define GPIO_SYNC0_IN  GPIO_NUM_34
+#elif (GPIOPINOUT == HUB75_ADAPTER_PINOUT)
+
+    #pragma message "Hub75 Adapter Pinout"
+
+    // ADDX is output directly using GPIO
+    #define CLKS_DURING_LATCH   0 
+    #define MATRIX_I2S_MODE I2S_PARALLEL_BITS_16
+    #define MATRIX_DATA_STORAGE_TYPE uint16_t
+
+    /*
+    HUB 75
+    01 02 B0
+    03 04 Gnd
+    05 06 G1
+    07 08 E
+
+    09 10 B
+    11 12 D
+    13 14 STB/Latch
+    15 16 Gnd
+                        ESP32 pin / comment
+    1   R0  2   Red Data (columns 1-16)
+    2   G0  15  Green Data (columns 1-16)
+
+    3   B0  4   Blue Data (columns 1-16)
+    4   GND GND Ground
+    
+    5   R1  16/RX2  Red Data (columns 17-32)
+    6   G1  27  Green Data (columns 17-32)
+    
+    7   B1  17/TX2  Blue Data (columns 17-32)
+    8   E   12  Demux Input E for 64x64 panels
+   
+    9   A   5   Demux Input A0
+    10  B   18  Demux Input A1
+
+    11  C   19  Demux Input A2
+    12  D   21  Demux Input E1, E3 (32x32 panels only)
+    
+    13  CLK 22  LED Drivers' Clock
+    14  STB 26  LED Drivers' Latch
+    
+    15  OE  25  LED Drivers' Output Enable
+    16  GND GND Ground
+    */ 
+    #define R1_PIN  12
+    #define G1_PIN  14
+    #define B1_PIN  33
+    #define R2_PIN  25
+    #define G2_PIN  9
+    #define B2_PIN  18
+
+    #define A_PIN   19
+    #define B_PIN   22
+    #define C_PIN   21
+    #define D_PIN   4
+    #define E_PIN   26
+    #define LAT_PIN 15
+    #define OE_PIN  13
+
+    #define CLK_PIN 2
 
 #elif (GPIOPINOUT == ESP32_FORUM_PINOUT_WITH_LATCH)
     #pragma message "ESP32 forum wiring with latch"
@@ -219,9 +279,6 @@
     #define OE_PIN  25
 
     #define CLK_PIN 22
-
-    #define GPIO_PWM0A_OUT GPIO_NUM_32
-    #define GPIO_SYNC0_IN  GPIO_NUM_34
 
 #elif (GPIOPINOUT == SMARTLED_SHIELD_V0_PINOUT)
 
@@ -256,8 +313,105 @@
 
     #define CLK_PIN 26
 
-    #define GPIO_PWM0A_OUT GPIO_NUM_33
-    #define GPIO_SYNC0_IN  GPIO_NUM_32
+#elif (GPIOPINOUT == HUB75_ADAPTER_LATCH_BREADBOARD_PINOUT)
+
+    #pragma message "HUB75 Adapter Latch Breadboard pinout"
+
+    // ADDX is output on RGB pins and stored in external latch (need multiple of 32-bits for full data struct, so pad 2 CLKs to 4 here)
+    #define MATRIX_I2S_MODE I2S_PARALLEL_BITS_8
+    #define MATRIX_DATA_STORAGE_TYPE uint8_t
+    #define CLKS_DURING_LATCH   4
+
+    #undef BIT_A
+    #undef BIT_B
+    #undef BIT_C
+    #undef BIT_D
+    #undef BIT_E
+
+    #define R1_PIN  12
+    #define G1_PIN  2
+    #define B1_PIN  15
+    #define R2_PIN  26
+    #define G2_PIN  25
+    #define B2_PIN  21
+
+    #define A_PIN   -1
+    #define B_PIN   -1
+    #define C_PIN   -1
+    #define D_PIN   -1
+    #define E_PIN   -1
+
+    #define LAT_PIN 22
+    #define OE_PIN  19
+
+    #define CLK_PIN 4
+
+#elif (GPIOPINOUT == HUB75_ADAPTER_V0_THT_PINOUT)
+
+    #pragma message "HUB75 Adapter V0 THT pinout"
+
+    // ADDX is output on RGB pins and stored in external latch (need multiple of 32-bits for full data struct, so pad 2 CLKs to 4 here)
+    #define MATRIX_I2S_MODE I2S_PARALLEL_BITS_8
+    #define MATRIX_DATA_STORAGE_TYPE uint8_t
+    #define CLKS_DURING_LATCH   4
+
+    #undef BIT_A
+    #undef BIT_B
+    #undef BIT_C
+    #undef BIT_D
+    #undef BIT_E
+
+    #define R1_PIN  12
+    #define G1_PIN  2
+    #define B1_PIN  15
+    #define R2_PIN  26
+    #define G2_PIN  25
+    #define B2_PIN  21
+
+    #define A_PIN   -1
+    #define B_PIN   -1
+    #define C_PIN   -1
+    #define D_PIN   -1
+    #define E_PIN   -1
+
+    #define LAT_PIN 22
+    #define OE_PIN  19
+
+    #define CLK_PIN 4
+
+#elif (GPIOPINOUT == HUB75_ADAPTER_V0_SMT_PINOUT)
+
+    #pragma message "HUB75 Adapter V0 SMT pinout"
+
+    // ADDX is output on RGB pins and stored in external latch (need multiple of 32-bits for full data struct, so pad 2 CLKs to 4 here)
+    #define MATRIX_I2S_MODE I2S_PARALLEL_BITS_8
+    #define MATRIX_DATA_STORAGE_TYPE uint8_t
+    #define CLKS_DURING_LATCH   4
+
+    #undef BIT_A
+    #undef BIT_B
+    #undef BIT_C
+    #undef BIT_D
+    #undef BIT_E
+
+    #define R1_PIN  12
+    #define G1_PIN  27
+    #define B1_PIN  26
+    #define R2_PIN  2
+    #define G2_PIN  25
+    #define B2_PIN  15
+
+    #define A_PIN   -1
+    #define B_PIN   -1
+    #define C_PIN   -1
+    #define D_PIN   -1
+    #define E_PIN   -1
+
+    #define LAT_PIN 10
+    #define OE_PIN  9
+
+    #define CLK_PIN 4
+
 #endif
 
 //#define DEBUG_PINS_ENABLED
