@@ -27,6 +27,10 @@
 extern SemaphoreHandle_t calcTaskSemaphore;
 extern void matrixCalculationsSignal(void);
 
+#if !defined(DEFAULT_CALC_TASK_CORE)
+#define DEFAULT_CALC_TASK_CORE 1
+#endif
+
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 class SmartMatrix3 {
 public:
@@ -36,7 +40,7 @@ public:
 
     // init
     SmartMatrix3(void);
-    void begin(uint32_t dmaRamToKeepFreeBytes = 0);
+    void begin(uint32_t dmaRamToKeepFreeBytes = 0, uint32_t core = DEFAULT_CALC_TASK_CORE);
     void addLayer(SM_Layer * newlayer);
 
     // configuration
