@@ -290,10 +290,11 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     }
 }
 
-#define MATRIX_CALC_TASK_PRIORTY 2
+#define MATRIX_CALC_TASK_DEFAULT_PRIORITY   2
+#define MATRIX_CALC_TASK_LOW_PRIORITY      1
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin(uint32_t dmaRamToKeepFreeBytes, uint32_t core)
+void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin(uint32_t dmaRamToKeepFreeBytes)
 {
     printf("\r\nStarting SmartMatrix Mallocs\r\n");
     show_esp32_all_mem();
@@ -305,8 +306,18 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     }
 
     calcTaskSemaphore = xSemaphoreCreateBinary();
+
+    int taskPriority = MATRIX_CALC_TASK_DEFAULT_PRIORITY;
+    if(optionFlags & SMARTMATRIX_OPTIONS_MATRIXCALC_LOWPRIORITY)
+        taskPriority = MATRIX_CALC_TASK_LOW_PRIORITY;
+
+    // by default run on the same CPU core as the Arduino main loop
+    int calcTaskCore = 1;
+    if(optionFlags & SMARTMATRIX_OPTIONS_ESP32_CALC_TASK_CORE_0)
+        calcTaskCore = 0;
+
     // TODO: fine tune stack size: 1000 works with 64x64/32-24bit, 500 doesn't, does it change based on matrix size, depth?
-    xTaskCreatePinnedToCore(calcTask, "SmartMatrixCalc", 1000, NULL, MATRIX_CALC_TASK_PRIORTY, &calcTaskHandle, core);
+    xTaskCreatePinnedToCore(calcTask, "SmartMatrixCalc", 1000, NULL, taskPriority, &calcTaskHandle, calcTaskCore);
 
     printf("SmartMatrix Layers Allocated from Heap:\r\n");
     show_esp32_heap_mem();
