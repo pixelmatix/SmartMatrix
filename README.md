@@ -35,7 +35,7 @@ The SmartMatrix Library ESP32 port at a low level is based on Sprite_TM's [ESP32
     - Is this because the first call to matrixCalcCallback() from refresh will be skipped by the calcRefreshRateDivider?
   * AnimatedGIFs sketch is a bit fragile because of the ESP32 SD library 
     * In general, resetting a sketch while the SD library is connected to the SD card can result communication with the SD card not working after reset - fix it with a power cycle
-  * AnumatedGIFs sketch could have performance improved: there's a lot of time spent waiting for a swapBuffers() call to complete, as it needs to wait for the next frame transition, which is just wasting time if the frame rate is set relatively low to allow more sketch CPU time for GIF decoding).
+  * AnimatedGIFs sketch could have performance improved: there's a lot of time spent waiting for a swapBuffers() call to complete, as it needs to wait for the next frame transition, which is just wasting time if the frame rate is set relatively low to allow more sketch CPU time for GIF decoding).
   * Only updating panel buffers when there are Layer changes, reducing CPU usage even further
   * APA102 strip support (bringing to parity with the new Teensy APA102 driver that's in this branch)
   * C-shaped Chaining of panels to create multiple rows is broken (Z-shaped is working)
