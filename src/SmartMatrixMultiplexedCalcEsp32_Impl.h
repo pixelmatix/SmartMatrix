@@ -311,10 +311,10 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     if(optionFlags & SMARTMATRIX_OPTIONS_MATRIXCALC_LOWPRIORITY)
         taskPriority = MATRIX_CALC_TASK_LOW_PRIORITY;
 
-    // by default run on the same CPU core as the Arduino main loop
-    int calcTaskCore = 1;
-    if(optionFlags & SMARTMATRIX_OPTIONS_ESP32_CALC_TASK_CORE_0)
-        calcTaskCore = 0;
+    // by default run on core 0, leaving more room for the main Arduino task on core 1
+    int calcTaskCore = 0;
+    if(optionFlags & SMARTMATRIX_OPTIONS_ESP32_CALC_TASK_CORE_1)
+        calcTaskCore = 1;
 
     // TODO: fine tune stack size: 1000 works with 64x64/32-24bit, 500 doesn't, does it change based on matrix size, depth?
     xTaskCreatePinnedToCore(calcTask, "SmartMatrixCalc", 1000, NULL, taskPriority, &calcTaskHandle, calcTaskCore);
