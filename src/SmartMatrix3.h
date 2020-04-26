@@ -41,7 +41,7 @@
 #endif
 
 #include "MatrixCommon.h"
-#include "CircularBuffer.h"
+#include "CircularBuffer_SM.h"
 
 #include "Layer_Scrolling.h"
 #include "Layer_Indexed.h"

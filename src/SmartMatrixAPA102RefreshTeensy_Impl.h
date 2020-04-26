@@ -58,7 +58,7 @@ template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char pan
 void apaRowCalculationISR(void);
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-CircularBuffer SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer;
+CircularBuffer_SM SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer;
 
 // dmaBufferNumRows = the size of the buffer that DMA pulls from to refresh the display
 // must be minimum 2 rows so one can be updated while the other is refreshed

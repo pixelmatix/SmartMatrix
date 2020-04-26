@@ -71,7 +71,7 @@ private:
 
     static matrix_calc_callback matrixCalcCallback;
 
-    static CircularBuffer dmaBuffer;
+    static CircularBuffer_SM dmaBuffer;
 };
 
 #endif
