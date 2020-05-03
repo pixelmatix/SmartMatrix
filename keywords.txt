@@ -87,6 +87,7 @@ readPixel	KEYWORD2
 backBuffer	KEYWORD2
 setBackBuffer	KEYWORD2
 getRealBackBuffer	KEYWORD2
+isDrawBufferAvailable KEYWORD2
 setFont	KEYWORD2
 setBrightness	KEYWORD2
 enableColorCorrection	KEYWORD2
