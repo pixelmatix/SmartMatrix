@@ -114,22 +114,22 @@
     15	OE	12	LED Drivers' Output Enable
     16	GND	13/GND	Ground
     */ 
-    #define R1_PIN  23
-    #define G1_PIN  22
-    #define B1_PIN  27
-    #define R2_PIN  19
-    #define G2_PIN  18
-    #define B2_PIN  5
+    #define R1_PIN  GPIO_NUM_23
+    #define G1_PIN  GPIO_NUM_22
+    #define B1_PIN  GPIO_NUM_27
+    #define R2_PIN  GPIO_NUM_19
+    #define G2_PIN  GPIO_NUM_18
+    #define B2_PIN  GPIO_NUM_5
 
-    #define A_PIN   16
-    #define B_PIN   4
-    #define C_PIN   0
-    #define D_PIN   2
-    #define E_PIN   17
+    #define A_PIN   GPIO_NUM_16
+    #define B_PIN   GPIO_NUM_4
+    #define C_PIN   GPIO_NUM_0
+    #define D_PIN   GPIO_NUM_2
+    #define E_PIN   GPIO_NUM_17
 
-    #define CLK_PIN 15
-    #define LAT_PIN 14
-    #define OE_PIN  12
+    #define CLK_PIN GPIO_NUM_15
+    #define LAT_PIN GPIO_NUM_14
+    #define OE_PIN  GPIO_NUM_12
 
 #elif (GPIOPINOUT == ESP32_FORUM_PINOUT)
 
@@ -176,22 +176,22 @@
     15	OE	25	LED Drivers' Output Enable
     16	GND	GND	Ground
     */ 
-    #define R1_PIN  2
-    #define G1_PIN  15
-    #define B1_PIN  4
-    #define R2_PIN  16
-    #define G2_PIN  27
-    #define B2_PIN  17
+    #define R1_PIN  GPIO_NUM_2
+    #define G1_PIN  GPIO_NUM_15
+    #define B1_PIN  GPIO_NUM_4
+    #define R2_PIN  GPIO_NUM_16
+    #define G2_PIN  GPIO_NUM_27
+    #define B2_PIN  GPIO_NUM_17
 
-    #define A_PIN   5
-    #define B_PIN   18
-    #define C_PIN   19
-    #define D_PIN   21
-    #define E_PIN   12
-    #define LAT_PIN 26
-    #define OE_PIN  25
+    #define A_PIN   GPIO_NUM_5
+    #define B_PIN   GPIO_NUM_18
+    #define C_PIN   GPIO_NUM_19
+    #define D_PIN   GPIO_NUM_21
+    #define E_PIN   GPIO_NUM_12
+    #define LAT_PIN GPIO_NUM_26
+    #define OE_PIN  GPIO_NUM_25
 
-    #define CLK_PIN 22
+    #define CLK_PIN GPIO_NUM_22
 
 #elif (GPIOPINOUT == HUB75_ADAPTER_PINOUT)
 
@@ -238,22 +238,22 @@
     15  OE  25  LED Drivers' Output Enable
     16  GND GND Ground
     */ 
-    #define R1_PIN  12
-    #define G1_PIN  14
-    #define B1_PIN  33
-    #define R2_PIN  25
-    #define G2_PIN  9
-    #define B2_PIN  18
+    #define R1_PIN  GPIO_NUM_12
+    #define G1_PIN  GPIO_NUM_14
+    #define B1_PIN  GPIO_NUM_33
+    #define R2_PIN  GPIO_NUM_25
+    #define G2_PIN  GPIO_NUM_9
+    #define B2_PIN  GPIO_NUM_18
 
-    #define A_PIN   19
-    #define B_PIN   22
-    #define C_PIN   21
-    #define D_PIN   4
-    #define E_PIN   26
-    #define LAT_PIN 15
-    #define OE_PIN  13
+    #define A_PIN   GPIO_NUM_19
+    #define B_PIN   GPIO_NUM_22
+    #define C_PIN   GPIO_NUM_21
+    #define D_PIN   GPIO_NUM_4
+    #define E_PIN   GPIO_NUM_26
+    #define LAT_PIN GPIO_NUM_15
+    #define OE_PIN  GPIO_NUM_13
 
-    #define CLK_PIN 2
+    #define CLK_PIN GPIO_NUM_2
 
 #elif (GPIOPINOUT == ESP32_FORUM_PINOUT_WITH_LATCH)
     #pragma message "ESP32 forum wiring with latch"
@@ -263,22 +263,22 @@
     #define MATRIX_DATA_STORAGE_TYPE uint8_t
     #define CLKS_DURING_LATCH   4
 
-    #define R1_PIN  2
-    #define G1_PIN  15
-    #define B1_PIN  4
-    #define R2_PIN  16
-    #define G2_PIN  27
-    #define B2_PIN  17
+    #define R1_PIN  GPIO_NUM_2
+    #define G1_PIN  GPIO_NUM_15
+    #define B1_PIN  GPIO_NUM_4
+    #define R2_PIN  GPIO_NUM_16
+    #define G2_PIN  GPIO_NUM_27
+    #define B2_PIN  GPIO_NUM_17
 
-    #define A_PIN   5
-    #define B_PIN   18
-    #define C_PIN   19
-    #define D_PIN   21
-    #define E_PIN   12
-    #define LAT_PIN 26
-    #define OE_PIN  25
+    #define A_PIN   GPIO_NUM_5
+    #define B_PIN   GPIO_NUM_18
+    #define C_PIN   GPIO_NUM_19
+    #define D_PIN   GPIO_NUM_21
+    #define E_PIN   GPIO_NUM_12
+    #define LAT_PIN GPIO_NUM_26
+    #define OE_PIN  GPIO_NUM_25
 
-    #define CLK_PIN 22
+    #define CLK_PIN GPIO_NUM_22
 
 #elif (GPIOPINOUT == SMARTLED_SHIELD_V0_PINOUT)
 
@@ -295,12 +295,12 @@
     #undef BIT_D
     #undef BIT_E
 
-    #define R1_PIN  4
-    #define G1_PIN  21
-    #define B1_PIN  22
-    #define R2_PIN  2
-    #define G2_PIN  25
-    #define B2_PIN  0
+    #define R1_PIN  GPIO_NUM_4
+    #define G1_PIN  GPIO_NUM_21
+    #define B1_PIN  GPIO_NUM_22
+    #define R2_PIN  GPIO_NUM_2
+    #define G2_PIN  GPIO_NUM_25
+    #define B2_PIN  GPIO_NUM_0
 
     #define A_PIN   -1
     #define B_PIN   -1
@@ -308,10 +308,10 @@
     #define D_PIN   -1
     #define E_PIN   -1
 
-    #define LAT_PIN 27
-    #define OE_PIN  32
+    #define LAT_PIN GPIO_NUM_27
+    #define OE_PIN  GPIO_NUM_32
 
-    #define CLK_PIN 26
+    #define CLK_PIN GPIO_NUM_26
 
 #elif (GPIOPINOUT == HUB75_ADAPTER_LATCH_BREADBOARD_PINOUT)
 
@@ -328,12 +328,12 @@
     #undef BIT_D
     #undef BIT_E
 
-    #define R1_PIN  12
-    #define G1_PIN  2
-    #define B1_PIN  15
-    #define R2_PIN  26
-    #define G2_PIN  25
-    #define B2_PIN  21
+    #define R1_PIN  GPIO_NUM_12
+    #define G1_PIN  GPIO_NUM_2
+    #define B1_PIN  GPIO_NUM_15
+    #define R2_PIN  GPIO_NUM_26
+    #define G2_PIN  GPIO_NUM_25
+    #define B2_PIN  GPIO_NUM_21
 
     #define A_PIN   -1
     #define B_PIN   -1
@@ -341,10 +341,10 @@
     #define D_PIN   -1
     #define E_PIN   -1
 
-    #define LAT_PIN 22
-    #define OE_PIN  19
+    #define LAT_PIN GPIO_NUM_22
+    #define OE_PIN  GPIO_NUM_19
 
-    #define CLK_PIN 4
+    #define CLK_PIN GPIO_NUM_4
 
 #elif (GPIOPINOUT == HUB75_ADAPTER_V0_THT_PINOUT)
 
@@ -361,12 +361,12 @@
     #undef BIT_D
     #undef BIT_E
 
-    #define R1_PIN  12
-    #define G1_PIN  2
-    #define B1_PIN  15
-    #define R2_PIN  26
-    #define G2_PIN  25
-    #define B2_PIN  21
+    #define R1_PIN  GPIO_NUM_12
+    #define G1_PIN  GPIO_NUM_2
+    #define B1_PIN  GPIO_NUM_15
+    #define R2_PIN  GPIO_NUM_26
+    #define G2_PIN  GPIO_NUM_25
+    #define B2_PIN  GPIO_NUM_21
 
     #define A_PIN   -1
     #define B_PIN   -1
@@ -374,10 +374,10 @@
     #define D_PIN   -1
     #define E_PIN   -1
 
-    #define LAT_PIN 22
-    #define OE_PIN  19
+    #define LAT_PIN GPIO_NUM_22
+    #define OE_PIN  GPIO_NUM_19
 
-    #define CLK_PIN 4
+    #define CLK_PIN GPIO_NUM_4
 
 #elif (GPIOPINOUT == HUB75_ADAPTER_V0_SMT_PINOUT)
 
@@ -394,12 +394,12 @@
     #undef BIT_D
     #undef BIT_E
 
-    #define R1_PIN  12
-    #define G1_PIN  27
-    #define B1_PIN  26
-    #define R2_PIN  2
-    #define G2_PIN  25
-    #define B2_PIN  15
+    #define R1_PIN  GPIO_NUM_12
+    #define G1_PIN  GPIO_NUM_27
+    #define B1_PIN  GPIO_NUM_26
+    #define R2_PIN  GPIO_NUM_2
+    #define G2_PIN  GPIO_NUM_25
+    #define B2_PIN  GPIO_NUM_15
 
     #define A_PIN   -1
     #define B_PIN   -1
@@ -407,10 +407,10 @@
     #define D_PIN   -1
     #define E_PIN   -1
 
-    #define LAT_PIN 10
-    #define OE_PIN  9
+    #define LAT_PIN GPIO_NUM_10
+    #define OE_PIN  GPIO_NUM_9
 
-    #define CLK_PIN 4
+    #define CLK_PIN GPIO_NUM_4
 
 #endif
 
