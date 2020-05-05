@@ -449,6 +449,9 @@
 
     #define CLK_PIN GPIO_NUM_4
 
+    // this pin can be manually toggled when the latch pin is high to send CLK pulses to the panel (noramlly latch blocks clock)
+    #define CLK_MANUAL_PIN GPIO_NUM_18
+
 #elif (GPIOPINOUT == HUB75_ADAPTER_V0_SMT_PINOUT)
 
     #pragma message "HUB75 Adapter V0 SMT pinout"
@@ -481,6 +484,9 @@
     #define OE_PIN  GPIO_NUM_9
 
     #define CLK_PIN GPIO_NUM_4
+
+    // this pin can be manually toggled when the latch pin is high to send CLK pulses to the panel (noramlly latch blocks clock)
+    #define CLK_MANUAL_PIN GPIO_NUM_22
 
 #endif
 
