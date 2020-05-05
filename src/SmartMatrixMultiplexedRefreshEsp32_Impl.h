@@ -291,6 +291,149 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
 
     //printf("\n");
 
+    // send FM6126A chipset reset sequence, which is ignored by other chipsets that don't need it
+    // Thanks to Bob Davis: http://bobdavis321.blogspot.com/2019/02/p3-64x32-hub75e-led-matrix-panels-with.html
+    if(optionFlags & SMARTMATRIX_OPTIONS_FM6126A_RESET_AT_START) { 
+        // TODO: any harm in sending a longer sequence to cover a possible wider case?
+        int maxLeds = 256;
+        int C12[16] = {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+        int C13[16] = {0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0};
+
+        gpio_pad_select_gpio(CLK_PIN);
+        gpio_set_direction(CLK_PIN, GPIO_MODE_OUTPUT);
+#ifdef CLK_MANUAL_PIN        
+        gpio_pad_select_gpio(CLK_MANUAL_PIN);
+        gpio_set_direction(CLK_MANUAL_PIN, GPIO_MODE_OUTPUT);
+#endif
+        gpio_pad_select_gpio(LAT_PIN);
+        gpio_set_direction(LAT_PIN, GPIO_MODE_OUTPUT);
+        gpio_pad_select_gpio(OE_PIN);
+        gpio_set_direction(OE_PIN, GPIO_MODE_OUTPUT);
+        gpio_pad_select_gpio(R1_PIN);
+        gpio_set_direction(R1_PIN, GPIO_MODE_OUTPUT);
+        gpio_pad_select_gpio(G1_PIN);
+        gpio_set_direction(G1_PIN, GPIO_MODE_OUTPUT);
+        gpio_pad_select_gpio(B1_PIN);
+        gpio_set_direction(B1_PIN, GPIO_MODE_OUTPUT);
+        gpio_pad_select_gpio(R2_PIN);
+        gpio_set_direction(R2_PIN, GPIO_MODE_OUTPUT);
+        gpio_pad_select_gpio(G2_PIN);
+        gpio_set_direction(G2_PIN, GPIO_MODE_OUTPUT);
+        gpio_pad_select_gpio(B2_PIN);
+        gpio_set_direction(B2_PIN, GPIO_MODE_OUTPUT);
+
+#if (A_PIN >= 0)
+        gpio_pad_select_gpio(A_PIN);
+        gpio_set_direction(A_PIN, GPIO_MODE_OUTPUT);
+        gpio_set_level(A_PIN, 1);
+#endif
+#if (B_PIN >= 0)
+        gpio_pad_select_gpio(B_PIN);
+        gpio_set_direction(B_PIN, GPIO_MODE_OUTPUT);
+        gpio_set_level(B_PIN, 0);
+#endif
+#if (C_PIN >= 0)
+        gpio_pad_select_gpio(C_PIN);
+        gpio_set_direction(C_PIN, GPIO_MODE_OUTPUT);
+        gpio_set_level(C_PIN, 0);
+#endif
+#if (D_PIN >= 0)
+        gpio_pad_select_gpio(D_PIN);
+        gpio_set_direction(D_PIN, GPIO_MODE_OUTPUT);
+        gpio_set_level(D_PIN, 0);
+#endif
+#if (E_PIN >= 0)
+        gpio_pad_select_gpio(E_PIN);
+        gpio_set_direction(E_PIN, GPIO_MODE_OUTPUT);
+        gpio_set_level(E_PIN, 0);
+#endif
+
+        // keep display off
+        gpio_set_level(OE_PIN, 1);
+
+        // set CLK/LAT to idle state
+        gpio_set_level(LAT_PIN, 0);
+#ifdef CLK_MANUAL_PIN        
+        gpio_set_level(CLK_MANUAL_PIN, 0);
+#endif
+
+        // Send Data to control register 11
+        for(int i=0; i<maxLeds; i++) {
+            int y=i%16;
+            gpio_set_level(R1_PIN, 0);
+            gpio_set_level(G1_PIN, 0);
+            gpio_set_level(B1_PIN, 0);
+            gpio_set_level(R2_PIN, 0);
+            gpio_set_level(G2_PIN, 0);
+            gpio_set_level(B2_PIN, 0);
+
+            if(C12[y] == 1) {
+                gpio_set_level(R1_PIN, 1);
+                gpio_set_level(G1_PIN, 1);
+                gpio_set_level(B1_PIN, 1);
+                gpio_set_level(R2_PIN, 1);
+                gpio_set_level(G2_PIN, 1);
+                gpio_set_level(B2_PIN, 1);                
+            }
+
+            if(i > maxLeds-12)
+                gpio_set_level(LAT_PIN, 1);
+            else
+                gpio_set_level(LAT_PIN, 0);
+
+#ifdef CLK_MANUAL_PIN        
+            gpio_set_level(CLK_MANUAL_PIN, 1);
+            gpio_set_level(CLK_MANUAL_PIN, 0);
+#endif
+            gpio_set_level(CLK_PIN, 1);
+            gpio_set_level(CLK_PIN, 0);
+        }
+
+        gpio_set_level(LAT_PIN, 0);
+
+        // Send Data to control register 12
+        for(int i=0; i<maxLeds; i++) {
+            int y=i%16;
+            gpio_set_level(R1_PIN, 0);
+            gpio_set_level(G1_PIN, 0);
+            gpio_set_level(B1_PIN, 0);
+            gpio_set_level(R2_PIN, 0);
+            gpio_set_level(G2_PIN, 0);
+            gpio_set_level(B2_PIN, 0);
+
+            if(C13[y] == 1) {
+                gpio_set_level(R1_PIN, 1);
+                gpio_set_level(G1_PIN, 1);
+                gpio_set_level(B1_PIN, 1);
+                gpio_set_level(R2_PIN, 1);
+                gpio_set_level(G2_PIN, 1);
+                gpio_set_level(B2_PIN, 1);                
+            }
+
+            if(i > maxLeds-13)
+                gpio_set_level(LAT_PIN, 1);
+            else
+                gpio_set_level(LAT_PIN, 0);
+
+#ifdef CLK_MANUAL_PIN        
+            gpio_set_level(CLK_MANUAL_PIN, 1);
+            gpio_set_level(CLK_MANUAL_PIN, 0);
+#endif
+            gpio_set_level(CLK_PIN, 1);
+            gpio_set_level(CLK_PIN, 0);
+        }
+
+        gpio_set_level(LAT_PIN, 0);
+    }
+
+
+#ifdef CLK_MANUAL_PIN
+    // this pin can be manually toggled when the latch pin is high to send CLK pulses to the panel (noramlly latch blocks clock), idle is low so there's no extra CLK pulse when latch goes high   
+    gpio_pad_select_gpio(CLK_MANUAL_PIN);
+    gpio_set_direction(CLK_MANUAL_PIN, GPIO_MODE_OUTPUT);
+    gpio_set_level(CLK_MANUAL_PIN, 0);
+#endif
+
     i2s_parallel_config_t cfg={
         .gpio_bus={R1_PIN, G1_PIN, B1_PIN, R2_PIN, G2_PIN, B2_PIN, LAT_PIN, OE_PIN, A_PIN, B_PIN, C_PIN, D_PIN, E_PIN, -1, -1, -1},
         .gpio_clk=CLK_PIN,
