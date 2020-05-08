@@ -41,6 +41,11 @@ void drawBitmap(int16_t x, int16_t y, const gimp32x32bitmap* bitmap) {
       SM_RGB pixel = { bitmap->pixel_data[(i*bitmap->width + j)*3 + 0],
                       bitmap->pixel_data[(i*bitmap->width + j)*3 + 1],
                       bitmap->pixel_data[(i*bitmap->width + j)*3 + 2] };
+      if(COLOR_DEPTH == 48) {
+          pixel.red = pixel.red << 8;
+          pixel.green = pixel.green << 8;
+          pixel.blue = pixel.blue << 8;
+      }
 
       backgroundLayer.drawPixel(x + j, y + i, pixel);
     }
