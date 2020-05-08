@@ -23,16 +23,16 @@
 
 #include <stdlib.h>     
 
-// call when buffer is allocated outside of class
+// call when backgroundBuffers and backgroundColorCorrectionLUT buffer is allocated outside of class
 template <typename RGB, unsigned int optionFlags>
-SMLayerBackground<RGB, optionFlags>::SMLayerBackground(RGB * buffer, uint16_t width, uint16_t height) {
+SMLayerBackground<RGB, optionFlags>::SMLayerBackground(RGB * buffer, uint16_t width, uint16_t height, color_chan_t * colorCorrectionLUT) {
     backgroundBuffers[0] = buffer;
     backgroundBuffers[1] = buffer + (width * height);
     this->matrixWidth = width;
     this->matrixHeight = height;
 }
 
-// call this when buffer should be sourced from malloc inside begin()
+// call this when buffers should be sourced from malloc inside begin()
 template <typename RGB, unsigned int optionFlags>
 SMLayerBackground<RGB, optionFlags>::SMLayerBackground(uint16_t width, uint16_t height) {
     this->matrixWidth = width;
@@ -54,6 +54,11 @@ void SMLayerBackground<RGB, optionFlags>::begin(void) {
         memset(backgroundBuffers[1], 0x00, sizeof(RGB) * this->matrixWidth * this->matrixHeight);
         //printf("largest free block %d: \r\n", heap_caps_get_largest_free_block(MALLOC_CAP_DMA));
     }
+    if(!backgroundColorCorrectionLUT) {
+        backgroundColorCorrectionLUT = (color_chan_t *)malloc(sizeof(color_chan_t) * (sizeof(RGB) <= 3 ? 256 : 4096));
+        assert(backgroundColorCorrectionLUT != NULL);
+        //printf("largest free block %d: \r\n", heap_caps_get_largest_free_block(MALLOC_CAP_DMA));
+    }
 #endif
     
     currentDrawBuffer = 0;
@@ -69,7 +74,10 @@ template <typename RGB, unsigned int optionFlags>
 void SMLayerBackground<RGB, optionFlags>::frameRefreshCallback(void) {
     handleBufferSwap();
 
-    calculateBackgroundLUT(backgroundColorCorrectionLUT, backgroundBrightness);
+    if(sizeof(RGB) > 3)
+        calculate12BitBackgroundLUT(backgroundColorCorrectionLUT, backgroundBrightness);
+    else
+        calculate8BitBackgroundLUT(backgroundColorCorrectionLUT, backgroundBrightness);
 }
 
 template <typename RGB, unsigned int optionFlags>
@@ -81,9 +89,15 @@ void SMLayerBackground<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb
         for(i=0; i<this->matrixWidth; i++) {
             currentPixel = currentRefreshBufferPtr[(hardwareY * this->matrixWidth) + i];
             // load background pixel with color correction
-            refreshRow[i] = rgb48(backgroundColorCorrectionLUT[currentPixel.red],
-                backgroundColorCorrectionLUT[currentPixel.green],
-                backgroundColorCorrectionLUT[currentPixel.blue]);
+            if(sizeof(RGB) <= 3) {
+                refreshRow[i] = rgb48(backgroundColorCorrectionLUT[currentPixel.red],
+                    backgroundColorCorrectionLUT[currentPixel.green],
+                    backgroundColorCorrectionLUT[currentPixel.blue]);                
+            } else {
+                refreshRow[i] = rgb48(backgroundColorCorrectionLUT[currentPixel.red >> 4],
+                    backgroundColorCorrectionLUT[currentPixel.green >> 4],
+                    backgroundColorCorrectionLUT[currentPixel.blue >> 4]);
+            }
         }
     } else {
         for(i=0; i<this->matrixWidth; i++) {
@@ -103,9 +117,15 @@ void SMLayerBackground<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb
         for(i=0; i<this->matrixWidth; i++) {
             currentPixel = currentRefreshBufferPtr[(hardwareY * this->matrixWidth) + i];
             // load background pixel with color correction
-            refreshRow[i] = rgb48(backgroundColorCorrectionLUT[currentPixel.red],
-                backgroundColorCorrectionLUT[currentPixel.green],
-                backgroundColorCorrectionLUT[currentPixel.blue]);
+            if(sizeof(RGB) <= 3) {
+                refreshRow[i] = rgb48(backgroundColorCorrectionLUT[currentPixel.red],
+                    backgroundColorCorrectionLUT[currentPixel.green],
+                    backgroundColorCorrectionLUT[currentPixel.blue]);                
+            } else {
+                refreshRow[i] = rgb48(backgroundColorCorrectionLUT[currentPixel.red >> 4],
+                    backgroundColorCorrectionLUT[currentPixel.green >> 4],
+                    backgroundColorCorrectionLUT[currentPixel.blue >> 4]);
+            }
         }
     } else {
         for(i=0; i<this->matrixWidth; i++) {

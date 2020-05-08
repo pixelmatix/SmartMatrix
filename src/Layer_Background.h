@@ -34,7 +34,7 @@
 template <typename RGB, unsigned int optionFlags>
 class SMLayerBackground : public SM_Layer {
     public:
-        SMLayerBackground(RGB * buffer, uint16_t width, uint16_t height);
+        SMLayerBackground(RGB * buffer, uint16_t width, uint16_t height, color_chan_t * colorCorrectionLUT);
         SMLayerBackground(uint16_t width, uint16_t height);
         void begin(void);
         void frameRefreshCallback();
@@ -83,7 +83,7 @@ class SMLayerBackground : public SM_Layer {
         void enableColorCorrection(bool enabled);
 
     private:
-        bool ccEnabled = sizeof(RGB) <= 3 ? true : false;
+        bool ccEnabled = true;
 
         RGB *currentDrawBufferPtr;
         RGB *currentRefreshBufferPtr;
@@ -106,7 +106,7 @@ class SMLayerBackground : public SM_Layer {
         static bool getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap);
 
         uint8_t backgroundBrightness = 255;
-        color_chan_t backgroundColorCorrectionLUT[256];
+        color_chan_t * backgroundColorCorrectionLUT;
         bitmap_font *font;
 
         // keeping track of drawing buffers

@@ -94,7 +94,8 @@
         #define SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(layer_name, width, height, storage_depth, background_options) \
             typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
             static RGB_TYPE(storage_depth) layer_name##Bitmap[2*width*height];                                        \
-            static SMLayerBackground<RGB_TYPE(storage_depth), background_options> layer_name(layer_name##Bitmap, width, height)  
+            static color_chan_t layer_name##colorCorrectionLUT[sizeof(SM_RGB) <= 3 ? 256 : 4096];                          \
+            static SMLayerBackground<RGB_TYPE(storage_depth), background_options> layer_name(layer_name##Bitmap, width, height, layer_name##colorCorrectionLUT)  
 #else
     // SmartMatrix Co-processor test code, assume not working at this point
     #define SMARTMATRIX_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
