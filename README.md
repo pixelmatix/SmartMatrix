@@ -15,7 +15,7 @@ The SmartMatrix Library ESP32 port at a low level is based on Sprite_TM's [ESP32
 
 * ESP32 Port Differences from Teensy
   * Because of more RAM available and the DMA architecture on the ESP32, two entire refresh frames are used.  Refreshing the panel can take up little to no CPU usage with some more SmartMatrix changes.
-  * Layer update rate is decoupled from the panel refresh rate.  By default, the Layer refresh rate is set to half of the panel refresh rate.  e.g. if you set matrix.refreshRate() to 120, and repeatedly call backgroundLayer.swapBuffers(), it will swap at max 60 times per second.
+  * Layer update rate is decoupled from the panel refresh rate.  By default, the Layer refresh rate is set to half of the panel refresh rate.  e.g. if you use matrix.setRefreshRate(120), and repeatedly call backgroundLayer.swapBuffers(), it will swap at max 60 times per second.
     - Call matrix.setCalcRefreshRateDivider(uint8_t newDivider) to change the division from the default of 2 to something else.  Be careful with setting to 1 with a high refresh rate, as you can end up with no CPU left to run your sketch (this will look like a blank display)
   * Refresh rate is not set exactly, it is a minimum value.  It must be set before calling matrix.begin(), or the default 120 Hz will be used
   * The method of refreshing the panel is different from Teensy.  With the current method, there is a strong tradeoff between color depth and refresh rate vs maximum brightness.  If you set a higher color depth or refresh rate, you may find that the panel isn't refreshing as bright as it was previously.
