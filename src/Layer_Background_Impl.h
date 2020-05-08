@@ -28,6 +28,7 @@ template <typename RGB, unsigned int optionFlags>
 SMLayerBackground<RGB, optionFlags>::SMLayerBackground(RGB * buffer, uint16_t width, uint16_t height, color_chan_t * colorCorrectionLUT) {
     backgroundBuffers[0] = buffer;
     backgroundBuffers[1] = buffer + (width * height);
+    backgroundColorCorrectionLUT = colorCorrectionLUT;
     this->matrixWidth = width;
     this->matrixHeight = height;
 }
