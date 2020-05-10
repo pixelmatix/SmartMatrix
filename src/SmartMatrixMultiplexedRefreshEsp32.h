@@ -62,8 +62,6 @@ public:
     static uint8_t getLsbMsbTransitionBit(void);
 
 private:
-    static int dimmingFactor;
-    static const int dimmingMaximum = 255;
     static uint16_t refreshRate;
     static uint16_t minRefreshRate;
     static uint8_t lsbMsbTransitionBit;
