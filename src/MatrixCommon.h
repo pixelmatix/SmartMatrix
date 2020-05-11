@@ -61,7 +61,7 @@ typedef struct rgb48 {
     uint16_t blue;
 } rgb48;
 
-// todo: why is this assignment operator needed?  Implicitly defined assignment operator causes crashes when drawing to last pixel of last buffer of background bitmap
+// todo: why is this assignment operator needed?  Implicitly defined assignment operator causes crashes when drawing to last pixel of last buffer of background bitmap (because it's a multiple of 3x bytes, not 2x like rgb48?)
 inline rgb24& rgb24::operator=(const rgb24& col) {
     red = col.red;
     green = col.green;
