@@ -132,7 +132,7 @@ bool SMLayerScrolling<RGB, optionFlags>::getPixel(uint16_t hardwareX, uint16_t h
 }
 
 template <typename RGB, unsigned int optionFlags>
-void SMLayerScrolling<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb48 refreshRow[]) {
+void SMLayerScrolling<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb48 refreshRow[], int brightnessShifts) {
     rgb48 currentPixel;
     int i;
 
@@ -150,7 +150,7 @@ void SMLayerScrolling<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb4
 }
 
 template <typename RGB, unsigned int optionFlags>
-void SMLayerScrolling<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb24 refreshRow[]) {
+void SMLayerScrolling<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb24 refreshRow[], int brightnessShifts) {
     rgb24 currentPixel;
     int i;
 

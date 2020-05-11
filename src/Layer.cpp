@@ -38,3 +38,7 @@ void SM_Layer::setRotation(rotationDegrees newrotation) {
 void SM_Layer::setRefreshRate(uint8_t newRefreshRate) {
     refreshRate = newRefreshRate;
 }
+
+int getRequestedBrightnessShifts() {
+    return 0;
+}

@@ -51,8 +51,8 @@ class SMLayerScrolling : public SM_Layer {
         SMLayerScrolling(uint16_t width, uint16_t height);
         void begin(void);
         void frameRefreshCallback();
-        void fillRefreshRow(uint16_t hardwareY, rgb48 refreshRow[]);
-        void fillRefreshRow(uint16_t hardwareY, rgb24 refreshRow[]);
+        void fillRefreshRow(uint16_t hardwareY, rgb48 refreshRow[], int brightnessShifts = 0);
+        void fillRefreshRow(uint16_t hardwareY, rgb24 refreshRow[], int brightnessShifts = 0);
 
         void setRefreshRate(uint8_t newRefreshRate);
 

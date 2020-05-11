@@ -68,9 +68,9 @@ private:
     static void * tempRow1Ptr;
 
     // functions for refreshing
-    static void loadMatrixBuffers(int lsbMsbTransitionBit);
-    static void loadMatrixBuffers48(frameStruct * currentFrameDataPtr, int currentRow, int lsbMsbTransitionBit);
-    static void loadMatrixBuffers24(frameStruct * currentFrameDataPtr, int currentRow, int lsbMsbTransitionBit);
+    static void loadMatrixBuffers(int lsbMsbTransitionBit, int numBrightnessShifts = 0);
+    static void loadMatrixBuffers48(frameStruct * currentFrameDataPtr, int currentRow, int lsbMsbTransitionBit, int numBrightnessShifts = 0);
+    static void loadMatrixBuffers24(frameStruct * currentFrameDataPtr, int currentRow, int lsbMsbTransitionBit, int numBrightnessShifts = 0);
     static void calcTask(void* pvParameters);
     static void resetMultiRowRefreshMapPosition(void);
     static void resetMultiRowRefreshMapPositionPixelGroupToStartOfRow(void);
@@ -85,6 +85,7 @@ private:
     static volatile bool rotationChange;
     static volatile bool dmaBufferUnderrun;
     static int brightness;
+    static int shiftedBrightness;
     static rotationDegrees rotation;
     static uint16_t calc_refreshRate;   
     static uint8_t calc_refreshRateDivider;

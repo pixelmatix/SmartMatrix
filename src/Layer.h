@@ -32,11 +32,12 @@ class SM_Layer {
         virtual void frameRefreshCallback();
 
         // fills refreshRow with matrixWidth values - hardwareY is < matrixHeight, not localHeight
-        virtual void fillRefreshRow(uint16_t hardwareY, rgb48 refreshRow[]);
-        virtual void fillRefreshRow(uint16_t hardwareY, rgb24 refreshRow[]);
+        virtual void fillRefreshRow(uint16_t hardwareY, rgb48 refreshRow[], int brightnessShifts = 0);
+        virtual void fillRefreshRow(uint16_t hardwareY, rgb24 refreshRow[], int brightnessShifts = 0);
 
         void setRotation(rotationDegrees newrotation);
         virtual void setRefreshRate(uint8_t newRefreshRate);
+        virtual int getRequestedBrightnessShifts();
 
         SM_Layer * nextLayer;
 

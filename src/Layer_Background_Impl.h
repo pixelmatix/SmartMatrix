@@ -82,7 +82,17 @@ void SMLayerBackground<RGB, optionFlags>::frameRefreshCallback(void) {
 }
 
 template <typename RGB, unsigned int optionFlags>
-void SMLayerBackground<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb48 refreshRow[]) {
+int SMLayerBackground<RGB, optionFlags>::getRequestedBrightnessShifts() {
+    return idealBrightnessShifts;
+}
+
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::setBrightnessShifts(int numShifts) {
+    pendingIdealBrightnessShifts = numShifts;
+}
+
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackground<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb48 refreshRow[], int brightnessShifts) {
     RGB currentPixel;
     int i;
 
@@ -91,26 +101,34 @@ void SMLayerBackground<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb
             currentPixel = currentRefreshBufferPtr[(hardwareY * this->matrixWidth) + i];
             // load background pixel with color correction
             if(sizeof(RGB) <= 3) {
-                refreshRow[i] = rgb48(backgroundColorCorrectionLUT[currentPixel.red],
-                    backgroundColorCorrectionLUT[currentPixel.green],
-                    backgroundColorCorrectionLUT[currentPixel.blue]);                
+                refreshRow[i] = rgb48(backgroundColorCorrectionLUT[currentPixel.red << brightnessShifts],
+                    backgroundColorCorrectionLUT[currentPixel.green << brightnessShifts],
+                    backgroundColorCorrectionLUT[currentPixel.blue << brightnessShifts]);                
             } else {
-                refreshRow[i] = rgb48(backgroundColorCorrectionLUT[currentPixel.red >> 4],
-                    backgroundColorCorrectionLUT[currentPixel.green >> 4],
-                    backgroundColorCorrectionLUT[currentPixel.blue >> 4]);
+                refreshRow[i] = rgb48(backgroundColorCorrectionLUT[currentPixel.red >> 4 << brightnessShifts],
+                    backgroundColorCorrectionLUT[currentPixel.green >> 4 << brightnessShifts],
+                    backgroundColorCorrectionLUT[currentPixel.blue >> 4 << brightnessShifts]);
             }
         }
     } else {
         for(i=0; i<this->matrixWidth; i++) {
             currentPixel = currentRefreshBufferPtr[(hardwareY * this->matrixWidth) + i];
             // load background pixel without color correction
-            refreshRow[i] = currentPixel;
+            if(sizeof(RGB) <= 3) {
+                refreshRow[i] = rgb48(currentPixel.red << brightnessShifts << 8,
+                    currentPixel.green << brightnessShifts << 8,
+                    currentPixel.blue << brightnessShifts << 8);
+            } else {
+                refreshRow[i] = rgb48(currentPixel.red << brightnessShifts,
+                    currentPixel.green << brightnessShifts,
+                    currentPixel.blue << brightnessShifts);                
+            }
         }
     }
 }
 
 template <typename RGB, unsigned int optionFlags>
-void SMLayerBackground<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb24 refreshRow[]) {
+void SMLayerBackground<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb24 refreshRow[], int brightnessShifts) {
     RGB currentPixel;
     int i;
 
@@ -119,20 +137,22 @@ void SMLayerBackground<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb
             currentPixel = currentRefreshBufferPtr[(hardwareY * this->matrixWidth) + i];
             // load background pixel with color correction
             if(sizeof(RGB) <= 3) {
-                refreshRow[i] = rgb48(backgroundColorCorrectionLUT[currentPixel.red],
-                    backgroundColorCorrectionLUT[currentPixel.green],
-                    backgroundColorCorrectionLUT[currentPixel.blue]);                
+                refreshRow[i] = rgb48(backgroundColorCorrectionLUT[currentPixel.red << brightnessShifts],
+                    backgroundColorCorrectionLUT[currentPixel.green << brightnessShifts],
+                    backgroundColorCorrectionLUT[currentPixel.blue << brightnessShifts]);                
             } else {
-                refreshRow[i] = rgb48(backgroundColorCorrectionLUT[currentPixel.red >> 4],
-                    backgroundColorCorrectionLUT[currentPixel.green >> 4],
-                    backgroundColorCorrectionLUT[currentPixel.blue >> 4]);
+                refreshRow[i] = rgb48(backgroundColorCorrectionLUT[currentPixel.red >> 4 << brightnessShifts],
+                    backgroundColorCorrectionLUT[currentPixel.green >> 4 << brightnessShifts],
+                    backgroundColorCorrectionLUT[currentPixel.blue >> 4 << brightnessShifts]);
             }
         }
     } else {
         for(i=0; i<this->matrixWidth; i++) {
             currentPixel = currentRefreshBufferPtr[(hardwareY * this->matrixWidth) + i];
             // load background pixel without color correction
-            refreshRow[i] = currentPixel;
+            refreshRow[i] = rgb24(currentPixel.red << brightnessShifts,
+                currentPixel.green << brightnessShifts,
+                currentPixel.blue << brightnessShifts);
         }
     }
 }
@@ -917,6 +937,8 @@ void SMLayerBackground<RGB, optionFlags>::handleBufferSwap(void) {
 
         currentRefreshBufferPtr = backgroundBuffers[currentRefreshBuffer];
         currentDrawBufferPtr = backgroundBuffers[currentDrawBuffer];
+
+        idealBrightnessShifts = pendingIdealBrightnessShifts;
     }
 
     swapPending = false;
@@ -938,6 +960,8 @@ void SMLayerBackground<RGB, optionFlags>::swapBuffers(bool copy) {
 
         currentRefreshBufferPtr = backgroundBuffers[currentRefreshBuffer];
         currentDrawBufferPtr = backgroundBuffers[currentDrawBuffer];
+
+        idealBrightnessShifts = pendingIdealBrightnessShifts;
     }    
 
     if (copy) {

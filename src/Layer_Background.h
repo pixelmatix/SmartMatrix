@@ -38,12 +38,15 @@ class SMLayerBackground : public SM_Layer {
         SMLayerBackground(uint16_t width, uint16_t height);
         void begin(void);
         void frameRefreshCallback();
-        void fillRefreshRow(uint16_t hardwareY, rgb48 refreshRow[]);
-        void fillRefreshRow(uint16_t hardwareY, rgb24 refreshRow[]);
+        void fillRefreshRow(uint16_t hardwareY, rgb48 refreshRow[], int brightnessShifts = 0);
+        void fillRefreshRow(uint16_t hardwareY, rgb24 refreshRow[], int brightnessShifts = 0);
+        int getRequestedBrightnessShifts();
 
         void swapBuffers(bool copy = true);
         bool isSwapPending();
         void copyRefreshToDrawing(void);
+        void setBrightnessShifts(int numShifts);
+
         void drawPixel(int16_t x, int16_t y, const RGB& color);
         void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& color);
         void drawFastVLine(int16_t x, int16_t y0, int16_t y1, const RGB& color);
@@ -108,6 +111,11 @@ class SMLayerBackground : public SM_Layer {
         uint8_t backgroundBrightness = 255;
         color_chan_t * backgroundColorCorrectionLUT;
         bitmap_font *font;
+
+        // idealBrightnessShifts is the number of shifts towards MSB the pixel data can handle without overflowing
+        int idealBrightnessShifts = 0;
+        // pendingIdealBrightnessShifts keeps track of the data queued up with swapBuffers()
+        int pendingIdealBrightnessShifts = 0;
 
         // keeping track of drawing buffers
         volatile unsigned char currentDrawBuffer;
