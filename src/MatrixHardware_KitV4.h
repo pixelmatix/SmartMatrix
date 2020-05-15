@@ -69,6 +69,9 @@
 #define GPIO_PIN_G1_TEENSY_PIN      8
 #define GPIO_PIN_B1_TEENSY_PIN      20
 
+#define GPIO_PIN_LATCH_TEENSY_PIN   3
+#define GPIO_PIN_OE_TEENSY_PIN      4
+
 #define SMARTLED_APA_ENABLE_PIN     17
 #define SMARTLED_APA_CLK_PIN        13
 #define SMARTLED_APA_DAT_PIN        7

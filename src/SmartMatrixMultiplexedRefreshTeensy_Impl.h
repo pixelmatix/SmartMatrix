@@ -364,6 +364,95 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
     pinMode(ADDX_TEENSY_PIN_3, OUTPUT);
 #endif
 
+    // send FM6126A chipset reset sequence, which is ignored by other chipsets that don't need it
+    // Thanks to Bob Davis: http://bobdavis321.blogspot.com/2019/02/p3-64x32-hub75e-led-matrix-panels-with.html
+    if(optionFlags & SMARTMATRIX_OPTIONS_FM6126A_RESET_AT_START) { 
+        // TODO: any harm in sending a longer sequence to cover a possible wider case?
+        int maxLeds = 256;
+        int C12[16] = {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+        int C13[16] = {0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0};
+
+        // temporarily drive OE and LAT signals with GPIO
+        pinMode(GPIO_PIN_LATCH_TEENSY_PIN, OUTPUT);
+        pinMode(GPIO_PIN_OE_TEENSY_PIN, OUTPUT);
+
+        // keep display off
+        digitalWriteFast(GPIO_PIN_OE_TEENSY_PIN, HIGH);
+
+        // set CLK/LAT to idle state
+        digitalWriteFast(GPIO_PIN_LATCH_TEENSY_PIN, LOW);
+        digitalWriteFast(GPIO_PIN_CLK_TEENSY_PIN, LOW);
+        delay(1);
+
+        // Send Data to control register 11
+        for(int i=0; i<maxLeds; i++) {
+            int y=i%16;
+            digitalWriteFast(GPIO_PIN_B0_TEENSY_PIN, LOW);
+            digitalWriteFast(GPIO_PIN_R0_TEENSY_PIN, LOW);
+            digitalWriteFast(GPIO_PIN_R1_TEENSY_PIN, LOW);
+            digitalWriteFast(GPIO_PIN_G0_TEENSY_PIN, LOW);
+            digitalWriteFast(GPIO_PIN_G1_TEENSY_PIN, LOW);
+            digitalWriteFast(GPIO_PIN_B1_TEENSY_PIN, LOW);
+
+            if(C12[y] == 1) {
+                digitalWriteFast(GPIO_PIN_B0_TEENSY_PIN, HIGH);
+                digitalWriteFast(GPIO_PIN_R0_TEENSY_PIN, HIGH);
+                digitalWriteFast(GPIO_PIN_R1_TEENSY_PIN, HIGH);
+                digitalWriteFast(GPIO_PIN_G0_TEENSY_PIN, HIGH);
+                digitalWriteFast(GPIO_PIN_G1_TEENSY_PIN, HIGH);
+                digitalWriteFast(GPIO_PIN_B1_TEENSY_PIN, HIGH);
+            }
+
+            if(i > maxLeds-12)
+                digitalWriteFast(GPIO_PIN_LATCH_TEENSY_PIN, HIGH);
+            else
+                digitalWriteFast(GPIO_PIN_LATCH_TEENSY_PIN, LOW);
+
+            digitalWriteFast(GPIO_PIN_CLK_TEENSY_PIN, HIGH);
+            delay(1);
+            digitalWriteFast(GPIO_PIN_CLK_TEENSY_PIN, LOW);
+            delay(1);
+        }
+
+        digitalWriteFast(GPIO_PIN_LATCH_TEENSY_PIN, LOW);
+
+        // Send Data to control register 12
+        for(int i=0; i<maxLeds; i++) {
+            int y=i%16;
+            digitalWriteFast(GPIO_PIN_B0_TEENSY_PIN, LOW);
+            digitalWriteFast(GPIO_PIN_R0_TEENSY_PIN, LOW);
+            digitalWriteFast(GPIO_PIN_R1_TEENSY_PIN, LOW);
+            digitalWriteFast(GPIO_PIN_G0_TEENSY_PIN, LOW);
+            digitalWriteFast(GPIO_PIN_G1_TEENSY_PIN, LOW);
+            digitalWriteFast(GPIO_PIN_B1_TEENSY_PIN, LOW);
+
+            if(C13[y] == 1) {
+                digitalWriteFast(GPIO_PIN_B0_TEENSY_PIN, HIGH);
+                digitalWriteFast(GPIO_PIN_R0_TEENSY_PIN, HIGH);
+                digitalWriteFast(GPIO_PIN_R1_TEENSY_PIN, HIGH);
+                digitalWriteFast(GPIO_PIN_G0_TEENSY_PIN, HIGH);
+                digitalWriteFast(GPIO_PIN_G1_TEENSY_PIN, HIGH);
+                digitalWriteFast(GPIO_PIN_B1_TEENSY_PIN, HIGH);
+            }
+
+            if(i > maxLeds-13)
+                digitalWriteFast(GPIO_PIN_LATCH_TEENSY_PIN, HIGH);
+            else
+                digitalWriteFast(GPIO_PIN_LATCH_TEENSY_PIN, LOW);
+
+            digitalWriteFast(GPIO_PIN_CLK_TEENSY_PIN, HIGH);
+            delay(1);
+            digitalWriteFast(GPIO_PIN_CLK_TEENSY_PIN, LOW);
+            delay(1);
+        }
+
+        digitalWriteFast(GPIO_PIN_LATCH_TEENSY_PIN, LOW);
+
+        // return OE and LAT signals to GPIO inputs, as they are driven by a timer later
+        pinMode(GPIO_PIN_LATCH_TEENSY_PIN, INPUT);
+        pinMode(GPIO_PIN_OE_TEENSY_PIN, INPUT);
+    }
+
 #ifdef ADDX_UPDATE_ON_DATA_PINS
     rowBitStructBytesToShift = sizeof(SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[0].rowbits[0].data) + ADDX_UPDATE_BEFORE_LATCH_BYTES;
 #else
