@@ -608,6 +608,12 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 
                     // drive latch while shifting out last bit of RGB data
                     if((refreshBufferPosition) == PIXELS_PER_LATCH-1) v|=BIT_LAT;
+
+                    // experimental FM6126A support on ESP32 without external latch: make LAT pulse 3x clocks wide, matching the FM6126A "DATA_LATCH" command (and not the "RESET_OEN" command)
+                    if(optionFlags & SMARTMATRIX_OPTIONS_FM6126A_RESET_AT_START) {
+                        if((refreshBufferPosition) == PIXELS_PER_LATCH-2) v|=BIT_LAT;
+                        if((refreshBufferPosition) == PIXELS_PER_LATCH-3) v|=BIT_LAT;
+                    }
 #endif
 
                     // turn off OE after brightness value is reached when displaying MSBs
@@ -905,6 +911,12 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 
                     // drive latch while shifting out last bit of RGB data
                     if((refreshBufferPosition) == PIXELS_PER_LATCH-1) v|=BIT_LAT;
+
+                    // experimental FM6126A support on ESP32 without external latch: make LAT pulse 3x clocks wide, matching the FM6126A "DATA_LATCH" command (and not the "RESET_OEN" command)
+                    if(optionFlags & SMARTMATRIX_OPTIONS_FM6126A_RESET_AT_START) {
+                        if((refreshBufferPosition) == PIXELS_PER_LATCH-2) v|=BIT_LAT;
+                        if((refreshBufferPosition) == PIXELS_PER_LATCH-3) v|=BIT_LAT;
+                    }
 #endif
 
                     // turn off OE after brightness value is reached when displaying MSBs

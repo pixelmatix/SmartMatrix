@@ -348,6 +348,7 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
 
         // set CLK/LAT to idle state
         gpio_set_level(LAT_PIN, 0);
+        gpio_set_level(CLK_PIN, 0);
 #ifdef CLK_MANUAL_PIN        
         gpio_set_level(CLK_MANUAL_PIN, 0);
 #endif
