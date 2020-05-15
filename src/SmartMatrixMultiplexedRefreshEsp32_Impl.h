@@ -421,9 +421,8 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
         gpio_set_level(LAT_PIN, 0);
     }
 
-
 #ifdef CLK_MANUAL_PIN
-    // this pin can be manually toggled when the latch pin is high to send CLK pulses to the panel (noramlly latch blocks clock), idle is low so there's no extra CLK pulse when latch goes high   
+    // this pin can be manually toggled when the latch pin is high to send CLK pulses to the panel (normally latch blocks the clock signal on the ESP32 circuit).  Set idle to low so there's no extra CLK pulse when latch goes high   
     gpio_pad_select_gpio(CLK_MANUAL_PIN);
     gpio_set_direction(CLK_MANUAL_PIN, GPIO_MODE_OUTPUT);
     gpio_set_level(CLK_MANUAL_PIN, 0);
