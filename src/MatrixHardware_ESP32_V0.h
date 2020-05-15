@@ -68,7 +68,6 @@
     #pragma message "Jason Coon ESP32 NodeMCU shield wiring"
 // This pinout takes a ribbon cable and flattens it, pin order is 1, 9, 2, 10 ...
 // it connects to https://www.tindie.com/products/jasoncoon/16-output-nodemcu-esp32-wifi-ble-led-controller/
-// https://cdn.tindiemedia.com/images/resize/byvBO67Uofqr3gmoYuaBRB-dLXE=/p/fit-in/1370x912/filters:fill(fff)/i/13194/products/2018-10-27T20%3A22%3A44.751Z-IMG_20181026_082016725.jpg
 // *** WARNING, I cut the trace on Jason's board that went to pin 3, and patched a wire
 // to pin 27 so that I can use RX/TX serial debugging ****
 // That shield's pinout is this for the output of the level shifters:
@@ -137,8 +136,6 @@
     #pragma message "Jason Coon ESP32 Wemos/Lolin shield wiring"
 // This pinout takes a ribbon cable and flattens it, pin order is 1, 9, 2, 10 ...
 // it connects to https://www.tindie.com/products/jasoncoon/16-output-wemos-d32-wifi-ble-led-controller/
-// https://cdn.tindiemedia.com/images/resize/CAcVhrbEJscOrGie3xfCipyhNMU=/p/fit-in/1370x912/filters:fill(fff)/i/13194/products/2019-12-22T16%3A13%3A12.396Z-Board%20Top.png
-// This is the shield you want to use for PSRAM as it requires pins 16 and 17 to be left alone.
 // *** WARNING, I cut the trace on Jason's board that went to pin 3, and patched a wire
 // to pin 27 so that I can use RX/TX serial debugging ****
 // That shield's pinout is this for the output of the level shifters:
