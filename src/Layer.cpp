@@ -39,6 +39,6 @@ void SM_Layer::setRefreshRate(uint8_t newRefreshRate) {
     refreshRate = newRefreshRate;
 }
 
-int getRequestedBrightnessShifts() {
+int SM_Layer::getRequestedBrightnessShifts() {
     return 0;
 }
