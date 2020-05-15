@@ -1,18 +1,21 @@
 # SmartMatrix Library for Teensy 3
 
-The SmartMatrix Library is designed to make it easy to display graphics and scrolling text on multiplexed RGB LED matrix panels connected to a Teensy 3 (Supports Teensy 3.1/3.2, 3.5, 3.6). Teensy 3.5 or better is greatly recommended for panel sizes of 64x64 or larger to maintain an acceptable refresh rate.
+The SmartMatrix Library is designed to make it easy to display graphics and scrolling text on multiplexed "HUB75" RGB LED matrix panels connected to a Teensy 3 (Supports Teensy 3.1/3.2, 3.5, 3.6). Teensy 3.5 or better is greatly recommended for panel sizes of 64x64 or larger to maintain an acceptable refresh rate.
 
 Version 3.0 is a significant upgrade from 2.x, with a new API that is not backwards compatible.  See the [release notes on GitHub](https://github.com/pixelmatix/SmartMatrix/releases) for more details, and [MIGRATION.md](https://github.com/pixelmatix/SmartMatrix/blob/sm3.0/MIGRATION.md) for details on migrating sketches from SmartMatrix 2.x to 3.0.  You can have SmartMatrix3 installed in parallel with an existing SmartMatrix_32x32 or SmartMatrix_16x32 library without conflicts.
 
-Preliminary ESP32 support was added in the teensylc branch. See https://community.pixelmatix.com/t/smartmatrix-library-esp32-port/272/48
+Experimental ESP32 support was added in the teensylc branch, but it is not going to be fully supported like the Teensy 3 platform. See https://community.pixelmatix.com/t/smartmatrix-library-esp32-port/272/48
 
-This library supports HUB75 RGB Panels in 1/32, 1/16, and 1/8 scan. It also supports panels with 3 (A, B, C, used in 32x16 panels), 4 (A, B, C, D, used in 64x32 panels) and 5 (A, B, C, D, E, used in 64x64 panels) address lines.  
-If you have an uncommon 32x32 1/8th scan panel, try this library instead: https://github.com/sparkfunX/RGBmatrixPanelHalfScan
-
-More documentation Here:  
+More documentation here including details on the HUB75 panel types supported by SmartMatrix Library:  
 [docs.pixelmatix.com/SmartMatrix](http://docs.pixelmatix.com/SmartMatrix)
 
 To download in Arduino Library form, see [Releases](https://github.com/pixelmatix/SmartMatrix/releases) on GitHub, or just add the files in the /src directory to your Arduino project.
+
+### Hardware
+
+You can wire up a [bare Teensy 3.x to a HUB75 panel](http://docs.pixelmatix.com/SmartMatrix/shieldref.html#smartled-shield-formerly-smartmatrix-shield-overview-technical-details-manually-connecting-teensy-and-panel), but at a minimum it's recommended to use 5V level shifters to drive the panels with the voltage level they are expecting.
+
+Using the SmartLED Shield for Teensy 3 (V4) or wiring up its circuit yourself (available in the extras/hardware folder) is better as it saves pins on the Teensy that can be used for other parts of your project.  The shield is available from [Adafruit](https://www.adafruit.com/product/1902), [SparkFun](http://sparkfun.com/products/15046), and [Digi-Key](https://www.digikey.com/product-detail/en/sparkfun-electronics/DEV-15046/1568-1954-ND/9739875), and doesn't require any soldering to get started, besides putting pins on your Teensy board.
 
 ### Software and Teensy Setup
 This documentation assumes you have a general knowledge of the Teensy 3, how to use the Arduino IDE, and the Teensyduino addon.  If you need an overview of any of those tools, please use these references:
@@ -82,3 +85,13 @@ https://github.com/FastLED/FastLED/releases
 
 **Teensy Audio Library**  
 The SpectrumAnalyzer sketch requires the [Teensy Audio Library](http://www.pjrc.com/teensy/td_libs_Audio.html), which is included in Teensyduino.  If you have trouble compiling, first make sure you can compile either the FastLED example, as FastLED 3.x is also a requirement for this sketch.  If you're missing the Audio library, the best way to install is by running the Teensyduino installer.  Make sure the "Audio" library is checked during the install, but don't check all libraries as you might downgrade FastLED.
+
+### Troubleshooting
+
+If you need help, the best place to ask for help, or look for others who may have worked through the same issue, is the [SmartMatrix Community](https://community.pixelmatix.com).  Please don't post troubleshooting requests here on GitHub.
+
+If you've found a bug with the code, or want to suggest an improvement, feel free to submit a GitHub Issue or Pull Request.
+
+### Supporting SmartMatrix Library Development
+
+A lot of work went into writing SmartMatrix, designing the shields, and releasing them as Open Source Hardware.  There are real costs in maintaining the documentation and community forum.  If they are useful to you and you'd like to say thank you, you can make a [donation via paypal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=56RA5NKYXHCLJ&source=https://github.com/pixelmatix/SmartMatrix).  Thank you!
