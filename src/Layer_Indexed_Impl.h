@@ -236,13 +236,12 @@ void SMLayerIndexed<RGB, optionFlags>::drawChar(int16_t x, int16_t y, uint8_t in
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerIndexed<RGB, optionFlags>::drawString(int16_t x, int16_t y, uint8_t index, const char text []) {
-    // limit text to 10 chars, why?
-    for (int i = 0; i < 10; i++) {
-        char character = text[i];
-        if (character == '\0')
-            return;
+    int offset = 0;
+    char character;
 
-        drawChar(i * layerFont->Width + x, y, index, character);
+    while ((character = text[offset++]) != '\0') {
+        drawChar(x, y, index, character);
+        x += layerFont->Width;
     }
 }
 
