@@ -89,3 +89,7 @@ The SpectrumAnalyzer sketch requires the [Teensy Audio Library](http://www.pjrc.
 If you need help, the best place to ask for help, or look for others who may have worked through the same issue, is the [SmartMatrix Community](https://community.pixelmatix.com).  Please don't post troubleshooting requests here on GitHub.
 
 If you've found a bug with the code, or want to suggest an improvement, feel free to submit a GitHub Issue or Pull Request.
+
+### Supporting SmartMatrix Library Development
+
+A lot of work went into writing SmartMatrix, designing the shields, and releasing them as Open Source Hardware.  There are real costs in maintaining the documentation and community forum.  If they are useful to you and you'd like to say thank you, you can make a [donation via paypal](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=56RA5NKYXHCLJ&source=https://github.com/pixelmatix/SmartMatrix).  Thank you!
