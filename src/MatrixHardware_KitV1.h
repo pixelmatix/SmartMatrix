@@ -67,6 +67,9 @@
 #define GPIO_PIN_G1_TEENSY_PIN      7
 #define GPIO_PIN_B1_TEENSY_PIN      20
 
+#define GPIO_PIN_LATCH_TEENSY_PIN   3
+#define GPIO_PIN_OE_TEENSY_PIN      4
+
 #define ADDX_PIN_0  3
 #define ADDX_PIN_1  4
 #define ADDX_PIN_2  1

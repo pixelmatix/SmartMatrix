@@ -69,6 +69,9 @@
 #define GPIO_PIN_G1_TEENSY_PIN      8
 #define GPIO_PIN_B1_TEENSY_PIN      20
 
+#define GPIO_PIN_LATCH_TEENSY_PIN   3
+#define GPIO_PIN_OE_TEENSY_PIN      4
+
 // output latch signal on two pins, to trigger two different GPIO port interrupts
 #define ENABLE_LATCH_PWM_OUTPUT() {                                     \
         CORE_PIN3_CONFIG |= PORT_PCR_MUX(3) | PORT_PCR_DSE | PORT_PCR_SRE;  \
