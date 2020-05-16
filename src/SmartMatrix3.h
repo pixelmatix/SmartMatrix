@@ -28,6 +28,50 @@
 
 #include "Arduino.h"
 
+#if defined(__IMXRT1062__) // Teensy 4.0/4.1
+
+#include "MatrixHardware_KitV4T4.h"
+
+#include "MatrixCommon.h"
+#include "CircularBuffer_SM.h"
+
+#include "Layer_Scrolling.h"
+#include "Layer_Indexed.h"
+#include "Layer_Background.h"
+
+#include "SmartMatrixMultiplexedCommon.h"
+
+#include "SmartMatrixRefreshT4.h"
+#include "SmartMatrixCalcT4.h"
+
+#define SMARTMATRIX_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
+  static volatile DMAMEM SmartMatrixRefreshT4<pwm_depth, width, height, panel_type, option_flags>::rowDataStruct rowsDataBuffer[buffer_rows]; \
+  SmartMatrixRefreshT4<pwm_depth, width, height, panel_type, option_flags> matrix_name##Refresh(buffer_rows, rowsDataBuffer); \
+  SmartMatrix3<pwm_depth, width, height, panel_type, option_flags> matrix_name(buffer_rows, rowsDataBuffer)
+
+#define SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(layer_name, width, height, storage_depth, scrolling_options) \
+  typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
+  static uint8_t layer_name##Bitmap[width * (height / 8)];                                              \
+  static SMLayerScrolling<RGB_TYPE(storage_depth), scrolling_options> layer_name(layer_name##Bitmap, width, height)
+
+#define SMARTMATRIX_ALLOCATE_INDEXED_LAYER(layer_name, width, height, storage_depth, indexed_options) \
+  typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
+  static uint8_t layer_name##Bitmap[2 * width * (height / 8)];                                              \
+  static SMLayerIndexed<RGB_TYPE(storage_depth), indexed_options> layer_name(layer_name##Bitmap, width, height)
+
+#define SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(layer_name, width, height, storage_depth, background_options) \
+  typedef RGB_TYPE(storage_depth) SM_RGB; \
+  static RGB_TYPE(storage_depth) layer_name##Bitmap[2 * width * height]; \
+  static color_chan_t layer_name##colorCorrectionLUT[sizeof(SM_RGB) <= 3 ? 256 : 4096];                          \
+  static SMLayerBackground<RGB_TYPE(storage_depth), background_options> layer_name(layer_name##Bitmap, width, height, layer_name##colorCorrectionLUT)
+
+#include "SmartMatrixPanelMaps.h" // include this to compile, but panel maps are not used or supported yet
+
+#include "SmartMatrixRefreshT4_Impl.h"
+#include "SmartMatrixCalcT4_Impl.h"
+
+#else // not Teensy 4.0/4.1
+
 #if defined(__arm__) && defined(CORE_TEENSY)
     #if defined(V4HEADER)
         #include "MatrixHardware_KitV4.h"
@@ -141,6 +185,8 @@
     #include "SmartMatrixCoprocessorSend_Impl.h"
     #include "SmartMatrixCoprocessorCalc_Impl.h"
     #include "SmartMatrixAPA102Calc_Impl.h"
+#endif
+
 #endif
 
 #endif

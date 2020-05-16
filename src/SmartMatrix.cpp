@@ -35,4 +35,8 @@
     DMAChannel dmaClockOutData(false);
     DMAChannel dmaClockOutDataApa(false);
     DMAChannel dmaClockOutDataCoprocessorSend(false);
+#elif defined(__IMXRT1062__) // Teensy 4.0/4.1
+    DMAChannel dmaClockOutData(false);
+    DMAChannel dmaEnable(false);
+    DMAChannel dmaUpdateTimer(false);
 #endif
