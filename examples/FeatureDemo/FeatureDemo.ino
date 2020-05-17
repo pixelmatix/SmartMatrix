@@ -4,6 +4,7 @@
 */
 
 //#include <SmartLEDShieldV4.h>  // uncomment this line for SmartLED Shield V4 (needs to be before #include <SmartMatrix3.h>)
+//#include <MatrixHardware_KitV4T4.h>  // uncomment this line for Teensy 4.0/4.1 on (modified) SmartLED Shield V4 (needs to be before #include <SmartMatrix3.h>)
 #include <SmartMatrix3.h>
 #include "colorwheel.c"
 #include "gimpbitmap.h"
