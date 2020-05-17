@@ -56,7 +56,11 @@ The SmartMatrix Library ESP32 port at a low level is based on Sprite_TM's [ESP32
 
 The library has only been tested with Espressif's ESP32 Dev Kit C.
 
-You can hook the ESP32 Dev Kit C directly up to a panel, following the circuit that's documented in code in Sprite_TM's example, and in the `MatrixHardware_ESP32_V0.h` header.  You'll need to change the definition of `GPIOPINOUT` in that header to `ESP32_FORUM_PINOUT` if you're not using the SmartLED Shield circuit.
+You can hook the ESP32 Dev Kit C directly up to a panel, following the circuit that's documented in code in Sprite_TM's example, and in the `MatrixHardware_ESP32_V0.h` header file.  You'll need to change the definition of `GPIOPINOUT` in that header to `ESP32_FORUM_PINOUT` if you're not using the SmartLED Shield circuit.
+
+Note: this isn't necessarily the best pinout, as (I think) it conflicts with some lines used for setting boot state.  You may need to hold down the GPIO0/BOOT button on your Dev Kit C if you can't reliable connect to the ESP32 when programming.
+
+Look at the `MatrixHardware_ESP32_V0.h` header file for other hardware options, including some easily assembled THT boards with level shifters meant for driving LED strips, but possible to wire up to a HUB75 connector.
 
 Some panels won't work with the 3.3V levels output by the ESP32, and you'll need 5V level shifting buffers like the shields I designed use.  Additionally, the shields have some other features that make them preferable to using just an ESP32 (and optionally level shifting buffers).
 
