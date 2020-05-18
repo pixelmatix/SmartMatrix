@@ -420,6 +420,9 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
         }
 
         gpio_set_level(LAT_PIN, 0);
+
+        // let changes settle before refreshing
+        delay(1);
     }
 
 #ifdef CLK_MANUAL_PIN
