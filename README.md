@@ -56,20 +56,15 @@ The SmartMatrix Library ESP32 port at a low level is based on Sprite_TM's [ESP32
 
 The library has only been tested with Espressif's ESP32 Dev Kit C.
 
-You can hook the ESP32 Dev Kit C directly up to a panel, following the circuit that's documented in code in Sprite_TM's example, and in the `MatrixHardware_ESP32_V0.h` header file.  You'll need to change the definition of `GPIOPINOUT` in that header to `ESP32_FORUM_PINOUT` if you're not using the SmartLED Shield circuit.
+You can hook the ESP32 Dev Kit C directly up to a panel, following the circuit that's documented in code in Sprite_TM's example, and in the `MatrixHardware_ESP32_V0.h` header.  You'll need to change the definition of `GPIOPINOUT` in that header to `ESP32_FORUM_PINOUT` if you're not using the SmartLED Shield circuit.  You also may find the I2S clock rate is too high without level shifting and the image is not stable.  Lower `ESP32_I2S_CLOCK_SPEED` in the same file.  Lowering from 20MHz to 10-15MHz seems to work.
 
-Note: this isn't necessarily the best pinout, as (I think) it conflicts with some lines used for setting boot state.  You may need to hold down the GPIO0/BOOT button on your Dev Kit C if you can't reliable connect to the ESP32 when programming.
-
-Look at the `MatrixHardware_ESP32_V0.h` header file for other hardware options, including some easily assembled THT boards with level shifters meant for driving LED strips, but possible to wire up to a HUB75 connector.
-
-Some panels won't work with the 3.3V levels output by the ESP32, and you'll need 5V level shifting buffers like the shields I designed use.  Additionally, the shields have some other features that make them preferable to using just an ESP32 (and optionally level shifting buffers).
+Some panels won't work with the 3.3V levels output by the ESP32, and you'll need 5V level shifting buffers like the shields I designed use.  Additionally, the shields have some other features that make them preferable to using just an ESP32 (and optionally level shifting buffers):
 
 - The 5x ADDX lines are output using the RGB data lines and stored using an external latch, freeing up more pins on the ESP32
 - With the addition of the external latch, there are only 8 bits of data to output via I2S, and so each clock cycle's data fits into a uint8_t instead of uint16_t.  With the I2S peripheral in 8-bit mode instead of 16-bit mode, the amount of RAM used to store refresh buffers is cut in half
-- There's an additional circuit that uses the MCPWM peripheral to output short OE pulses - shorter than can be output by the I2S peripheral - enabling displaying at least an extra bit's worth of color depth at high refresh rates or lower brightnesses.
 - Wiring is so much easier
 
-Schematics, Eagle PCB files, and BOMs are in the `extras/hardware` folder.  There's both a THT and SMT shield, neither have been fully tested.  I've tested the THT version excluding the APA102 LED circuit.  A contributor to the project has tested the matrix driving portion of the SMT shield.  The THT shield was used for initial library dev and won't be maintained after a V1 of the SMT shield is released.  You can find some parts for the THT shield in the SMT BOM listed under a "THT" column.  If there is sufficient interest, I can finalize SmartLED Shield for ESP32 V1, and make an assembled version for sale.
+Schematics, Eagle PCB files, and BOMs are in the `extras/hardware` folder.  There's both a THT and SMT shield, neither have been fully tested.  I've tested the THT version excluding the APA102 LED circuit.  A contributor to the project has tested the matrix driving portion of the SMT shield.  The THT shield was used for initial library dev and won't be maintained after a V1 of the SMT shield is released.  You can find some parts for the THT shield in the SMT BOM listed under a "THT" column.
 
 ## Overview
 
