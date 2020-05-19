@@ -91,6 +91,7 @@ int SMLayerBackground<RGB, optionFlags>::getRequestedBrightnessShifts() {
     return idealBrightnessShifts;
 }
 
+// numShifts must be in range of 0-4, otherwise 16-bit to 12-bit conversion code breaks (would be an easy fix, but 4 is enough for APA102 GBC application)
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackground<RGB, optionFlags>::setBrightnessShifts(int numShifts) {
     pendingIdealBrightnessShifts = numShifts;
@@ -106,13 +107,15 @@ void SMLayerBackground<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb
             currentPixel = currentRefreshBufferPtr[(hardwareY * this->matrixWidth) + i];
             // load background pixel with color correction
             if(sizeof(RGB) <= 3) {
+                // 24-bit source (8 bits per color channel): backgroundColorCorrectionLUT expects 8-bit value, returns 16-bit value
                 refreshRow[i] = rgb48(backgroundColorCorrectionLUT[currentPixel.red << brightnessShifts],
                     backgroundColorCorrectionLUT[currentPixel.green << brightnessShifts],
                     backgroundColorCorrectionLUT[currentPixel.blue << brightnessShifts]);                
             } else {
-                refreshRow[i] = rgb48(backgroundColorCorrectionLUT[currentPixel.red >> 4 << brightnessShifts],
-                    backgroundColorCorrectionLUT[currentPixel.green >> 4 << brightnessShifts],
-                    backgroundColorCorrectionLUT[currentPixel.blue >> 4 << brightnessShifts]);
+                // 48-bit source (16 bits per color channel): backgroundColorCorrectionLUT expects 12-bit value, returns 16-bit value
+                refreshRow[i] = rgb48(backgroundColorCorrectionLUT[currentPixel.red >> (4 - brightnessShifts)],
+                    backgroundColorCorrectionLUT[currentPixel.green >> (4 - brightnessShifts)],
+                    backgroundColorCorrectionLUT[currentPixel.blue >> (4 - brightnessShifts)]);
             }
         }
     } else {
@@ -120,10 +123,12 @@ void SMLayerBackground<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb
             currentPixel = currentRefreshBufferPtr[(hardwareY * this->matrixWidth) + i];
             // load background pixel without color correction
             if(sizeof(RGB) <= 3) {
-                refreshRow[i] = rgb48(currentPixel.red << brightnessShifts << 8,
-                    currentPixel.green << brightnessShifts << 8,
-                    currentPixel.blue << brightnessShifts << 8);
+                // 24-bit source (8 bits per color channel): shift to fit in 16-bit color channel
+                refreshRow[i] = rgb48(currentPixel.red << (brightnessShifts + 8),
+                    currentPixel.green << (brightnessShifts + 8),
+                    currentPixel.blue << (brightnessShifts + 8));
             } else {
+                // 48-bit source (16 bits per color channel): no shifting needed to fit in 16-bit color channel
                 refreshRow[i] = rgb48(currentPixel.red << brightnessShifts,
                     currentPixel.green << brightnessShifts,
                     currentPixel.blue << brightnessShifts);                
@@ -142,22 +147,30 @@ void SMLayerBackground<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb
             currentPixel = currentRefreshBufferPtr[(hardwareY * this->matrixWidth) + i];
             // load background pixel with color correction
             if(sizeof(RGB) <= 3) {
+                // 24-bit source (8 bits per color channel): backgroundColorCorrectionLUT expects 8-bit value, returns 16-bit value
                 refreshRow[i] = rgb48(backgroundColorCorrectionLUT[currentPixel.red << brightnessShifts],
                     backgroundColorCorrectionLUT[currentPixel.green << brightnessShifts],
                     backgroundColorCorrectionLUT[currentPixel.blue << brightnessShifts]);                
             } else {
-                refreshRow[i] = rgb48(backgroundColorCorrectionLUT[currentPixel.red >> 4 << brightnessShifts],
-                    backgroundColorCorrectionLUT[currentPixel.green >> 4 << brightnessShifts],
-                    backgroundColorCorrectionLUT[currentPixel.blue >> 4 << brightnessShifts]);
+                // 48-bit source (16 bits per color channel): backgroundColorCorrectionLUT expects 12-bit value, returns 16-bit value
+                refreshRow[i] = rgb48(backgroundColorCorrectionLUT[currentPixel.red >> (4 - brightnessShifts)],
+                    backgroundColorCorrectionLUT[currentPixel.green >> (4 - brightnessShifts)],
+                    backgroundColorCorrectionLUT[currentPixel.blue >> (4 - brightnessShifts)]);
             }
         }
     } else {
         for(i=0; i<this->matrixWidth; i++) {
             currentPixel = currentRefreshBufferPtr[(hardwareY * this->matrixWidth) + i];
             // load background pixel without color correction
-            refreshRow[i] = rgb24(currentPixel.red << brightnessShifts,
-                currentPixel.green << brightnessShifts,
-                currentPixel.blue << brightnessShifts);
+            if(sizeof(RGB) <= 3) {
+                refreshRow[i] = rgb24(currentPixel.red << brightnessShifts,
+                    currentPixel.green << brightnessShifts,
+                    currentPixel.blue << brightnessShifts);
+            } else {
+                refreshRow[i] = rgb48(currentPixel.red << brightnessShifts,
+                    currentPixel.green << brightnessShifts,
+                    currentPixel.blue << brightnessShifts);
+            }
         }
     }
 }
