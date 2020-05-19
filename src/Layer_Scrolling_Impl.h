@@ -174,7 +174,7 @@ void SMLayerScrolling<RGB, optionFlags>::setColor(const RGB & newColor) {
 
 template<typename RGB, unsigned int optionFlags>
 void SMLayerScrolling<RGB, optionFlags>::enableColorCorrection(bool enabled) {
-    this->ccEnabled = sizeof(RGB) <= 3 ? enabled : false;
+    this->ccEnabled = enabled;
 }
 
 // stops the scrolling text on the next refresh
