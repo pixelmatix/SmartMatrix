@@ -1014,7 +1014,7 @@ void SMLayerBackground<RGB, optionFlags>::setBrightness(uint8_t brightness) {
 
 template<typename RGB, unsigned int optionFlags>
 void SMLayerBackground<RGB, optionFlags>::enableColorCorrection(bool enabled) {
-    this->ccEnabled = sizeof(RGB) <= 3 ? enabled : false;
+    this->ccEnabled = enabled;
 }
 
 // reads pixel from drawing buffer, not refresh buffer
