@@ -58,6 +58,10 @@ The library has only been tested with Espressif's ESP32 Dev Kit C.
 
 You can hook the ESP32 Dev Kit C directly up to a panel, following the circuit that's documented in code in Sprite_TM's example, and in the `MatrixHardware_ESP32_V0.h` header.  You'll need to change the definition of `GPIOPINOUT` in that header to `ESP32_FORUM_PINOUT` if you're not using the SmartLED Shield circuit.  You also may find the I2S clock rate is too high without level shifting and the image is not stable.  Lower `ESP32_I2S_CLOCK_SPEED` in the same file.  Lowering from 20MHz to 10-15MHz seems to work.
 
+Note: this isn't necessarily the best pinout, as (I think) it conflicts with some lines used for setting boot state.  You may need to hold down the GPIO0/BOOT button on your Dev Kit C (or enter boot mode first by holding GPIO0 low while toggling Reset/EN) if you can't reliably connect to the ESP32 when programming.
+
+Look at the `MatrixHardware_ESP32_V0.h` header file for other hardware options, including some easily assembled THT boards with level shifters meant for driving LED strips, but possible to wire up to a HUB75 connector.
+
 Some panels won't work with the 3.3V levels output by the ESP32, and you'll need 5V level shifting buffers like the shields I designed use.  Additionally, the shields have some other features that make them preferable to using just an ESP32 (and optionally level shifting buffers):
 
 - The 5x ADDX lines are output using the RGB data lines and stored using an external latch, freeing up more pins on the ESP32
