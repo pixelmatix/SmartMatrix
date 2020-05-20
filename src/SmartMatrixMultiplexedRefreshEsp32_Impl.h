@@ -289,8 +289,6 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
     // send FM6126A chipset reset sequence, which is ignored by other chipsets that don't need it
     // Thanks to Bob Davis: http://bobdavis321.blogspot.com/2019/02/p3-64x32-hub75e-led-matrix-panels-with.html
     if(optionFlags & SMARTMATRIX_OPTIONS_FM6126A_RESET_AT_START) { 
-        // TODO: any harm in sending a longer sequence to cover a possible wider case?
-        int maxLeds = 256;
         int C12[16] = {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
         int C13[16] = {0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0};
 
@@ -354,7 +352,7 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
 #endif
 
         // Send Data to control register 11
-        for(int i=0; i<maxLeds; i++) {
+        for(int i=0; i<PIXELS_PER_LATCH; i++) {
             int y=i%16;
             gpio_set_level(R1_PIN, 0);
             gpio_set_level(G1_PIN, 0);
@@ -372,7 +370,7 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
                 gpio_set_level(B2_PIN, 1);                
             }
 
-            if(i > maxLeds-12)
+            if(i > PIXELS_PER_LATCH-12)
                 gpio_set_level(LAT_PIN, 1);
             else
                 gpio_set_level(LAT_PIN, 0);
@@ -388,7 +386,7 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
         gpio_set_level(LAT_PIN, 0);
 
         // Send Data to control register 12
-        for(int i=0; i<maxLeds; i++) {
+        for(int i=0; i<PIXELS_PER_LATCH; i++) {
             int y=i%16;
             gpio_set_level(R1_PIN, 0);
             gpio_set_level(G1_PIN, 0);
@@ -406,7 +404,7 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
                 gpio_set_level(B2_PIN, 1);                
             }
 
-            if(i > maxLeds-13)
+            if(i > PIXELS_PER_LATCH-13)
                 gpio_set_level(LAT_PIN, 1);
             else
                 gpio_set_level(LAT_PIN, 0);
