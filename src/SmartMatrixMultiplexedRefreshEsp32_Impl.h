@@ -370,17 +370,23 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
                 gpio_set_level(B2_PIN, 1);                
             }
 
+            delay(1);
+
             if(i > PIXELS_PER_LATCH-12)
                 gpio_set_level(LAT_PIN, 1);
             else
                 gpio_set_level(LAT_PIN, 0);
+
+            delay(1);
 
 #ifdef CLK_MANUAL_PIN        
             gpio_set_level(CLK_MANUAL_PIN, 1);
             gpio_set_level(CLK_MANUAL_PIN, 0);
 #endif
             gpio_set_level(CLK_PIN, 1);
+            delay(1);
             gpio_set_level(CLK_PIN, 0);
+            delay(1);
         }
 
         gpio_set_level(LAT_PIN, 0);
@@ -404,17 +410,23 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
                 gpio_set_level(B2_PIN, 1);                
             }
 
+            delay(1);
+
             if(i > PIXELS_PER_LATCH-13)
                 gpio_set_level(LAT_PIN, 1);
             else
                 gpio_set_level(LAT_PIN, 0);
+
+            delay(1);
 
 #ifdef CLK_MANUAL_PIN        
             gpio_set_level(CLK_MANUAL_PIN, 1);
             gpio_set_level(CLK_MANUAL_PIN, 0);
 #endif
             gpio_set_level(CLK_PIN, 1);
+            delay(1);
             gpio_set_level(CLK_PIN, 0);
+            delay(1);
         }
 
         gpio_set_level(LAT_PIN, 0);
