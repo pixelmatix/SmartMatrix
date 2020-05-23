@@ -210,6 +210,12 @@ bool SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, opti
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin(void)
 {
+    SM_Layer * templayer = baseLayer;
+    while(templayer) {
+        templayer->begin();
+        templayer = templayer->nextLayer;
+    }
+
     SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setMatrixCalculationsCallback(matrixCalculations);
     SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setMatrixUnderrunCallback(dmaBufferUnderrunCallback);
     SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin();
