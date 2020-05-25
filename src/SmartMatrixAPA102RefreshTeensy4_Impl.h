@@ -22,35 +22,16 @@
  */
 
 #include "SmartMatrix3.h"
-#include <SPI.h>
-#include "DMAChannel.h"
+#include <FlexIO_t4.h> // requires FlexIO_t4 library from https://github.com/KurtE/FlexIO_t4
+#include <FlexIOSPI.h>
 
-#define INLINE __attribute__( ( always_inline ) ) inline
+#define TIME_PER_FRAME_US      (1000000/refreshRate)
 
-#if defined(KINETISL)
-    #define ROW_CALCULATION_ISR_PRIORITY   192   // Cortex-M0 Acceptable values: 0,64,128,192
-#elif defined(KINETISK)
-    #define ROW_CALCULATION_ISR_PRIORITY   240 // M4 acceptable values: 0,16,32,48,64,80,96,112,128,144,160,176,192,208,224,240
-#endif
+#define APA_MIN_REFRESH_RATE_HZ 1
 
-// hardware-specific definitions
-// prescale of 7 is F_BUS/128
-#define APA_LATCH_TIMER_PRESCALE  0x07
-#define APA_NS_TO_TICKS(X)      (uint32_t)(APA_TIMER_FREQUENCY * ((X) / 1000000000.0))
-
-#if defined(KINETISL)
-    #define APA_TIMER_FREQUENCY     (F_BUS/1)
-    #error KINETISL APA102 support isnt tested
-#elif defined(KINETISK)
-    #define APA_TIMER_FREQUENCY     (F_BUS/128)
-#endif
-
-#define APA_TICKS_PER_FRAME   (APA_TIMER_FREQUENCY/refreshRate)
-
-// TODO: calculate a reasonable value based on timer overflow
-#define APA_MIN_REFRESH_RATE 1
-
-extern DMAChannel dmaClockOutDataApa;
+extern IntervalTimer myTimer;
+extern EventResponder apa102ShiftCompleteEvent;
+extern FlexIOSPI SPIFLEX;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void apaRowShiftCompleteISR(void);
@@ -121,9 +102,6 @@ void SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType
     matrixUnderrunCallback = f;
 }
 
-
-#define MSB_BLOCK_TICKS_ADJUSTMENT_INCREMENT    10
-
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::calculateTimerLUT(void) {
 
@@ -131,10 +109,12 @@ void SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRefreshRate(uint8_t newRefreshRate) {
-    if(newRefreshRate > APA_MIN_REFRESH_RATE)
+    if(newRefreshRate > APA_MIN_REFRESH_RATE_HZ)
         refreshRate = newRefreshRate;
     else
-        refreshRate = APA_MIN_REFRESH_RATE;
+        refreshRate = APA_MIN_REFRESH_RATE_HZ;
+
+   myTimer.update(TIME_PER_FRAME_US);
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
@@ -158,51 +138,21 @@ void SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType
     matrixCalcCallback(true);
 
     // setup SPI and DMA to feed it
-    SPI.begin();
-    SPI.setMOSI(SMARTLED_APA_DAT_PIN);
-    dmaClockOutDataApa.begin(false);
-    dmaClockOutDataApa.disable();
-    dmaClockOutDataApa.destination((volatile uint8_t&)SPI0_PUSHR);
-    dmaClockOutDataApa.disableOnCompletion();
-    dmaClockOutDataApa.triggerAtHardwareEvent(DMAMUX_SOURCE_SPI0_TX);
-    dmaClockOutDataApa.attachInterrupt(apaRowCalculationISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
-    dmaClockOutDataApa.interruptAtCompletion();
-    NVIC_SET_PRIORITY(IRQ_DMA_CH0 + dmaClockOutDataApa.channel, ROW_CALCULATION_ISR_PRIORITY);
+    SPIFLEX.begin();
+    SPIFLEX.beginTransaction(FlexIOSPISettings(20000000, MSBFIRST, SPI_MODE0));
 
-    // setup FTM2
-    FTM2_SC = 0;
-    FTM2_CNT = 0;
-    FTM2_MOD = APA_TICKS_PER_FRAME;
+    // set interrupt with low priority for long compute time ISR
+    apa102ShiftCompleteEvent.attachInterrupt((EventResponderFunction)&apaRowCalculationISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>, 255);
 
-#if 0
-    // for debug: latch pulse width wide enough to be seen on logic analyzer
-    FTM2_C0V = 100;
-
-// out of date, set for FTM1_C0V
-#define ENABLE_LATCH_PWM_OUTPUT() {                                     \
-        CORE_PIN3_CONFIG |= PORT_PCR_MUX(3) | PORT_PCR_DSE | PORT_PCR_SRE;  \
-    }
-
-    // setup PWM outputs
-    ENABLE_LATCH_PWM_OUTPUT();
-#endif
-
-    // enable timer from system clock, with appropriate prescale, TOF interrupt
-    FTM2_SC = FTM_SC_CLKS(1) | FTM_SC_PS(APA_LATCH_TIMER_PRESCALE) | FTM_SC_TOIE;
-
-    attachInterruptVector(IRQ_FTM2, apaRowShiftCompleteISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
-
-    NVIC_ENABLE_IRQ(IRQ_FTM2);
+    myTimer.begin(apaRowShiftCompleteISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>, TIME_PER_FRAME_US);
 }
 
-// low priority ISR triggered by software interrupt on a DMA channel that doesn't need interrupts otherwise
+// low priority ISR
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void apaRowCalculationISR(void) {
 #ifdef DEBUG_PINS_ENABLED
     digitalWriteFast(DEBUG_PIN_2, HIGH); // oscilloscope trigger
 #endif
-
-    dmaClockOutDataApa.clearInterrupt();
 
     // done with previous row, mark it as read
     cbRead(&SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer);
@@ -227,21 +177,8 @@ void apaRowShiftCompleteISR(void) {
         // set flag so other ISR can enable DMA again when data is ready
         //SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBufferUnderrun = true;
     // else, start SPI
-    SPI.endTransaction();
-
-    // disable SPI interrupts
-    SPI0_RSER = 0;
-    // clear flags
-    SPI0_SR = SPI_SR_TCF | SPI_SR_EOQF | SPI_SR_TFUF | SPI_SR_TFFF | SPI_SR_RFOF | SPI_SR_RFDF;
-    dmaClockOutDataApa.sourceBuffer(SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateFrame[currentRow].data,
-        ((matrixWidth * matrixHeight)*4) + (4+4));
-    // Enable Transmit Fill DMA Requests
-    SPI0_RSER = SPI_RSER_TFFF_RE | SPI_RSER_TFFF_DIRS;
-    SPI.beginTransaction(SPISettings());
-    dmaClockOutDataApa.enable();
-
-    // clear timer overflow bit before leaving ISR
-    FTM2_SC &= ~FTM_SC_TOF;
+    SPIFLEX.transfer(SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateFrame[currentRow].data,
+        NULL, ((matrixWidth * matrixHeight)*4) + (4+4), apa102ShiftCompleteEvent);
 
 #ifdef DEBUG_PINS_ENABLED
     digitalWriteFast(DEBUG_PIN_1, LOW); // oscilloscope trigger

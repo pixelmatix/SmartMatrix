@@ -43,11 +43,18 @@
 
 #include "SmartMatrixRefreshT4.h"
 #include "SmartMatrixCalcT4.h"
+#include "SmartMatrixAPA102Refresh.h"
+#include "SmartMatrixAPA102Calc.h"
 
 #define SMARTMATRIX_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
   static volatile DMAMEM SmartMatrixRefreshT4<pwm_depth, width, height, panel_type, option_flags>::rowDataStruct rowsDataBuffer[buffer_rows]; \
   SmartMatrixRefreshT4<pwm_depth, width, height, panel_type, option_flags> matrix_name##Refresh(buffer_rows, rowsDataBuffer); \
   SmartMatrix3<pwm_depth, width, height, panel_type, option_flags> matrix_name(buffer_rows, rowsDataBuffer)
+
+  #define SMARTMATRIX_APA_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
+      static DMAMEM SmartMatrixAPA102Refresh<pwm_depth, width, height, panel_type, option_flags>::frameDataStruct frameDataBuffer[buffer_rows]; \
+      SmartMatrixAPA102Refresh<pwm_depth, width, height, panel_type, option_flags> matrix_name##Refresh(buffer_rows, frameDataBuffer); \
+      SmartMatrixApaCalc<pwm_depth, width, height, panel_type, option_flags> matrix_name(buffer_rows, frameDataBuffer)
 
 #define SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(layer_name, width, height, storage_depth, scrolling_options) \
   typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
@@ -69,6 +76,9 @@
 
 #include "SmartMatrixRefreshT4_Impl.h"
 #include "SmartMatrixCalcT4_Impl.h"
+
+#include "SmartMatrixAPA102RefreshTeensy4_Impl.h"
+#include "SmartMatrixAPA102Calc_Impl.h"
 
 #else // not Teensy 4.0/4.1
 
