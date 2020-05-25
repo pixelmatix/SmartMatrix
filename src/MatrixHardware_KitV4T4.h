@@ -59,6 +59,8 @@
 // To use the alternate clock pin, you must set flag SMARTMATRIX_OPTIONS_T4_CLK_PIN_ALT in kMatrixOptions
 
 #define SMARTLED_APA_ENABLE_PIN         22
+#define FLEXIO_PIN_APA102_CLK           4
+#define FLEXIO_PIN_APA102_DAT           5
 
 // the following pins cannot be used if the jumper wires are connected
 #define T4_RESERVED_PINS_SMARTLED_SHIELD_V4
