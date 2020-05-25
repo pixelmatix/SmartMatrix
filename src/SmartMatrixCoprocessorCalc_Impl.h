@@ -235,6 +235,12 @@ bool SmartMatrixCoprocessorCalc<refreshDepth, matrixWidth, matrixHeight, panelTy
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void SmartMatrixCoprocessorCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin(void)
 {
+    SM_Layer * templayer = baseLayer;
+    while(templayer) {
+        templayer->begin();
+        templayer = templayer->nextLayer;
+    }
+
     SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setMatrixCalculationsCallback(matrixCalculations);
     SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setMatrixUnderrunCallback(dmaBufferUnderrunCallback);
     SmartMatrix3CoprocessorSend<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin();
