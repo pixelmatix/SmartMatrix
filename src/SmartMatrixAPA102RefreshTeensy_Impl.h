@@ -204,8 +204,6 @@ void SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType
     NVIC_ENABLE_IRQ(IRQ_FTM2);
 #else
     myTimer.begin(apaRowShiftCompleteISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>, REFRESH_RATE_IN_US);  // blinkLED to run 60 Hz
-    // TODO: set priority?  Short time sensitive ISR should be higher priority
-    //myTimer.priority(255);
 #endif
 }
 
