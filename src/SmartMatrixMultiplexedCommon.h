@@ -103,6 +103,7 @@
 #define SMARTMATRIX_OPTIONS_ESP32_INVERT_CLK        (1 << 4)
 #define SMARTMATRIX_OPTIONS_ESP32_CALC_TASK_CORE_1  (1 << 5)
 #define SMARTMATRIX_OPTIONS_FM6126A_RESET_AT_START  (1 << 6)
+#define SMARTMATRIX_OPTIONS_T4_CLK_PIN_ALT          (1 << 7)
 
 // defines data bit order from bit 0-7, four times to fit in uint32_t
 #define PACKED_HUB75_WORD_ORDER p0r1:1, p0g1:1, p0b1:1, p0r2:1, p0g2:1, p0b2:1, p1r1:1, p1g1:1, \

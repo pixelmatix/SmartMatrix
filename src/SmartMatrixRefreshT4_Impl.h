@@ -11,13 +11,16 @@
 
 #define LATCH_TIMER_PRESCALE            1 // if min refresh rate is too high, increase this value 
 #define TIMER_FREQUENCY                 (F_BUS_ACTUAL>>(LATCH_TIMER_PRESCALE))
-#define NS_TO_TICKS(X)                  (uint32_t)(TIMER_FREQUENCY * ((X) / 1000000000.0) + 0.5)
+//#define NS_TO_TICKS(X)                  (uint32_t)(TIMER_FREQUENCY * ((X) / 1000000000.0) + 0.5)
+#define NS_TO_TICKS(X)                  (uint32_t)(TIMER_FREQUENCY * ((X) / 1000000000.0))
+
 #define LATCH_TIMER_PULSE_WIDTH_TICKS   NS_TO_TICKS(LATCH_TIMER_PULSE_WIDTH_NS)
 #define TICKS_PER_ROW                   ((TIMER_FREQUENCY)/refreshRate/(MATRIX_SCAN_MOD))
 #define IDEAL_MSB_BLOCK_TICKS           (TICKS_PER_ROW/2) * (1<<LATCHES_PER_ROW) / ((1<<LATCHES_PER_ROW) - 1)
 #define MIN_BLOCK_PERIOD_NS             (LATCH_TO_CLK_DELAY_NS + ((PANEL_32_PIXELDATA_TRANSFER_MAXIMUM_NS*PIXELS_PER_LATCH)/32))
 #define MIN_BLOCK_PERIOD_TICKS          (NS_TO_TICKS(MIN_BLOCK_PERIOD_NS))
-#define MSB_BLOCK_TICKS_ADJUSTMENT_INCREMENT    10
+//#define MSB_BLOCK_TICKS_ADJUSTMENT_INCREMENT    10
+#define MSB_BLOCK_TICKS_ADJUSTMENT_INCREMENT  (TICKS_PER_ROW/512)
 #define MIN_REFRESH_RATE                ((TIMER_FREQUENCY)/65535/(MATRIX_SCAN_MOD)/2 + 1) // cannot refresh slower than this due to PWM register overflow
 #define MAX_REFRESH_RATE                ((TIMER_FREQUENCY)/(MIN_BLOCK_PERIOD_TICKS)/(MATRIX_SCAN_MOD)/(LATCHES_PER_ROW) - 1) // cannot refresh faster than this due to output bandwidth
 #define RGBDATA_SHIFTERS                2
@@ -232,8 +235,13 @@ FLASHMEM void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, pane
   // completely fill buffer with data before enabling DMA
   matrixCalcCallback(true);
 
+  uint8_t selected_clk_pin = FLEXIO_PIN_CLK_TEENSY_PIN;
+  if (optionFlags & SMARTMATRIX_OPTIONS_T4_CLK_PIN_ALT) {
+    selected_clk_pin = FLEXIO_PIN_CLK_TEENSY_PIN_ALT;
+  }
+
   // configure 7 output pins and 2 PWM pins
-  pinMode(FLEXIO_PIN_CLK_TEENSY_PIN, OUTPUT);
+  pinMode(selected_clk_pin, OUTPUT);
   pinMode(FLEXIO_PIN_B0_TEENSY_PIN, OUTPUT);
   pinMode(FLEXIO_PIN_R0_TEENSY_PIN, OUTPUT);
   pinMode(FLEXIO_PIN_R1_TEENSY_PIN, OUTPUT);
@@ -254,7 +262,7 @@ FLASHMEM void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, pane
 #endif
 
   // high speed and drive strength configuration
-  *(portControlRegister(FLEXIO_PIN_CLK_TEENSY_PIN)) = 0xFF;
+  *(portControlRegister(selected_clk_pin)) = 0xFF;
   *(portControlRegister(FLEXIO_PIN_B0_TEENSY_PIN)) = 0xFF;
   *(portControlRegister(FLEXIO_PIN_R0_TEENSY_PIN)) = 0xFF;
   *(portControlRegister(FLEXIO_PIN_R1_TEENSY_PIN)) = 0xFF;
@@ -302,7 +310,12 @@ FLASHMEM void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, pane
            triggerSelect, triggerPolarity, triggerSource, timerMode, timerOutput, timerDecrement, timerReset, timerDisable, timerEnable;
   uint8_t clkFlexPin, b0FlexPin, r0FlexPin, r1FlexPin, g0FlexPin, g1FlexPin, b1FlexPin, lowestFlexPin, highestFlexPin;
 
-  FlexIOHandler * pFlex = FlexIOHandler::mapIOPinToFlexIOHandler(FLEXIO_PIN_CLK_TEENSY_PIN, clkFlexPin); // get FlexIO handler
+  uint8_t selected_clk_pin = FLEXIO_PIN_CLK_TEENSY_PIN;
+  if (optionFlags & SMARTMATRIX_OPTIONS_T4_CLK_PIN_ALT) {
+    selected_clk_pin = FLEXIO_PIN_CLK_TEENSY_PIN_ALT;
+  }
+
+  FlexIOHandler * pFlex = FlexIOHandler::mapIOPinToFlexIOHandler(selected_clk_pin, clkFlexPin); // get FlexIO handler
   flexIO = &pFlex->port(); // Pointer to the port structure in the FlexIO channel
 
   // Configure FlexIO clock source
@@ -310,7 +323,7 @@ FLASHMEM void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, pane
   pFlex->setClockSettings(3, 0, 0); // 480 MHz PLL3_SW_CLK clock
 
   // Set up pin muxes
-  pFlex->setIOPinToFlexMode(FLEXIO_PIN_CLK_TEENSY_PIN);
+  pFlex->setIOPinToFlexMode(selected_clk_pin);
   pFlex->setIOPinToFlexMode(FLEXIO_PIN_B0_TEENSY_PIN);
   pFlex->setIOPinToFlexMode(FLEXIO_PIN_R0_TEENSY_PIN);
   pFlex->setIOPinToFlexMode(FLEXIO_PIN_R1_TEENSY_PIN);
@@ -601,7 +614,7 @@ FLASHMEM void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, pane
 // low priority ISR triggered by software interrupt on a DMA channel that doesn't need interrupts otherwise
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 FASTRUN void rowCalculationISR(void) {
-  SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalcCallback(false);
+  SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalcCallback(false);  
 }
 
 
@@ -616,6 +629,7 @@ FASTRUN void rowShiftCompleteISR(void) {
      So if CITER == BITER that means that the final bitplane was just completed.
      In this case it's time to update dmaClockOutData to the next row.*/
 
+
   // clear pending interrupt. If this is at the end of the ISR then it does not clear fast enough and the ISR can be triggered twice.
   dmaClockOutData.clearInterrupt(); //
 
@@ -629,6 +643,9 @@ FASTRUN void rowShiftCompleteISR(void) {
       dmaUpdateTimer.TCD->SLAST = -TIMER_REGISTERS_TO_UPDATE*sizeof(uint16_t);
       // disable channel-to-channel linking - don't link dmaClockOutData until buffer is ready
       dmaUpdateTimer.TCD->CSR &= ~DMA_TCD_CSR_MAJORELINK;
+
+      // set flag so other ISR can enable DMA again when data is ready
+      SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUnderrunCallback();
     } else {
       // get next row to draw to display and update DMA pointers
       int currentRow = cbGetNextRead(&SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer);

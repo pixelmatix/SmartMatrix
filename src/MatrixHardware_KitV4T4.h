@@ -48,12 +48,14 @@
 #define FLEXPWM_PIN_OE_TEENSY_PIN       4
 #define FLEXPWM_PIN_LATCH_TEENSY_PIN    33    // jumper wire to Teensy Pin 3
 #define FLEXIO_PIN_CLK_TEENSY_PIN       10    // jumper wire to Teensy Pin 14
+#define FLEXIO_PIN_CLK_TEENSY_PIN_ALT   7     // jumper wire to Teensy Pin 14
 #define FLEXIO_PIN_B0_TEENSY_PIN        6
 #define FLEXIO_PIN_R0_TEENSY_PIN        12    // jumper wire to Teensy Pin 2
 #define FLEXIO_PIN_R1_TEENSY_PIN        9     // jumper wire to Teensy Pin 21
 #define FLEXIO_PIN_G0_TEENSY_PIN        32    // jumper wire to Teensy Pin 5
 #define FLEXIO_PIN_G1_TEENSY_PIN        8
 #define FLEXIO_PIN_B1_TEENSY_PIN        11    // jumper wire to Teensy Pin 20
+// To use the alternate clock pin, you must set flag SMARTMATRIX_OPTIONS_T4_CLK_PIN_ALT in kMatrixOptions
 
 // the following pins cannot be used if the jumper wires are connected
 #define T4_RESERVED_PINS_SMARTLED_SHIELD_V4
