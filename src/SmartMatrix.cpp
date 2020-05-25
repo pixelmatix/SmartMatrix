@@ -35,4 +35,5 @@
     DMAChannel dmaClockOutData(false);
     DMAChannel dmaClockOutDataApa(false);
     DMAChannel dmaClockOutDataCoprocessorSend(false);
+    IntervalTimer myTimer;
 #endif

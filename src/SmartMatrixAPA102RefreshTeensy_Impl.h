@@ -33,6 +33,8 @@
     #define ROW_CALCULATION_ISR_PRIORITY   240 // M4 acceptable values: 0,16,32,48,64,80,96,112,128,144,160,176,192,208,224,240
 #endif
 
+//#define USE_INTERVALTIMER_NOT_FTM
+
 // hardware-specific definitions
 // prescale of 7 is F_BUS/128
 #define APA_LATCH_TIMER_PRESCALE  0x07
@@ -46,11 +48,13 @@
 #endif
 
 #define APA_TICKS_PER_FRAME   (APA_TIMER_FREQUENCY/refreshRate)
+#define REFRESH_RATE_IN_US      (1000000/refreshRate)
 
 // TODO: calculate a reasonable value based on timer overflow
 #define APA_MIN_REFRESH_RATE 1
 
 extern DMAChannel dmaClockOutDataApa;
+extern IntervalTimer myTimer;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void apaRowShiftCompleteISR(void);
@@ -135,6 +139,10 @@ void SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType
         refreshRate = newRefreshRate;
     else
         refreshRate = APA_MIN_REFRESH_RATE;
+
+#ifdef USE_INTERVALTIMER_NOT_FTM
+   myTimer.update(REFRESH_RATE_IN_US);
+#endif
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
@@ -169,6 +177,7 @@ void SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType
     dmaClockOutDataApa.interruptAtCompletion();
     NVIC_SET_PRIORITY(IRQ_DMA_CH0 + dmaClockOutDataApa.channel, ROW_CALCULATION_ISR_PRIORITY);
 
+#ifndef USE_INTERVALTIMER_NOT_FTM
     // setup FTM2
     FTM2_SC = 0;
     FTM2_CNT = 0;
@@ -193,6 +202,10 @@ void SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType
     attachInterruptVector(IRQ_FTM2, apaRowShiftCompleteISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
 
     NVIC_ENABLE_IRQ(IRQ_FTM2);
+#else
+    myTimer.begin(apaRowShiftCompleteISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>, REFRESH_RATE_IN_US);  // blinkLED to run 60 Hz
+    myTimer.priority(255);
+#endif
 }
 
 // low priority ISR triggered by software interrupt on a DMA channel that doesn't need interrupts otherwise
@@ -240,8 +253,10 @@ void apaRowShiftCompleteISR(void) {
     SPI.beginTransaction(SPISettings());
     dmaClockOutDataApa.enable();
 
+#ifndef USE_INTERVALTIMER_NOT_FTM
     // clear timer overflow bit before leaving ISR
     FTM2_SC &= ~FTM_SC_TOF;
+#endif
 
 #ifdef DEBUG_PINS_ENABLED
     digitalWriteFast(DEBUG_PIN_1, LOW); // oscilloscope trigger
