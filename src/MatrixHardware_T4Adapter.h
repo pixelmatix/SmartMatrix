@@ -25,9 +25,10 @@
 /* an advanced user may need to tweak these values */
 
 // size of latch pulse - can be short for V4 shield which doesn't need to update ADDX lines during latch pulse
-// 20 is minimum working value due to panel hardware limitations on the panels tested
+// 20 is minimum working value on DP5020B panel
+// set to 100 for improved support with FM6126A panel 
 // don't exceed 150 to avoid interference between latch and data transfer
-#define LATCH_TIMER_PULSE_WIDTH_NS 80  
+#define LATCH_TIMER_PULSE_WIDTH_NS 100  
 
 // max delay from rising edge of latch pulse to falling edge of first pixel clock
 // increase this value if DMA use is delaying clock

@@ -272,6 +272,88 @@ FLASHMEM void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, pane
   *(portControlRegister(FLEXPWM_PIN_OE_TEENSY_PIN)) = 0xFF;
   *(portControlRegister(FLEXPWM_PIN_LATCH_TEENSY_PIN)) = 0xFF;
 
+  // send FM6126A chipset reset sequence, which is ignored by other chipsets that don't need it
+  // Thanks to Bob Davis: http://bobdavis321.blogspot.com/2019/02/p3-64x32-hub75e-led-matrix-panels-with.html
+  if (optionFlags & SMARTMATRIX_OPTIONS_FM6126A_RESET_AT_START) {
+    // TODO: any harm in sending a longer sequence to cover a possible wider case?
+    int maxLeds = 256;
+    int C12[16] = {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+    int C13[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0};
+
+    // keep display off
+    digitalWriteFast(FLEXPWM_PIN_OE_TEENSY_PIN, HIGH);
+
+    // set CLK/LAT to idle state
+    digitalWriteFast(FLEXPWM_PIN_LATCH_TEENSY_PIN, LOW);
+    digitalWriteFast(selected_clk_pin, LOW);
+    delay(1);
+
+    // Send Data to control register 11
+    for (int i = 0; i < maxLeds; i++) {
+      int y = i % 16;
+      digitalWriteFast(FLEXIO_PIN_B0_TEENSY_PIN, LOW);
+      digitalWriteFast(FLEXIO_PIN_R0_TEENSY_PIN, LOW);
+      digitalWriteFast(FLEXIO_PIN_R1_TEENSY_PIN, LOW);
+      digitalWriteFast(FLEXIO_PIN_G0_TEENSY_PIN, LOW);
+      digitalWriteFast(FLEXIO_PIN_G1_TEENSY_PIN, LOW);
+      digitalWriteFast(FLEXIO_PIN_B1_TEENSY_PIN, LOW);
+
+      if (C12[y] == 1) {
+        digitalWriteFast(FLEXIO_PIN_B0_TEENSY_PIN, HIGH);
+        digitalWriteFast(FLEXIO_PIN_R0_TEENSY_PIN, HIGH);
+        digitalWriteFast(FLEXIO_PIN_R1_TEENSY_PIN, HIGH);
+        digitalWriteFast(FLEXIO_PIN_G0_TEENSY_PIN, HIGH);
+        digitalWriteFast(FLEXIO_PIN_G1_TEENSY_PIN, HIGH);
+        digitalWriteFast(FLEXIO_PIN_B1_TEENSY_PIN, HIGH);
+      }
+
+      if (i > maxLeds - 12)
+        digitalWriteFast(FLEXPWM_PIN_LATCH_TEENSY_PIN, HIGH);
+      else
+        digitalWriteFast(FLEXPWM_PIN_LATCH_TEENSY_PIN, LOW);
+
+      digitalWriteFast(selected_clk_pin, HIGH);
+      delay(1);
+      digitalWriteFast(selected_clk_pin, LOW);
+      delay(1);
+    }
+
+    digitalWriteFast(FLEXPWM_PIN_LATCH_TEENSY_PIN, LOW);
+
+    // Send Data to control register 12
+    for (int i = 0; i < maxLeds; i++) {
+      int y = i % 16;
+      digitalWriteFast(FLEXIO_PIN_B0_TEENSY_PIN, LOW);
+      digitalWriteFast(FLEXIO_PIN_R0_TEENSY_PIN, LOW);
+      digitalWriteFast(FLEXIO_PIN_R1_TEENSY_PIN, LOW);
+      digitalWriteFast(FLEXIO_PIN_G0_TEENSY_PIN, LOW);
+      digitalWriteFast(FLEXIO_PIN_G1_TEENSY_PIN, LOW);
+      digitalWriteFast(FLEXIO_PIN_B1_TEENSY_PIN, LOW);
+
+      if (C13[y] == 1) {
+        digitalWriteFast(FLEXIO_PIN_B0_TEENSY_PIN, HIGH);
+        digitalWriteFast(FLEXIO_PIN_R0_TEENSY_PIN, HIGH);
+        digitalWriteFast(FLEXIO_PIN_R1_TEENSY_PIN, HIGH);
+        digitalWriteFast(FLEXIO_PIN_G0_TEENSY_PIN, HIGH);
+        digitalWriteFast(FLEXIO_PIN_G1_TEENSY_PIN, HIGH);
+        digitalWriteFast(FLEXIO_PIN_B1_TEENSY_PIN, HIGH);
+      }
+
+      if (i > maxLeds - 13)
+        digitalWriteFast(FLEXPWM_PIN_LATCH_TEENSY_PIN, HIGH);
+      else
+        digitalWriteFast(FLEXPWM_PIN_LATCH_TEENSY_PIN, LOW);
+
+      digitalWriteFast(selected_clk_pin, HIGH);
+      delay(1);
+      digitalWriteFast(selected_clk_pin, LOW);
+      delay(1);
+    }
+
+    digitalWriteFast(FLEXPWM_PIN_LATCH_TEENSY_PIN, LOW);
+
+  }
+
   // set up hardware peripherals
   hardwareSetup();
 
@@ -305,7 +387,7 @@ FLASHMEM void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, pane
      8. After the clock stops, FlexIO outputs the address data from an extra shifter without a clock signal. This only occurs
         when the buffers for the RGB data shifters are completely empty. These signals are not clocked into the LED panel but are
         instead used to control the row address latches on the SmartLED shield. */
-        
+
   uint32_t timerSelect, timerPolarity, pinConfig, pinSelect, pinPolarity, shifterMode, parallelWidth, inputSource, stopBit, startBit,
            triggerSelect, triggerPolarity, triggerSource, timerMode, timerOutput, timerDecrement, timerReset, timerDisable, timerEnable;
   uint8_t clkFlexPin, b0FlexPin, r0FlexPin, r1FlexPin, g0FlexPin, g1FlexPin, b1FlexPin, lowestFlexPin, highestFlexPin;
@@ -614,7 +696,7 @@ FLASHMEM void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, pane
 // low priority ISR triggered by software interrupt on a DMA channel that doesn't need interrupts otherwise
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 FASTRUN void rowCalculationISR(void) {
-  SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalcCallback(false);  
+  SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalcCallback(false);
 }
 
 
@@ -640,7 +722,7 @@ FASTRUN void rowShiftCompleteISR(void) {
       // point dmaUpdateTimer to repeatedly load from values that set mod to MIN_BLOCK_PERIOD_TICKS and disable OE
       dmaUpdateTimer.TCD->SADDR = &SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::timerPairIdle;
       // set timer increment to repeat timerPairIdle
-      dmaUpdateTimer.TCD->SLAST = -TIMER_REGISTERS_TO_UPDATE*sizeof(uint16_t);
+      dmaUpdateTimer.TCD->SLAST = -TIMER_REGISTERS_TO_UPDATE * sizeof(uint16_t);
       // disable channel-to-channel linking - don't link dmaClockOutData until buffer is ready
       dmaUpdateTimer.TCD->CSR &= ~DMA_TCD_CSR_MAJORELINK;
 
