@@ -58,6 +58,8 @@
 #define FLEXIO_PIN_B1_TEENSY_PIN        11    // jumper wire to Teensy Pin 20
 // To use the alternate clock pin, you must set flag SMARTMATRIX_OPTIONS_T4_CLK_PIN_ALT in kMatrixOptions
 
+#define SMARTLED_APA_ENABLE_PIN         22
+
 // the following pins cannot be used if the jumper wires are connected
 #define T4_RESERVED_PINS_SMARTLED_SHIELD_V4
 #define T4_RESERVED_LATCH_TEENSY_PIN    3

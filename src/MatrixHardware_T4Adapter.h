@@ -61,6 +61,15 @@
 #define FLEXIO_PIN_G1_TEENSY_PIN        11
 #define FLEXIO_PIN_B1_TEENSY_PIN        13
 
+#define SMARTLED_APA_ENABLE_PIN         22
+#define FLEXIO_PIN_APA102_CLK           4
+#define FLEXIO_PIN_APA102_DAT           5
+
 // note: data bit order is calculated in setup using the pin number definitions
+
+//#define DEBUG_PINS_ENABLED
+#define DEBUG_PIN_1 0
+#define DEBUG_PIN_2 1
+#define DEBUG_PIN_3 23
 
 #endif
