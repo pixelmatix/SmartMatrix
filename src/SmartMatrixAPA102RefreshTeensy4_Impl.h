@@ -139,6 +139,7 @@ void SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType
 
     // setup SPI and DMA to feed it
     SPIFLEX.begin();
+    SPIFLEX.flexIOHandler()->setClockSettings(3, 0, 0); // not exactly sure what this does, but without it the clock seems limited to ~7.5MHz
     SPIFLEX.beginTransaction(FlexIOSPISettings(20000000, MSBFIRST, SPI_MODE0));
 
     // set interrupt with low priority for long compute time ISR
