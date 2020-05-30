@@ -11,8 +11,8 @@
 //    3b. Connect pin 12 to pin 2.
 //    3c. Connect pin 11 to pin 20.
 //    3d. Connect pin 9 to pin 21.
-// Pins 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 14, 20, 21, 32, and 33 are not available for other functions. 
- 
+// Pins 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 14, 20, 21, 32, and 33 are not available for other functions.
+
 // Note: only one MatrixHardware_*.h file should be included per project
 
 #ifndef MATRIX_HARDWARE_H
@@ -22,9 +22,9 @@
 
 // size of latch pulse - can be short for V4 shield which doesn't need to update ADDX lines during latch pulse
 // 20 is minimum working value on DP5020B panel
-// set to 100 for improved support with FM6126A panel 
+// set to 100 for improved support with FM6126A panel
 // don't exceed 150 to avoid interference between latch and data transfer
-#define LATCH_TIMER_PULSE_WIDTH_NS 100  
+#define LATCH_TIMER_PULSE_WIDTH_NS 100
 
 // max delay from rising edge of latch pulse to falling edge of first pixel clock
 // increase this value if DMA use is delaying clock

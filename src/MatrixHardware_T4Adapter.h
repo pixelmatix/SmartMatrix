@@ -16,7 +16,7 @@
 // The following unused Teensy 4 pins are made available on the shield but some are in different positions marked on the OSHPark Adapter:
 //    Teensy 4 pins free:   0, 1, 7/8, 14, 15, 16, 17, 18, 19, 20, 21, 23
 //    Locations on shield:  0, 1,   9, 10, 15, 16, 11, 18, 19, 12, 22, 23
-  
+
 // Note: only one MatrixHardware_*.h file should be included per project
 
 #ifndef MATRIX_HARDWARE_H
@@ -26,9 +26,9 @@
 
 // size of latch pulse - can be short for V4 shield which doesn't need to update ADDX lines during latch pulse
 // 20 is minimum working value on DP5020B panel
-// set to 100 for improved support with FM6126A panel 
+// set to 100 for improved support with FM6126A panel
 // don't exceed 150 to avoid interference between latch and data transfer
-#define LATCH_TIMER_PULSE_WIDTH_NS 100  
+#define LATCH_TIMER_PULSE_WIDTH_NS 100
 
 // max delay from rising edge of latch pulse to falling edge of first pixel clock
 // increase this value if DMA use is delaying clock
