@@ -21,21 +21,16 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef SmartMatrixMultiplexedCalc_h
-#define SmartMatrixMultiplexedCalc_h
+#ifndef SmartMatrixMultiplexedCalc_NT_h
+#define SmartMatrixMultiplexedCalc_NT_h
 
 extern SemaphoreHandle_t calcTaskSemaphore;
 extern void matrixCalculationsSignal(void);
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-class SmartMatrix3 {
+class SmartMatrix3_NT {
 public:
-    typedef typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::frameStruct frameStruct;
-    typedef typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowDataStruct rowDataStruct;
-    typedef typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowBitStruct rowBitStruct;
-
     // init
-    SmartMatrix3(void);
+    SmartMatrix3_NT(int width, int height, unsigned char depth, unsigned char type, unsigned char options);
     void begin(uint32_t dmaRamToKeepFreeBytes = 0);
     void addLayer(SM_Layer * newlayer);
 
@@ -69,8 +64,8 @@ private:
 
     // functions for refreshing
     static void loadMatrixBuffers(int lsbMsbTransitionBit, int numBrightnessShifts = 0);
-    static void loadMatrixBuffers48(frameStruct * currentFrameDataPtr, int currentRow, int lsbMsbTransitionBit, int numBrightnessShifts = 0);
-    static void loadMatrixBuffers24(frameStruct * currentFrameDataPtr, int currentRow, int lsbMsbTransitionBit, int numBrightnessShifts = 0);
+    static void loadMatrixBuffers48(MATRIX_DATA_STORAGE_TYPE * currentFrameDataPtr, int currentRow, int lsbMsbTransitionBit, int numBrightnessShifts = 0);
+    static void loadMatrixBuffers24(MATRIX_DATA_STORAGE_TYPE * currentFrameDataPtr, int currentRow, int lsbMsbTransitionBit, int numBrightnessShifts = 0);
     static void calcTask(void* pvParameters);
     static void resetMultiRowRefreshMapPosition(void);
     static void resetMultiRowRefreshMapPositionPixelGroupToStartOfRow(void);
@@ -100,6 +95,12 @@ private:
     static int multiRowRefresh_mapIndex_CurrentPixelGroup;
     static int multiRowRefresh_PixelOffsetFromPanelsAlreadyMapped;
     static int multiRowRefresh_NumPanelsAlreadyMapped;
+
+    static uint32_t optionFlags;
+    static uint8_t panelType;
+    static int matrixWidth;
+    static int matrixHeight;
+    static uint8_t refreshDepth;
 };
 
 #endif

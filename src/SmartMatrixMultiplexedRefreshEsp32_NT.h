@@ -21,36 +21,29 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef SmartMatrixMultiplexedRefresh_h
-#define SmartMatrixMultiplexedRefresh_h
+#ifndef SmartMatrixMultiplexedRefresh_NT_h
+#define SmartMatrixMultiplexedRefresh_NT_h
 
 #include "esp32_i2s_parallel.h"
 
 #define ESP32_NUM_FRAME_BUFFERS   2
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-class SmartMatrix3RefreshMultiplexed {
+#define SIZE_OF_ROWBITSTRUCT ((PIXELS_PER_LATCH + CLKS_DURING_LATCH))
+#define SIZE_OF_ROWDATASTRUCT (SIZE_OF_ROWBITSTRUCT * COLOR_DEPTH_BITS)
+#define SIZE_OF_FRAMESTRUCT (SIZE_OF_ROWDATASTRUCT * MATRIX_SCAN_MOD)
+
+#define GET_DATA_OFFSET_FROM_ROW_AND_COLOR_DEPTH_BIT(row, bit) ((row * SIZE_OF_ROWDATASTRUCT) + (bit * SIZE_OF_ROWBITSTRUCT))
+
+class SmartMatrix3RefreshMultiplexed_NT {
 public:
-    struct rowBitStruct {
-        MATRIX_DATA_STORAGE_TYPE data[PIXELS_PER_LATCH_NT + CLKS_DURING_LATCH];
-    };
-
-    struct rowDataStruct {
-        rowBitStruct rowbits[COLOR_DEPTH_BITS];
-    };
-
-    struct frameStruct {
-        rowDataStruct rowdata[MATRIX_SCAN_MOD_NT];
-    };
-
     typedef void (*matrix_calc_callback)(void);
 
     // init
-    SmartMatrix3RefreshMultiplexed();
-    static void begin(uint32_t dmaRamToKeepFreeBytes = 0, int width = matrixWidth, int height = matrixHeight, unsigned char type = panelType, unsigned char options = optionFlags);
+    SmartMatrix3RefreshMultiplexed_NT(int width, int height, unsigned char depth, unsigned char type, unsigned char options);
+    static void begin(uint32_t dmaRamToKeepFreeBytes = 0);
 
     // refresh API
-    static frameStruct * getNextFrameBufferPtr(void);
+    static MATRIX_DATA_STORAGE_TYPE * getNextFrameBufferPtr(void);
     static void writeFrameBuffer(uint8_t currentFrame);
     static void recoverFromDmaUnderrun(void);
     static bool isFrameBufferFree(void);
@@ -65,14 +58,17 @@ private:
     static uint16_t refreshRate;
     static uint16_t minRefreshRate;
     static uint8_t lsbMsbTransitionBit;
-    static frameStruct * matrixUpdateFrames[ESP32_NUM_FRAME_BUFFERS];
+    static MATRIX_DATA_STORAGE_TYPE * matrixUpdateFrames[ESP32_NUM_FRAME_BUFFERS];
 
     static matrix_calc_callback matrixCalcCallback;
 
     static CircularBuffer_SM dmaBuffer;
 
-    static uint32_t optionFlagsNT;
-    uint8_t panelTypeNT;
+    static uint32_t optionFlags;
+    static uint8_t panelType;
+    static int matrixWidth;
+    static int matrixHeight;
+    static uint8_t refreshDepth;
 };
 
 #endif

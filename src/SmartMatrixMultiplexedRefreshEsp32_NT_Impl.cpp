@@ -46,105 +46,101 @@
 
 #define INLINE __attribute__( ( always_inline ) ) inline
 
-
 // TODO: slower refresh rates require larger timer values - get the min refresh rate from the largest MSB value that will fit in the timer (round up)
 #define MIN_REFRESH_RATE    30
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void frameShiftCompleteISR(void);    
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-CircularBuffer_SM SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer;
+CircularBuffer_SM SmartMatrix3RefreshMultiplexed_NT::dmaBuffer;
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-uint16_t SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refreshRate = 120;
+uint16_t SmartMatrix3RefreshMultiplexed_NT::refreshRate = 120;
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-uint32_t SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::optionFlagsNT;
+int SmartMatrix3RefreshMultiplexed_NT::matrixWidth;
+int SmartMatrix3RefreshMultiplexed_NT::matrixHeight;
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-uint8_t SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::panelTypeNT;
+uint32_t SmartMatrix3RefreshMultiplexed_NT::optionFlags;
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-uint16_t SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::minRefreshRate = 120;
+uint8_t SmartMatrix3RefreshMultiplexed_NT::refreshDepth;
+uint8_t SmartMatrix3RefreshMultiplexed_NT::panelType;
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-uint8_t SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::lsbMsbTransitionBit = 0;
+uint16_t SmartMatrix3RefreshMultiplexed_NT::minRefreshRate = 120;
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::frameStruct * SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateFrames[ESP32_NUM_FRAME_BUFFERS];
+uint8_t SmartMatrix3RefreshMultiplexed_NT::lsbMsbTransitionBit = 0;
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::SmartMatrix3RefreshMultiplexed(void) {
+MATRIX_DATA_STORAGE_TYPE * SmartMatrix3RefreshMultiplexed_NT::matrixUpdateFrames[ESP32_NUM_FRAME_BUFFERS];
+
+SmartMatrix3RefreshMultiplexed_NT::SmartMatrix3RefreshMultiplexed_NT(int width, int height, unsigned char depth, unsigned char type, unsigned char options) {
+    matrixWidth = width;
+    matrixHeight = height;
+    optionFlags = options;
+    panelType = type;
+    refreshDepth = depth;
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-bool SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::isFrameBufferFree(void) {
+bool SmartMatrix3RefreshMultiplexed_NT::isFrameBufferFree(void) {
     if(cbIsFull(&dmaBuffer))
         return false;
     else
         return true;
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::frameStruct * SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getNextFrameBufferPtr(void) {
+MATRIX_DATA_STORAGE_TYPE * SmartMatrix3RefreshMultiplexed_NT::getNextFrameBufferPtr(void) {
     return matrixUpdateFrames[cbGetNextWrite(&dmaBuffer)];
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::writeFrameBuffer(uint8_t currentFrame) {
-    //SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::frameStruct * currentFramePtr = SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getNextFrameBufferPtr();
+void SmartMatrix3RefreshMultiplexed_NT::writeFrameBuffer(uint8_t currentFrame) {
+    //SmartMatrix3RefreshMultiplexed_NT::frameStruct * currentFramePtr = SmartMatrix3RefreshMultiplexed_NT::getNextFrameBufferPtr();
     i2s_parallel_flip_to_buffer(&I2S1, cbGetNextWrite(&dmaBuffer));
     cbWrite(&dmaBuffer);
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::recoverFromDmaUnderrun(void) {
+void SmartMatrix3RefreshMultiplexed_NT::recoverFromDmaUnderrun(void) {
 
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrix_calc_callback SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalcCallback;
+typename SmartMatrix3RefreshMultiplexed_NT::matrix_calc_callback SmartMatrix3RefreshMultiplexed_NT::matrixCalcCallback;
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setMatrixCalculationsCallback(matrix_calc_callback f) {
+void SmartMatrix3RefreshMultiplexed_NT::setMatrixCalculationsCallback(matrix_calc_callback f) {
     setShiftCompleteCallback(f);
     matrixCalcCallback = f;
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setBrightness(uint8_t newBrightness) {
+void SmartMatrix3RefreshMultiplexed_NT::setBrightness(uint8_t newBrightness) {
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRefreshRate(uint16_t newRefreshRate) {
+void SmartMatrix3RefreshMultiplexed_NT::setRefreshRate(uint16_t newRefreshRate) {
     if(newRefreshRate > MIN_REFRESH_RATE)
         minRefreshRate = newRefreshRate;
     else
         minRefreshRate = MIN_REFRESH_RATE;
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-uint16_t SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getRefreshRate(void) {
+uint16_t SmartMatrix3RefreshMultiplexed_NT::getRefreshRate(void) {
     return refreshRate;
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin(uint32_t dmaRamToKeepFreeBytes, int width, int height, unsigned char type, unsigned char options) {
-    optionFlagsNT = options;
-    panelTypeNT = panelType;
-
+void SmartMatrix3RefreshMultiplexed_NT::begin(uint32_t dmaRamToKeepFreeBytes) {
     cbInit(&dmaBuffer, ESP32_NUM_FRAME_BUFFERS);
 
     printf("Starting SmartMatrix DMA Mallocs\r\n");
+    //printf("sizeof framestruct: %08X\r\n", (uint32_t)SIZE_OF_FRAMESTRUCT);
+    //printf("sizeof rowdatastruct: %08X\r\n", (uint32_t)SIZE_OF_ROWDATASTRUCT);
+    //printf("sizeof rowbitstruct: %08X\r\n", (uint32_t)SIZE_OF_ROWBITSTRUCT);
+    //printf("PIXELS_PER_LATCH: %08X\r\n", (uint32_t)PIXELS_PER_LATCH);
+    //printf("CLKS_DURING_LATCH: %08X\r\n", (uint32_t)CLKS_DURING_LATCH);
+    //printf("matrixWidth: %08X\r\n", (uint32_t)matrixWidth);
+    //printf("matrixHeight: %08X\r\n", (uint32_t)matrixHeight);
+    //printf("panelType: %08X\r\n", (uint32_t)panelType);
+    //printf("MATRIX_PANEL_HEIGHT: %08X\r\n", (uint32_t)MATRIX_PANEL_HEIGHT);
+    //printf("PHYSICAL_ROWS_PER_REFRESH_ROW: %08X\r\n", (uint32_t)PHYSICAL_ROWS_PER_REFRESH_ROW);
+    //printf("MATRIX_SCAN_MOD: %08X\r\n", (uint32_t)MATRIX_SCAN_MOD);
 
     // TODO: malloc this buffer before other smaller buffers as this is (by far) the largest buffer to allocate?
-    matrixUpdateFrames[0] = (frameStruct *)heap_caps_malloc(sizeof(frameStruct), MALLOC_CAP_DMA);
+    matrixUpdateFrames[0] = (MATRIX_DATA_STORAGE_TYPE *)heap_caps_malloc(SIZE_OF_FRAMESTRUCT, MALLOC_CAP_DMA);
     assert(matrixUpdateFrames[0] != NULL);
-    matrixUpdateFrames[1] = (frameStruct *)heap_caps_malloc(sizeof(frameStruct), MALLOC_CAP_DMA);
+    matrixUpdateFrames[1] = (MATRIX_DATA_STORAGE_TYPE *)heap_caps_malloc(SIZE_OF_FRAMESTRUCT, MALLOC_CAP_DMA);
     assert(matrixUpdateFrames[1] != NULL);
 
-    printf("sizeof framestruct: %08X\r\n", (uint32_t)sizeof(frameStruct));
     show_esp32_dma_mem("DMA Memory Available before ptr1 alloc");
     printf("matrixUpdateFrames[0] pointer: %08X\r\n", (uint32_t)matrixUpdateFrames[0]);
     show_esp32_dma_mem("DMA Memory Available before ptr2 alloc");
@@ -172,7 +168,7 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
             numDescriptorsPerRow += 1<<(i - lsbMsbTransitionBit - 1);
         }
 
-        int ramrequired = numDescriptorsPerRow * MATRIX_SCAN_MOD_NT * ESP32_NUM_FRAME_BUFFERS * sizeof(lldesc_t);
+        int ramrequired = numDescriptorsPerRow * MATRIX_SCAN_MOD * ESP32_NUM_FRAME_BUFFERS * sizeof(lldesc_t);
         int largestblockfree = heap_caps_get_largest_free_block(MALLOC_CAP_DMA);
 
         printf("lsbMsbTransitionBit of %d requires %d RAM, %d available, leaving %d free: \r\n", lsbMsbTransitionBit, ramrequired, largestblockfree, largestblockfree - ramrequired);
@@ -186,7 +182,7 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
             break;
     }
 
-    if(numDescriptorsPerRow * MATRIX_SCAN_MOD_NT * ESP32_NUM_FRAME_BUFFERS * sizeof(lldesc_t) > heap_caps_get_largest_free_block(MALLOC_CAP_DMA)){
+    if(numDescriptorsPerRow * MATRIX_SCAN_MOD * ESP32_NUM_FRAME_BUFFERS * sizeof(lldesc_t) > heap_caps_get_largest_free_block(MALLOC_CAP_DMA)){
         printf("not enough RAM for SmartMatrix descriptors\r\n");
         return;
     }
@@ -196,7 +192,7 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
     // calculate the lowest LSBMSB_TRANSITION_BIT value that will fit in memory that will meet or exceed the configured refresh rate
     while(1) {
         int psPerClock = 1000000000000UL/ESP32_I2S_CLOCK_SPEED;
-        int nsPerLatch = ((PIXELS_PER_LATCH_NT + CLKS_DURING_LATCH) * psPerClock) / 1000;
+        int nsPerLatch = ((PIXELS_PER_LATCH + CLKS_DURING_LATCH) * psPerClock) / 1000;
         //printf("ns per latch: %d: \r\n", nsPerLatch);        
 
         // add time to shift out LSBs + LSB-MSB transition bit - this ignores fractions...
@@ -208,7 +204,7 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
 
         //printf("nsPerRow: %d: \r\n", nsPerRow);        
 
-        int nsPerFrame = nsPerRow * MATRIX_SCAN_MOD_NT;
+        int nsPerFrame = nsPerRow * MATRIX_SCAN_MOD;
         //printf("nsPerFrame: %d: \r\n", nsPerFrame);        
 
         int actualRefreshRate = 1000000000UL/(nsPerFrame);
@@ -237,10 +233,10 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
         numDescriptorsPerRow += 1<<(i - lsbMsbTransitionBit - 1);
     }
 
-    printf("Descriptors for lsbMsbTransitionBit %d/%d with %d rows require %d bytes of DMA RAM\r\n", lsbMsbTransitionBit, COLOR_DEPTH_BITS - 1, MATRIX_SCAN_MOD_NT, 2 * numDescriptorsPerRow * MATRIX_SCAN_MOD_NT * sizeof(lldesc_t));
+    printf("Descriptors for lsbMsbTransitionBit %d/%d with %d rows require %d bytes of DMA RAM\r\n", lsbMsbTransitionBit, COLOR_DEPTH_BITS - 1, MATRIX_SCAN_MOD, 2 * numDescriptorsPerRow * MATRIX_SCAN_MOD * sizeof(lldesc_t));
 
     // malloc the DMA linked list descriptors that i2s_parallel will need
-    int desccount = numDescriptorsPerRow * MATRIX_SCAN_MOD_NT;
+    int desccount = numDescriptorsPerRow * MATRIX_SCAN_MOD;
     lldesc_t * dmadesc_a = (lldesc_t *)heap_caps_malloc(desccount * sizeof(lldesc_t), MALLOC_CAP_DMA);
     if(!dmadesc_a) {
         printf("can't malloc dmadesc_a");
@@ -260,12 +256,17 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
     int currentDescOffset = 0;
 
     // fill DMA linked lists for both frames
-    for(int j=0; j<MATRIX_SCAN_MOD_NT; j++) {
+    for(int j=0; j<MATRIX_SCAN_MOD; j++) {
         // first set of data is LSB through MSB, single pass - all color bits are displayed once, which takes care of everything below and inlcluding LSBMSB_TRANSITION_BIT
         // TODO: size must be less than DMA_MAX - worst case for SmartMatrix Library: 16-bpp with 256 pixels per row would exceed this, need to break into two
-        link_dma_desc(&dmadesc_a[currentDescOffset], prevdmadesca, matrixUpdateFrames[0]->rowdata[j].rowbits[0].data, sizeof(rowBitStruct) * COLOR_DEPTH_BITS);
+        //link_dma_desc(&dmadesc_a[currentDescOffset], prevdmadesca, matrixUpdateFrames[0]->rowdata[j].rowbits[0].data, sizeof(rowBitStruct) * COLOR_DEPTH_BITS);
+        link_dma_desc(&dmadesc_a[currentDescOffset], prevdmadesca, &matrixUpdateFrames[0][GET_DATA_OFFSET_FROM_ROW_AND_COLOR_DEPTH_BIT(j, 0)], SIZE_OF_ROWDATASTRUCT);
         prevdmadesca = &dmadesc_a[currentDescOffset];
-        link_dma_desc(&dmadesc_b[currentDescOffset], prevdmadescb, matrixUpdateFrames[1]->rowdata[j].rowbits[0].data, sizeof(rowBitStruct) * COLOR_DEPTH_BITS);
+
+        //printf("matrixUpdateFrames[0](%d,0): %08X, size: %04X\r\n", j, (uint32_t)&matrixUpdateFrames[0][GET_DATA_OFFSET_FROM_ROW_AND_COLOR_DEPTH_BIT(j, 0)], SIZE_OF_ROWDATASTRUCT);
+
+        //link_dma_desc(&dmadesc_b[currentDescOffset], prevdmadescb, matrixUpdateFrames[1]->rowdata[j].rowbits[0].data, sizeof(rowBitStruct) * COLOR_DEPTH_BITS);
+        link_dma_desc(&dmadesc_b[currentDescOffset], prevdmadescb, &matrixUpdateFrames[1][GET_DATA_OFFSET_FROM_ROW_AND_COLOR_DEPTH_BIT(j, 0)], SIZE_OF_ROWDATASTRUCT);
         prevdmadescb = &dmadesc_b[currentDescOffset];
         currentDescOffset++;
         //printf("row %d: \r\n", j);
@@ -276,10 +277,17 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
             // we need 2^(i - LSBMSB_TRANSITION_BIT - 1) == 1 << (i - LSBMSB_TRANSITION_BIT - 1) passes from i to MSB
             //printf("buffer %d: repeat %d times, size: %d, from %d - %d\r\n", nextBufdescIndex, 1<<(i - LSBMSB_TRANSITION_BIT - 1), (COLOR_DEPTH_BITS - i), i, COLOR_DEPTH_BITS-1);
             for(int k=0; k < 1<<(i - lsbMsbTransitionBit - 1); k++) {
-                link_dma_desc(&dmadesc_a[currentDescOffset], prevdmadesca, matrixUpdateFrames[0]->rowdata[j].rowbits[i].data, sizeof(rowBitStruct) * (COLOR_DEPTH_BITS - i));
+                //link_dma_desc(&dmadesc_a[currentDescOffset], prevdmadesca, matrixUpdateFrames[0]->rowdata[j].rowbits[i].data, sizeof(rowBitStruct) * (COLOR_DEPTH_BITS - i));
+                link_dma_desc(&dmadesc_a[currentDescOffset], prevdmadesca, &matrixUpdateFrames[0][GET_DATA_OFFSET_FROM_ROW_AND_COLOR_DEPTH_BIT(j, i)], SIZE_OF_ROWBITSTRUCT * (COLOR_DEPTH_BITS - i));
                 prevdmadesca = &dmadesc_a[currentDescOffset];
-                link_dma_desc(&dmadesc_b[currentDescOffset], prevdmadescb, matrixUpdateFrames[1]->rowdata[j].rowbits[i].data, sizeof(rowBitStruct) * (COLOR_DEPTH_BITS - i));
+
+                //printf("matrixUpdateFrames[0](%d,%i): %08X, size: %04X\r\n", j, i, (uint32_t)&matrixUpdateFrames[0][GET_DATA_OFFSET_FROM_ROW_AND_COLOR_DEPTH_BIT(j, i)], SIZE_OF_ROWBITSTRUCT * (COLOR_DEPTH_BITS - i));
+
+                //link_dma_desc(&dmadesc_b[currentDescOffset], prevdmadescb, matrixUpdateFrames[1]->rowdata[j].rowbits[i].data, sizeof(rowBitStruct) * (COLOR_DEPTH_BITS - i));
+                link_dma_desc(&dmadesc_b[currentDescOffset], prevdmadescb, &matrixUpdateFrames[1][GET_DATA_OFFSET_FROM_ROW_AND_COLOR_DEPTH_BIT(j, i)], SIZE_OF_ROWBITSTRUCT * (COLOR_DEPTH_BITS - i));
                 prevdmadescb = &dmadesc_b[currentDescOffset];
+
+                //printf("matrixUpdateFrames[1](%d,%i): %08X, size: %04X\r\n", j, i, (uint32_t)&matrixUpdateFrames[1][GET_DATA_OFFSET_FROM_ROW_AND_COLOR_DEPTH_BIT(j, i)], SIZE_OF_ROWBITSTRUCT * (COLOR_DEPTH_BITS - i));
 
                 currentDescOffset++;
                 //printf("i %d, j %d, k %d\r\n", i, j, k);
@@ -297,7 +305,7 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
 
     // send FM6126A chipset reset sequence, which is ignored by other chipsets that don't need it
     // Thanks to Bob Davis: http://bobdavis321.blogspot.com/2019/02/p3-64x32-hub75e-led-matrix-panels-with.html
-    if(optionFlagsNT & SMARTMATRIX_OPTIONS_FM6126A_RESET_AT_START) { 
+    if(optionFlags & SMARTMATRIX_OPTIONS_FM6126A_RESET_AT_START) { 
         int C12[16] = {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
         int C13[16] = {0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0};
 
@@ -361,7 +369,7 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
 #endif
 
         // Send Data to control register 11
-        for(int i=0; i<PIXELS_PER_LATCH_NT; i++) {
+        for(int i=0; i<PIXELS_PER_LATCH; i++) {
             int y=i%16;
             gpio_set_level(R1_PIN, 0);
             gpio_set_level(G1_PIN, 0);
@@ -381,7 +389,7 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
 
             delay(1);
 
-            if(i > PIXELS_PER_LATCH_NT-12)
+            if(i > PIXELS_PER_LATCH-12)
                 gpio_set_level(LAT_PIN, 1);
             else
                 gpio_set_level(LAT_PIN, 0);
@@ -401,7 +409,7 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
         gpio_set_level(LAT_PIN, 0);
 
         // Send Data to control register 12
-        for(int i=0; i<PIXELS_PER_LATCH_NT; i++) {
+        for(int i=0; i<PIXELS_PER_LATCH; i++) {
             int y=i%16;
             gpio_set_level(R1_PIN, 0);
             gpio_set_level(G1_PIN, 0);
@@ -421,7 +429,7 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
 
             delay(1);
 
-            if(i > PIXELS_PER_LATCH_NT-13)
+            if(i > PIXELS_PER_LATCH-13)
                 gpio_set_level(LAT_PIN, 1);
             else
                 gpio_set_level(LAT_PIN, 0);
@@ -454,7 +462,7 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
     i2s_parallel_config_t cfg={
         .gpio_bus={R1_PIN, G1_PIN, B1_PIN, R2_PIN, G2_PIN, B2_PIN, LAT_PIN, OE_PIN, A_PIN, B_PIN, C_PIN, D_PIN, E_PIN, -1, -1, -1},
         .gpio_clk=CLK_PIN,
-        .clk_inversion=(optionFlagsNT & SMARTMATRIX_OPTIONS_ESP32_INVERT_CLK),
+        .clk_inversion=(optionFlags & SMARTMATRIX_OPTIONS_ESP32_INVERT_CLK),
         .clkspeed_hz=ESP32_I2S_CLOCK_SPEED,  // formula used is 80000000L/(cfg->clkspeed_hz + 1), must result in >=2.  Acceptable values 26.67MHz, 20MHz, 16MHz, 13.34MHz...
         .bits=MATRIX_I2S_MODE,
         .bufa=0,
@@ -471,13 +479,11 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
     //printf("I2S setup done.\n");
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::markRefreshComplete(void) {
-    if(!cbIsEmpty(&SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer))
-        cbRead(&SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer);
+void SmartMatrix3RefreshMultiplexed_NT::markRefreshComplete(void) {
+    if(!cbIsEmpty(&SmartMatrix3RefreshMultiplexed_NT::dmaBuffer))
+        cbRead(&SmartMatrix3RefreshMultiplexed_NT::dmaBuffer);
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-uint8_t SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getLsbMsbTransitionBit(void) {
+uint8_t SmartMatrix3RefreshMultiplexed_NT::getLsbMsbTransitionBit(void) {
     return lsbMsbTransitionBit;
 }
