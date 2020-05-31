@@ -14,7 +14,7 @@
 #define PIXELS_PER_WORD                 2
 #define SHIFTER_PIXELS                  (RGBDATA_SHIFTERS*PIXELS_PER_WORD)
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 class SmartMatrixRefreshT4 {
     public:
         struct __attribute__((packed, aligned(2))) timerpair {
@@ -63,9 +63,9 @@ class SmartMatrixRefreshT4 {
 
     private:
         // enable ISR access to private member variables
-        template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
+        template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, uint32_t optionFlags1>
         friend void rowShiftCompleteISR(void);
-        template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
+        template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, uint32_t optionFlags1>
         friend void rowCalculationISR(void);
 
         // init helper function called by begin()
@@ -93,6 +93,7 @@ class SmartMatrixRefreshT4 {
         static uint8_t submodule;
         static volatile uint8_t enablerSourceByte;
         static flexPinConfigStruct flexPinConfig;
+        static flexPinConfigStruct addxPinConfig;
 };
 
 #endif

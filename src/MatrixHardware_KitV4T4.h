@@ -1,4 +1,4 @@
-// Hardware-specific header file to use the SmartLED Shield V4 with Teensy 4.0/4.1.
+// Hardware-specific header file to use the SmartLED Shield V4 with Teensy 4.0/4.1 without any adapter.
 //   Other Teensy models are not supported. APA LED driving is not supported.
 // The following hardware modifications are required:
 // 1. Attach two wires to pins 32 and 33. For Teensy 4.0, this requires soldering to two of the pads on the
@@ -58,9 +58,10 @@
 #define FLEXIO_PIN_B1_TEENSY_PIN        11    // jumper wire to Teensy Pin 20
 // To use the alternate clock pin, you must set flag SMARTMATRIX_OPTIONS_T4_CLK_PIN_ALT in kMatrixOptions
 
-#define SMARTLED_APA_ENABLE_PIN         22
-#define FLEXIO_PIN_APA102_CLK           4
-#define FLEXIO_PIN_APA102_DAT           5
+// APA102 driving is not supported with this hardware
+#define SMARTLED_APA_ENABLE_PIN         0xFF
+#define FLEXIO_PIN_APA102_CLK           0xFF
+#define FLEXIO_PIN_APA102_DAT           0xFF
 
 // the following pins cannot be used if the jumper wires are connected
 #define T4_RESERVED_PINS_SMARTLED_SHIELD_V4

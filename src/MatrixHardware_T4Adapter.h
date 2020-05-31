@@ -2,7 +2,6 @@
 // https://oshpark.com/shared_projects/yVCGECuY
 //    Only Teensy 4.0/4.1 models are supported.
 //    Only SmartLED Shield V4 (for Teensy 3) is supported.
-//    APA LED driving is not tested yet but the hardware is designed to make this possible in the future.
 // No jumper wires or other modifications are needed with the OSHPark Adapter.
 //
 // Some of the pin assignments can be changed using solderable jumpers on the adapter board:
@@ -12,7 +11,7 @@
 //      To use the alternate clock pin, in addition to soldering the jumpers you must set flag SMARTMATRIX_OPTIONS_T4_CLK_PIN_ALT in kMatrixOptions
 // JP2 & JP3:
 //    Default: Pin 4 connected to SPI_SCK, Pin 5 connected to SPI_MOSI (intended for APA102 driving via SPI emulation), LED Matrix is drivable at the same time
-//    Alt: Pins 4 & 5 NC, Pin 13 connected to SPI_SCK, Pin 11 connected to SPI_MOSI (intended for APA103 driving via hardware SPI), LED Matrix not drivable at the same time
+//    Alt: Pins 4 & 5 NC, Pin 13 connected to SPI_SCK, Pin 11 connected to SPI_MOSI (intended for APA102 driving via hardware SPI), LED Matrix not drivable at the same time
 // The following unused Teensy 4 pins are made available on the shield but some are in different positions marked on the OSHPark Adapter:
 //    Teensy 4 pins free:   0, 1, 7/8, 14, 15, 16, 17, 18, 19, 20, 21, 23
 //    Locations on shield:  0, 1,   9, 10, 15, 16, 11, 18, 19, 12, 22, 23

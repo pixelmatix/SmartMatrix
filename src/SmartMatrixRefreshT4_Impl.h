@@ -40,47 +40,49 @@ struct pwm_pin_info_struct {
 extern "C" const struct pwm_pin_info_struct pwm_pin_info[];
 
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 void rowShiftCompleteISR(void);
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 void rowCalculationISR(void);
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 CircularBuffer_SM SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer;
 // dmaBufferNumRows = the size of the buffer that DMA pulls from to refresh the display
 // must be minimum 2 rows so one can be updated while the other is refreshed
 // increase beyond two to give more time for the update routine to complete
 // (increase this number if non-DMA interrupts are causing display problems)
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 uint8_t SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBufferNumRows;
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 uint16_t SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refreshRate = 120;
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 uint16_t SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowBitStructBytesToShift;
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 typename SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::timerpair SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::timerLUT[LATCHES_PER_ROW];
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 DMAMEM typename SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::timerpair SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::timerPairIdle;
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 volatile typename SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowDataStruct * SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows;
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 typename SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrix_underrun_callback SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUnderrunCallback;
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 typename SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrix_calc_callback SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalcCallback;
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 IMXRT_FLEXPWM_t * SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::flexpwm;
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 uint8_t SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::submodule;
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 int SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dimmingFactor = dimmingMaximum - (100 * 255) / 100;
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 volatile uint8_t DMAMEM SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::enablerSourceByte;
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 typename SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::flexPinConfigStruct SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::flexPinConfig;
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
+typename SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::flexPinConfigStruct SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::addxPinConfig;
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 IMXRT_FLEXIO_t * SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::flexIO;
 
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 FLASHMEM SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::SmartMatrixRefreshT4(uint8_t bufferrows, volatile rowDataStruct * rowDataBuf) {
     dmaBufferNumRows = bufferrows;
     matrixUpdateRows = rowDataBuf;
@@ -96,7 +98,7 @@ FLASHMEM SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType
 }
 
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 FASTRUN bool SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::isRowBufferFree(void) {
     if (cbIsFull(&dmaBuffer))
         return false;
@@ -105,13 +107,13 @@ FASTRUN bool SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panel
 }
 
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 FASTRUN INLINE volatile typename SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowDataStruct * SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getNextRowBufferPtr(void) {
     return &(matrixUpdateRows[cbGetNextWrite(&dmaBuffer)]);
 }
 
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 FASTRUN INLINE void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::writeRowBuffer(uint8_t currentRow) {
     volatile SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowDataStruct * currentRowDataPtr = SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getNextRowBufferPtr();
     for (int i = 0; i < LATCHES_PER_ROW; i++) {
@@ -124,7 +126,7 @@ FASTRUN INLINE void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight
 }
 
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 FASTRUN void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::recoverFromDmaUnderrun(void) {
     // stop timer
     flexpwm->MCTRL &= ~FLEXPWM_MCTRL_RUN(1 << submodule);
@@ -147,19 +149,19 @@ FASTRUN void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panel
 }
 
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setMatrixCalculationsCallback(matrix_calc_callback f) {
     matrixCalcCallback = f;
 }
 
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setMatrixUnderrunCallback(matrix_underrun_callback f) {
     matrixUnderrunCallback = f;
 }
 
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::calculateTimerLUT(void) {
     int i;
     uint32_t ticksUsed;
@@ -210,14 +212,14 @@ void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, op
 }
 
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setBrightness(uint8_t newBrightness) {
     dimmingFactor = dimmingMaximum - newBrightness;
     calculateTimerLUT();
 }
 
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRefreshRate(uint16_t newRefreshRate) {
     if (newRefreshRate <= MIN_REFRESH_RATE)
         refreshRate = MIN_REFRESH_RATE;
@@ -229,7 +231,7 @@ void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, op
 }
 
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 FLASHMEM void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin(void) {
     cbInit(&dmaBuffer, dmaBufferNumRows);
 
@@ -369,7 +371,7 @@ FLASHMEM void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, pane
 }
 
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 FLASHMEM void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::hardwareSetup() {
     /*  Set up FlexIO peripheral for clocking out data to LED matrix panel.
 
@@ -452,14 +454,62 @@ FLASHMEM void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, pane
         Serial.println("Error: incorrect FlexIO pin configuration!");
     }
 
-    // calculate the bit offsets of the data signals that are output on each pin and store in flexPinConfig struct
+    // calculate the bit offsets of the data signals that are output on each pin 
+    addxPinConfig.r0 = r0FlexPin - lowestFlexPin;
+    addxPinConfig.g0 = g0FlexPin - lowestFlexPin;
+    addxPinConfig.b0 = b0FlexPin - lowestFlexPin;
+    addxPinConfig.r1 = r1FlexPin - lowestFlexPin;
+    addxPinConfig.g1 = g1FlexPin - lowestFlexPin;
+    addxPinConfig.b1 = b1FlexPin - lowestFlexPin;
+    
+    // assign color channels based on user-settable option and store in flexPinConfig struct
     // which will be read by SmartMatrix3 class when formatting data
-    flexPinConfig.r0 = r0FlexPin - lowestFlexPin;
-    flexPinConfig.g0 = g0FlexPin - lowestFlexPin;
-    flexPinConfig.b0 = b0FlexPin - lowestFlexPin;
-    flexPinConfig.r1 = r1FlexPin - lowestFlexPin;
-    flexPinConfig.g1 = g1FlexPin - lowestFlexPin;
-    flexPinConfig.b1 = b1FlexPin - lowestFlexPin;
+    switch (optionFlags & SMARTMATRIX_OPTIONS_RGB_BITMASK) {
+        case SMARTMATRIX_OPTIONS_RGB:
+        default:
+            flexPinConfig = addxPinConfig;
+            break;
+        case SMARTMATRIX_OPTIONS_RBG:
+            flexPinConfig.r0 = addxPinConfig.r0;
+            flexPinConfig.b0 = addxPinConfig.g0;
+            flexPinConfig.g0 = addxPinConfig.b0;
+            flexPinConfig.r1 = addxPinConfig.r1;
+            flexPinConfig.b1 = addxPinConfig.g1;
+            flexPinConfig.g1 = addxPinConfig.b1;
+            break;
+        case SMARTMATRIX_OPTIONS_GRB:
+            flexPinConfig.g0 = addxPinConfig.r0;
+            flexPinConfig.r0 = addxPinConfig.g0;
+            flexPinConfig.b0 = addxPinConfig.b0;
+            flexPinConfig.g1 = addxPinConfig.r1;
+            flexPinConfig.r1 = addxPinConfig.g1;
+            flexPinConfig.b1 = addxPinConfig.b1;
+            break;
+        case SMARTMATRIX_OPTIONS_GBR:
+            flexPinConfig.g0 = addxPinConfig.r0;
+            flexPinConfig.b0 = addxPinConfig.g0;
+            flexPinConfig.r0 = addxPinConfig.b0;
+            flexPinConfig.g1 = addxPinConfig.r1;
+            flexPinConfig.b1 = addxPinConfig.g1;
+            flexPinConfig.r1 = addxPinConfig.b1;
+            break;
+        case SMARTMATRIX_OPTIONS_BRG:
+            flexPinConfig.b0 = addxPinConfig.r0;
+            flexPinConfig.r0 = addxPinConfig.g0;
+            flexPinConfig.g0 = addxPinConfig.b0;
+            flexPinConfig.b1 = addxPinConfig.r1;
+            flexPinConfig.r1 = addxPinConfig.g1;
+            flexPinConfig.g1 = addxPinConfig.b1;
+            break;
+        case SMARTMATRIX_OPTIONS_BGR:
+            flexPinConfig.b0 = addxPinConfig.r0;
+            flexPinConfig.g0 = addxPinConfig.g0;
+            flexPinConfig.r0 = addxPinConfig.b0;
+            flexPinConfig.b1 = addxPinConfig.r1;
+            flexPinConfig.g1 = addxPinConfig.g1;
+            flexPinConfig.r1 = addxPinConfig.b1;
+            break;
+    }
 
     // Configure FlexIO Shifters for RGB data buffering:
     // Shifter 0 outputs to the external pins and the other shifters output in sequence.
@@ -710,13 +760,13 @@ FLASHMEM void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, pane
 
 
 // low priority ISR triggered by software interrupt on a DMA channel that doesn't need interrupts otherwise
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 FASTRUN void rowCalculationISR(void) {
     SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalcCallback(false);
 }
 
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 FASTRUN void rowShiftCompleteISR(void) {
     /*  This interrupt runs at the completion of dmaClockOutData when a complete bitplane has been output to the panel.
         If we have finished all the bitplanes for this row, it's time to update the source address of the dmaClockOutData to
@@ -757,13 +807,13 @@ FASTRUN void rowShiftCompleteISR(void) {
 }
 
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 FASTRUN INLINE const typename SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::flexPinConfigStruct & SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getFlexPinConfig(void) {
     return flexPinConfig;
 }
 
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 FASTRUN void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRowAddress(unsigned int row) {
     // Row addressing makes use of the same pins that output RGB color data. This is enabled by additional hardware on the SmartLED Shield.
     // The row address signals are latched when the BUFFER_LATCH pin goes high. We need to output the address data without any clock pulses
@@ -772,11 +822,11 @@ FASTRUN void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panel
     unsigned int currentRowAddress = SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[row].rowbits[0].rowAddress;
 
     uint32_t addressData = 0;
-    addressData |= (currentRowAddress & 0x01) ? (1 << flexPinConfig.r0) : 0;
-    addressData |= (currentRowAddress & 0x02) ? (1 << flexPinConfig.g0) : 0;
-    addressData |= (currentRowAddress & 0x04) ? (1 << flexPinConfig.b0) : 0;
-    addressData |= (currentRowAddress & 0x08) ? (1 << flexPinConfig.r1) : 0;
-    addressData |= (currentRowAddress & 0x10) ? (1 << flexPinConfig.g1) : 0;
+    addressData |= (currentRowAddress & 0x01) ? (1 << addxPinConfig.r0) : 0;
+    addressData |= (currentRowAddress & 0x02) ? (1 << addxPinConfig.g0) : 0;
+    addressData |= (currentRowAddress & 0x04) ? (1 << addxPinConfig.b0) : 0;
+    addressData |= (currentRowAddress & 0x08) ? (1 << addxPinConfig.r1) : 0;
+    addressData |= (currentRowAddress & 0x10) ? (1 << addxPinConfig.g1) : 0;
 
     volatile uint32_t * addxBuf;
     addxBuf = flexIO->SHIFTBUF + RGBDATA_SHIFTERS;
