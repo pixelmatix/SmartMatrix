@@ -494,4 +494,6 @@
 #define DEBUG_1_GPIO    GPIO_NUM_13
 //#define DEBUG_2_GPIO    GPIO_NUM_12
 
+#else
+    #pragma GCC error "Multiple MatrixHardware*.h files included"
 #endif
