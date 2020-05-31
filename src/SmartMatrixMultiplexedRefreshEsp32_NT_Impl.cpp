@@ -51,32 +51,6 @@
 
 void frameShiftCompleteISR(void);    
 
-CircularBuffer_SM SmartMatrix3RefreshMultiplexed_NT::dmaBuffer;
-
-uint16_t SmartMatrix3RefreshMultiplexed_NT::refreshRate = 120;
-
-int SmartMatrix3RefreshMultiplexed_NT::matrixWidth;
-int SmartMatrix3RefreshMultiplexed_NT::matrixHeight;
-
-uint32_t SmartMatrix3RefreshMultiplexed_NT::optionFlags;
-
-uint8_t SmartMatrix3RefreshMultiplexed_NT::refreshDepth;
-uint8_t SmartMatrix3RefreshMultiplexed_NT::panelType;
-
-uint16_t SmartMatrix3RefreshMultiplexed_NT::minRefreshRate = 120;
-
-uint8_t SmartMatrix3RefreshMultiplexed_NT::lsbMsbTransitionBit = 0;
-
-MATRIX_DATA_STORAGE_TYPE * SmartMatrix3RefreshMultiplexed_NT::matrixUpdateFrames[ESP32_NUM_FRAME_BUFFERS];
-
-SmartMatrix3RefreshMultiplexed_NT::SmartMatrix3RefreshMultiplexed_NT(int width, int height, unsigned char depth, unsigned char type, unsigned char options) {
-    matrixWidth = width;
-    matrixHeight = height;
-    optionFlags = options;
-    panelType = type;
-    refreshDepth = depth;
-}
-
 bool SmartMatrix3RefreshMultiplexed_NT::isFrameBufferFree(void) {
     if(cbIsFull(&dmaBuffer))
         return false;
@@ -98,8 +72,6 @@ void SmartMatrix3RefreshMultiplexed_NT::recoverFromDmaUnderrun(void) {
 
 }
 
-typename SmartMatrix3RefreshMultiplexed_NT::matrix_calc_callback SmartMatrix3RefreshMultiplexed_NT::matrixCalcCallback;
-
 void SmartMatrix3RefreshMultiplexed_NT::setMatrixCalculationsCallback(matrix_calc_callback f) {
     setShiftCompleteCallback(f);
     matrixCalcCallback = f;
@@ -120,6 +92,10 @@ uint16_t SmartMatrix3RefreshMultiplexed_NT::getRefreshRate(void) {
 }
 
 void SmartMatrix3RefreshMultiplexed_NT::begin(uint32_t dmaRamToKeepFreeBytes) {
+    refreshRate = 120;
+    minRefreshRate = 120;
+    lsbMsbTransitionBit = 0;
+
     cbInit(&dmaBuffer, ESP32_NUM_FRAME_BUFFERS);
 
     printf("Starting SmartMatrix DMA Mallocs\r\n");
@@ -157,6 +133,12 @@ void SmartMatrix3RefreshMultiplexed_NT::begin(uint32_t dmaRamToKeepFreeBytes) {
     gpio_set_direction(DEBUG_1_GPIO, GPIO_MODE_OUTPUT);
     gpio_set_level(DEBUG_1_GPIO, 1);
     gpio_set_level(DEBUG_1_GPIO, 0);
+#endif
+#if defined(DEBUG_PINS_ENABLED) && defined(DEBUG_2_GPIO)
+    gpio_pad_select_gpio(DEBUG_2_GPIO);
+    gpio_set_direction(DEBUG_2_GPIO, GPIO_MODE_OUTPUT);
+    gpio_set_level(DEBUG_2_GPIO, 1);
+    gpio_set_level(DEBUG_2_GPIO, 0);
 #endif
 
     // calculate the lowest LSBMSB_TRANSITION_BIT value that will fit in memory
@@ -480,8 +462,8 @@ void SmartMatrix3RefreshMultiplexed_NT::begin(uint32_t dmaRamToKeepFreeBytes) {
 }
 
 void SmartMatrix3RefreshMultiplexed_NT::markRefreshComplete(void) {
-    if(!cbIsEmpty(&SmartMatrix3RefreshMultiplexed_NT::dmaBuffer))
-        cbRead(&SmartMatrix3RefreshMultiplexed_NT::dmaBuffer);
+    if(!cbIsEmpty(&dmaBuffer))
+        cbRead(&dmaBuffer);
 }
 
 uint8_t SmartMatrix3RefreshMultiplexed_NT::getLsbMsbTransitionBit(void) {

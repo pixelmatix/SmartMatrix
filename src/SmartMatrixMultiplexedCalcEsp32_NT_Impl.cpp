@@ -26,52 +26,6 @@
 
 #define INLINE __attribute__( ( always_inline ) ) inline
 
-// to avoid 100% CPU usage, we by default don't calculate on every frame.  Calc refresh rate will be a fraction of Refresh refresh rate
-uint8_t SmartMatrix3_NT::maxCalcCpuPercentage = 80;
-
-uint8_t SmartMatrix3_NT::calc_refreshRateDivider = 2;
-
-uint16_t SmartMatrix3_NT::calc_refreshRate = 120/SmartMatrix3_NT::calc_refreshRateDivider;
-
-SM_Layer * SmartMatrix3_NT::baseLayer;
-
-void * SmartMatrix3_NT::tempRow0Ptr;
-
-void * SmartMatrix3_NT::tempRow1Ptr;
-
-volatile bool SmartMatrix3_NT::dmaBufferUnderrun = false;
-
-bool SmartMatrix3_NT::dmaBufferUnderrunSinceLastCheck = false;
-
-bool SmartMatrix3_NT::refreshRateLowered = false;
-
-// set to true initially so all layers get the initial refresh rate
-bool SmartMatrix3_NT::refreshRateChanged = true;
-
-uint8_t SmartMatrix3_NT::lsbMsbTransitionBit;
-
-int SmartMatrix3_NT::multiRowRefresh_mapIndex_CurrentRowGroups = 0;
-
-int SmartMatrix3_NT::multiRowRefresh_mapIndex_CurrentPixelGroup = -1;
-
-int SmartMatrix3_NT::multiRowRefresh_PixelOffsetFromPanelsAlreadyMapped = 0;
-
-int SmartMatrix3_NT::multiRowRefresh_NumPanelsAlreadyMapped = 0;
-
-uint32_t SmartMatrix3_NT::optionFlags;
-uint8_t SmartMatrix3_NT::panelType;
-int SmartMatrix3_NT::matrixWidth;
-int SmartMatrix3_NT::matrixHeight;
-uint8_t SmartMatrix3_NT::refreshDepth;
-
-SmartMatrix3_NT::SmartMatrix3_NT(int width, int height, unsigned char depth, unsigned char type, unsigned char options) {
-    matrixWidth = width;
-    matrixHeight = height;
-    optionFlags = options;
-    panelType = type;
-    refreshDepth = depth;
-}
-
 void SmartMatrix3_NT::addLayer(SM_Layer * newlayer) {
     if(baseLayer) {
         SM_Layer * templayer = baseLayer;
@@ -125,7 +79,7 @@ void SmartMatrix3_NT::matrixCalculations() {
     lastMillisStart = millis();
 
     // only do calculations if there is free space (should be redundant, as we only get called if there is free space)
-    if (!SmartMatrix3RefreshMultiplexed_NT::isFrameBufferFree())
+    if (!_matrixRefresh->isFrameBufferFree())
         return;
 
     // do once-per-frame updates
@@ -165,13 +119,13 @@ void SmartMatrix3_NT::matrixCalculations() {
     }
 
     if (brightnessChange) {
-        SmartMatrix3RefreshMultiplexed_NT::setBrightness(shiftedBrightness);
+        _matrixRefresh->setBrightness(shiftedBrightness);
         brightnessChange = false;
     }
 
     SmartMatrix3_NT::loadMatrixBuffers(lsbMsbTransitionBit, largestRequestedBrightnessShifts);
 
-    SmartMatrix3RefreshMultiplexed_NT::writeFrameBuffer(0);
+    _matrixRefresh->writeFrameBuffer(0);
 
     lastMillisEnd = millis();
 }
@@ -197,14 +151,7 @@ uint16_t SmartMatrix3_NT::getScreenHeight(void) const {
     }
 }
 
-volatile bool SmartMatrix3_NT::brightnessChange = false;
-volatile bool SmartMatrix3_NT::rotationChange = true;
-rotationDegrees SmartMatrix3_NT::rotation = rotation0;
-int SmartMatrix3_NT::shiftedBrightness;
-
 // brightness scales from 0-PIXELS_PER_LATCH
-int SmartMatrix3_NT::brightness = PIXELS_PER_LATCH;
-
 void SmartMatrix3_NT::setBrightness(uint8_t newBrightness) {
     brightness = (PIXELS_PER_LATCH*newBrightness)/255;
     brightnessChange = true;
@@ -214,7 +161,7 @@ void SmartMatrix3_NT::setRefreshRate(uint16_t newRefreshRate) {
     calc_refreshRate = newRefreshRate / calc_refreshRateDivider;
 
     refreshRateChanged = true;
-    SmartMatrix3RefreshMultiplexed_NT::setRefreshRate(newRefreshRate);
+    _matrixRefresh->setRefreshRate(newRefreshRate);
 }
 
 void SmartMatrix3_NT::setMaxCalculationCpuPercentage(uint8_t newMaxCpuPercentage) {
@@ -230,7 +177,7 @@ void SmartMatrix3_NT::setCalcRefreshRateDivider(uint8_t newDivider) {
     if(newDivider == 0)
         newDivider = 1;
 
-    calc_refreshRate = SmartMatrix3RefreshMultiplexed_NT::getRefreshRate() / newDivider;
+    calc_refreshRate = _matrixRefresh->getRefreshRate() / newDivider;
     calc_refreshRateDivider = newDivider;
     refreshRateChanged = true;
 }
@@ -259,11 +206,10 @@ bool SmartMatrix3_NT::getRefreshRateLoweredFlag(void) {
     return false;
 }
 
-TaskHandle_t SmartMatrix3_NT::calcTaskHandle;
-
 /* Task2 with priority 2 */
 void SmartMatrix3_NT::calcTask(void* pvParameters)
 {        
+    SmartMatrix3_NT* thisPtr = (SmartMatrix3_NT*)pvParameters;
     while(1) {   
         if( xSemaphoreTake(calcTaskSemaphore, portMAX_DELAY) == pdTRUE ) {
 #ifdef DEBUG_PINS_ENABLED
@@ -271,9 +217,9 @@ void SmartMatrix3_NT::calcTask(void* pvParameters)
 #endif
 
             // we usually do this with an ISR in the refresh class, but ESP32 doesn't let us store a templated method in IRAM (at least not easily) so we call this from the calc task
-            SmartMatrix3RefreshMultiplexed_NT::markRefreshComplete();
+            thisPtr->_matrixRefresh->markRefreshComplete();
 
-            matrixCalculations();
+            thisPtr->matrixCalculations();
 
 #ifdef DEBUG_PINS_ENABLED
             gpio_set_level(DEBUG_1_GPIO, 0);
@@ -286,7 +232,26 @@ void SmartMatrix3_NT::calcTask(void* pvParameters)
 #define MATRIX_CALC_TASK_LOW_PRIORITY      1
 
 void SmartMatrix3_NT::begin(uint32_t dmaRamToKeepFreeBytes)
-{
+{    
+    maxCalcCpuPercentage = 80; // to avoid 100% CPU usage, we by default don't calculate on every frame.  Calc refresh rate will be a fraction of Refresh refresh rate
+    calc_refreshRateDivider = 2;
+    calc_refreshRate = 120/SmartMatrix3_NT::calc_refreshRateDivider;
+    dmaBufferUnderrun = false;
+    dmaBufferUnderrunSinceLastCheck = false;
+    refreshRateLowered = false;
+
+    refreshRateChanged = true;  // set to true initially so all layers get the initial refresh rate
+    multiRowRefresh_mapIndex_CurrentRowGroups = 0;
+    multiRowRefresh_mapIndex_CurrentPixelGroup = -1;
+    multiRowRefresh_PixelOffsetFromPanelsAlreadyMapped = 0;
+    multiRowRefresh_NumPanelsAlreadyMapped = 0;
+
+    brightnessChange = false;
+    rotationChange = true;
+    rotation = rotation0;
+
+    brightness = PIXELS_PER_LATCH;
+
     printf("\r\nStarting SmartMatrix Mallocs\r\n");
     show_esp32_all_mem();
 
@@ -308,7 +273,7 @@ void SmartMatrix3_NT::begin(uint32_t dmaRamToKeepFreeBytes)
         calcTaskCore = 1;
 
     // TODO: fine tune stack size: 1000 works with 64x64/32-24bit, 500 doesn't, does it change based on matrix size, depth?
-    xTaskCreatePinnedToCore(calcTask, "SmartMatrixCalc", 1000, NULL, taskPriority, &calcTaskHandle, calcTaskCore);
+    xTaskCreatePinnedToCore(calcTask, "SmartMatrixCalc", 1000, this, taskPriority, &calcTaskHandle, calcTaskCore);
 
     printf("SmartMatrix Layers Allocated from Heap:\r\n");
     show_esp32_heap_mem();
@@ -329,12 +294,12 @@ void SmartMatrix3_NT::begin(uint32_t dmaRamToKeepFreeBytes)
     assert(tempRow1Ptr != NULL);
 #endif
 
-    SmartMatrix3RefreshMultiplexed_NT::setMatrixCalculationsCallback(matrixCalculationsSignal);
-    SmartMatrix3RefreshMultiplexed_NT::begin(dmaRamToKeepFreeBytes);
+    _matrixRefresh->setMatrixCalculationsCallback(matrixCalculationsSignal);
+    _matrixRefresh->begin(dmaRamToKeepFreeBytes);
 
     // refresh rate is now set, update calc refresh rate
     setCalcRefreshRateDivider(calc_refreshRateDivider);
-    lsbMsbTransitionBit = SmartMatrix3RefreshMultiplexed_NT::getLsbMsbTransitionBit();
+    lsbMsbTransitionBit = _matrixRefresh->getLsbMsbTransitionBit();
 
     // wait for matrixCalculations to be run for first time inside calcTask - fill initial buffer and set Layer properties that are only set after first pass through matrixCalculations()
     while(rotationChange) {
@@ -513,12 +478,6 @@ INLINE void SmartMatrix3_NT::loadMatrixBuffers48(MATRIX_DATA_STORAGE_TYPE * fram
             
             //SmartMatrix3_NT::rowBitStruct *p=&(frameBuffer->rowdata[currentRow].rowbits[j]); //bitplane location to write to
             MATRIX_DATA_STORAGE_TYPE *p=&(frameBuffer[GET_DATA_OFFSET_FROM_ROW_AND_COLOR_DEPTH_BIT(currentRow, j)]); //bitplane location to write to
-
-static bool runOnce = true;
-if(runOnce) {
-    runOnce = false;
-    printf("p(%d,%d): %08X\r\n", currentRow, j, (uint32_t)p);
-}
 
             int i=0;
 
@@ -1042,7 +1001,7 @@ INLINE void SmartMatrix3_NT::loadMatrixBuffers(int lsbMsbTransitionBit, int numB
 #if 1
     unsigned char currentRow;
 
-    MATRIX_DATA_STORAGE_TYPE * currentFrameDataPtr = SmartMatrix3RefreshMultiplexed_NT::getNextFrameBufferPtr();
+    MATRIX_DATA_STORAGE_TYPE * currentFrameDataPtr = _matrixRefresh->getNextFrameBufferPtr();
 
     for(currentRow = 0; currentRow < MATRIX_SCAN_MOD; currentRow++) {
         // TODO: support rgb36/48 with same function, copy function to rgb24

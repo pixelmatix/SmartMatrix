@@ -39,36 +39,37 @@ public:
     typedef void (*matrix_calc_callback)(void);
 
     // init
-    SmartMatrix3RefreshMultiplexed_NT(int width, int height, unsigned char depth, unsigned char type, unsigned char options);
-    static void begin(uint32_t dmaRamToKeepFreeBytes = 0);
+    SmartMatrix3RefreshMultiplexed_NT(int width, int height, unsigned char depth, unsigned char type, unsigned char options) :
+        matrixWidth(width), matrixHeight(height), optionFlags(options), panelType(type), refreshDepth(depth) {};
+    void begin(uint32_t dmaRamToKeepFreeBytes = 0);
 
     // refresh API
-    static MATRIX_DATA_STORAGE_TYPE * getNextFrameBufferPtr(void);
-    static void writeFrameBuffer(uint8_t currentFrame);
-    static void recoverFromDmaUnderrun(void);
-    static bool isFrameBufferFree(void);
-    static void setRefreshRate(uint16_t newRefreshRate);
-    static uint16_t getRefreshRate(void);
-    static void setBrightness(uint8_t newBrightness);
-    static void setMatrixCalculationsCallback(matrix_calc_callback f);
-    static void markRefreshComplete(void);
-    static uint8_t getLsbMsbTransitionBit(void);
+    MATRIX_DATA_STORAGE_TYPE * getNextFrameBufferPtr(void);
+    void writeFrameBuffer(uint8_t currentFrame);
+    void recoverFromDmaUnderrun(void);
+    bool isFrameBufferFree(void);
+    void setRefreshRate(uint16_t newRefreshRate);
+    uint16_t getRefreshRate(void);
+    void setBrightness(uint8_t newBrightness);
+    void setMatrixCalculationsCallback(matrix_calc_callback f);
+    void markRefreshComplete(void);
+    uint8_t getLsbMsbTransitionBit(void);
 
 private:
-    static uint16_t refreshRate;
-    static uint16_t minRefreshRate;
-    static uint8_t lsbMsbTransitionBit;
-    static MATRIX_DATA_STORAGE_TYPE * matrixUpdateFrames[ESP32_NUM_FRAME_BUFFERS];
+    uint16_t refreshRate;
+    uint16_t minRefreshRate;
+    uint8_t lsbMsbTransitionBit;
+    MATRIX_DATA_STORAGE_TYPE * matrixUpdateFrames[ESP32_NUM_FRAME_BUFFERS];
 
-    static matrix_calc_callback matrixCalcCallback;
+    matrix_calc_callback matrixCalcCallback;
 
-    static CircularBuffer_SM dmaBuffer;
+    CircularBuffer_SM dmaBuffer;
 
-    static uint32_t optionFlags;
-    static uint8_t panelType;
-    static int matrixWidth;
-    static int matrixHeight;
-    static uint8_t refreshDepth;
+    const uint32_t optionFlags;
+    const uint8_t panelType;
+    const int matrixWidth;
+    const int matrixHeight;
+    const uint8_t refreshDepth;
 };
 
 #endif

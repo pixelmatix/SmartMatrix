@@ -30,7 +30,8 @@ extern void matrixCalculationsSignal(void);
 class SmartMatrix3_NT {
 public:
     // init
-    SmartMatrix3_NT(int width, int height, unsigned char depth, unsigned char type, unsigned char options);
+    SmartMatrix3_NT(SmartMatrix3RefreshMultiplexed_NT* matrixRefresh, int width, int height, unsigned char depth, unsigned char type, unsigned char options) :
+        _matrixRefresh(matrixRefresh), matrixWidth(width), matrixHeight(height), optionFlags(options), panelType(type), refreshDepth(depth) {};
     void begin(uint32_t dmaRamToKeepFreeBytes = 0);
     void addLayer(SM_Layer * newlayer);
 
@@ -51,56 +52,58 @@ public:
     void countFPS(void);
 
     // functions called by ISR
-    static void matrixCalculations(void);
-    static void dmaBufferUnderrunCallback(void);
-    static void setCalcRefreshRateDivider(uint8_t newDivider);
-    static uint8_t getCalcRefreshRateDivider(void);
+    void matrixCalculations(void);
+    void dmaBufferUnderrunCallback(void);
+    void setCalcRefreshRateDivider(uint8_t newDivider);
+    uint8_t getCalcRefreshRateDivider(void);
 
 private:
-    static SM_Layer * baseLayer;
+    SM_Layer * baseLayer;
 
-    static void * tempRow0Ptr;
-    static void * tempRow1Ptr;
+    void * tempRow0Ptr;
+    void * tempRow1Ptr;
 
     // functions for refreshing
-    static void loadMatrixBuffers(int lsbMsbTransitionBit, int numBrightnessShifts = 0);
-    static void loadMatrixBuffers48(MATRIX_DATA_STORAGE_TYPE * currentFrameDataPtr, int currentRow, int lsbMsbTransitionBit, int numBrightnessShifts = 0);
-    static void loadMatrixBuffers24(MATRIX_DATA_STORAGE_TYPE * currentFrameDataPtr, int currentRow, int lsbMsbTransitionBit, int numBrightnessShifts = 0);
+    void loadMatrixBuffers(int lsbMsbTransitionBit, int numBrightnessShifts = 0);
+    void loadMatrixBuffers48(MATRIX_DATA_STORAGE_TYPE * currentFrameDataPtr, int currentRow, int lsbMsbTransitionBit, int numBrightnessShifts = 0);
+    void loadMatrixBuffers24(MATRIX_DATA_STORAGE_TYPE * currentFrameDataPtr, int currentRow, int lsbMsbTransitionBit, int numBrightnessShifts = 0);
     static void calcTask(void* pvParameters);
-    static void resetMultiRowRefreshMapPosition(void);
-    static void resetMultiRowRefreshMapPositionPixelGroupToStartOfRow(void);
-    static void advanceMultiRowRefreshMapToNextRow(void);
-    static void advanceMultiRowRefreshMapToNextPixelGroup(void);
-    static int getMultiRowRefreshRowOffset(void);
-    static int getMultiRowRefreshNumPixelsToMap(void);
-    static int getMultiRowRefreshPixelGroupOffset(void);
+    void resetMultiRowRefreshMapPosition(void);
+    void resetMultiRowRefreshMapPositionPixelGroupToStartOfRow(void);
+    void advanceMultiRowRefreshMapToNextRow(void);
+    void advanceMultiRowRefreshMapToNextPixelGroup(void);
+    int getMultiRowRefreshRowOffset(void);
+    int getMultiRowRefreshNumPixelsToMap(void);
+    int getMultiRowRefreshPixelGroupOffset(void);
     
     // configuration
-    static volatile bool brightnessChange;
-    static volatile bool rotationChange;
-    static volatile bool dmaBufferUnderrun;
-    static int brightness;
-    static int shiftedBrightness;
-    static rotationDegrees rotation;
-    static uint16_t calc_refreshRate;   
-    static uint8_t calc_refreshRateDivider;
-    static bool dmaBufferUnderrunSinceLastCheck;
-    static uint8_t maxCalcCpuPercentage;
-    static bool refreshRateLowered;
-    static bool refreshRateChanged;
-    static uint8_t lsbMsbTransitionBit;
-    static TaskHandle_t calcTaskHandle;
+    volatile bool brightnessChange;
+    volatile bool rotationChange;
+    volatile bool dmaBufferUnderrun;
+    int brightness;
+    int shiftedBrightness;
+    rotationDegrees rotation;
+    uint16_t calc_refreshRate;   
+    uint8_t calc_refreshRateDivider;
+    bool dmaBufferUnderrunSinceLastCheck;
+    // to avoid 100% CPU usage, we by default don't calculate on every frame.  Calc refresh rate will be a fraction of Refresh refresh rate
+    uint8_t maxCalcCpuPercentage;
+    bool refreshRateLowered;
+    bool refreshRateChanged;
+    uint8_t lsbMsbTransitionBit;
+    TaskHandle_t calcTaskHandle;
     
-    static int multiRowRefresh_mapIndex_CurrentRowGroups;
-    static int multiRowRefresh_mapIndex_CurrentPixelGroup;
-    static int multiRowRefresh_PixelOffsetFromPanelsAlreadyMapped;
-    static int multiRowRefresh_NumPanelsAlreadyMapped;
+    int multiRowRefresh_mapIndex_CurrentRowGroups;
+    int multiRowRefresh_mapIndex_CurrentPixelGroup;
+    int multiRowRefresh_PixelOffsetFromPanelsAlreadyMapped;
+    int multiRowRefresh_NumPanelsAlreadyMapped;
 
-    static uint32_t optionFlags;
-    static uint8_t panelType;
-    static int matrixWidth;
-    static int matrixHeight;
-    static uint8_t refreshDepth;
+    SmartMatrix3RefreshMultiplexed_NT* _matrixRefresh;
+    const uint32_t optionFlags;
+    const uint8_t panelType;
+    const int matrixWidth;
+    const int matrixHeight;
+    const uint8_t refreshDepth;
 };
 
 #endif

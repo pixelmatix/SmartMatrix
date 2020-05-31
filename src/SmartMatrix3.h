@@ -143,7 +143,7 @@
 
     #define SMARTMATRIX_ALLOCATE_BUFFERS_NT(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
         SmartMatrix3RefreshMultiplexed_NT matrix_name##Refresh(width, height, pwm_depth, panel_type, option_flags); \
-        SmartMatrix3_NT matrix_name(width, height, pwm_depth, panel_type, option_flags)
+        SmartMatrix3_NT matrix_name(&matrix_name##Refresh, width, height, pwm_depth, panel_type, option_flags)
 
     #define SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(layer_name, width, height, storage_depth, background_options) \
         typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
