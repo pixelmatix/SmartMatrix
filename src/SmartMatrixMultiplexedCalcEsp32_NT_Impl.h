@@ -26,7 +26,8 @@
 
 #define INLINE __attribute__( ( always_inline ) ) inline
 
-void SmartMatrix3_NT::addLayer(SM_Layer * newlayer) {
+template <int dummyvar>
+void SmartMatrix3_NT<dummyvar>::addLayer(SM_Layer * newlayer) {
     if(baseLayer) {
         SM_Layer * templayer = baseLayer;
         while(templayer->nextLayer)
@@ -37,7 +38,8 @@ void SmartMatrix3_NT::addLayer(SM_Layer * newlayer) {
     }
 }
 
-void SmartMatrix3_NT::countFPS(void) {
+template <int dummyvar>
+void SmartMatrix3_NT<dummyvar>::countFPS(void) {
   static long loops = 0;
   static long lastMillis = 0;
   long currentMillis = millis();
@@ -53,11 +55,13 @@ void SmartMatrix3_NT::countFPS(void) {
   }
 }
 
-void SmartMatrix3_NT::dmaBufferUnderrunCallback(void) {
+template <int dummyvar>
+void SmartMatrix3_NT<dummyvar>::dmaBufferUnderrunCallback(void) {
     dmaBufferUnderrun = true;
 }
 
-void SmartMatrix3_NT::matrixCalculations() {
+template <int dummyvar>
+void SmartMatrix3_NT<dummyvar>::matrixCalculations() {
     static unsigned long lastMillisStart;
     static unsigned long lastMillisEnd;
     static int refreshFramesSinceLastCalculation = 0;
@@ -70,9 +74,9 @@ void SmartMatrix3_NT::matrixCalculations() {
     // safety check - if using up too much CPU, increase refresh rate divider to give more time for sketch to run
     unsigned long calculationCpuTime = lastMillisEnd - lastMillisStart;
     unsigned long totalCpuTime = millis() - lastMillisStart;
-    if(totalCpuTime && ((calculationCpuTime * 100) / totalCpuTime) > SmartMatrix3_NT::maxCalcCpuPercentage) {
+    if(totalCpuTime && ((calculationCpuTime * 100) / totalCpuTime) > maxCalcCpuPercentage) {
         // increase CPU divider by 1
-        SmartMatrix3_NT::setCalcRefreshRateDivider(SmartMatrix3_NT::getCalcRefreshRateDivider() + 1);
+        setCalcRefreshRateDivider(getCalcRefreshRateDivider() + 1);
         refreshRateLowered = true;
     }
 
@@ -84,7 +88,7 @@ void SmartMatrix3_NT::matrixCalculations() {
 
     // do once-per-frame updates
     if (rotationChange) {
-        SM_Layer * templayer = SmartMatrix3_NT::baseLayer;
+        SM_Layer * templayer = baseLayer;
         while(templayer) {
             templayer->setRotation(rotation);
             templayer = templayer->nextLayer;
@@ -94,7 +98,7 @@ void SmartMatrix3_NT::matrixCalculations() {
 
     int largestRequestedBrightnessShifts = 0;
 
-    SM_Layer * templayer = SmartMatrix3_NT::baseLayer;
+    SM_Layer * templayer = baseLayer;
     while(templayer) {
         if(refreshRateChanged) {
             templayer->setRefreshRate(calc_refreshRate);
@@ -123,19 +127,21 @@ void SmartMatrix3_NT::matrixCalculations() {
         brightnessChange = false;
     }
 
-    SmartMatrix3_NT::loadMatrixBuffers(lsbMsbTransitionBit, largestRequestedBrightnessShifts);
+    loadMatrixBuffers(lsbMsbTransitionBit, largestRequestedBrightnessShifts);
 
     _matrixRefresh->writeFrameBuffer(0);
 
     lastMillisEnd = millis();
 }
 
-void SmartMatrix3_NT::setRotation(rotationDegrees newrotation) {
+template <int dummyvar>
+void SmartMatrix3_NT<dummyvar>::setRotation(rotationDegrees newrotation) {
     rotation = newrotation;
     rotationChange = true;
 }
 
-uint16_t SmartMatrix3_NT::getScreenWidth(void) const {
+template <int dummyvar>
+uint16_t SmartMatrix3_NT<dummyvar>::getScreenWidth(void) const {
     if (rotation == rotation0 || rotation == rotation180) {
         return matrixWidth;
     } else {
@@ -143,7 +149,8 @@ uint16_t SmartMatrix3_NT::getScreenWidth(void) const {
     }
 }
 
-uint16_t SmartMatrix3_NT::getScreenHeight(void) const {
+template <int dummyvar>
+uint16_t SmartMatrix3_NT<dummyvar>::getScreenHeight(void) const {
     if (rotation == rotation0 || rotation == rotation180) {
         return matrixHeight;
     } else {
@@ -152,26 +159,30 @@ uint16_t SmartMatrix3_NT::getScreenHeight(void) const {
 }
 
 // brightness scales from 0-pixels_per_latch
-void SmartMatrix3_NT::setBrightness(uint8_t newBrightness) {
+template <int dummyvar>
+void SmartMatrix3_NT<dummyvar>::setBrightness(uint8_t newBrightness) {
     brightness = (pixels_per_latch*newBrightness)/255;
     brightnessChange = true;
 }
 
-void SmartMatrix3_NT::setRefreshRate(uint16_t newRefreshRate) {
+template <int dummyvar>
+void SmartMatrix3_NT<dummyvar>::setRefreshRate(uint16_t newRefreshRate) {
     calc_refreshRate = newRefreshRate / calc_refreshRateDivider;
 
     refreshRateChanged = true;
     _matrixRefresh->setRefreshRate(newRefreshRate);
 }
 
-void SmartMatrix3_NT::setMaxCalculationCpuPercentage(uint8_t newMaxCpuPercentage) {
+template <int dummyvar>
+void SmartMatrix3_NT<dummyvar>::setMaxCalculationCpuPercentage(uint8_t newMaxCpuPercentage) {
     if(newMaxCpuPercentage > 100)
         newMaxCpuPercentage = 100;
 
     maxCalcCpuPercentage = newMaxCpuPercentage;
 }
 
-void SmartMatrix3_NT::setCalcRefreshRateDivider(uint8_t newDivider) {
+template <int dummyvar>
+void SmartMatrix3_NT<dummyvar>::setCalcRefreshRateDivider(uint8_t newDivider) {
     // TODO: improve so fractional results don't screw up the calc_refreshRate divider
     // TODO: improve to get actual refresh rate from refresh class
     if(newDivider == 0)
@@ -182,15 +193,18 @@ void SmartMatrix3_NT::setCalcRefreshRateDivider(uint8_t newDivider) {
     refreshRateChanged = true;
 }
 
-uint8_t SmartMatrix3_NT::getCalcRefreshRateDivider(void) {
+template <int dummyvar>
+uint8_t SmartMatrix3_NT<dummyvar>::getCalcRefreshRateDivider(void) {
     return calc_refreshRateDivider;
 }
 
-uint16_t SmartMatrix3_NT::getRefreshRate(void) {
+template <int dummyvar>
+uint16_t SmartMatrix3_NT<dummyvar>::getRefreshRate(void) {
     return calc_refreshRate;
 }
 
-bool SmartMatrix3_NT::getdmaBufferUnderrunFlag(void) {
+template <int dummyvar>
+bool SmartMatrix3_NT<dummyvar>::getdmaBufferUnderrunFlag(void) {
     if(dmaBufferUnderrunSinceLastCheck) {
         dmaBufferUnderrunSinceLastCheck = false;
         return true;
@@ -198,7 +212,8 @@ bool SmartMatrix3_NT::getdmaBufferUnderrunFlag(void) {
     return false;
 }
 
-bool SmartMatrix3_NT::getRefreshRateLoweredFlag(void) {
+template <int dummyvar>
+bool SmartMatrix3_NT<dummyvar>::getRefreshRateLoweredFlag(void) {
     if(refreshRateLowered) {
         refreshRateLowered = false;
         return true;
@@ -207,7 +222,8 @@ bool SmartMatrix3_NT::getRefreshRateLoweredFlag(void) {
 }
 
 /* Task2 with priority 2 */
-void SmartMatrix3_NT::calcTask(void* pvParameters)
+template <int dummyvar>
+void SmartMatrix3_NT<dummyvar>::calcTask(void* pvParameters)
 {        
     SmartMatrix3_NT* thisPtr = (SmartMatrix3_NT*)pvParameters;
     while(1) {   
@@ -231,11 +247,12 @@ void SmartMatrix3_NT::calcTask(void* pvParameters)
 #define MATRIX_CALC_TASK_DEFAULT_PRIORITY   2
 #define MATRIX_CALC_TASK_LOW_PRIORITY      1
 
-void SmartMatrix3_NT::begin(uint32_t dmaRamToKeepFreeBytes)
+template <int dummyvar>
+void SmartMatrix3_NT<dummyvar>::begin(uint32_t dmaRamToKeepFreeBytes)
 {    
     maxCalcCpuPercentage = 80; // to avoid 100% CPU usage, we by default don't calculate on every frame.  Calc refresh rate will be a fraction of Refresh refresh rate
     calc_refreshRateDivider = 2;
-    calc_refreshRate = 120/SmartMatrix3_NT::calc_refreshRateDivider;
+    calc_refreshRate = 120/calc_refreshRateDivider;
     dmaBufferUnderrun = false;
     dmaBufferUnderrunSinceLastCheck = false;
     refreshRateLowered = false;
@@ -309,18 +326,21 @@ void SmartMatrix3_NT::begin(uint32_t dmaRamToKeepFreeBytes)
 
 #define IS_LAST_PANEL_MAP_ENTRY(x) (!x.rowOffset && !x.bufferOffset && !x.numPixels)
 
-void SmartMatrix3_NT::resetMultiRowRefreshMapPosition(void) {   
+template <int dummyvar>
+void SmartMatrix3_NT<dummyvar>::resetMultiRowRefreshMapPosition(void) {   
     multiRowRefresh_mapIndex_CurrentRowGroups = 0;
     resetMultiRowRefreshMapPositionPixelGroupToStartOfRow();
 }
 
-void SmartMatrix3_NT::resetMultiRowRefreshMapPositionPixelGroupToStartOfRow(void) {   
+template <int dummyvar>
+void SmartMatrix3_NT<dummyvar>::resetMultiRowRefreshMapPositionPixelGroupToStartOfRow(void) {   
     multiRowRefresh_mapIndex_CurrentPixelGroup = multiRowRefresh_mapIndex_CurrentRowGroups;
     multiRowRefresh_PixelOffsetFromPanelsAlreadyMapped = 0;
     multiRowRefresh_NumPanelsAlreadyMapped = 0;
 }
 
-void SmartMatrix3_NT::advanceMultiRowRefreshMapToNextRow(void) {   
+template <int dummyvar>
+void SmartMatrix3_NT<dummyvar>::advanceMultiRowRefreshMapToNextRow(void) {   
     static const PanelMappingEntry * map = getMultiRowRefreshPanelMap(panelType);
 
     int currentRowOffset = map[multiRowRefresh_mapIndex_CurrentRowGroups].rowOffset;
@@ -336,7 +356,8 @@ void SmartMatrix3_NT::advanceMultiRowRefreshMapToNextRow(void) {
     resetMultiRowRefreshMapPositionPixelGroupToStartOfRow();
 }
 
-void SmartMatrix3_NT::advanceMultiRowRefreshMapToNextPixelGroup(void) {   
+template <int dummyvar>
+void SmartMatrix3_NT<dummyvar>::advanceMultiRowRefreshMapToNextPixelGroup(void) {   
     static const PanelMappingEntry * map = getMultiRowRefreshPanelMap(panelType);
 
     int currentRowOffset = map[multiRowRefresh_mapIndex_CurrentPixelGroup].rowOffset;
@@ -363,7 +384,8 @@ void SmartMatrix3_NT::advanceMultiRowRefreshMapToNextPixelGroup(void) {
 }
 
 // returns the row offset from the map, or -1 if we've gone through the whole map already
-int SmartMatrix3_NT::getMultiRowRefreshRowOffset(void) {   
+template <int dummyvar>
+int SmartMatrix3_NT<dummyvar>::getMultiRowRefreshRowOffset(void) {   
     static const PanelMappingEntry * map = getMultiRowRefreshPanelMap(panelType);
 
     if(IS_LAST_PANEL_MAP_ENTRY(map[multiRowRefresh_mapIndex_CurrentRowGroups])){
@@ -373,13 +395,15 @@ int SmartMatrix3_NT::getMultiRowRefreshRowOffset(void) {
     return map[multiRowRefresh_mapIndex_CurrentRowGroups].rowOffset;    
 }
 
-int SmartMatrix3_NT::getMultiRowRefreshNumPixelsToMap(void) {        
+template <int dummyvar>
+int SmartMatrix3_NT<dummyvar>::getMultiRowRefreshNumPixelsToMap(void) {        
     static const PanelMappingEntry * map = getMultiRowRefreshPanelMap(panelType);
 
     return map[multiRowRefresh_mapIndex_CurrentPixelGroup].numPixels;    
 }
 
-int SmartMatrix3_NT::getMultiRowRefreshPixelGroupOffset(void) {        
+template <int dummyvar>
+int SmartMatrix3_NT<dummyvar>::getMultiRowRefreshPixelGroupOffset(void) {        
     static const PanelMappingEntry * map = getMultiRowRefreshPanelMap(panelType);
 
     return map[multiRowRefresh_mapIndex_CurrentPixelGroup].bufferOffset + multiRowRefresh_PixelOffsetFromPanelsAlreadyMapped;
@@ -390,7 +414,8 @@ int SmartMatrix3_NT::getMultiRowRefreshPixelGroupOffset(void) {
 //#define OEPWM_TEST_ENABLE // this is likely broken now
 #define OEPWM_THRESHOLD_BIT 1
 
-INLINE void SmartMatrix3_NT::loadMatrixBuffers48(MATRIX_DATA_STORAGE_TYPE * frameBuffer, int currentRow, int lsbMsbTransitionBit, int numBrightnessShifts) {
+template <int dummyvar>
+INLINE void SmartMatrix3_NT<dummyvar>::loadMatrixBuffers48(MATRIX_DATA_STORAGE_TYPE * frameBuffer, int currentRow, int lsbMsbTransitionBit, int numBrightnessShifts) {
     int i;
     int multiRowRefreshRowOffset = 0;
     int numPixelsPerTempRow = pixels_per_latch/physical_rows_per_refresh_row;
@@ -423,7 +448,7 @@ INLINE void SmartMatrix3_NT::loadMatrixBuffers48(MATRIX_DATA_STORAGE_TYPE * fram
 #endif
 
         // get a row of physical pixel data (HUB75 paired) from the layers
-        SM_Layer * templayer = SmartMatrix3_NT::baseLayer;
+        SM_Layer * templayer = baseLayer;
         while(templayer) {
             for(i=0; i<matrix_stack_height; i++) {
                 // Z-shape, bottom to top
@@ -476,7 +501,6 @@ INLINE void SmartMatrix3_NT::loadMatrixBuffers48(MATRIX_DATA_STORAGE_TYPE * fram
 
             uint16_t mask = (1 << (j + maskoffset));
             
-            //SmartMatrix3_NT::rowBitStruct *p=&(frameBuffer->rowdata[currentRow].rowbits[j]); //bitplane location to write to
             MATRIX_DATA_STORAGE_TYPE *p=&(frameBuffer[GET_DATA_OFFSET_FROM_ROW_AND_COLOR_DEPTH_BIT(currentRow, j)]); //bitplane location to write to
 
             int i=0;
@@ -722,7 +746,8 @@ INLINE void SmartMatrix3_NT::loadMatrixBuffers48(MATRIX_DATA_STORAGE_TYPE * fram
     } while (multiRowRefreshRowOffset > 0);
 }
 
-INLINE void SmartMatrix3_NT::loadMatrixBuffers24(MATRIX_DATA_STORAGE_TYPE * frameBuffer, int currentRow, int lsbMsbTransitionBit, int numBrightnessShifts) {
+template <int dummyvar>
+INLINE void SmartMatrix3_NT<dummyvar>::loadMatrixBuffers24(MATRIX_DATA_STORAGE_TYPE * frameBuffer, int currentRow, int lsbMsbTransitionBit, int numBrightnessShifts) {
     int i;
     int multiRowRefreshRowOffset = 0;
     int numPixelsPerTempRow = pixels_per_latch/physical_rows_per_refresh_row;
@@ -747,7 +772,7 @@ INLINE void SmartMatrix3_NT::loadMatrixBuffers24(MATRIX_DATA_STORAGE_TYPE * fram
         memset(tempRow1, 0x00, sizeof(rgb24) * numPixelsPerTempRow);
 
         // get a row of physical pixel data (HUB75 paired) from the layers
-        SM_Layer * templayer = SmartMatrix3_NT::baseLayer;
+        SM_Layer * templayer = baseLayer;
         while(templayer) {
             for(i=0; i<matrix_stack_height; i++) {
                 // Z-shape, bottom to top
@@ -800,7 +825,6 @@ INLINE void SmartMatrix3_NT::loadMatrixBuffers24(MATRIX_DATA_STORAGE_TYPE * fram
 
             uint16_t mask = (1 << (j + maskoffset));
             
-            //SmartMatrix3_NT::rowBitStruct *p=&(frameBuffer->rowdata[currentRow].rowbits[j]); //bitplane location to write to
             MATRIX_DATA_STORAGE_TYPE *p=&(frameBuffer[GET_DATA_OFFSET_FROM_ROW_AND_COLOR_DEPTH_BIT(currentRow, j)]); //bitplane location to write to
             
             int i=0;
@@ -997,7 +1021,8 @@ INLINE void SmartMatrix3_NT::loadMatrixBuffers24(MATRIX_DATA_STORAGE_TYPE * fram
     } while (multiRowRefreshRowOffset > 0);
 }
 
-INLINE void SmartMatrix3_NT::loadMatrixBuffers(int lsbMsbTransitionBit, int numBrightnessShifts) {
+template <int dummyvar>
+INLINE void SmartMatrix3_NT<dummyvar>::loadMatrixBuffers(int lsbMsbTransitionBit, int numBrightnessShifts) {
 #if 1
     unsigned char currentRow;
 

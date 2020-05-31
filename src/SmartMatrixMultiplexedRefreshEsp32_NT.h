@@ -34,6 +34,7 @@
 
 #define GET_DATA_OFFSET_FROM_ROW_AND_COLOR_DEPTH_BIT(row, bit) ((row * SIZE_OF_ROWDATASTRUCT) + (bit * SIZE_OF_ROWBITSTRUCT))
 
+template <int dummyvar>
 class SmartMatrix3RefreshMultiplexed_NT {
 public:
     typedef void (*matrix_calc_callback)(void);

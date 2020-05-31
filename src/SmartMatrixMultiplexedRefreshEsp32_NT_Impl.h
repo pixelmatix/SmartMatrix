@@ -49,49 +49,60 @@
 // TODO: slower refresh rates require larger timer values - get the min refresh rate from the largest MSB value that will fit in the timer (round up)
 #define MIN_REFRESH_RATE    30
 
+template <int dummyvar>
 void frameShiftCompleteISR(void);    
 
-bool SmartMatrix3RefreshMultiplexed_NT::isFrameBufferFree(void) {
+template <int dummyvar>
+bool SmartMatrix3RefreshMultiplexed_NT<dummyvar>::isFrameBufferFree(void) {
     if(cbIsFull(&dmaBuffer))
         return false;
     else
         return true;
 }
 
-MATRIX_DATA_STORAGE_TYPE * SmartMatrix3RefreshMultiplexed_NT::getNextFrameBufferPtr(void) {
+template <int dummyvar>
+MATRIX_DATA_STORAGE_TYPE * SmartMatrix3RefreshMultiplexed_NT<dummyvar>::getNextFrameBufferPtr(void) {
     return matrixUpdateFrames[cbGetNextWrite(&dmaBuffer)];
 }
 
-void SmartMatrix3RefreshMultiplexed_NT::writeFrameBuffer(uint8_t currentFrame) {
-    //SmartMatrix3RefreshMultiplexed_NT::frameStruct * currentFramePtr = SmartMatrix3RefreshMultiplexed_NT::getNextFrameBufferPtr();
+template <int dummyvar>
+void SmartMatrix3RefreshMultiplexed_NT<dummyvar>::writeFrameBuffer(uint8_t currentFrame) {
+    //SmartMatrix3RefreshMultiplexed_NT<dummyvar>::frameStruct * currentFramePtr = SmartMatrix3RefreshMultiplexed_NT<dummyvar>::getNextFrameBufferPtr();
     i2s_parallel_flip_to_buffer(&I2S1, cbGetNextWrite(&dmaBuffer));
     cbWrite(&dmaBuffer);
 }
 
-void SmartMatrix3RefreshMultiplexed_NT::recoverFromDmaUnderrun(void) {
+template <int dummyvar>
+void SmartMatrix3RefreshMultiplexed_NT<dummyvar>::recoverFromDmaUnderrun(void) {
 
 }
 
-void SmartMatrix3RefreshMultiplexed_NT::setMatrixCalculationsCallback(matrix_calc_callback f) {
+template <int dummyvar>
+void SmartMatrix3RefreshMultiplexed_NT<dummyvar>::setMatrixCalculationsCallback(matrix_calc_callback f) {
     setShiftCompleteCallback(f);
     matrixCalcCallback = f;
 }
 
-void SmartMatrix3RefreshMultiplexed_NT::setBrightness(uint8_t newBrightness) {
+template <int dummyvar>
+
+void SmartMatrix3RefreshMultiplexed_NT<dummyvar>::setBrightness(uint8_t newBrightness) {
 }
 
-void SmartMatrix3RefreshMultiplexed_NT::setRefreshRate(uint16_t newRefreshRate) {
+template <int dummyvar>
+void SmartMatrix3RefreshMultiplexed_NT<dummyvar>::setRefreshRate(uint16_t newRefreshRate) {
     if(newRefreshRate > MIN_REFRESH_RATE)
         minRefreshRate = newRefreshRate;
     else
         minRefreshRate = MIN_REFRESH_RATE;
 }
 
-uint16_t SmartMatrix3RefreshMultiplexed_NT::getRefreshRate(void) {
+template <int dummyvar>
+uint16_t SmartMatrix3RefreshMultiplexed_NT<dummyvar>::getRefreshRate(void) {
     return refreshRate;
 }
 
-void SmartMatrix3RefreshMultiplexed_NT::begin(uint32_t dmaRamToKeepFreeBytes) {
+template <int dummyvar>
+void SmartMatrix3RefreshMultiplexed_NT<dummyvar>::begin(uint32_t dmaRamToKeepFreeBytes) {
     refreshRate = 120;
     minRefreshRate = 120;
     lsbMsbTransitionBit = 0;
@@ -461,11 +472,13 @@ void SmartMatrix3RefreshMultiplexed_NT::begin(uint32_t dmaRamToKeepFreeBytes) {
     //printf("I2S setup done.\n");
 }
 
-void SmartMatrix3RefreshMultiplexed_NT::markRefreshComplete(void) {
+template <int dummyvar>
+void SmartMatrix3RefreshMultiplexed_NT<dummyvar>::markRefreshComplete(void) {
     if(!cbIsEmpty(&dmaBuffer))
         cbRead(&dmaBuffer);
 }
 
-uint8_t SmartMatrix3RefreshMultiplexed_NT::getLsbMsbTransitionBit(void) {
+template <int dummyvar>
+uint8_t SmartMatrix3RefreshMultiplexed_NT<dummyvar>::getLsbMsbTransitionBit(void) {
     return lsbMsbTransitionBit;
 }

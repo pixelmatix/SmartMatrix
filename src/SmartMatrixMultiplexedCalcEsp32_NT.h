@@ -27,10 +27,11 @@
 extern SemaphoreHandle_t calcTaskSemaphore;
 extern void matrixCalculationsSignal(void);
 
+template <int dummyvar>
 class SmartMatrix3_NT {
 public:
     // init
-    SmartMatrix3_NT(SmartMatrix3RefreshMultiplexed_NT* matrixRefresh, int width, int height, unsigned char depth, unsigned char type, unsigned char options) :
+    SmartMatrix3_NT(SmartMatrix3RefreshMultiplexed_NT<0>* matrixRefresh, int width, int height, unsigned char depth, unsigned char type, unsigned char options) :
         _matrixRefresh(matrixRefresh), matrixWidth(width), matrixHeight(height), optionFlags(options), panelType(type), refreshDepth(depth), pixels_per_latch(PIXELS_PER_LATCH),
         matrix_panel_height(MATRIX_PANEL_HEIGHT), matrix_stack_height(MATRIX_STACK_HEIGHT), color_depth_bits(COLOR_DEPTH_BITS), matrix_scan_mod(MATRIX_SCAN_MOD),
         cols_per_panel(COLS_PER_PANEL), physical_rows_per_refresh_row(PHYSICAL_ROWS_PER_REFRESH_ROW), row_pair_offset(ROW_PAIR_OFFSET) {};
@@ -100,7 +101,7 @@ private:
     int multiRowRefresh_PixelOffsetFromPanelsAlreadyMapped;
     int multiRowRefresh_NumPanelsAlreadyMapped;
 
-    SmartMatrix3RefreshMultiplexed_NT* _matrixRefresh;
+    SmartMatrix3RefreshMultiplexed_NT<0> * _matrixRefresh;
     const uint32_t optionFlags;
     const uint8_t panelType;
     const int matrixWidth;
