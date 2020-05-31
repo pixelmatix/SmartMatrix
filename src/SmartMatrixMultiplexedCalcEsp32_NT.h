@@ -31,7 +31,9 @@ class SmartMatrix3_NT {
 public:
     // init
     SmartMatrix3_NT(SmartMatrix3RefreshMultiplexed_NT* matrixRefresh, int width, int height, unsigned char depth, unsigned char type, unsigned char options) :
-        _matrixRefresh(matrixRefresh), matrixWidth(width), matrixHeight(height), optionFlags(options), panelType(type), refreshDepth(depth) {};
+        _matrixRefresh(matrixRefresh), matrixWidth(width), matrixHeight(height), optionFlags(options), panelType(type), refreshDepth(depth), pixels_per_latch(PIXELS_PER_LATCH),
+        matrix_panel_height(MATRIX_PANEL_HEIGHT), matrix_stack_height(MATRIX_STACK_HEIGHT), color_depth_bits(COLOR_DEPTH_BITS), matrix_scan_mod(MATRIX_SCAN_MOD),
+        cols_per_panel(COLS_PER_PANEL), physical_rows_per_refresh_row(PHYSICAL_ROWS_PER_REFRESH_ROW), row_pair_offset(ROW_PAIR_OFFSET) {};
     void begin(uint32_t dmaRamToKeepFreeBytes = 0);
     void addLayer(SM_Layer * newlayer);
 
@@ -104,6 +106,16 @@ private:
     const int matrixWidth;
     const int matrixHeight;
     const uint8_t refreshDepth;
+
+    // these are usually calculated by all caps macros, but it's better to precalculate (at least some of) these values for efficiency for this class that doesn't know its parameters at compile time
+    const uint16_t matrix_panel_height;
+    const uint16_t matrix_stack_height;
+    const uint8_t color_depth_bits;
+    const uint8_t matrix_scan_mod;
+    const uint16_t cols_per_panel;
+    const uint16_t physical_rows_per_refresh_row;
+    const uint8_t row_pair_offset;
+    const uint16_t pixels_per_latch;
 };
 
 #endif
