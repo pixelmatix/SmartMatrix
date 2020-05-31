@@ -40,20 +40,8 @@
 #include "SmartMatrixAPA102Refresh.h"
 #include "SmartMatrixAPA102Calc.h"
 
-#if defined(__arm__) && defined(CORE_TEENSY) && !defined(__IMXRT1062__) // Teensy 3.x
-    #if defined(V4HEADER)
-        #include "MatrixHardware_KitV4.h"
-    #else
-        #include "MatrixHardware_KitV1.h"
-    #endif
-#endif
-
-#if defined(__IMXRT1062__) // Teensy 4.0/4.1
-  #include "MatrixHardware_KitV4T4.h"
-#endif
-
-#if defined(ESP32)
-    #include "MatrixHardware_ESP32_V0.h"
+#ifndef MATRIX_HARDWARE_H
+#pragma GCC error "No MatrixHardware*.h file included - You must include one at the top of your sketch"
 #endif
 
 #include "MatrixCommon.h"

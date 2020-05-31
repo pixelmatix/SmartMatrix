@@ -26,6 +26,8 @@
 #ifndef MATRIX_HARDWARE_H
 #define MATRIX_HARDWARE_H
 
+#pragma message "MatrixHardware: SmartLED Shield for Teensy 3 V4"
+
 #define DMA_UPDATES_PER_CLOCK           2
 #define ADDX_UPDATE_ON_DATA_PINS
 #define ADDX_UPDATE_BEFORE_LATCH_BYTES  1
@@ -96,4 +98,6 @@
 
 #define DMAMUX_SOURCE_LATCH_FALLING_EDGE     DMAMUX_SOURCE_PORTA
 
+#else
+    #pragma GCC error "Multiple MatrixHardware*.h files included"
 #endif

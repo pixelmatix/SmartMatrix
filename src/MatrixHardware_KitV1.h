@@ -26,6 +26,8 @@
 #ifndef MATRIX_HARDWARE_H
 #define MATRIX_HARDWARE_H
 
+#pragma message "MatrixHardware: SmartMatrix Shield for Teensy 3 V1-V3"
+
 #define COLOR_CHANNELS_PER_PIXEL        3
 #define PIXELS_UPDATED_PER_CLOCK        2
 #define DMA_UPDATES_PER_CLOCK           2
@@ -112,4 +114,6 @@
 
 #define DMAMUX_SOURCE_LATCH_FALLING_EDGE     DMAMUX_SOURCE_PORTD
 
+#else
+    #pragma GCC error "Multiple MatrixHardware*.h files included"
 #endif

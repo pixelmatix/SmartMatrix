@@ -18,6 +18,8 @@
 #ifndef MATRIX_HARDWARE_H
 #define MATRIX_HARDWARE_H
 
+#pragma message "MatrixHardware: Teensy 4 Wired to SmartLED Shield for Teensy 3 V4"
+
 /* an advanced user may need to tweak these values */
 
 // size of latch pulse - can be short for V4 shield which doesn't need to update ADDX lines during latch pulse
@@ -73,4 +75,6 @@
 
 // note: data bit order is calculated in setup using the pin number definitions
 
+#else
+    #pragma GCC error "Multiple MatrixHardware*.h files included"
 #endif
