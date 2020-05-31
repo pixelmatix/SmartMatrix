@@ -1,6 +1,8 @@
-#include "SmartMatrix3.h"
-
 #if defined(ESP32)
+
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/semphr.h"
 
 SemaphoreHandle_t calcTaskSemaphore;
 

@@ -21,7 +21,13 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "SmartMatrix3.h"
+#if defined (ARDUINO)
+#include <Arduino.h>
+#endif
+
+#if defined(__arm__) && defined(CORE_TEENSY)
+#include <DMAChannel.h>
+#endif
 
 #if defined(KINETISL)
     DMAChannel dmaClockOutData(false);
@@ -36,10 +42,10 @@
     DMAChannel dmaClockOutDataApa(false);
     DMAChannel dmaClockOutDataCoprocessorSend(false);
 #elif defined(__IMXRT1062__) // Teensy 4.0/4.1
+    #include <EventResponder.h>
     DMAChannel dmaClockOutData(false);
     DMAChannel dmaEnable(false);
     DMAChannel dmaUpdateTimer(false);
     IntervalTimer myTimer;
-    FlexIOSPI SPIFLEX(FLEXIO_PIN_APA102_DAT, FLEXIO_PIN_APA102_CLK, FLEXIO_PIN_APA102_DAT); // overlapping MOSI pin on MISO as we don't need MISO
     EventResponder apa102ShiftCompleteEvent;
 #endif

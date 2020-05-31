@@ -1,4 +1,5 @@
-#include "SmartMatrix3.h"
+#include "SmartMatrixMultiplexedCommon.h"
+#include "SmartMatrixPanelMaps.h"
 
 // use this for all linear panels (e.g. panels that draw a single left-to-right line for each RGB channel)
 const PanelMappingEntry defaultPanelMap[] =
