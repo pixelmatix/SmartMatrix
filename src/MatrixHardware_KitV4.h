@@ -50,19 +50,24 @@
 
 // change for SmartMatrix Shield V4: G2 moves from Teensy pin 7 (D2) to 8 (D3)
 
-// defines data bit order from bit 0-7, four times to fit in uint32_t
-#define GPIO_WORD_ORDER p0r1:1, p0clk:1, p0pad:1, p0g2:1, p0b1:1, p0b2:1, p0r2:1, p0g1:1, \
-    p1r1:1, p1clk:1, p1pad:1, p1g2:1, p1b1:1, p1b2:1, p1r2:1, p1g1:1, \
-    p2r1:1, p2clk:1, p2pad:1, p2g2:1, p2b1:1, p2b2:1, p2r2:1, p2g1:1, \
-    p3r1:1, p3clk:1, p3pad:1, p3g2:1, p3b1:1, p3b2:1, p3r2:1, p3g1:1
-
-#define GPIO_WORD_ORDER_8BIT p0r1:1, p0clk:1, p0pad:1, p0g2:1, p0b1:1, p0b2:1, p0r2:1, p0g1:1
+// these defines map the HUB75 signal to PORTD signals - if your panel has non-standard RGB order, swap signals here
+#define BIT_0_SIGNAL    hub75_r0
+#define BIT_1_SIGNAL    hub75_clk
+#define BIT_2_SIGNAL    pad
+#define BIT_3_SIGNAL    hub75_g1
+#define BIT_4_SIGNAL    hub75_b0
+#define BIT_5_SIGNAL    hub75_b1
+#define BIT_6_SIGNAL    hub75_r1
+#define BIT_7_SIGNAL    hub75_g0
 
 //#define DEBUG_PINS_ENABLED
 #define DEBUG_PIN_1 16
 #define DEBUG_PIN_2 18
 #define DEBUG_PIN_3 19
 
+/************ The below definitions are unlikely to be useful if changed **************/
+
+// these pin definitions are used to set GPIO to output, and are manually used to reset FM6126A panels - swapping RGB pins here has no effect on refreshing the panel
 #define GPIO_PIN_CLK_TEENSY_PIN     14
 #define GPIO_PIN_B0_TEENSY_PIN      6
 #define GPIO_PIN_R0_TEENSY_PIN      2
@@ -78,16 +83,32 @@
 #define SMARTLED_APA_CLK_PIN        13
 #define SMARTLED_APA_DAT_PIN        7
 
-// output latch signal on two pins, to trigger two different GPIO port interrupts
+
+#define BIT_0_ADDX_SIGNAL   hub75_addx0
+#define BIT_1_ADDX_SIGNAL   pad0
+#define BIT_2_ADDX_SIGNAL   pad1
+#define BIT_3_ADDX_SIGNAL   hub75_addx4
+#define BIT_4_ADDX_SIGNAL   hub75_addx2
+#define BIT_5_ADDX_SIGNAL   pad2
+#define BIT_6_ADDX_SIGNAL   hub75_addx3
+#define BIT_7_ADDX_SIGNAL   hub75_addx1
+
+
+#define GPIO_WORD_ORDER_8BIT BIT_0_SIGNAL:1, BIT_1_SIGNAL:1, BIT_2_SIGNAL:1, BIT_3_SIGNAL:1, BIT_4_SIGNAL:1, BIT_5_SIGNAL:1, BIT_6_SIGNAL:1, BIT_7_SIGNAL:1
+#define GPIO_WORD_ORDER_ADDX_8BIT BIT_0_ADDX_SIGNAL:1, BIT_1_ADDX_SIGNAL:1, BIT_2_ADDX_SIGNAL:1, BIT_3_ADDX_SIGNAL:1, BIT_4_ADDX_SIGNAL:1, BIT_5_ADDX_SIGNAL:1, BIT_6_ADDX_SIGNAL:1, BIT_7_ADDX_SIGNAL:1
+
+
+// output latch signal on pin 3 (PORTA.12)
 #define ENABLE_LATCH_PWM_OUTPUT() {                                     \
         CORE_PIN3_CONFIG |= PORT_PCR_MUX(3) | PORT_PCR_DSE | PORT_PCR_SRE;  \
     }
 
+// output OE signal on pin 4 (PORTA.13)
 #define ENABLE_OE_PWM_OUTPUT() {                                        \
         CORE_PIN4_CONFIG = PORT_PCR_MUX(3) | PORT_PCR_DSE | PORT_PCR_SRE;   \
     }
 
-// pin 3 (PORT A) triggers based on latch signal, on rising edge
+// pin 3 (PORTA.12) triggers based on latch signal, on rising edge
 #define ENABLE_LATCH_RISING_EDGE_GPIO_INT() {              \
         CORE_PIN3_CONFIG |= PORT_PCR_MUX(1) | PORT_PCR_IRQC(1); \
     }
