@@ -98,7 +98,7 @@
             SmartMatrixRefreshT4<pwm_depth, width, height, panel_type, option_flags> matrix_name##Refresh(buffer_rows, rowsDataBuffer); \
             SmartMatrix3<pwm_depth, width, height, panel_type, option_flags> matrix_name(buffer_rows, rowsDataBuffer)
         #define SMARTMATRIX_APA_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
-            FlexIOSPI SPIFLEX(FLEXIO_PIN_APA102_DAT, FLEXIO_PIN_APA102_CLK, FLEXIO_PIN_APA102_DAT); /* overlapping MOSI pin on MISO as we don't need MISO */ \
+            FlexIOSPI SPIFLEX(FLEXIO_PIN_APA102_DAT, FLEXIO_PIN_APA102_DAT, FLEXIO_PIN_APA102_CLK); /* overlapping MOSI pin on MISO as we don't need MISO */ \
             static DMAMEM SmartMatrixAPA102Refresh<pwm_depth, width, height, panel_type, option_flags>::frameDataStruct frameDataBuffer[buffer_rows]; \
             SmartMatrixAPA102Refresh<pwm_depth, width, height, panel_type, option_flags> matrix_name##Refresh(buffer_rows, frameDataBuffer); \
             SmartMatrixApaCalc<pwm_depth, width, height, panel_type, option_flags> matrix_name(buffer_rows, frameDataBuffer)
