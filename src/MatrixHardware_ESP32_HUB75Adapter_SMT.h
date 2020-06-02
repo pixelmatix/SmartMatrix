@@ -36,9 +36,10 @@
 #pragma GCC error "GPIOPINOUT previously set!"
 #endif
 
-#define GPIOPINOUT HUB75_ADAPTER_V0_THT_PINOUT
+#define GPIOPINOUT HUB75_ADAPTER_V0_SMT_PINOUT
 
-#pragma message "MatrixHardware: HUB75 Adapter V0 THT pinout"
+
+#pragma message "MatrixHardware: HUB75 Adapter V0 SMT pinout"
 
 //Upper half RGB
 #define BIT_R1  (1<<0)   
@@ -71,11 +72,11 @@
 #undef BIT_E
 
 #define R1_PIN  GPIO_NUM_12
-#define G1_PIN  GPIO_NUM_2
-#define B1_PIN  GPIO_NUM_15
-#define R2_PIN  GPIO_NUM_26
+#define G1_PIN  GPIO_NUM_27
+#define B1_PIN  GPIO_NUM_26
+#define R2_PIN  GPIO_NUM_2
 #define G2_PIN  GPIO_NUM_25
-#define B2_PIN  GPIO_NUM_21
+#define B2_PIN  GPIO_NUM_15
 
 #define A_PIN   -1
 #define B_PIN   -1
@@ -83,17 +84,17 @@
 #define D_PIN   -1
 #define E_PIN   -1
 
-#define LAT_PIN GPIO_NUM_22
-#define OE_PIN  GPIO_NUM_19
+#define LAT_PIN GPIO_NUM_10
+#define OE_PIN  GPIO_NUM_9
 
 #define CLK_PIN GPIO_NUM_4
 
 // this pin can be manually toggled when the latch pin is high to send CLK pulses to the panel (noramlly latch blocks clock)
-#define CLK_MANUAL_PIN GPIO_NUM_18
+#define CLK_MANUAL_PIN GPIO_NUM_22
 
 //#define DEBUG_PINS_ENABLED
-#define DEBUG_1_GPIO    GPIO_NUM_10
-#define DEBUG_2_GPIO    GPIO_NUM_5
+#define DEBUG_1_GPIO    GPIO_NUM_18
+#define DEBUG_2_GPIO    GPIO_NUM_23
 
 #else
     #pragma GCC error "Multiple MatrixHardware*.h files included"
