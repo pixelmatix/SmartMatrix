@@ -40,6 +40,6 @@
     DMAChannel dmaEnable(false);
     DMAChannel dmaUpdateTimer(false);
     IntervalTimer myTimer;
-    FlexIOSPI SPIFLEX(FLEXIO_PIN_APA102_DAT, FLEXIO_PIN_APA102_CLK, FLEXIO_PIN_APA102_DAT); // overlapping MOSI pin on MISO as we don't need MISO
+    FlexIOSPI SPIFLEX(FLEXIO_PIN_APA102_DAT, FLEXIO_PIN_APA102_DAT, FLEXIO_PIN_APA102_CLK); // overlapping MOSI pin on MISO as we don't need MISO
     EventResponder apa102ShiftCompleteEvent;
 #endif
