@@ -152,6 +152,13 @@ void SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, pan
     gpio_set_direction(DEBUG_1_GPIO, GPIO_MODE_OUTPUT);
     gpio_set_level(DEBUG_1_GPIO, 1);
     gpio_set_level(DEBUG_1_GPIO, 0);
+
+#ifdef DEBUG_2_GPIO
+    gpio_pad_select_gpio(DEBUG_2_GPIO);
+    gpio_set_direction(DEBUG_2_GPIO, GPIO_MODE_OUTPUT);
+    gpio_set_level(DEBUG_2_GPIO, 1);
+    gpio_set_level(DEBUG_2_GPIO, 0);
+#endif
 #endif
 
     // calculate the lowest LSBMSB_TRANSITION_BIT value that will fit in memory
