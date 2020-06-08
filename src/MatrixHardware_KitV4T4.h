@@ -18,6 +18,8 @@
 #ifndef MATRIX_HARDWARE_H
 #define MATRIX_HARDWARE_H
 
+#pragma message "MatrixHardware: SmartLED Shield for Teensy 3 V4 with jumper wire modifications for Teensy 4"
+
 /* an advanced user may need to tweak these values */
 
 // size of latch pulse - can be short for V4 shield which doesn't need to update ADDX lines during latch pulse
@@ -45,7 +47,19 @@
 
 /* this section describes how the microcontroller is attached to the display */
 
+// these defines control the color channel assignments - if your panel has non-standard RGB order, swap signals here
+#define R_0_SIGNAL    FLEXIO_PIN_R0_TEENSY_PIN
+#define G_0_SIGNAL    FLEXIO_PIN_G0_TEENSY_PIN
+#define B_0_SIGNAL    FLEXIO_PIN_B0_TEENSY_PIN
+#define R_1_SIGNAL    FLEXIO_PIN_R1_TEENSY_PIN
+#define G_1_SIGNAL    FLEXIO_PIN_G1_TEENSY_PIN
+#define B_1_SIGNAL    FLEXIO_PIN_B1_TEENSY_PIN
+
+/************ The below definitions are unlikely to be useful if changed **************/
+
 // active pin number definitions
+// data bit order is calculated in setup using the pin number definitions and color channel assignments
+// these pin definitions are also manually used to reset FM6126A panels
 #define FLEXPWM_PIN_OE_TEENSY_PIN       4
 #define FLEXPWM_PIN_LATCH_TEENSY_PIN    33    // jumper wire to Teensy Pin 3
 #define FLEXIO_PIN_CLK_TEENSY_PIN       10    // jumper wire to Teensy Pin 14
@@ -72,6 +86,12 @@
 #define T4_RESERVED_G0_TEENSY_PIN       5
 #define T4_RESERVED_B1_TEENSY_PIN       20
 
-// note: data bit order is calculated in setup using the pin number definitions
+#define ADDX_0_SIGNAL   FLEXIO_PIN_R0_TEENSY_PIN
+#define ADDX_1_SIGNAL   FLEXIO_PIN_G0_TEENSY_PIN
+#define ADDX_2_SIGNAL   FLEXIO_PIN_B0_TEENSY_PIN
+#define ADDX_3_SIGNAL   FLEXIO_PIN_R1_TEENSY_PIN
+#define ADDX_4_SIGNAL   FLEXIO_PIN_G1_TEENSY_PIN
 
+#else
+    #pragma GCC error "Multiple MatrixHardware*.h files included"
 #endif

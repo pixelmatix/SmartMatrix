@@ -34,11 +34,11 @@ class SmartMatrixRefreshT4 {
 
         // struct to store bit offsets based on FlexIO hardware pin numbers
         struct flexPinConfigStruct {
-            uint8_t r0;
-            uint8_t g0;
-            uint8_t b0;
-            uint8_t r1;
-            uint8_t g1;
+            union { uint8_t r0; uint8_t addx0; };
+            union { uint8_t g0; uint8_t addx1; };
+            union { uint8_t b0; uint8_t addx2; };
+            union { uint8_t r1; uint8_t addx3; };
+            union { uint8_t g1; uint8_t addx4; };
             uint8_t b1;
         };
 

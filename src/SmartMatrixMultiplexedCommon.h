@@ -104,13 +104,6 @@
 #define SMARTMATRIX_OPTIONS_ESP32_CALC_TASK_CORE_1  (1 << 5)
 #define SMARTMATRIX_OPTIONS_FM6126A_RESET_AT_START  (1 << 6)
 #define SMARTMATRIX_OPTIONS_T4_CLK_PIN_ALT          (1 << 7)
-#define SMARTMATRIX_OPTIONS_RGB                     (0x0 << 8)
-#define SMARTMATRIX_OPTIONS_RBG                     (0x1 << 8)
-#define SMARTMATRIX_OPTIONS_GRB                     (0x2 << 8)
-#define SMARTMATRIX_OPTIONS_GBR                     (0x3 << 8)
-#define SMARTMATRIX_OPTIONS_BRG                     (0x4 << 8)
-#define SMARTMATRIX_OPTIONS_BGR                     (0x5 << 8)
-#define SMARTMATRIX_OPTIONS_RGB_BITMASK             (0x7 << 8)
 
 // defines data bit order from bit 0-7, four times to fit in uint32_t
 #define PACKED_HUB75_WORD_ORDER p0r1:1, p0g1:1, p0b1:1, p0r2:1, p0g2:1, p0b2:1, p1r1:1, p1g1:1, \

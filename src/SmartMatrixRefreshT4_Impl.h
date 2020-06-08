@@ -454,62 +454,20 @@ FLASHMEM void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, pane
         Serial.println("Error: incorrect FlexIO pin configuration!");
     }
 
-    // calculate the bit offsets of the data signals that are output on each pin 
-    addxPinConfig.r0 = r0FlexPin - lowestFlexPin;
-    addxPinConfig.g0 = g0FlexPin - lowestFlexPin;
-    addxPinConfig.b0 = b0FlexPin - lowestFlexPin;
-    addxPinConfig.r1 = r1FlexPin - lowestFlexPin;
-    addxPinConfig.g1 = g1FlexPin - lowestFlexPin;
-    addxPinConfig.b1 = b1FlexPin - lowestFlexPin;
-    
-    // assign color channels based on user-settable option and store in flexPinConfig struct
-    // which will be read by SmartMatrix3 class when formatting data
-    switch (optionFlags & SMARTMATRIX_OPTIONS_RGB_BITMASK) {
-        case SMARTMATRIX_OPTIONS_RGB:
-        default:
-            flexPinConfig = addxPinConfig;
-            break;
-        case SMARTMATRIX_OPTIONS_RBG:
-            flexPinConfig.r0 = addxPinConfig.r0;
-            flexPinConfig.b0 = addxPinConfig.g0;
-            flexPinConfig.g0 = addxPinConfig.b0;
-            flexPinConfig.r1 = addxPinConfig.r1;
-            flexPinConfig.b1 = addxPinConfig.g1;
-            flexPinConfig.g1 = addxPinConfig.b1;
-            break;
-        case SMARTMATRIX_OPTIONS_GRB:
-            flexPinConfig.g0 = addxPinConfig.r0;
-            flexPinConfig.r0 = addxPinConfig.g0;
-            flexPinConfig.b0 = addxPinConfig.b0;
-            flexPinConfig.g1 = addxPinConfig.r1;
-            flexPinConfig.r1 = addxPinConfig.g1;
-            flexPinConfig.b1 = addxPinConfig.b1;
-            break;
-        case SMARTMATRIX_OPTIONS_GBR:
-            flexPinConfig.g0 = addxPinConfig.r0;
-            flexPinConfig.b0 = addxPinConfig.g0;
-            flexPinConfig.r0 = addxPinConfig.b0;
-            flexPinConfig.g1 = addxPinConfig.r1;
-            flexPinConfig.b1 = addxPinConfig.g1;
-            flexPinConfig.r1 = addxPinConfig.b1;
-            break;
-        case SMARTMATRIX_OPTIONS_BRG:
-            flexPinConfig.b0 = addxPinConfig.r0;
-            flexPinConfig.r0 = addxPinConfig.g0;
-            flexPinConfig.g0 = addxPinConfig.b0;
-            flexPinConfig.b1 = addxPinConfig.r1;
-            flexPinConfig.r1 = addxPinConfig.g1;
-            flexPinConfig.g1 = addxPinConfig.b1;
-            break;
-        case SMARTMATRIX_OPTIONS_BGR:
-            flexPinConfig.b0 = addxPinConfig.r0;
-            flexPinConfig.g0 = addxPinConfig.g0;
-            flexPinConfig.r0 = addxPinConfig.b0;
-            flexPinConfig.b1 = addxPinConfig.r1;
-            flexPinConfig.g1 = addxPinConfig.g1;
-            flexPinConfig.r1 = addxPinConfig.b1;
-            break;
-    }
+    // calculate the bit offsets of the data signals that are output on each pin
+    flexPinConfig.r0 = pFlex->mapIOPinToFlexPin(R_0_SIGNAL) - lowestFlexPin;
+    flexPinConfig.g0 = pFlex->mapIOPinToFlexPin(G_0_SIGNAL) - lowestFlexPin;
+    flexPinConfig.b0 = pFlex->mapIOPinToFlexPin(B_0_SIGNAL) - lowestFlexPin;
+    flexPinConfig.r1 = pFlex->mapIOPinToFlexPin(R_1_SIGNAL) - lowestFlexPin;
+    flexPinConfig.g1 = pFlex->mapIOPinToFlexPin(G_1_SIGNAL) - lowestFlexPin;
+    flexPinConfig.b1 = pFlex->mapIOPinToFlexPin(B_1_SIGNAL) - lowestFlexPin;
+
+    // determine the bit offsets of the address signals
+    addxPinConfig.addx0 = pFlex->mapIOPinToFlexPin(ADDX_0_SIGNAL) - lowestFlexPin;
+    addxPinConfig.addx1 = pFlex->mapIOPinToFlexPin(ADDX_1_SIGNAL) - lowestFlexPin;
+    addxPinConfig.addx2 = pFlex->mapIOPinToFlexPin(ADDX_2_SIGNAL) - lowestFlexPin;
+    addxPinConfig.addx3 = pFlex->mapIOPinToFlexPin(ADDX_3_SIGNAL) - lowestFlexPin;
+    addxPinConfig.addx4 = pFlex->mapIOPinToFlexPin(ADDX_4_SIGNAL) - lowestFlexPin;
 
     // Configure FlexIO Shifters for RGB data buffering:
     // Shifter 0 outputs to the external pins and the other shifters output in sequence.
@@ -822,11 +780,11 @@ FASTRUN void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panel
     unsigned int currentRowAddress = SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateRows[row].rowbits[0].rowAddress;
 
     uint32_t addressData = 0;
-    addressData |= (currentRowAddress & 0x01) ? (1 << addxPinConfig.r0) : 0;
-    addressData |= (currentRowAddress & 0x02) ? (1 << addxPinConfig.g0) : 0;
-    addressData |= (currentRowAddress & 0x04) ? (1 << addxPinConfig.b0) : 0;
-    addressData |= (currentRowAddress & 0x08) ? (1 << addxPinConfig.r1) : 0;
-    addressData |= (currentRowAddress & 0x10) ? (1 << addxPinConfig.g1) : 0;
+    addressData |= (currentRowAddress & 0x01) ? (1 << addxPinConfig.addx0) : 0;
+    addressData |= (currentRowAddress & 0x02) ? (1 << addxPinConfig.addx1) : 0;
+    addressData |= (currentRowAddress & 0x04) ? (1 << addxPinConfig.addx2) : 0;
+    addressData |= (currentRowAddress & 0x08) ? (1 << addxPinConfig.addx3) : 0;
+    addressData |= (currentRowAddress & 0x10) ? (1 << addxPinConfig.addx4) : 0;
 
     volatile uint32_t * addxBuf;
     addxBuf = flexIO->SHIFTBUF + RGBDATA_SHIFTERS;

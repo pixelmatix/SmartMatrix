@@ -1,27 +1,21 @@
-// Hardware-specific header file to use the SmartLED Shield V4 with the OSHPark Adapter for Teensy 4:
-// https://oshpark.com/shared_projects/yVCGECuY
+// Hardware-specific header file for the SmartLED Shield for Teensy 4 (V0):
 //    Only Teensy 4.0/4.1 models are supported.
-//    Only SmartLED Shield V4 (for Teensy 3) is supported.
-// No jumper wires or other modifications are needed with the OSHPark Adapter.
 //
 // Some of the pin assignments can be changed using solderable jumpers on the adapter board:
-// JP1 & JP4:
+// JP4:
 //    Default: Pin 8 connected to BUFFER_CLK, Pin 7 free
 //    Alt: Pin 7 connected to BUFFER_CLK, Pin 8 free
-//      To use the alternate clock pin, in addition to soldering the jumpers you must set flag SMARTMATRIX_OPTIONS_T4_CLK_PIN_ALT in kMatrixOptions
+//      To use the alternate clock pin, in addition to soldering the jumper you must set flag SMARTMATRIX_OPTIONS_T4_CLK_PIN_ALT in kMatrixOptions
 // JP2 & JP3:
-//    Default: Pin 4 connected to SPI_SCK, Pin 5 connected to SPI_MOSI (intended for APA102 driving via SPI emulation), LED Matrix is drivable at the same time
-//    Alt: Pins 4 & 5 NC, Pin 13 connected to SPI_SCK, Pin 11 connected to SPI_MOSI (intended for APA102 driving via hardware SPI), LED Matrix not drivable at the same time
-// The following unused Teensy 4 pins are made available on the shield but some are in different positions marked on the OSHPark Adapter:
-//    Teensy 4 pins free:   0, 1, 7/8, 14, 15, 16, 17, 18, 19, 20, 21, 23
-//    Locations on shield:  0, 1,   9, 10, 15, 16, 11, 18, 19, 12, 22, 23
+//    Default: Pins 4 & 5 free, Pin 13 connected to APA_CLK, Pin 11 connected to APA_DAT (intended for APA102 driving via hardware SPI), LED Matrix not drivable at the same time
+//    Alt: Pin 4 connected to APA_CLK, Pin 5 connected to APA_DAT (intended for APA102 driving via SPI emulation), LED Matrix is drivable at the same time
 
 // Note: only one MatrixHardware_*.h file should be included per project
 
 #ifndef MATRIX_HARDWARE_H
 #define MATRIX_HARDWARE_H
 
-#pragma message "MatrixHardware: SmartLED Shield for Teensy 3 V4 with OSHPark Adapter for Teensy 4"
+#pragma message "MatrixHardware: SmartLED Shield for Teensy 4 V0"
 
 /* an advanced user may need to tweak these values */
 
