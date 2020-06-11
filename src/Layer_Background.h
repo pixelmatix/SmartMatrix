@@ -41,7 +41,8 @@ class SMLayerBackground : public SM_Layer {
         void fillRefreshRow(uint16_t hardwareY, rgb48 refreshRow[], int brightnessShifts = 0);
         void fillRefreshRow(uint16_t hardwareY, rgb24 refreshRow[], int brightnessShifts = 0);
         int getRequestedBrightnessShifts();
-
+        bool isLayerChanged();
+        
         void swapBuffers(bool copy = true);
         bool isSwapPending();
         void copyRefreshToDrawing(void);

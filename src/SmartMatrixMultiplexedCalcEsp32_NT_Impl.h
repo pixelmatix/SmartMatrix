@@ -65,6 +65,8 @@ void SmartMatrix3_NT<dummyvar>::matrixCalculations() {
     static unsigned long lastMillisStart;
     static unsigned long lastMillisEnd;
     static int refreshFramesSinceLastCalculation = 0;
+    SM_Layer * templayer;
+    static bool firstRun = true;
 
     if(++refreshFramesSinceLastCalculation < calc_refreshRateDivider)
         return;
@@ -80,15 +82,30 @@ void SmartMatrix3_NT<dummyvar>::matrixCalculations() {
         refreshRateLowered = true;
     }
 
-    lastMillisStart = millis();
-
     // only do calculations if there is free space (should be redundant, as we only get called if there is free space)
     if (!_matrixRefresh->isFrameBufferFree())
         return;
 
+    templayer = baseLayer;
+    bool refreshNeeded = false;
+    while(templayer) {
+        if(templayer->isLayerChanged())
+            refreshNeeded = true;
+
+        templayer = templayer->nextLayer;
+    }
+
+    if(!refreshNeeded && !firstRun)
+        return;
+
+    firstRun = false;
+
+    // now we know we're actually going to update the frame, keep track of the time we started updating
+    lastMillisStart = millis();
+
     // do once-per-frame updates
     if (rotationChange) {
-        SM_Layer * templayer = baseLayer;
+        templayer = baseLayer;
         while(templayer) {
             templayer->setRotation(rotation);
             templayer = templayer->nextLayer;
@@ -98,7 +115,7 @@ void SmartMatrix3_NT<dummyvar>::matrixCalculations() {
 
     int largestRequestedBrightnessShifts = 0;
 
-    SM_Layer * templayer = baseLayer;
+    templayer = baseLayer;
     while(templayer) {
         if(refreshRateChanged) {
             templayer->setRefreshRate(calc_refreshRate);

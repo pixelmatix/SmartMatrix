@@ -38,6 +38,7 @@ class SM_Layer {
         void setRotation(rotationDegrees newrotation);
         virtual void setRefreshRate(uint8_t newRefreshRate);
         virtual int getRequestedBrightnessShifts();
+        virtual bool isLayerChanged();
 
         SM_Layer * nextLayer;
 

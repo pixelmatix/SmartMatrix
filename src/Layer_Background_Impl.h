@@ -91,6 +91,11 @@ int SMLayerBackground<RGB, optionFlags>::getRequestedBrightnessShifts() {
     return idealBrightnessShifts;
 }
 
+template <typename RGB, unsigned int optionFlags>
+bool SMLayerBackground<RGB, optionFlags>::isLayerChanged() {
+    return swapPending;
+}
+
 // numShifts must be in range of 0-4, otherwise 16-bit to 12-bit conversion code breaks (would be an easy fix, but 4 is enough for APA102 GBC application)
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackground<RGB, optionFlags>::setBrightnessShifts(int numShifts) {

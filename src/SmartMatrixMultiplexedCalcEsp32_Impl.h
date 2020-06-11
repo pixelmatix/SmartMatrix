@@ -116,6 +116,8 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     static unsigned long lastMillisStart;
     static unsigned long lastMillisEnd;
     static int refreshFramesSinceLastCalculation = 0;
+    SM_Layer * templayer;
+    static bool firstRun = true;
 
     if(++refreshFramesSinceLastCalculation < calc_refreshRateDivider)
         return;
@@ -131,15 +133,30 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
         refreshRateLowered = true;
     }
 
-    lastMillisStart = millis();
-
     // only do calculations if there is free space (should be redundant, as we only get called if there is free space)
     if (!SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::isFrameBufferFree())
         return;
 
+    templayer = SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
+    bool refreshNeeded = false;
+    while(templayer) {
+        if(templayer->isLayerChanged())
+            refreshNeeded = true;
+
+        templayer = templayer->nextLayer;
+    }
+
+    if(!refreshNeeded && !firstRun)
+        return;
+
+    firstRun = false;
+
+    // now we know we're actually going to update the frame, keep track of the time we started updating
+    lastMillisStart = millis();
+
     // do once-per-frame updates
     if (rotationChange) {
-        SM_Layer * templayer = SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
+        templayer = SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
         while(templayer) {
             templayer->setRotation(rotation);
             templayer = templayer->nextLayer;
@@ -149,7 +166,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 
     int largestRequestedBrightnessShifts = 0;
 
-    SM_Layer * templayer = SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
+    templayer = SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
     while(templayer) {
         if(refreshRateChanged) {
             templayer->setRefreshRate(calc_refreshRate);
