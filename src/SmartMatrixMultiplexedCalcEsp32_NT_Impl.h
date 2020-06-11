@@ -225,12 +225,21 @@ bool SmartMatrix3_NT<dummyvar>::getRefreshRateLoweredFlag(void) {
 template <int dummyvar>
 void SmartMatrix3_NT<dummyvar>::calcTask(void* pvParameters)
 {        
+    static long lastMillis = 0;
     SmartMatrix3_NT* thisPtr = (SmartMatrix3_NT*)pvParameters;
     while(1) {   
         if( xSemaphoreTake(calcTaskSemaphore, portMAX_DELAY) == pdTRUE ) {
 #ifdef DEBUG_PINS_ENABLED
             gpio_set_level(DEBUG_1_GPIO, 1);
 #endif
+
+            long currentMillis = millis();
+            if(currentMillis - lastMillis >= 4500){
+                // sleep a bit to reset the watchdog (default is 5000ms between resets)
+                vTaskDelay(10);
+                lastMillis = currentMillis;
+            }
+
 
             // we usually do this with an ISR in the refresh class, but ESP32 doesn't let us store a templated method in IRAM (at least not easily) so we call this from the calc task
             thisPtr->_matrixRefresh->markRefreshComplete();

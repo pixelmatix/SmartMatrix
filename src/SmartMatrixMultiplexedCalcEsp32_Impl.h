@@ -291,11 +291,19 @@ TaskHandle_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, op
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::calcTask(void* pvParameters)
 {        
+    static long lastMillis = 0;
     while(1) {   
         if( xSemaphoreTake(calcTaskSemaphore, portMAX_DELAY) == pdTRUE ) {
 #ifdef DEBUG_PINS_ENABLED
             gpio_set_level(DEBUG_1_GPIO, 1);
 #endif
+
+            long currentMillis = millis();
+            if(currentMillis - lastMillis >= 4500){
+                // sleep a bit to reset the watchdog (default is 5000ms between resets)
+                vTaskDelay(10);
+                lastMillis = currentMillis;
+            }
 
             // we usually do this with an ISR in the refresh class, but ESP32 doesn't let us store a templated method in IRAM (at least not easily) so we call this from the calc task
             SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::markRefreshComplete();
