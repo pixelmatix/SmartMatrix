@@ -318,7 +318,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
             long currentMillis = millis();
             if(currentMillis - lastMillis >= 4500){
                 // sleep a bit to reset the watchdog (default is 5000ms between resets)
-                vTaskDelay(10);
+                vTaskDelay(1);
                 lastMillis = currentMillis;
             }
 
