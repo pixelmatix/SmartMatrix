@@ -275,8 +275,9 @@ void SmartMatrix3_NT<dummyvar>::calcTask(void* pvParameters)
 template <int dummyvar>
 void SmartMatrix3_NT<dummyvar>::begin(uint32_t dmaRamToKeepFreeBytes)
 {    
-    maxCalcCpuPercentage = 80; // to avoid 100% CPU usage, we by default don't calculate on every frame.  Calc refresh rate will be a fraction of Refresh refresh rate
-    calc_refreshRateDivider = 2;
+    // only load user-settable parameter defaults if they haven't already been set before begin() was called
+    if(!maxCalcCpuPercentage) maxCalcCpuPercentage = 80; // to avoid 100% CPU usage, we by default don't calculate on every frame.  Calc refresh rate will be a fraction of Refresh refresh rate
+    if(!calc_refreshRateDivider) calc_refreshRateDivider = 2;
     calc_refreshRate = 120/calc_refreshRateDivider;
     dmaBufferUnderrun = false;
     dmaBufferUnderrunSinceLastCheck = false;
@@ -290,9 +291,8 @@ void SmartMatrix3_NT<dummyvar>::begin(uint32_t dmaRamToKeepFreeBytes)
 
     brightnessChange = false;
     rotationChange = true;
-    rotation = rotation0;
-
-    brightness = pixels_per_latch;
+    if(!rotation) rotation = rotation0;
+    if(!brightness) brightness = pixels_per_latch;
 
     printf("\r\nStarting SmartMatrix Mallocs\r\n");
     show_esp32_all_mem();
