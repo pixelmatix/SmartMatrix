@@ -18,6 +18,10 @@
 #include <SmartMatrix3.h>
 #include <FastLED.h>
 
+#define ENABLE_HUB75_REFRESH    1
+#define ENABLE_APA102_REFRESH   1
+
+#if (ENABLE_HUB75_REFRESH == 1)
 #define COLOR_DEPTH 24                  // This sketch and FastLED uses type `rgb24` directly, COLOR_DEPTH must be 24
 const uint8_t kMatrixWidth = 32;        // known working: 32, 64, 96, 128
 const uint8_t kMatrixHeight = 32;       // known working: 16, 32, 48, 64
@@ -31,7 +35,9 @@ const uint8_t kScrollingLayerOptions = (SM_SCROLLING_OPTIONS_NONE);
 SMARTMATRIX_ALLOCATE_BUFFERS(matrix, kMatrixWidth, kMatrixHeight, kRefreshDepth, kDmaBufferRows, kPanelType, kMatrixOptions);
 SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kBackgroundLayerOptions);
 SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
+#endif
 
+#if (ENABLE_APA102_REFRESH == 1)
 // adjust this to your APA matrix/strip - set kApaMatrixHeight to 1 for a strip
 const uint8_t kApaMatrixWidth = 16;
 const uint8_t kApaMatrixHeight = 16;
@@ -43,6 +49,7 @@ const uint8_t kApaBackgroundLayerOptions = (SM_BACKGROUND_OPTIONS_NONE);
 
 SMARTMATRIX_APA_ALLOCATE_BUFFERS(apamatrix, kApaMatrixWidth, kApaMatrixHeight, kApaRefreshDepth, kApaDmaBufferRows, kApaPanelType, kApaMatrixOptions);
 SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(apaBackgroundLayer, kApaMatrixWidth, kApaMatrixHeight, COLOR_DEPTH, kApaBackgroundLayerOptions);
+#endif
 
 // The 32bit version of our coordinates
 static uint16_t x;
@@ -67,8 +74,18 @@ uint16_t speed = 20; // a nice starting speed, mixes well with a scale of 100
 // uint16_t scale = 4011; // very zoomed out and shimmery
 uint16_t scale = 31;
 
+#if (ENABLE_APA102_REFRESH == 1)
 #define MAX_DIMENSION_APA ((kApaMatrixWidth>kApaMatrixHeight) ? kApaMatrixWidth : kApaMatrixHeight)
+#else
+#define MAX_DIMENSION_APA 0
+#endif
+
+#if (ENABLE_HUB75_REFRESH == 1)
 #define MAX_DIMENSION_PANEL ((kMatrixWidth>kMatrixHeight) ? kMatrixWidth : kMatrixHeight)
+#else
+#define MAX_DIMENSION_PANEL 0
+#endif
+
 #define MAX_DIMENSION_OVERALL ((MAX_DIMENSION_APA>MAX_DIMENSION_PANEL) ? MAX_DIMENSION_APA : MAX_DIMENSION_PANEL)
 
 // This is the array that we keep our computed noise values in
@@ -80,20 +97,29 @@ void setup() {
   // Serial.println("resetting!");
   delay(3000);
 
-  // enable the APA102 buffers to drive out the SPI signals
-  pinMode(SMARTLED_APA_ENABLE_PIN, OUTPUT);
-  digitalWrite(SMARTLED_APA_ENABLE_PIN, HIGH);  // enable access to LEDs
 
+#if (ENABLE_HUB75_REFRESH == 1)
   matrix.addLayer(&backgroundLayer); 
   matrix.addLayer(&scrollingLayer); 
   matrix.begin();
 
+  // lower the brightness
+  matrix.setBrightness(128);
+#endif
+
+#if (ENABLE_APA102_REFRESH == 1)
+  // enable the APA102 buffers to drive out the SPI signals
+  pinMode(SMARTLED_APA_ENABLE_PIN, OUTPUT);
+  digitalWrite(SMARTLED_APA_ENABLE_PIN, HIGH);  // enable access to LEDs
+
   apamatrix.addLayer(&apaBackgroundLayer);
   apamatrix.begin();
 
-  // lower the brigtness of both sets of LEDs
-  matrix.setBrightness(128);
+  // lower the brightness
   apamatrix.setBrightness(128);
+#endif
+
+
 
   // Initialize our coordinates to some random values
   x = random16();
@@ -126,11 +152,9 @@ void loop() {
   static uint8_t circley = 0;
 
   // if sketch uses swapBuffers(false), wait to get a new backBuffer() pointer after the swap is done:
+#if (ENABLE_HUB75_REFRESH == 1)
   while(backgroundLayer.isSwapPending());
   rgb24 *buffer = backgroundLayer.backBuffer();
-
-  while(apaBackgroundLayer.isSwapPending());
-  rgb24 *apabuffer = apaBackgroundLayer.backBuffer();
 
   static uint8_t ihue=0;
   fillnoise8();
@@ -145,6 +169,19 @@ void loop() {
       // buffer[kMatrixHeight*j + i] = CRGB(CHSV(ihue + (noise[j][i]>>2),255,noise[i][j]));
     }
   }
+
+  backgroundLayer.fillCircle(circlex % kMatrixWidth,circley % kMatrixHeight,6,CRGB(CHSV(ihue+128,255,255)));
+  circlex += random16(2);
+  circley += random16(2);
+
+  // buffer is filled completely each time, use swapBuffers without buffer copy to save CPU cycles
+  backgroundLayer.swapBuffers(false);
+#endif
+
+#if (ENABLE_APA102_REFRESH == 1)
+  while(apaBackgroundLayer.isSwapPending());
+  rgb24 *apabuffer = apaBackgroundLayer.backBuffer();
+    
   for(int i = 0; i < kApaMatrixWidth; i++) {
     for(int j = 0; j < kApaMatrixHeight; j++) {
       // We use the value at the (i,j) coordinate in the noise
@@ -157,15 +194,12 @@ void loop() {
     }
   }
 
-  ihue+=1;
-
-  backgroundLayer.fillCircle(circlex % kMatrixWidth,circley % kMatrixHeight,6,CRGB(CHSV(ihue+128,255,255)));
-  circlex += random16(2);
-  circley += random16(2);
-
   // buffer is filled completely each time, use swapBuffers without buffer copy to save CPU cycles
-  backgroundLayer.swapBuffers(false);
   apaBackgroundLayer.swapBuffers(false);
+
+#endif
+
+  ihue+=1;
 
   //matrix.countFPS();      // print the loop() frames per second to Serial
 }
