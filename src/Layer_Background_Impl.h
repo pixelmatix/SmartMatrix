@@ -693,9 +693,10 @@ void SMLayerBackground<RGB, optionFlags>::fillFlatSideTriangleInt(int16_t x1, in
     int16_t t1x, t2x, t1y, t2y;
     bool changed1 = false;
     bool changed2 = false;
-    int8_t signx1, signx2, signy1, signy2, dx1, dy1, dx2, dy2;
+    int8_t signx1, signx2, signy1, signy2;
+    int16_t dx1, dy1, dx2, dy2;
     int i;
-    int8_t e1, e2;
+    int16_t e1, e2;
 
     t1x = t2x = x1; t1y = t2y = y1; // Starting points
 
