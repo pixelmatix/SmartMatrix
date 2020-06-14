@@ -1362,8 +1362,6 @@ void loop() {
 #endif
 #if (DEMO_REFRESH_RATE == 1)
     {
-//      matrix.setRefreshRate(18);
-//      delay(5000);
         const int minRefreshRate = 5;
         const int maxRefreshRate = matrix.getRefreshRate();
 
