@@ -2,20 +2,18 @@
     SmartMatrix Features Demo - Louis Beaudoin (Pixelmatix)
     This example code is released into the public domain
 */
-
-//#include <SmartLEDShieldV4.h>  // uncomment this line for SmartLED Shield V4 (needs to be before #include <SmartMatrix3.h>)
-//#include <MatrixHardware_KitV4T4.h>  // uncomment this line for Teensy 4.0/4.1 on (modified) SmartLED Shield V4 (needs to be before #include <SmartMatrix3.h>)
+#include "MatrixHardware_custom.h"
 #include <SmartMatrix3.h>
 #include "colorwheel.c"
 #include "gimpbitmap.h"
 
 #define COLOR_DEPTH 24                  // known working: 24, 48 - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
-const uint8_t kMatrixWidth = 32;        // known working: 32, 64, 96, 128
-const uint8_t kMatrixHeight = 32;       // known working: 16, 32, 48, 64
-const uint8_t kRefreshDepth = 36;       // known working: 24, 36, 48
+const uint16_t kMatrixWidth = 32;        // known working: 32, 64, 96, 128, 256
+const uint16_t kMatrixHeight = 32;       // known working: 16, 32, 48, 64, 128
+const uint8_t kRefreshDepth = 24;       // known working: 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48
 const uint8_t kDmaBufferRows = 4;       // known working: 2-4, use 2 to save memory, more to keep from dropping frames and automatically lowering refresh rate
 const uint8_t kPanelType = SMARTMATRIX_HUB75_32ROW_MOD16SCAN;   // use SMARTMATRIX_HUB75_16ROW_MOD8SCAN for common 16x32 panels
-const uint8_t kMatrixOptions = (SMARTMATRIX_OPTIONS_NONE);      // see http://docs.pixelmatix.com/SmartMatrix for options
+const uint8_t kMatrixOptions = SMARTMATRIX_OPTIONS_NONE;   // see http://docs.pixelmatix.com/SmartMatrix for options
 const uint8_t kBackgroundLayerOptions = (SM_BACKGROUND_OPTIONS_NONE);
 const uint8_t kScrollingLayerOptions = (SM_SCROLLING_OPTIONS_NONE);
 const uint8_t kIndexedLayerOptions = (SM_INDEXED_OPTIONS_NONE);
@@ -67,7 +65,7 @@ void setup() {
 #define DEMO_INTRO              1
 #define DEMO_DRAWING_INTRO      1
 #define DEMO_DRAWING_PIXELS     1
-#define DEMO_DRAWING_LINES      1
+#define DEMO_DRAWING_LINES      1 
 #define DEMO_DRAWING_TRIANGLES  1
 #define DEMO_DRAWING_CIRCLES    1
 #define DEMO_DRAWING_RECTANGLES 1
@@ -551,6 +549,7 @@ void loop() {
         scrollingLayer.setMode(wrapForward);
         scrollingLayer.setSpeed(40);
         scrollingLayer.setFont(font6x10);
+
         scrollingLayer.start("Draw Outline, Filled, or Filled with Outline", 1);
 
         uint transitionTime = 8500;
@@ -1363,6 +1362,8 @@ void loop() {
 #endif
 #if (DEMO_REFRESH_RATE == 1)
     {
+//      matrix.setRefreshRate(18);
+//      delay(5000);
         const int minRefreshRate = 5;
         const int maxRefreshRate = matrix.getRefreshRate();
 
