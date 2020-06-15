@@ -202,7 +202,7 @@ void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, op
 
 #if 0
     // print look-up table (for debugging)
-    Serial.print("Refresh rate "); Serial.println(refreshRate);
+    Serial.print("Refresh rate: "); Serial.print(refreshRate); Serial.print(" (Min/Max: "); Serial.print(MIN_REFRESH_RATE); Serial.print("/"); Serial.print(MAX_REFRESH_RATE); Serial.println(")");
     Serial.print("Max brightness limited to "); Serial.print(msbBlockTicks * (200 - (200 >> LATCHES_PER_ROW)) / TICKS_PER_ROW); Serial.println("%");
     for (i = 0; i < LATCHES_PER_ROW; i++) {
         Serial.print("bitplane "); Serial.print(i);
@@ -237,7 +237,7 @@ FLASHMEM void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, pane
     cbInit(&dmaBuffer, dmaBufferNumRows);
 
     // set refresh rate and fill timerLUT
-    calculateTimerLUT();
+    setRefreshRate(refreshRate);
 
     // completely fill buffer with data before enabling DMA
     matrixCalcCallback(true);
