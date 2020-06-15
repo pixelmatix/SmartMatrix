@@ -19,7 +19,7 @@
 #define MIN_BLOCK_PERIOD_TICKS          (NS_TO_TICKS(MIN_BLOCK_PERIOD_NS))
 //#define MSB_BLOCK_TICKS_ADJUSTMENT_INCREMENT    10
 #define MSB_BLOCK_TICKS_ADJUSTMENT_INCREMENT  (TICKS_PER_ROW/512)
-#define MIN_REFRESH_RATE                ((TIMER_FREQUENCY)/65535/(MATRIX_SCAN_MOD)/2 + 1) // cannot refresh slower than this due to PWM register overflow
+#define MIN_REFRESH_RATE                (((TIMER_FREQUENCY)/65535*(1<<LATCHES_PER_ROW)/((1<<LATCHES_PER_ROW) - 1)/(MATRIX_SCAN_MOD)/2) + 1) // cannot refresh slower than this due to PWM register overflow
 #define MAX_REFRESH_RATE                ((TIMER_FREQUENCY)/(MIN_BLOCK_PERIOD_TICKS)/(MATRIX_SCAN_MOD)/(LATCHES_PER_ROW) - 1) // cannot refresh faster than this due to output bandwidth
 
 #define ROW_CALCULATION_ISR_PRIORITY    240 // lowest priority for IMXRT1062
@@ -202,6 +202,7 @@ void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, op
 
 #if 0
     // print look-up table (for debugging)
+    Serial.print("Refresh rate "); Serial.println(refreshRate);
     Serial.print("Max brightness limited to "); Serial.print(msbBlockTicks * (200 - (200 >> LATCHES_PER_ROW)) / TICKS_PER_ROW); Serial.println("%");
     for (i = 0; i < LATCHES_PER_ROW; i++) {
         Serial.print("bitplane "); Serial.print(i);
