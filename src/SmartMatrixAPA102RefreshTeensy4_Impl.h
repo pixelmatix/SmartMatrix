@@ -29,6 +29,12 @@
 
 #define APA_MIN_REFRESH_RATE_HZ 1
 
+// set to lowest priority as it is a very time consuming ISR
+#define ROW_CALC_ISR_PRIORITY       255
+
+// set to next lowest priority as it can take 10s of microseconds to complete
+#define SHIFT_COMPLETE_ISR_PRIORITY 254
+
 extern IntervalTimer myTimer;
 extern EventResponder apa102ShiftCompleteEvent;
 extern FlexIOSPI SPIFLEX;
@@ -143,8 +149,10 @@ void SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType
     SPIFLEX.beginTransaction(FlexIOSPISettings(20000000, MSBFIRST, SPI_MODE0));
 
     // set interrupt with low priority for long compute time ISR
-    apa102ShiftCompleteEvent.attachInterrupt((EventResponderFunction)&apaRowCalculationISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>, 255);
+    apa102ShiftCompleteEvent.attachInterrupt((EventResponderFunction)&apaRowCalculationISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>, ROW_CALC_ISR_PRIORITY);
 
+    // Give apaRowShiftCompleteISR a low priority, as it can some time (10s of microseconds) to return
+    myTimer.priority(SHIFT_COMPLETE_ISR_PRIORITY);
     myTimer.begin(apaRowShiftCompleteISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>, TIME_PER_FRAME_US);
 }
 
@@ -178,6 +186,9 @@ void apaRowShiftCompleteISR(void) {
         // set flag so other ISR can enable DMA again when data is ready
         //SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBufferUnderrun = true;
     // else, start SPI
+
+    // SPIFLEX.transfer calls arm_dcache_flush() which can take 10s of microseconds to complete - this is why this ISR has low priority
+    // TODO: modify FlexIOSPI to allow for calling arm_dcache_flush() from less time sensitive location
     SPIFLEX.transfer(SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateFrame[currentRow].data,
         NULL, ((matrixWidth * matrixHeight)*4) + (4+4), apa102ShiftCompleteEvent);
 
