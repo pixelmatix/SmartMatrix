@@ -952,17 +952,13 @@ void SMLayerBackground<RGB, optionFlags>::handleBufferSwap(void) {
     if (!swapPending)
         return;
 
-    if(!(optionFlags & SM_BACKGROUND_OPTIONS_ALLOW_IMMEDIATE_SWAP)) {
-        unsigned char newDrawBuffer = currentRefreshBuffer;
+    unsigned char newDrawBuffer = currentRefreshBuffer;
 
-        currentRefreshBuffer = currentDrawBuffer;
-        currentDrawBuffer = newDrawBuffer;
+    currentRefreshBuffer = currentDrawBuffer;
+    currentDrawBuffer = newDrawBuffer;
 
-        currentRefreshBufferPtr = backgroundBuffers[currentRefreshBuffer];
-        currentDrawBufferPtr = backgroundBuffers[currentDrawBuffer];
-
-        idealBrightnessShifts = pendingIdealBrightnessShifts;
-    }
+    currentRefreshBufferPtr = backgroundBuffers[currentRefreshBuffer];
+    currentDrawBufferPtr = backgroundBuffers[currentDrawBuffer];
 
     swapPending = false;
 }
@@ -974,18 +970,6 @@ void SMLayerBackground<RGB, optionFlags>::swapBuffers(bool copy) {
     while (swapPending);
 
     swapPending = true;
-
-    if((optionFlags & SM_BACKGROUND_OPTIONS_ALLOW_IMMEDIATE_SWAP)) {
-        unsigned char newDrawBuffer = currentRefreshBuffer;
-
-        currentRefreshBuffer = currentDrawBuffer;
-        currentDrawBuffer = newDrawBuffer;
-
-        currentRefreshBufferPtr = backgroundBuffers[currentRefreshBuffer];
-        currentDrawBufferPtr = backgroundBuffers[currentDrawBuffer];
-
-        idealBrightnessShifts = pendingIdealBrightnessShifts;
-    }    
 
     if (copy) {
         while (swapPending);
@@ -1072,10 +1056,4 @@ RGB *SMLayerBackground<RGB, optionFlags>::getCurrentRefreshRow(uint16_t y) {
   return &currentRefreshBufferPtr[y*this->matrixWidth];
 }
 
-template<typename RGB, unsigned int optionFlags>
-bool SMLayerBackground<RGB, optionFlags>::isDrawBufferAvailable(void) {
-    if(!(optionFlags & SM_BACKGROUND_OPTIONS_ALLOW_IMMEDIATE_SWAP))
-        return !swapPending;
-    else
-        return 1;
-}
+

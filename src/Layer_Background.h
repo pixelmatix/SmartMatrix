@@ -29,7 +29,6 @@
 #include "MatrixFontCommon.h"
 
 #define SM_BACKGROUND_OPTIONS_NONE     0
-#define SM_BACKGROUND_OPTIONS_ALLOW_IMMEDIATE_SWAP      (1 << 0)
 
 template <typename RGB, unsigned int optionFlags>
 class SMLayerBackground : public SM_Layer {
@@ -78,7 +77,6 @@ class SMLayerBackground : public SM_Layer {
 
         RGB *backBuffer(void);
         void setBackBuffer(RGB *newBuffer);
-        bool isDrawBufferAvailable();
 
         RGB *getRealBackBuffer();
 
