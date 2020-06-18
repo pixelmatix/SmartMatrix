@@ -991,16 +991,6 @@ void SMLayerBackground<RGB, optionFlags>::swapBuffers(bool copy) {
         //   memcpy(backgroundBuffers[currentDrawBuffer], backgroundBuffers[currentRefreshBuffer], sizeof(RGB) * (this->matrixWidth * this->matrixHeight));
 #endif
     }
-
-    if((optionFlags & SM_BACKGROUND_OPTIONS_ALLOW_IMMEDIATE_SWAP)) {
-        unsigned char newDrawBuffer = currentRefreshBuffer;
-
-        currentRefreshBuffer = currentDrawBuffer;
-        currentDrawBuffer = newDrawBuffer;
-
-        currentRefreshBufferPtr = backgroundBuffers[currentRefreshBuffer];
-        currentDrawBufferPtr = backgroundBuffers[currentDrawBuffer];
-    }    
 }
 
 template <typename RGB, unsigned int optionFlags>
