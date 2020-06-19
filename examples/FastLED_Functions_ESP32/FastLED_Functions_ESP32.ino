@@ -28,7 +28,8 @@
  * https://github.com/pixelmatix/SmartMatrix/#external-libraries
  */
 
-//#include <SmartLEDShieldV4.h>  // uncomment this line for SmartLED Shield V4 (needs to be before #include <SmartMatrix3.h>)
+// MatrixHardware configuration header needs to be included before <SmartMatrix3.h> - only ESP32 is supported
+#include <MatrixHardware_ESP32_V0.h>    // This file contains multiple ESP32 hardware configurations, edit the file to define GPIOPINOUT (or add #define GPIOPINOUT with a hardcoded number before this #include)
 #include <SmartMatrix3.h>
 #include <FastLED.h>
 

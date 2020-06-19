@@ -26,6 +26,8 @@
 #ifndef MATRIX_HARDWARE_H
 #define MATRIX_HARDWARE_H
 
+#pragma message "MatrixHardware: SmartMatrix Shield for Teensy 3 V1-V3"
+
 #define COLOR_CHANNELS_PER_PIXEL        3
 #define PIXELS_UPDATED_PER_CLOCK        2
 #define DMA_UPDATES_PER_CLOCK           2
@@ -47,23 +49,24 @@
 
 /* this section describes how the microcontroller is attached to the display */
 
-// defines data bit order from bit 0-7, four times to fit in uint32_t
-#define GPIO_WORD_ORDER p0r1:1, p0clk:1, p0g2:1, p0pad:1, p0b1:1, p0b2:1, p0r2:1, p0g1:1, \
-    p1r1:1, p1clk:1, p1g2:1, p1pad:1, p1b1:1, p1b2:1, p1r2:1, p1g1:1, \
-    p2r1:1, p2clk:1, p2g2:1, p2pad:1, p2b1:1, p2b2:1, p2r2:1, p2g1:1, \
-    p3r1:1, p3clk:1, p3g2:1, p3pad:1, p3b1:1, p3b2:1, p3r2:1, p3g1:1
-
-#define GPIO_WORD_ORDER_8BIT p0r1:1, p0clk:1, p0g2:1, p0pad:1, p0b1:1, p0b2:1, p0r2:1, p0g1:1
+// these defines map the HUB75 signal to PORTD signals - if your panel has non-standard RGB order, swap signals here
+#define BIT_0_SIGNAL    hub75_r0
+#define BIT_1_SIGNAL    hub75_clk
+#define BIT_2_SIGNAL    hub75_g1
+#define BIT_3_SIGNAL    pad
+#define BIT_4_SIGNAL    hub75_b0
+#define BIT_5_SIGNAL    hub75_b1
+#define BIT_6_SIGNAL    hub75_r1
+#define BIT_7_SIGNAL    hub75_g0
 
 //#define DEBUG_PINS_ENABLED
 #define DEBUG_PIN_1 16
 #define DEBUG_PIN_2 18
 #define DEBUG_PIN_3 19
 
-#define SMARTLED_APA_ENABLE_PIN     17
-#define SMARTLED_APA_CLK_PIN        13
-#define SMARTLED_APA_DAT_PIN        7
+/************ The below definitions are unlikely to be useful if changed **************/
 
+// these pin definitions are used to set GPIO to output, and are manually used to reset FM6126A panels - swapping RGB pins here has no effect on refreshing the panel
 #define GPIO_PIN_CLK_TEENSY_PIN     14
 #define GPIO_PIN_B0_TEENSY_PIN      6
 #define GPIO_PIN_R0_TEENSY_PIN      2
@@ -89,27 +92,36 @@
 #define ADDX_GPIO_SET_REGISTER      GPIOC_PSOR
 #define ADDX_GPIO_CLEAR_REGISTER    GPIOC_PCOR
 
-// output latch signal on two pins, to trigger two different GPIO port interrupts
+#define SMARTLED_APA_ENABLE_PIN     17
+#define SMARTLED_APA_CLK_PIN        13
+#define SMARTLED_APA_DAT_PIN        7
+
+#define GPIO_WORD_ORDER_8BIT BIT_0_SIGNAL:1, BIT_1_SIGNAL:1, BIT_2_SIGNAL:1, BIT_3_SIGNAL:1, BIT_4_SIGNAL:1, BIT_5_SIGNAL:1, BIT_6_SIGNAL:1, BIT_7_SIGNAL:1
+
+// output latch signal on pin 3 (PORTA.12), latch signal must be connected to pin 8 (PORTD.3) externally
 #define ENABLE_LATCH_PWM_OUTPUT() {                                     \
         CORE_PIN3_CONFIG |= PORT_PCR_MUX(3) | PORT_PCR_DSE | PORT_PCR_SRE;  \
     }
 
+// output OE signal on pin 4 (PORTA.13)
 #define ENABLE_OE_PWM_OUTPUT() {                                        \
         CORE_PIN4_CONFIG = PORT_PCR_MUX(3) | PORT_PCR_DSE | PORT_PCR_SRE;   \
     }
 
-// pin 3 (PORT A) triggers based on latch signal, on rising edge
+// pin 3 (PORTA.12) triggers based on latch signal, on rising edge
 #define ENABLE_LATCH_RISING_EDGE_GPIO_INT() {       \
         CORE_PIN3_CONFIG |= PORT_PCR_IRQC(1);           \
     }
 
 #define DMAMUX_SOURCE_LATCH_RISING_EDGE     DMAMUX_SOURCE_PORTA
 
-// pin 8 (PORT D3) is set to input, and triggers based on latch signal, on falling edge
+// pin 8 (PORTD.3) is set to input, and triggers based on latch signal, on falling edge
 #define ENABLE_LATCH_FALLING_EDGE_GPIO_INT() {              \
         CORE_PIN8_CONFIG |= PORT_PCR_MUX(1) | PORT_PCR_IRQC(2); \
     }
 
 #define DMAMUX_SOURCE_LATCH_FALLING_EDGE     DMAMUX_SOURCE_PORTD
 
+#else
+    #pragma GCC error "Multiple MatrixHardware*.h files included"
 #endif

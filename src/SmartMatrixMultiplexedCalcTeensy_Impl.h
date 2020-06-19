@@ -411,6 +411,9 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 // order of bits in word matches how GPIO connects to the display
                 uint8_t GPIO_WORD_ORDER_8BIT;
             };
+            struct {
+                uint8_t GPIO_WORD_ORDER_ADDX_8BIT;                
+            };
         } o0;
         
         for(int j=0; j<COLOR_DEPTH_BITS; j++) {
@@ -452,34 +455,34 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                     }
 
                     if (tempRow0[i+k].red & mask)
-                        o0.p0r1 = 1;
+                        o0.hub75_r0 = 1;
                     if (tempRow0[i+k].green & mask)
-                        o0.p0g1 = 1;
+                        o0.hub75_g0 = 1;
                     if (tempRow0[i+k].blue & mask)
-                        o0.p0b1 = 1;
+                        o0.hub75_b0 = 1;
                     if (tempRow1[i+k].red & mask)
-                        o0.p0r2 = 1;
+                        o0.hub75_r1 = 1;
                     if (tempRow1[i+k].green & mask)
-                        o0.p0g2 = 1;
+                        o0.hub75_g1 = 1;
                     if (tempRow1[i+k].blue & mask)
-                        o0.p0b2 = 1;
+                        o0.hub75_b1 = 1;
 
                     if(optionFlags & SMARTMATRIX_OPTIONS_HUB12_MODE) {
                         // HUB12 format inverts the data (assume we're only using R1 for now)
                         if (tempRow0[i+k].red & mask)
-                            o0.p0r1 = 0;
+                            o0.hub75_r0 = 0;
                         else
-                            o0.p0r1 = 1;                        
+                            o0.hub75_r0 = 1;                        
                     }               
 
                     if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && !((i/matrixWidth)%2)) {
                         // TODO: fix C_Shape_stacking after applying multi-row-refresh support
                         //currentRowDataPtr->rowbits[j].data[(((i+matrixWidth-1)-k)*DMA_UPDATES_PER_CLOCK)] = o0.word;
-                        //o0.p0clk = 1;
+                        //o0.hub75_clk = 1;
                         //currentRowDataPtr->rowbits[j].data[(((i+matrixWidth-1)-k)*DMA_UPDATES_PER_CLOCK)+1] = o0.word;
                     } else {
                         currentRowDataPtr->rowbits[j].data[((refreshBufferPosition)*DMA_UPDATES_PER_CLOCK)] = o0.word;
-                        o0.p0clk = 1;
+                        o0.hub75_clk = 1;
                         currentRowDataPtr->rowbits[j].data[((refreshBufferPosition)*DMA_UPDATES_PER_CLOCK)+1] = o0.word;
                     }
                 }
@@ -491,11 +494,11 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 
 #ifdef ADDX_UPDATE_ON_DATA_PINS
         o0.word = 0x00000000;
-        o0.p0r1 = (currentRow & 0x01) ? 1 : 0;
-        o0.p0g1 = (currentRow & 0x02) ? 1 : 0;
-        o0.p0b1 = (currentRow & 0x04) ? 1 : 0;
-        o0.p0r2 = (currentRow & 0x08) ? 1 : 0;
-        o0.p0g2 = (currentRow & 0x10) ? 1 : 0;
+        o0.hub75_addx0 = (currentRow & 0x01) ? 1 : 0;
+        o0.hub75_addx1 = (currentRow & 0x02) ? 1 : 0;
+        o0.hub75_addx2 = (currentRow & 0x04) ? 1 : 0;
+        o0.hub75_addx3 = (currentRow & 0x08) ? 1 : 0;
+        o0.hub75_addx4 = (currentRow & 0x10) ? 1 : 0;
 
         for(int j=0; j<COLOR_DEPTH_BITS; j++) {
             currentRowDataPtr->rowbits[j].rowAddress = o0.word;
@@ -577,6 +580,9 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 // order of bits in word matches how GPIO connects to the display
                 uint8_t GPIO_WORD_ORDER_8BIT;
             };
+            struct {
+                uint8_t GPIO_WORD_ORDER_ADDX_8BIT;                
+            };
         } o0;
         
         for(int j=0; j<COLOR_DEPTH_BITS; j++) {
@@ -620,34 +626,34 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                     }
 
                     if (tempRow0[i+k].red & mask)
-                        o0.p0r1 = 1;
+                        o0.hub75_r0 = 1;
                     if (tempRow0[i+k].green & mask)
-                        o0.p0g1 = 1;
+                        o0.hub75_g0 = 1;
                     if (tempRow0[i+k].blue & mask)
-                        o0.p0b1 = 1;
+                        o0.hub75_b0 = 1;
                     if (tempRow1[i+k].red & mask)
-                        o0.p0r2 = 1;
+                        o0.hub75_r1 = 1;
                     if (tempRow1[i+k].green & mask)
-                        o0.p0g2 = 1;
+                        o0.hub75_g1 = 1;
                     if (tempRow1[i+k].blue & mask)
-                        o0.p0b2 = 1;
+                        o0.hub75_b1 = 1;
 
                     if(optionFlags & SMARTMATRIX_OPTIONS_HUB12_MODE) {
-                        // HUB12 format inverts the data (assume we're only using R1 for now)
+                        // HUB12 format inverts the data (assume we're only using R0 for now)
                         if (tempRow0[i+k].red & mask)
-                            o0.p0r1 = 0;
+                            o0.hub75_r0 = 0;
                         else
-                            o0.p0r1 = 1;                        
+                            o0.hub75_r0 = 1;                        
                     }               
 
                     if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && !((i/matrixWidth)%2)) {
                         // TODO: fix C_Shape_stacking after applying multi-row-refresh support
                         //currentRowDataPtr->rowbits[j].data[(((i+matrixWidth-1)-k)*DMA_UPDATES_PER_CLOCK)] = o0.word;
-                        //o0.p0clk = 1;
+                        //o0.hub75_clk = 1;
                         //currentRowDataPtr->rowbits[j].data[(((i+matrixWidth-1)-k)*DMA_UPDATES_PER_CLOCK)+1] = o0.word;
                     } else {
                         currentRowDataPtr->rowbits[j].data[((refreshBufferPosition)*DMA_UPDATES_PER_CLOCK)] = o0.word;
-                        o0.p0clk = 1;
+                        o0.hub75_clk = 1;
                         currentRowDataPtr->rowbits[j].data[((refreshBufferPosition)*DMA_UPDATES_PER_CLOCK)+1] = o0.word;
                     }
                 }
@@ -659,11 +665,11 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 
 #ifdef ADDX_UPDATE_ON_DATA_PINS
         o0.word = 0x00000000;
-        o0.p0r1 = (currentRow & 0x01) ? 1 : 0;
-        o0.p0g1 = (currentRow & 0x02) ? 1 : 0;
-        o0.p0b1 = (currentRow & 0x04) ? 1 : 0;
-        o0.p0r2 = (currentRow & 0x08) ? 1 : 0;
-        o0.p0g2 = (currentRow & 0x10) ? 1 : 0;
+        o0.hub75_addx0 = (currentRow & 0x01) ? 1 : 0;
+        o0.hub75_addx1 = (currentRow & 0x02) ? 1 : 0;
+        o0.hub75_addx2 = (currentRow & 0x04) ? 1 : 0;
+        o0.hub75_addx3 = (currentRow & 0x08) ? 1 : 0;
+        o0.hub75_addx4 = (currentRow & 0x10) ? 1 : 0;
 
         for(int j=0; j<LATCHES_PER_ROW; j++) {
             currentRowDataPtr->rowbits[j].rowAddress = o0.word;

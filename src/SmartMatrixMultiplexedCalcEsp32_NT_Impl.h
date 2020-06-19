@@ -26,59 +26,8 @@
 
 #define INLINE __attribute__( ( always_inline ) ) inline
 
-// to avoid 100% CPU usage, we by default don't calculate on every frame.  Calc refresh rate will be a fraction of Refresh refresh rate
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-uint8_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::maxCalcCpuPercentage = 80;
-
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-uint8_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::calc_refreshRateDivider = 2;
-
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-uint16_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::calc_refreshRate = 120/SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::calc_refreshRateDivider;
-
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-SM_Layer * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
-
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::tempRow0Ptr;
-
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void * SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::tempRow1Ptr;
-
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-volatile bool SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBufferUnderrun = false;
-
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-bool SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBufferUnderrunSinceLastCheck = false;
-
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-bool SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refreshRateLowered = false;
-
-// set to true initially so all layers get the initial refresh rate
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-bool SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refreshRateChanged = true;
-
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-uint8_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::lsbMsbTransitionBit;
-
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::multiRowRefresh_mapIndex_CurrentRowGroups = 0;
-
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::multiRowRefresh_mapIndex_CurrentPixelGroup = -1;
-
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::multiRowRefresh_PixelOffsetFromPanelsAlreadyMapped = 0;
-
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::multiRowRefresh_NumPanelsAlreadyMapped = 0;
-
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::SmartMatrix3(void) {
-}
-
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::addLayer(SM_Layer * newlayer) {
+template <int dummyvar>
+void SmartMatrix3_NT<dummyvar>::addLayer(SM_Layer * newlayer) {
     if(baseLayer) {
         SM_Layer * templayer = baseLayer;
         while(templayer->nextLayer)
@@ -89,8 +38,8 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     }
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::countFPS(void) {
+template <int dummyvar>
+void SmartMatrix3_NT<dummyvar>::countFPS(void) {
   static long loops = 0;
   static long lastMillis = 0;
   long currentMillis = millis();
@@ -106,13 +55,13 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
   }
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBufferUnderrunCallback(void) {
+template <int dummyvar>
+void SmartMatrix3_NT<dummyvar>::dmaBufferUnderrunCallback(void) {
     dmaBufferUnderrun = true;
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalculations() {
+template <int dummyvar>
+void SmartMatrix3_NT<dummyvar>::matrixCalculations() {
     static unsigned long lastMillisStart;
     static unsigned long lastMillisEnd;
     static int refreshFramesSinceLastCalculation = 0;
@@ -127,17 +76,17 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     // safety check - if using up too much CPU, increase refresh rate divider to give more time for sketch to run
     unsigned long calculationCpuTime = lastMillisEnd - lastMillisStart;
     unsigned long totalCpuTime = millis() - lastMillisStart;
-    if(totalCpuTime && ((calculationCpuTime * 100) / totalCpuTime) > SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::maxCalcCpuPercentage) {
+    if(totalCpuTime && ((calculationCpuTime * 100) / totalCpuTime) > maxCalcCpuPercentage) {
         // increase CPU divider by 1
-        SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setCalcRefreshRateDivider(SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getCalcRefreshRateDivider() + 1);
+        setCalcRefreshRateDivider(getCalcRefreshRateDivider() + 1);
         refreshRateLowered = true;
     }
 
     // only do calculations if there is free space (should be redundant, as we only get called if there is free space)
-    if (!SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::isFrameBufferFree())
+    if (!_matrixRefresh->isFrameBufferFree())
         return;
 
-    templayer = SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
+    templayer = baseLayer;
     bool refreshNeeded = false;
     while(templayer) {
         if(templayer->isLayerChanged())
@@ -156,7 +105,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 
     // do once-per-frame updates
     if (rotationChange) {
-        templayer = SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
+        templayer = baseLayer;
         while(templayer) {
             templayer->setRotation(rotation);
             templayer = templayer->nextLayer;
@@ -166,7 +115,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 
     int largestRequestedBrightnessShifts = 0;
 
-    templayer = SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
+    templayer = baseLayer;
     while(templayer) {
         if(refreshRateChanged) {
             templayer->setRefreshRate(calc_refreshRate);
@@ -191,25 +140,25 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     }
 
     if (brightnessChange) {
-        SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setBrightness(shiftedBrightness);
+        _matrixRefresh->setBrightness(shiftedBrightness);
         brightnessChange = false;
     }
 
-    SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers(lsbMsbTransitionBit, largestRequestedBrightnessShifts);
+    loadMatrixBuffers(lsbMsbTransitionBit, largestRequestedBrightnessShifts);
 
-    SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::writeFrameBuffer(0);
+    _matrixRefresh->writeFrameBuffer(0);
 
     lastMillisEnd = millis();
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRotation(rotationDegrees newrotation) {
+template <int dummyvar>
+void SmartMatrix3_NT<dummyvar>::setRotation(rotationDegrees newrotation) {
     rotation = newrotation;
     rotationChange = true;
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-uint16_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getScreenWidth(void) const {
+template <int dummyvar>
+uint16_t SmartMatrix3_NT<dummyvar>::getScreenWidth(void) const {
     if (rotation == rotation0 || rotation == rotation180) {
         return matrixWidth;
     } else {
@@ -217,8 +166,8 @@ uint16_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, option
     }
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-uint16_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getScreenHeight(void) const {
+template <int dummyvar>
+uint16_t SmartMatrix3_NT<dummyvar>::getScreenHeight(void) const {
     if (rotation == rotation0 || rotation == rotation180) {
         return matrixHeight;
     } else {
@@ -226,65 +175,53 @@ uint16_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, option
     }
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-volatile bool SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::brightnessChange = false;
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-volatile bool SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rotationChange = true;
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-rotationDegrees SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rotation = rotation0;
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::shiftedBrightness;
-
-// brightness scales from 0-PIXELS_PER_LATCH
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::brightness = PIXELS_PER_LATCH;
-
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setBrightness(uint8_t newBrightness) {
-    brightness = (PIXELS_PER_LATCH*newBrightness)/255;
+// brightness scales from 0-pixels_per_latch
+template <int dummyvar>
+void SmartMatrix3_NT<dummyvar>::setBrightness(uint8_t newBrightness) {
+    brightness = (pixels_per_latch*newBrightness)/255;
     brightnessChange = true;
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRefreshRate(uint16_t newRefreshRate) {
+template <int dummyvar>
+void SmartMatrix3_NT<dummyvar>::setRefreshRate(uint16_t newRefreshRate) {
     calc_refreshRate = newRefreshRate / calc_refreshRateDivider;
 
     refreshRateChanged = true;
-    SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRefreshRate(newRefreshRate);
+    _matrixRefresh->setRefreshRate(newRefreshRate);
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setMaxCalculationCpuPercentage(uint8_t newMaxCpuPercentage) {
+template <int dummyvar>
+void SmartMatrix3_NT<dummyvar>::setMaxCalculationCpuPercentage(uint8_t newMaxCpuPercentage) {
     if(newMaxCpuPercentage > 100)
         newMaxCpuPercentage = 100;
 
     maxCalcCpuPercentage = newMaxCpuPercentage;
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setCalcRefreshRateDivider(uint8_t newDivider) {
+template <int dummyvar>
+void SmartMatrix3_NT<dummyvar>::setCalcRefreshRateDivider(uint8_t newDivider) {
     // TODO: improve so fractional results don't screw up the calc_refreshRate divider
     // TODO: improve to get actual refresh rate from refresh class
     if(newDivider == 0)
         newDivider = 1;
 
-    calc_refreshRate = SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getRefreshRate() / newDivider;
+    calc_refreshRate = _matrixRefresh->getRefreshRate() / newDivider;
     calc_refreshRateDivider = newDivider;
     refreshRateChanged = true;
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-uint8_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getCalcRefreshRateDivider(void) {
+template <int dummyvar>
+uint8_t SmartMatrix3_NT<dummyvar>::getCalcRefreshRateDivider(void) {
     return calc_refreshRateDivider;
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-uint16_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getRefreshRate(void) {
+template <int dummyvar>
+uint16_t SmartMatrix3_NT<dummyvar>::getRefreshRate(void) {
     return calc_refreshRate;
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-bool SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getdmaBufferUnderrunFlag(void) {
+template <int dummyvar>
+bool SmartMatrix3_NT<dummyvar>::getdmaBufferUnderrunFlag(void) {
     if(dmaBufferUnderrunSinceLastCheck) {
         dmaBufferUnderrunSinceLastCheck = false;
         return true;
@@ -292,8 +229,8 @@ bool SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     return false;
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-bool SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getRefreshRateLoweredFlag(void) {
+template <int dummyvar>
+bool SmartMatrix3_NT<dummyvar>::getRefreshRateLoweredFlag(void) {
     if(refreshRateLowered) {
         refreshRateLowered = false;
         return true;
@@ -301,14 +238,12 @@ bool SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     return false;
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-TaskHandle_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::calcTaskHandle;
-
 /* Task2 with priority 2 */
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::calcTask(void* pvParameters)
+template <int dummyvar>
+void SmartMatrix3_NT<dummyvar>::calcTask(void* pvParameters)
 {        
     static long lastMillis = 0;
+    SmartMatrix3_NT* thisPtr = (SmartMatrix3_NT*)pvParameters;
     while(1) {   
         if( xSemaphoreTake(calcTaskSemaphore, portMAX_DELAY) == pdTRUE ) {
 #ifdef DEBUG_PINS_ENABLED
@@ -323,9 +258,9 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
             }
 
             // we usually do this with an ISR in the refresh class, but ESP32 doesn't let us store a templated method in IRAM (at least not easily) so we call this from the calc task
-            SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::markRefreshComplete();
+            thisPtr->_matrixRefresh->markRefreshComplete();
 
-            matrixCalculations();
+            thisPtr->matrixCalculations();
 
 #ifdef DEBUG_PINS_ENABLED
             gpio_set_level(DEBUG_1_GPIO, 0);
@@ -337,9 +272,28 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 #define MATRIX_CALC_TASK_DEFAULT_PRIORITY   2
 #define MATRIX_CALC_TASK_LOW_PRIORITY      1
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin(uint32_t dmaRamToKeepFreeBytes)
-{
+template <int dummyvar>
+void SmartMatrix3_NT<dummyvar>::begin(uint32_t dmaRamToKeepFreeBytes)
+{    
+    // only load user-settable parameter defaults if they haven't already been set before begin() was called
+    if(!maxCalcCpuPercentage) maxCalcCpuPercentage = 80; // to avoid 100% CPU usage, we by default don't calculate on every frame.  Calc refresh rate will be a fraction of Refresh refresh rate
+    if(!calc_refreshRateDivider) calc_refreshRateDivider = 2;
+    calc_refreshRate = 120/calc_refreshRateDivider;
+    dmaBufferUnderrun = false;
+    dmaBufferUnderrunSinceLastCheck = false;
+    refreshRateLowered = false;
+
+    refreshRateChanged = true;  // set to true initially so all layers get the initial refresh rate
+    multiRowRefresh_mapIndex_CurrentRowGroups = 0;
+    multiRowRefresh_mapIndex_CurrentPixelGroup = -1;
+    multiRowRefresh_PixelOffsetFromPanelsAlreadyMapped = 0;
+    multiRowRefresh_NumPanelsAlreadyMapped = 0;
+
+    brightnessChange = false;
+    rotationChange = true;
+    if(!rotation) rotation = rotation0;
+    if(!brightness) brightness = pixels_per_latch;
+
     printf("\r\nStarting SmartMatrix Mallocs\r\n");
     show_esp32_all_mem();
 
@@ -361,14 +315,14 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
         calcTaskCore = 1;
 
     // TODO: fine tune stack size: 1000 works with 64x64/32-24bit, 500 doesn't, does it change based on matrix size, depth?
-    xTaskCreatePinnedToCore(calcTask, "SmartMatrixCalc", 1000, NULL, taskPriority, &calcTaskHandle, calcTaskCore);
+    xTaskCreatePinnedToCore(calcTask, "SmartMatrixCalc", 1000, this, taskPriority, &calcTaskHandle, calcTaskCore);
 
     printf("SmartMatrix Layers Allocated from Heap:\r\n");
     show_esp32_heap_mem();
 
 #if defined(ESP32)
     // malloc temporary buffers needed for loadMatrixBuffers
-    int numPixelsPerTempRow = PIXELS_PER_LATCH/PHYSICAL_ROWS_PER_REFRESH_ROW;
+    int numPixelsPerTempRow = pixels_per_latch/physical_rows_per_refresh_row;
 
     if((COLOR_DEPTH_BITS == 12) || (COLOR_DEPTH_BITS == 16)){
         tempRow0Ptr = malloc(sizeof(rgb48) * numPixelsPerTempRow);
@@ -382,12 +336,12 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     assert(tempRow1Ptr != NULL);
 #endif
 
-    SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setMatrixCalculationsCallback(matrixCalculationsSignal);
-    SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin(dmaRamToKeepFreeBytes);
+    _matrixRefresh->setMatrixCalculationsCallback(matrixCalculationsSignal);
+    _matrixRefresh->begin(dmaRamToKeepFreeBytes);
 
     // refresh rate is now set, update calc refresh rate
     setCalcRefreshRateDivider(calc_refreshRateDivider);
-    lsbMsbTransitionBit = SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getLsbMsbTransitionBit();
+    lsbMsbTransitionBit = _matrixRefresh->getLsbMsbTransitionBit();
 
     // wait for matrixCalculations to be run for first time inside calcTask - fill initial buffer and set Layer properties that are only set after first pass through matrixCalculations()
     while(rotationChange) {
@@ -397,21 +351,21 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 
 #define IS_LAST_PANEL_MAP_ENTRY(x) (!x.rowOffset && !x.bufferOffset && !x.numPixels)
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::resetMultiRowRefreshMapPosition(void) {   
+template <int dummyvar>
+void SmartMatrix3_NT<dummyvar>::resetMultiRowRefreshMapPosition(void) {   
     multiRowRefresh_mapIndex_CurrentRowGroups = 0;
     resetMultiRowRefreshMapPositionPixelGroupToStartOfRow();
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::resetMultiRowRefreshMapPositionPixelGroupToStartOfRow(void) {   
+template <int dummyvar>
+void SmartMatrix3_NT<dummyvar>::resetMultiRowRefreshMapPositionPixelGroupToStartOfRow(void) {   
     multiRowRefresh_mapIndex_CurrentPixelGroup = multiRowRefresh_mapIndex_CurrentRowGroups;
     multiRowRefresh_PixelOffsetFromPanelsAlreadyMapped = 0;
     multiRowRefresh_NumPanelsAlreadyMapped = 0;
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::advanceMultiRowRefreshMapToNextRow(void) {   
+template <int dummyvar>
+void SmartMatrix3_NT<dummyvar>::advanceMultiRowRefreshMapToNextRow(void) {   
     static const PanelMappingEntry * map = getMultiRowRefreshPanelMap(panelType);
 
     int currentRowOffset = map[multiRowRefresh_mapIndex_CurrentRowGroups].rowOffset;
@@ -427,8 +381,8 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     resetMultiRowRefreshMapPositionPixelGroupToStartOfRow();
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::advanceMultiRowRefreshMapToNextPixelGroup(void) {   
+template <int dummyvar>
+void SmartMatrix3_NT<dummyvar>::advanceMultiRowRefreshMapToNextPixelGroup(void) {   
     static const PanelMappingEntry * map = getMultiRowRefreshPanelMap(panelType);
 
     int currentRowOffset = map[multiRowRefresh_mapIndex_CurrentPixelGroup].rowOffset;
@@ -450,13 +404,13 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 
         // we need to set the total offset to the beginning offset of the next panel.  Calculate what that would be
         multiRowRefresh_NumPanelsAlreadyMapped++;
-        multiRowRefresh_PixelOffsetFromPanelsAlreadyMapped = multiRowRefresh_NumPanelsAlreadyMapped * COLS_PER_PANEL * PHYSICAL_ROWS_PER_REFRESH_ROW;
+        multiRowRefresh_PixelOffsetFromPanelsAlreadyMapped = multiRowRefresh_NumPanelsAlreadyMapped * cols_per_panel * physical_rows_per_refresh_row;
     }
 }
 
 // returns the row offset from the map, or -1 if we've gone through the whole map already
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getMultiRowRefreshRowOffset(void) {   
+template <int dummyvar>
+int SmartMatrix3_NT<dummyvar>::getMultiRowRefreshRowOffset(void) {   
     static const PanelMappingEntry * map = getMultiRowRefreshPanelMap(panelType);
 
     if(IS_LAST_PANEL_MAP_ENTRY(map[multiRowRefresh_mapIndex_CurrentRowGroups])){
@@ -466,15 +420,15 @@ int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags
     return map[multiRowRefresh_mapIndex_CurrentRowGroups].rowOffset;    
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getMultiRowRefreshNumPixelsToMap(void) {        
+template <int dummyvar>
+int SmartMatrix3_NT<dummyvar>::getMultiRowRefreshNumPixelsToMap(void) {        
     static const PanelMappingEntry * map = getMultiRowRefreshPanelMap(panelType);
 
     return map[multiRowRefresh_mapIndex_CurrentPixelGroup].numPixels;    
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getMultiRowRefreshPixelGroupOffset(void) {        
+template <int dummyvar>
+int SmartMatrix3_NT<dummyvar>::getMultiRowRefreshPixelGroupOffset(void) {        
     static const PanelMappingEntry * map = getMultiRowRefreshPanelMap(panelType);
 
     return map[multiRowRefresh_mapIndex_CurrentPixelGroup].bufferOffset + multiRowRefresh_PixelOffsetFromPanelsAlreadyMapped;
@@ -485,11 +439,11 @@ int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags
 //#define OEPWM_TEST_ENABLE // this is likely broken now
 #define OEPWM_THRESHOLD_BIT 1
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers48(frameStruct * frameBuffer, int currentRow, int lsbMsbTransitionBit, int numBrightnessShifts) {
+template <int dummyvar>
+INLINE void SmartMatrix3_NT<dummyvar>::loadMatrixBuffers48(MATRIX_DATA_STORAGE_TYPE * frameBuffer, int currentRow, int lsbMsbTransitionBit, int numBrightnessShifts) {
     int i;
     int multiRowRefreshRowOffset = 0;
-    int numPixelsPerTempRow = PIXELS_PER_LATCH/PHYSICAL_ROWS_PER_REFRESH_ROW;
+    int numPixelsPerTempRow = pixels_per_latch/physical_rows_per_refresh_row;
 
 #if (REFRESH_PRINTFS >= 1)
     printf("numPixelsPerTempRow = %d\r\n", numPixelsPerTempRow);
@@ -519,42 +473,42 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 #endif
 
         // get a row of physical pixel data (HUB75 paired) from the layers
-        SM_Layer * templayer = SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
+        SM_Layer * templayer = baseLayer;
         while(templayer) {
-            for(i=0; i<MATRIX_STACK_HEIGHT; i++) {
+            for(i=0; i<matrix_stack_height; i++) {
                 // Z-shape, bottom to top
                 if(!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
                     (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
                     // fill data from bottom to top, so bottom panel is the one closest to Teensy
-                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth], numBrightnessShifts);
-                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth], numBrightnessShifts);
+                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + (matrix_stack_height-i-1)*matrix_panel_height, &tempRow0[i*matrixWidth], numBrightnessShifts);
+                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + row_pair_offset + (matrix_stack_height-i-1)*matrix_panel_height, &tempRow1[i*matrixWidth], numBrightnessShifts);
                 // Z-shape, top to bottom
                 } else if(!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
                     !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
                     // fill data from top to bottom, so top panel is the one closest to Teensy
-                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + i*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth], numBrightnessShifts);
-                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + ROW_PAIR_OFFSET + i*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth], numBrightnessShifts);
+                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + i*matrix_panel_height, &tempRow0[i*matrixWidth], numBrightnessShifts);
+                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + row_pair_offset + i*matrix_panel_height, &tempRow1[i*matrixWidth], numBrightnessShifts);
                 // C-shape, bottom to top
                 } else if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
                     (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
                     // alternate direction of filling (or loading) for each matrixwidth
                     // swap row order from top to bottom for each stack (tempRow1 filled with top half of panel, tempRow0 filled with bottom half)
-                    if((MATRIX_STACK_HEIGHT-i+1)%2) {
-                        templayer->fillRefreshRow((MATRIX_SCAN_MOD-(currentRow + multiRowRefreshRowOffset)-1) + ROW_PAIR_OFFSET + (i)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth], numBrightnessShifts);
-                        templayer->fillRefreshRow((MATRIX_SCAN_MOD-(currentRow + multiRowRefreshRowOffset)-1) + (i)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth], numBrightnessShifts);
+                    if((matrix_stack_height-i+1)%2) {
+                        templayer->fillRefreshRow((matrix_scan_mod-(currentRow + multiRowRefreshRowOffset)-1) + row_pair_offset + (i)*matrix_panel_height, &tempRow0[i*matrixWidth], numBrightnessShifts);
+                        templayer->fillRefreshRow((matrix_scan_mod-(currentRow + multiRowRefreshRowOffset)-1) + (i)*matrix_panel_height, &tempRow1[i*matrixWidth], numBrightnessShifts);
                     } else {
-                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + (i)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth], numBrightnessShifts);
-                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + ROW_PAIR_OFFSET + (i)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth], numBrightnessShifts);
+                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + (i)*matrix_panel_height, &tempRow0[i*matrixWidth], numBrightnessShifts);
+                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + row_pair_offset + (i)*matrix_panel_height, &tempRow1[i*matrixWidth], numBrightnessShifts);
                     }
                 // C-shape, top to bottom
                 } else if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && 
                     !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
-                    if((MATRIX_STACK_HEIGHT-i)%2) {
-                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth], numBrightnessShifts);
-                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth], numBrightnessShifts);
+                    if((matrix_stack_height-i)%2) {
+                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + (matrix_stack_height-i-1)*matrix_panel_height, &tempRow0[i*matrixWidth], numBrightnessShifts);
+                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + row_pair_offset + (matrix_stack_height-i-1)*matrix_panel_height, &tempRow1[i*matrixWidth], numBrightnessShifts);
                     } else {
-                        templayer->fillRefreshRow((MATRIX_SCAN_MOD-(currentRow + multiRowRefreshRowOffset)-1) + ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth], numBrightnessShifts);
-                        templayer->fillRefreshRow((MATRIX_SCAN_MOD-(currentRow + multiRowRefreshRowOffset)-1) + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth], numBrightnessShifts);
+                        templayer->fillRefreshRow((matrix_scan_mod-(currentRow + multiRowRefreshRowOffset)-1) + row_pair_offset + (matrix_stack_height-i-1)*matrix_panel_height, &tempRow0[i*matrixWidth], numBrightnessShifts);
+                        templayer->fillRefreshRow((matrix_scan_mod-(currentRow + multiRowRefreshRowOffset)-1) + (matrix_stack_height-i-1)*matrix_panel_height, &tempRow1[i*matrixWidth], numBrightnessShifts);
                     }
                 }
             }
@@ -572,8 +526,8 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 
             uint16_t mask = (1 << (j + maskoffset));
             
-            SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowBitStruct *p=&(frameBuffer->rowdata[currentRow].rowbits[j]); //bitplane location to write to
-            
+            MATRIX_DATA_STORAGE_TYPE *p=&(frameBuffer[GET_DATA_OFFSET_FROM_ROW_AND_COLOR_DEPTH_BIT(currentRow, j)]); //bitplane location to write to
+
             int i=0;
 
             // reset pixel map offset so we start filling from the first panel again
@@ -610,7 +564,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                     } else {
                         refreshBufferPosition = currentMapOffset+k;
                     }
-
+#if 1
 #if (REFRESH_PRINTFS >= 2)
                 printf("j = %02d, i = %03d, c = %03d, k = %03d, pos = %03d\r\n", j, i, c, k, refreshBufferPosition);
 #endif
@@ -632,12 +586,12 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                     if((refreshBufferPosition) == 0) v|=BIT_OE;
 
                     // drive latch while shifting out last bit of RGB data
-                    if((refreshBufferPosition) == PIXELS_PER_LATCH-1) v|=BIT_LAT;
+                    if((refreshBufferPosition) == pixels_per_latch-1) v|=BIT_LAT;
 
                     // experimental FM6126A support on ESP32 without external latch: make LAT pulse 3x clocks wide, matching the FM6126A "DATA_LATCH" command (and not the "RESET_OEN" command)
                     if(optionFlags & SMARTMATRIX_OPTIONS_FM6126A_RESET_AT_START) {
-                        if((refreshBufferPosition) == PIXELS_PER_LATCH-2) v|=BIT_LAT;
-                        if((refreshBufferPosition) == PIXELS_PER_LATCH-3) v|=BIT_LAT;
+                        if((refreshBufferPosition) == pixels_per_latch-2) v|=BIT_LAT;
+                        if((refreshBufferPosition) == pixels_per_latch-3) v|=BIT_LAT;
                     }
 #endif
 
@@ -673,9 +627,9 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                     
                     // need to turn off OE one clock before latch, otherwise can get ghosting
 #if (CLKS_DURING_LATCH > 0)
-                    if((refreshBufferPosition)==PIXELS_PER_LATCH-1) v|=BIT_OE;
+                    if((refreshBufferPosition)==pixels_per_latch-1) v|=BIT_OE;
 #else
-                    if((refreshBufferPosition)>=PIXELS_PER_LATCH-2) v|=BIT_OE;
+                    if((refreshBufferPosition)>=pixels_per_latch-2) v|=BIT_OE;
 #endif
 
                     if (tempRow0[i+k].red & mask)
@@ -706,6 +660,9 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                             v |= BIT_R1;
                         }
                     }               
+#else
+                    v|=BIT_G1;
+#endif
 
                     if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && !((i/matrixWidth)%2)) {
                         //currentRowDataPtr->rowbits[j].data[(((i+matrixWidth-1)-k)*DMA_UPDATES_PER_CLOCK)] = o0.word;
@@ -714,20 +671,22 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                         if(MATRIX_I2S_MODE == I2S_PARALLEL_BITS_8) {
                             //Save the calculated value to the bitplane memory in 16-bit reversed order to account for I2S Tx FIFO mode1 ordering
                             if(refreshBufferPosition%4 == 0){
-                                p->data[(refreshBufferPosition)+2] = v;
+                                //p->data[(refreshBufferPosition)+2] = v;
+                                p[(refreshBufferPosition)+2] = v;
                             } else if(refreshBufferPosition%4 == 1) {
-                                p->data[(refreshBufferPosition)+2] = v;
+                                //p->data[(refreshBufferPosition)+2] = v;
+                                p[(refreshBufferPosition)+2] = v;
                             } else if(refreshBufferPosition%4 == 2) {
-                                p->data[(refreshBufferPosition)-2] = v;
+                                p[(refreshBufferPosition)-2] = v;
                             } else { //if(refreshBufferPosition%4 == 3)
-                                p->data[(refreshBufferPosition)-2] = v;
+                                p[(refreshBufferPosition)-2] = v;
                             }
                         } else {
                             //Save the calculated value to the bitplane memory in reverse order to account for I2S Tx FIFO mode1 ordering
                             if(refreshBufferPosition%2){
-                                p->data[(refreshBufferPosition)-1] = v;
+                                p[(refreshBufferPosition)-1] = v;
                             } else {
-                                p->data[(refreshBufferPosition)+1] = v;
+                                p[(refreshBufferPosition)+1] = v;
                             }
                         }
                     }
@@ -741,10 +700,11 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
             // TODO: prefill latch across all frames during begin() and only need to update when brightness/refreshrate changed?
 #if (CLKS_DURING_LATCH > 0)
             // if external latch is used to hold ADDX lines, load the ADDX latch and latch the RGB data here
-            for(int k=PIXELS_PER_LATCH; k < PIXELS_PER_LATCH + CLKS_DURING_LATCH; k++) {
+            for(int k=pixels_per_latch; k < pixels_per_latch + CLKS_DURING_LATCH; k++) {
                 int v = 0;
+#if 1
                 // after data is shifted in, pulse latch for one clock cycle
-                if(k == PIXELS_PER_LATCH) {
+                if(k == pixels_per_latch) {
                     v|=BIT_LAT;
                 }
 
@@ -752,7 +712,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 v|=BIT_OE;
 
                 // set ADDX values to high while latch is high, keep them high while latch drops to clock it in to ADDX latch
-                if(k >= PIXELS_PER_LATCH) {               
+                if(k >= pixels_per_latch) {               
                     if (currentRow & 0x01) v|=BIT_R1;
                     if (currentRow & 0x02) v|=BIT_G1;
                     if (currentRow & 0x04) v|=BIT_B1;
@@ -777,24 +737,27 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                         v |= BIT_OE;
                     }
                 }
+#else
+                v|=BIT_G1;
+#endif
 
                 if(MATRIX_I2S_MODE == I2S_PARALLEL_BITS_8) {
                     //Save the calculated value to the bitplane memory in 16-bit reversed order to account for I2S Tx FIFO mode1 ordering
                     if(k%4 == 0){
-                        p->data[k+2] = v;
+                        p[k+2] = v;
                     } else if(k%4 == 1) {
-                        p->data[k+2] = v;
+                        p[k+2] = v;
                     } else if(k%4 == 2) {
-                        p->data[k-2] = v;
+                        p[k-2] = v;
                     } else { //if(k%4 == 3)
-                        p->data[k-2] = v;
+                        p[k-2] = v;
                     }
                 } else {
                     //Save the calculated value to the bitplane memory in reverse order to account for I2S Tx FIFO mode1 ordering
                     if(k%2){
-                        p->data[k-1] = v;
+                        p[k-1] = v;
                     } else {
-                        p->data[k+1] = v;
+                        p[k+1] = v;
                     }
                 }
             }
@@ -808,11 +771,11 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     } while (multiRowRefreshRowOffset > 0);
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers24(frameStruct * frameBuffer, int currentRow, int lsbMsbTransitionBit, int numBrightnessShifts) {
+template <int dummyvar>
+INLINE void SmartMatrix3_NT<dummyvar>::loadMatrixBuffers24(MATRIX_DATA_STORAGE_TYPE * frameBuffer, int currentRow, int lsbMsbTransitionBit, int numBrightnessShifts) {
     int i;
     int multiRowRefreshRowOffset = 0;
-    int numPixelsPerTempRow = PIXELS_PER_LATCH/PHYSICAL_ROWS_PER_REFRESH_ROW;
+    int numPixelsPerTempRow = pixels_per_latch/physical_rows_per_refresh_row;
 
 #if defined(ESP32)
     // use buffers malloc'd previously
@@ -834,42 +797,42 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         memset(tempRow1, 0x00, sizeof(rgb24) * numPixelsPerTempRow);
 
         // get a row of physical pixel data (HUB75 paired) from the layers
-        SM_Layer * templayer = SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
+        SM_Layer * templayer = baseLayer;
         while(templayer) {
-            for(i=0; i<MATRIX_STACK_HEIGHT; i++) {
+            for(i=0; i<matrix_stack_height; i++) {
                 // Z-shape, bottom to top
                 if(!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
                     (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
                     // fill data from bottom to top, so bottom panel is the one closest to Teensy
-                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth], numBrightnessShifts);
-                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth], numBrightnessShifts);
+                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + (matrix_stack_height-i-1)*matrix_panel_height, &tempRow0[i*matrixWidth], numBrightnessShifts);
+                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + row_pair_offset + (matrix_stack_height-i-1)*matrix_panel_height, &tempRow1[i*matrixWidth], numBrightnessShifts);
                 // Z-shape, top to bottom
                 } else if(!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
                     !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
                     // fill data from top to bottom, so top panel is the one closest to Teensy
-                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + i*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth], numBrightnessShifts);
-                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + ROW_PAIR_OFFSET + i*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth], numBrightnessShifts);
+                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + i*matrix_panel_height, &tempRow0[i*matrixWidth], numBrightnessShifts);
+                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + row_pair_offset + i*matrix_panel_height, &tempRow1[i*matrixWidth], numBrightnessShifts);
                 // C-shape, bottom to top
                 } else if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
                     (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
                     // alternate direction of filling (or loading) for each matrixwidth
                     // swap row order from top to bottom for each stack (tempRow1 filled with top half of panel, tempRow0 filled with bottom half)
-                    if((MATRIX_STACK_HEIGHT-i+1)%2) {
-                        templayer->fillRefreshRow((MATRIX_SCAN_MOD-(currentRow + multiRowRefreshRowOffset)-1) + ROW_PAIR_OFFSET + (i)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth], numBrightnessShifts);
-                        templayer->fillRefreshRow((MATRIX_SCAN_MOD-(currentRow + multiRowRefreshRowOffset)-1) + (i)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth], numBrightnessShifts);
+                    if((matrix_stack_height-i+1)%2) {
+                        templayer->fillRefreshRow((matrix_scan_mod-(currentRow + multiRowRefreshRowOffset)-1) + row_pair_offset + (i)*matrix_panel_height, &tempRow0[i*matrixWidth], numBrightnessShifts);
+                        templayer->fillRefreshRow((matrix_scan_mod-(currentRow + multiRowRefreshRowOffset)-1) + (i)*matrix_panel_height, &tempRow1[i*matrixWidth], numBrightnessShifts);
                     } else {
-                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + (i)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth], numBrightnessShifts);
-                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + ROW_PAIR_OFFSET + (i)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth], numBrightnessShifts);
+                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + (i)*matrix_panel_height, &tempRow0[i*matrixWidth], numBrightnessShifts);
+                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + row_pair_offset + (i)*matrix_panel_height, &tempRow1[i*matrixWidth], numBrightnessShifts);
                     }
                 // C-shape, top to bottom
                 } else if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && 
                     !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
-                    if((MATRIX_STACK_HEIGHT-i)%2) {
-                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth], numBrightnessShifts);
-                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth], numBrightnessShifts);
+                    if((matrix_stack_height-i)%2) {
+                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + (matrix_stack_height-i-1)*matrix_panel_height, &tempRow0[i*matrixWidth], numBrightnessShifts);
+                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + row_pair_offset + (matrix_stack_height-i-1)*matrix_panel_height, &tempRow1[i*matrixWidth], numBrightnessShifts);
                     } else {
-                        templayer->fillRefreshRow((MATRIX_SCAN_MOD-(currentRow + multiRowRefreshRowOffset)-1) + ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth], numBrightnessShifts);
-                        templayer->fillRefreshRow((MATRIX_SCAN_MOD-(currentRow + multiRowRefreshRowOffset)-1) + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth], numBrightnessShifts);
+                        templayer->fillRefreshRow((matrix_scan_mod-(currentRow + multiRowRefreshRowOffset)-1) + row_pair_offset + (matrix_stack_height-i-1)*matrix_panel_height, &tempRow0[i*matrixWidth], numBrightnessShifts);
+                        templayer->fillRefreshRow((matrix_scan_mod-(currentRow + multiRowRefreshRowOffset)-1) + (matrix_stack_height-i-1)*matrix_panel_height, &tempRow1[i*matrixWidth], numBrightnessShifts);
                     }
                 }
             }
@@ -887,7 +850,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 
             uint16_t mask = (1 << (j + maskoffset));
             
-            SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowBitStruct *p=&(frameBuffer->rowdata[currentRow].rowbits[j]); //bitplane location to write to
+            MATRIX_DATA_STORAGE_TYPE *p=&(frameBuffer[GET_DATA_OFFSET_FROM_ROW_AND_COLOR_DEPTH_BIT(currentRow, j)]); //bitplane location to write to
             
             int i=0;
 
@@ -935,12 +898,12 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                     if((refreshBufferPosition) == 0) v|=BIT_OE;
 
                     // drive latch while shifting out last bit of RGB data
-                    if((refreshBufferPosition) == PIXELS_PER_LATCH-1) v|=BIT_LAT;
+                    if((refreshBufferPosition) == pixels_per_latch-1) v|=BIT_LAT;
 
                     // experimental FM6126A support on ESP32 without external latch: make LAT pulse 3x clocks wide, matching the FM6126A "DATA_LATCH" command (and not the "RESET_OEN" command)
                     if(optionFlags & SMARTMATRIX_OPTIONS_FM6126A_RESET_AT_START) {
-                        if((refreshBufferPosition) == PIXELS_PER_LATCH-2) v|=BIT_LAT;
-                        if((refreshBufferPosition) == PIXELS_PER_LATCH-3) v|=BIT_LAT;
+                        if((refreshBufferPosition) == pixels_per_latch-2) v|=BIT_LAT;
+                        if((refreshBufferPosition) == pixels_per_latch-3) v|=BIT_LAT;
                     }
 #endif
 
@@ -958,9 +921,9 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 
                     // need to turn off OE one clock before latch, otherwise can get ghosting
 #if (CLKS_DURING_LATCH > 0)
-                    if((refreshBufferPosition)==PIXELS_PER_LATCH-1) v|=BIT_OE;
+                    if((refreshBufferPosition)==pixels_per_latch-1) v|=BIT_OE;
 #else
-                    if((refreshBufferPosition)>=PIXELS_PER_LATCH-2) v|=BIT_OE;
+                    if((refreshBufferPosition)>=pixels_per_latch-2) v|=BIT_OE;
 #endif
 
                     if (tempRow0[i+k].red & mask)
@@ -999,20 +962,20 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                         if(MATRIX_I2S_MODE == I2S_PARALLEL_BITS_8) {
                             //Save the calculated value to the bitplane memory in 16-bit reversed order to account for I2S Tx FIFO mode1 ordering
                             if(refreshBufferPosition%4 == 0){
-                                p->data[(refreshBufferPosition)+2] = v;
+                                p[(refreshBufferPosition)+2] = v;
                             } else if(refreshBufferPosition%4 == 1) {
-                                p->data[(refreshBufferPosition)+2] = v;
+                                p[(refreshBufferPosition)+2] = v;
                             } else if(refreshBufferPosition%4 == 2) {
-                                p->data[(refreshBufferPosition)-2] = v;
+                                p[(refreshBufferPosition)-2] = v;
                             } else { //if(refreshBufferPosition%4 == 3)
-                                p->data[(refreshBufferPosition)-2] = v;
+                                p[(refreshBufferPosition)-2] = v;
                             }
                         } else {
                             //Save the calculated value to the bitplane memory in reverse order to account for I2S Tx FIFO mode1 ordering
                             if(refreshBufferPosition%2){
-                                p->data[(refreshBufferPosition)-1] = v;
+                                p[(refreshBufferPosition)-1] = v;
                             } else {
-                                p->data[(refreshBufferPosition)+1] = v;
+                                p[(refreshBufferPosition)+1] = v;
                             }
                         }
                     }
@@ -1024,10 +987,10 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 
 #if (CLKS_DURING_LATCH > 0)
             // if external latch is used to hold ADDX lines, load the ADDX latch and latch the RGB data here
-            for(int k=PIXELS_PER_LATCH; k < PIXELS_PER_LATCH + CLKS_DURING_LATCH; k++) {
+            for(int k=pixels_per_latch; k < pixels_per_latch + CLKS_DURING_LATCH; k++) {
                 int v = 0;
                 // after data is shifted in, pulse latch for one clock cycle
-                if(k == PIXELS_PER_LATCH) {
+                if(k == pixels_per_latch) {
                     v|=BIT_LAT;
                 }
 
@@ -1035,7 +998,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 v|=BIT_OE;
 
                 // set ADDX values to high while latch is high, keep them high while latch drops to clock it in to ADDX latch
-                if(k >= PIXELS_PER_LATCH) {               
+                if(k >= pixels_per_latch) {               
                     if (currentRow & 0x01) v|=BIT_R1;
                     if (currentRow & 0x02) v|=BIT_G1;
                     if (currentRow & 0x04) v|=BIT_B1;
@@ -1056,20 +1019,20 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 if(MATRIX_I2S_MODE == I2S_PARALLEL_BITS_8) {
                     //Save the calculated value to the bitplane memory in 16-bit reversed order to account for I2S Tx FIFO mode1 ordering
                     if(k%4 == 0){
-                        p->data[k+2] = v;
+                        p[k+2] = v;
                     } else if(k%4 == 1) {
-                        p->data[k+2] = v;
+                        p[k+2] = v;
                     } else if(k%4 == 2) {
-                        p->data[k-2] = v;
+                        p[k-2] = v;
                     } else { //if(k%4 == 3)
-                        p->data[k-2] = v;
+                        p[k-2] = v;
                     }
                 } else {
                     //Save the calculated value to the bitplane memory in reverse order to account for I2S Tx FIFO mode1 ordering
                     if(k%2){
-                        p->data[k-1] = v;
+                        p[k-1] = v;
                     } else {
-                        p->data[k+1] = v;
+                        p[k+1] = v;
                     }
                 }
             }
@@ -1083,14 +1046,14 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     } while (multiRowRefreshRowOffset > 0);
 }
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers(int lsbMsbTransitionBit, int numBrightnessShifts) {
+template <int dummyvar>
+INLINE void SmartMatrix3_NT<dummyvar>::loadMatrixBuffers(int lsbMsbTransitionBit, int numBrightnessShifts) {
 #if 1
     unsigned char currentRow;
 
-    frameStruct * currentFrameDataPtr = SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getNextFrameBufferPtr();
+    MATRIX_DATA_STORAGE_TYPE * currentFrameDataPtr = _matrixRefresh->getNextFrameBufferPtr();
 
-    for(currentRow = 0; currentRow < MATRIX_SCAN_MOD; currentRow++) {
+    for(currentRow = 0; currentRow < matrix_scan_mod; currentRow++) {
         // TODO: support rgb36/48 with same function, copy function to rgb24
         if(COLOR_DEPTH_BITS == 16)
             loadMatrixBuffers48(currentFrameDataPtr, currentRow, lsbMsbTransitionBit, numBrightnessShifts);

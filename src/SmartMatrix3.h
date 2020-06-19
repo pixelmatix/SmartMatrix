@@ -68,6 +68,8 @@
 #if defined(ESP32)
     #include "SmartMatrixMultiplexedRefreshEsp32.h"
     #include "SmartMatrixMultiplexedCalcEsp32.h"
+    #include "SmartMatrixMultiplexedRefreshEsp32_NT.h"
+    #include "SmartMatrixMultiplexedCalcEsp32_NT.h"
 #endif
 
 #include "SmartMatrixAPA102Refresh.h"
@@ -131,6 +133,10 @@
         SmartMatrix3RefreshMultiplexed<pwm_depth, width, height, panel_type, option_flags> matrix_name##Refresh; \
         SmartMatrix3<pwm_depth, width, height, panel_type, option_flags> matrix_name
 
+    #define SMARTMATRIX_ALLOCATE_BUFFERS_NT(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
+        static SmartMatrix3RefreshMultiplexed_NT<0> matrix_name##Refresh(width, height, pwm_depth, panel_type, option_flags); \
+        static SmartMatrix3_NT<0> matrix_name(&matrix_name##Refresh, width, height, pwm_depth, panel_type, option_flags)
+
     #define SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(layer_name, width, height, storage_depth, background_options) \
         typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
         static SMLayerBackground<RGB_TYPE(storage_depth), background_options> layer_name(width, height)  
@@ -162,6 +168,8 @@
     #include "SmartMatrixMultiplexedRefreshEsp32_Impl.h"
     //#include "SmartMatrixAPA102RefreshEsp32_Impl.h"
     #include "SmartMatrixMultiplexedCalcEsp32_Impl.h"
+    #include "SmartMatrixMultiplexedRefreshEsp32_NT_Impl.h"
+    #include "SmartMatrixMultiplexedCalcEsp32_NT_Impl.h"
 #endif
 
 #if defined(__arm__) && defined(CORE_TEENSY) && !defined(__IMXRT1062__)  // Teensy 3.x

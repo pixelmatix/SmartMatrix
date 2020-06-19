@@ -65,7 +65,7 @@
 
 
 #if (GPIOPINOUT == ESP32_JC_RIBBON_PINOUT)
-    #pragma message "Jason Coon ESP32 NodeMCU shield wiring"
+    #pragma message "MatrixHardware: Jason Coon ESP32 NodeMCU shield wiring"
 // This pinout takes a ribbon cable and flattens it, pin order is 1, 9, 2, 10 ...
 // it connects to https://www.tindie.com/products/jasoncoon/16-output-nodemcu-esp32-wifi-ble-led-controller/
 // *** WARNING, I cut the trace on Jason's board that went to pin 3, and patched a wire
@@ -133,7 +133,7 @@
     #define OE_PIN  GPIO_NUM_12
 
 #elif (GPIOPINOUT == ESP32_JC_RIBBON_PINOUT_WEMOS)
-    #pragma message "Jason Coon ESP32 Wemos/Lolin shield wiring"
+    #pragma message "MatrixHardware: Jason Coon ESP32 Wemos/Lolin shield wiring"
 // This pinout takes a ribbon cable and flattens it, pin order is 1, 9, 2, 10 ...
 // it connects to https://www.tindie.com/products/jasoncoon/16-output-wemos-d32-wifi-ble-led-controller/
 // *** WARNING, I cut the trace on Jason's board that went to pin 3, and patched a wire
@@ -203,7 +203,7 @@
 
 #elif (GPIOPINOUT == ESP32_FORUM_PINOUT)
 
-    #pragma message "ESP32 forum wiring"
+    #pragma message "MatrixHardware: ESP32 forum wiring"
 
     // ADDX is output directly using GPIO
     #define CLKS_DURING_LATCH   0 
@@ -265,7 +265,7 @@
 
 #elif (GPIOPINOUT == HUB75_ADAPTER_PINOUT)
 
-    #pragma message "Hub75 Adapter Pinout"
+    #pragma message "MatrixHardware: Hub75 Adapter Pinout"
 
     // ADDX is output directly using GPIO
     #define CLKS_DURING_LATCH   0 
@@ -326,7 +326,7 @@
     #define CLK_PIN GPIO_NUM_2
 
 #elif (GPIOPINOUT == ESP32_FORUM_PINOUT_WITH_LATCH)
-    #pragma message "ESP32 forum wiring with latch"
+    #pragma message "MatrixHardware: ESP32 forum wiring with latch"
 
     // ADDX is output on RGB pins and stored in external latch (need multiple of 32-bits for full data struct, so pad 2 CLKs to 4 here)
     #define MATRIX_I2S_MODE I2S_PARALLEL_BITS_8
@@ -352,7 +352,7 @@
 
 #elif (GPIOPINOUT == SMARTLED_SHIELD_V0_PINOUT)
 
-    #pragma message "ESP32 SmartLED shield V0 pinout"
+    #pragma message "MatrixHardware: ESP32 SmartLED shield V0 pinout"
 
     // ADDX is output on RGB pins and stored in external latch (need multiple of 32-bits for full data struct, so pad 2 CLKs to 4 here)
     #define MATRIX_I2S_MODE I2S_PARALLEL_BITS_8
@@ -385,7 +385,7 @@
 
 #elif (GPIOPINOUT == HUB75_ADAPTER_LATCH_BREADBOARD_PINOUT)
 
-    #pragma message "HUB75 Adapter Latch Breadboard pinout"
+    #pragma message "MatrixHardware: HUB75 Adapter Latch Breadboard pinout"
 
     // ADDX is output on RGB pins and stored in external latch (need multiple of 32-bits for full data struct, so pad 2 CLKs to 4 here)
     #define MATRIX_I2S_MODE I2S_PARALLEL_BITS_8
@@ -418,7 +418,7 @@
 
 #elif (GPIOPINOUT == HUB75_ADAPTER_V0_THT_PINOUT)
 
-    #pragma message "HUB75 Adapter V0 THT pinout"
+    #pragma message "MatrixHardware: HUB75 Adapter V0 THT pinout"
 
     // ADDX is output on RGB pins and stored in external latch (need multiple of 32-bits for full data struct, so pad 2 CLKs to 4 here)
     #define MATRIX_I2S_MODE I2S_PARALLEL_BITS_8
@@ -454,7 +454,7 @@
 
 #elif (GPIOPINOUT == HUB75_ADAPTER_V0_SMT_PINOUT)
 
-    #pragma message "HUB75 Adapter V0 SMT pinout"
+    #pragma message "MatrixHardware: HUB75 Adapter V0 SMT pinout"
 
     // ADDX is output on RGB pins and stored in external latch (need multiple of 32-bits for full data struct, so pad 2 CLKs to 4 here)
     #define MATRIX_I2S_MODE I2S_PARALLEL_BITS_8
@@ -494,4 +494,6 @@
 #define DEBUG_1_GPIO    GPIO_NUM_13
 //#define DEBUG_2_GPIO    GPIO_NUM_12
 
+#else
+    #pragma GCC error "Multiple MatrixHardware*.h files included"
 #endif

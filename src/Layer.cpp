@@ -42,3 +42,7 @@ void SM_Layer::setRefreshRate(uint8_t newRefreshRate) {
 int SM_Layer::getRequestedBrightnessShifts() {
     return 0;
 }
+
+bool SM_Layer::isLayerChanged() {
+    return true;
+}

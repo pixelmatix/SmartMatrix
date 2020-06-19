@@ -3,7 +3,14 @@
   The Scrolling Layer refresh code will be optimized in a future SmartMatrix Library release 
 */
 
-//#include <SmartLEDShieldV4.h>  // uncomment this line for SmartLED Shield V4 (needs to be before #include <SmartMatrix3.h>)
+// uncomment one line to select your MatrixHardware configuration - configuration header needs to be included before <SmartMatrix3.h>
+//#include <SmartLEDShieldV4.h>           // SmartLED Shield V4 (needs to be before #include <SmartMatrix3.h>)
+//#include <MatrixHardware_ESP32_V0.h>    // This file contains multiple ESP32 hardware configurations, edit the file to define GPIOPINOUT (or add #define GPIOPINOUT with a hardcoded number before this #include)
+//#include <MatrixHardware_KitV1.h>       // SmartMatrix Shield for Teensy 3 V1-V3
+//#include <MatrixHardware_KitV4.h>       // SmartLED Shield for Teensy 3 V4
+//#include <MatrixHardware_KitV4T4.h>     // Teensy 4 Wired to SmartLED Shield for Teensy 3 V4
+//#include <MatrixHardware_T4Adapter.h>   // Teensy 4 Adapter attached to SmartLED Shield for Teensy 3 V4
+//#include "MatrixHardware_Custom.h"      // Copy an existing MatrixHardware file to your Sketch directory, rename, customize, and you can include it like this
 #include <SmartMatrix3.h>
 
 #define COLOR_DEPTH 24                  // known working: 24, 48 - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
