@@ -30,10 +30,10 @@
 #define APA_MIN_REFRESH_RATE_HZ 1
 
 // set to lowest priority as it is a very time consuming ISR
-#define ROW_CALC_ISR_PRIORITY       255
+#define ROW_CALC_ISR_PRIORITY       240
 
 // set to next lowest priority as it can take 10s of microseconds to complete
-#define SHIFT_COMPLETE_ISR_PRIORITY 254
+#define SHIFT_COMPLETE_ISR_PRIORITY 224
 
 extern IntervalTimer myTimer;
 extern EventResponder apa102ShiftCompleteEvent;
