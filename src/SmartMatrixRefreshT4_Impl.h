@@ -23,6 +23,7 @@
 #define MAX_REFRESH_RATE                ((TIMER_FREQUENCY)/(MIN_BLOCK_PERIOD_TICKS)/(MATRIX_SCAN_MOD)/(LATCHES_PER_ROW) - 1) // cannot refresh faster than this due to output bandwidth
 
 #define ROW_CALCULATION_ISR_PRIORITY    240 // lowest priority for IMXRT1062
+#define ROW_SHIFT_COMPLETE_ISR_PRIORITY 96 // one step above USB priority
 #define TIMER_REGISTERS_TO_UPDATE       2
 
 
@@ -706,7 +707,8 @@ FLASHMEM void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, pane
     // Enable interrupt on completion of DMA transfer. This interrupt is used to update the DMA addresses to point to the next row.
     dmaClockOutData.interruptAtCompletion();
     dmaClockOutData.attachInterrupt(rowShiftCompleteISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
-
+    NVIC_SET_PRIORITY(IRQ_DMA_CH0 + dmaClockOutData.channel, ROW_SHIFT_COMPLETE_ISR_PRIORITY);
+    
     // Borrow the interrupt allocated to dmaUpdateTimer to use as a software interrupt
     // It is triggered manually inside rowShiftCompleteISR - never triggered by dmaUpdateTimer
     NVIC_SET_PRIORITY(IRQ_DMA_CH0 + dmaUpdateTimer.channel, ROW_CALCULATION_ISR_PRIORITY);
