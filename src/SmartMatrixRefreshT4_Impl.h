@@ -121,9 +121,9 @@ FASTRUN INLINE void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight
         currentRowDataPtr->rowbits[i].timerValues.timer_period = timerLUT[i].timer_period;
         currentRowDataPtr->rowbits[i].timerValues.timer_oe = timerLUT[i].timer_oe;
     }
-    cbWrite(&dmaBuffer);
     // Now we have refreshed the rowDataStruct for this row and we need to flush cache so that the changes are seen by DMA
     arm_dcache_flush_delete((void*) currentRowDataPtr, sizeof(rowDataStruct));
+    cbWrite(&dmaBuffer); // after cache is flushed, mark this row as ready to be displayed
 }
 
 
