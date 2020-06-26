@@ -20,7 +20,7 @@
 #include <SmartMatrix3.h>
 #include <FastLED.h>
 
-#define COLOR_DEPTH 24                  // known working: 24, 48 - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
+#define COLOR_DEPTH 24                  // This sketch and FastLED uses type `rgb24` directly, COLOR_DEPTH must be 24
 const uint16_t kMatrixWidth = 32;        // known working: 32, 64, 96, 128, 256
 const uint16_t kMatrixHeight = 32;       // known working: 16, 32, 48, 64, 128
 const uint8_t kRefreshDepth = 36;       // known working: 24, 36, 48 (on Teensy 4.x: 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48)
