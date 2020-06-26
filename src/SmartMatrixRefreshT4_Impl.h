@@ -89,12 +89,12 @@ FLASHMEM SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType
     matrixUpdateRows = rowDataBuf;
     timerPairIdle.timer_period = MIN_BLOCK_PERIOD_TICKS;
     timerPairIdle.timer_oe = MIN_BLOCK_PERIOD_TICKS;
-    arm_dcache_flush_delete((void*)&timerPairIdle, sizeof(timerPairIdle));
+    arm_dcache_flush((void*)&timerPairIdle, sizeof(timerPairIdle));
 
     // initialize matrixUpdateRows to all zeros to ensure all padding pixels are blank
     for (int row = 0; row < dmaBufferNumRows; row++) {
         memset((void*) &matrixUpdateRows[row], 0, sizeof(rowDataStruct));
-        arm_dcache_flush_delete((void*) &matrixUpdateRows[row], sizeof(rowDataStruct));
+        arm_dcache_flush((void*) &matrixUpdateRows[row], sizeof(rowDataStruct));
     }
 }
 
@@ -122,7 +122,7 @@ FASTRUN INLINE void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight
         currentRowDataPtr->rowbits[i].timerValues.timer_oe = timerLUT[i].timer_oe;
     }
     // Now we have refreshed the rowDataStruct for this row and we need to flush cache so that the changes are seen by DMA
-    arm_dcache_flush_delete((void*) currentRowDataPtr, sizeof(rowDataStruct));
+    arm_dcache_flush((void*) currentRowDataPtr, sizeof(rowDataStruct));
     cbWrite(&dmaBuffer); // after cache is flushed, mark this row as ready to be displayed
 }
 
