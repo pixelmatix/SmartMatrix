@@ -43,6 +43,8 @@ typedef struct rgb24 {
     }
     rgb24& operator=(const rgb24& col);
     rgb24& operator=(const rgb48& col);
+    rgb24( const rgb24& col);
+    rgb24( const rgb48& col);
 
     uint8_t red;
     uint8_t green;
@@ -55,6 +57,8 @@ typedef struct rgb48 {
         red = r; green = g; blue = b;
     }
     rgb48& operator=(const rgb24& col);
+    rgb48( const rgb24& col);
+    rgb48( const rgb48& col);
 
     uint16_t red;
     uint16_t green;
@@ -76,11 +80,41 @@ inline rgb24& rgb24::operator=(const rgb48& col) {
     return *this;
 }
 
+inline rgb24::rgb24(const rgb24& col) {
+    red = col.red;
+    green = col.green;
+    blue = col.blue;
+}
+
+inline rgb24::rgb24(const rgb48& col) {
+    red = col.red >> 8;
+    green = col.green >> 8;
+    blue = col.blue >> 8;
+}
+
+/* cheap trick to extend destination range from
+ * [0x000000000000 .. 0xFF00FF00FF00] to [0x000000000000 .. 0xFFFFFFFFFFFF]
+ * and maintain some level of accuracy:
+ * write source colour to higher AND lower part of destination uint16_t:
+ * 0x000000 stays 0x000000000000, but 0xFFFFFF will correctly be 0xFFFFFFFFFFFF
+ */
 inline rgb48& rgb48::operator=(const rgb24& col) {
-    red = col.red << 8;
-    green = col.green << 8;
-    blue = col.blue << 8;
+    red = (col.red << 8) | col.red;
+    green = (col.green << 8)  | col.green;
+    blue = (col.blue << 8) | col.blue;
     return *this;
+}
+
+inline rgb48::rgb48(const rgb24& col) {
+    red = (col.red << 8) | col.red;
+    green = (col.green << 8)  | col.green;
+    blue = (col.blue << 8) | col.blue;
+}
+
+inline rgb48::rgb48(const rgb48& col) {
+    red = col.red;
+    green = col.green;
+    blue = col.blue;
 }
 
 #define NAME2(fun,suffix) fun ## suffix
