@@ -44,15 +44,6 @@
 #pragma GCC error "No MatrixHardware*.h file included - You must include one at the top of your sketch"
 #endif
 
-#include "MatrixCommon.h"
-#include "CircularBuffer_SM.h"
-
-#include "Layer_Scrolling.h"
-#include "Layer_Indexed.h"
-#include "Layer_Background.h"
-
-#include "SmartMatrixMultiplexedCommon.h"
-
 #include "SmartMatrixPanelMaps.h"
 
 #if defined(__arm__) && defined(CORE_TEENSY) && !defined(__IMXRT1062__)  // Teensy 3.x
