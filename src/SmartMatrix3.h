@@ -71,6 +71,12 @@
     #include "SmartMatrixCoprocessorCalc.h"
 #endif
 
+#if defined(SMARTMATRIX_USE_PSRAM) && defined(ARDUINO_TEENSY41) // On Teensy 4.1 with PSRAM expansion
+    #define BACKGROUND_MEMSECTION EXTMEM // Use PSRAM to store background layer drawing and refresh buffers (slower but saves RAM)
+#else
+    #define BACKGROUND_MEMSECTION
+#endif
+
 #if defined(__arm__) && defined(CORE_TEENSY)
 #if 1
     // TODO: use same definition for Teensy 3.x and 4.x HUB75 SMARTMATRIX_ALLOCATE_BUFFERS() if possible 
@@ -107,7 +113,7 @@
 
         #define SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(layer_name, width, height, storage_depth, background_options) \
             typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
-            static RGB_TYPE(storage_depth) layer_name##Bitmap[2*width*height];                                        \
+            static BACKGROUND_MEMSECTION RGB_TYPE(storage_depth) layer_name##Bitmap[2*width*height];                                        \
             static color_chan_t layer_name##colorCorrectionLUT[sizeof(SM_RGB) <= 3 ? 256 : 4096];                          \
             static SMLayerBackground<RGB_TYPE(storage_depth), background_options> layer_name(layer_name##Bitmap, width, height, layer_name##colorCorrectionLUT)  
 #else

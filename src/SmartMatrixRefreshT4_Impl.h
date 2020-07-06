@@ -23,6 +23,7 @@
 #define MAX_REFRESH_RATE                ((TIMER_FREQUENCY)/(MIN_BLOCK_PERIOD_TICKS)/(MATRIX_SCAN_MOD)/(LATCHES_PER_ROW) - 1) // cannot refresh faster than this due to output bandwidth
 
 #define ROW_CALCULATION_ISR_PRIORITY    240 // lowest priority for IMXRT1062
+#define ROW_SHIFT_COMPLETE_ISR_PRIORITY 96 // one step above USB priority
 #define TIMER_REGISTERS_TO_UPDATE       2
 
 
@@ -88,12 +89,12 @@ FLASHMEM SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType
     matrixUpdateRows = rowDataBuf;
     timerPairIdle.timer_period = MIN_BLOCK_PERIOD_TICKS;
     timerPairIdle.timer_oe = MIN_BLOCK_PERIOD_TICKS;
-    arm_dcache_flush_delete((void*)&timerPairIdle, sizeof(timerPairIdle));
+    arm_dcache_flush((void*)&timerPairIdle, sizeof(timerPairIdle));
 
     // initialize matrixUpdateRows to all zeros to ensure all padding pixels are blank
     for (int row = 0; row < dmaBufferNumRows; row++) {
         memset((void*) &matrixUpdateRows[row], 0, sizeof(rowDataStruct));
-        arm_dcache_flush_delete((void*) &matrixUpdateRows[row], sizeof(rowDataStruct));
+        arm_dcache_flush((void*) &matrixUpdateRows[row], sizeof(rowDataStruct));
     }
 }
 
@@ -120,9 +121,9 @@ FASTRUN INLINE void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight
         currentRowDataPtr->rowbits[i].timerValues.timer_period = timerLUT[i].timer_period;
         currentRowDataPtr->rowbits[i].timerValues.timer_oe = timerLUT[i].timer_oe;
     }
-    cbWrite(&dmaBuffer);
     // Now we have refreshed the rowDataStruct for this row and we need to flush cache so that the changes are seen by DMA
-    arm_dcache_flush_delete((void*) currentRowDataPtr, sizeof(rowDataStruct));
+    arm_dcache_flush((void*) currentRowDataPtr, sizeof(rowDataStruct));
+    cbWrite(&dmaBuffer); // after cache is flushed, mark this row as ready to be displayed
 }
 
 
@@ -706,7 +707,8 @@ FLASHMEM void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, pane
     // Enable interrupt on completion of DMA transfer. This interrupt is used to update the DMA addresses to point to the next row.
     dmaClockOutData.interruptAtCompletion();
     dmaClockOutData.attachInterrupt(rowShiftCompleteISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>);
-
+    NVIC_SET_PRIORITY(IRQ_DMA_CH0 + dmaClockOutData.channel, ROW_SHIFT_COMPLETE_ISR_PRIORITY);
+    
     // Borrow the interrupt allocated to dmaUpdateTimer to use as a software interrupt
     // It is triggered manually inside rowShiftCompleteISR - never triggered by dmaUpdateTimer
     NVIC_SET_PRIORITY(IRQ_DMA_CH0 + dmaUpdateTimer.channel, ROW_CALCULATION_ISR_PRIORITY);

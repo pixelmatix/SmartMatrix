@@ -3,7 +3,6 @@
     This example code is released into the public domain
 */
 // uncomment one line to select your MatrixHardware configuration - configuration header needs to be included before <SmartMatrix3.h>
-//#include <SmartLEDShieldV4.h>           // SmartLED Shield V4 (needs to be before #include <SmartMatrix3.h>)
 //#include <MatrixHardware_ESP32_V0.h>    // This file contains multiple ESP32 hardware configurations, edit the file to define GPIOPINOUT (or add #define GPIOPINOUT with a hardcoded number before this #include)
 //#include <MatrixHardware_KitV1.h>       // SmartMatrix Shield for Teensy 3 V1-V3
 //#include <MatrixHardware_KitV4.h>       // SmartLED Shield for Teensy 3 V4
@@ -17,7 +16,7 @@
 #define COLOR_DEPTH 24                  // known working: 24, 48 - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
 const uint16_t kMatrixWidth = 32;        // known working: 32, 64, 96, 128, 256
 const uint16_t kMatrixHeight = 32;       // known working: 16, 32, 48, 64, 128
-const uint8_t kRefreshDepth = 24;       // known working: 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48
+const uint8_t kRefreshDepth = 24;       // known working: 24, 36, 48 (on Teensy 4.x: 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48)
 const uint8_t kDmaBufferRows = 4;       // known working: 2-4, use 2 to save memory, more to keep from dropping frames and automatically lowering refresh rate
 const uint8_t kPanelType = SMARTMATRIX_HUB75_32ROW_MOD16SCAN;   // use SMARTMATRIX_HUB75_16ROW_MOD8SCAN for common 16x32 panels
 const uint8_t kMatrixOptions = SMARTMATRIX_OPTIONS_NONE;   // see http://docs.pixelmatix.com/SmartMatrix for options

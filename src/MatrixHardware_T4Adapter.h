@@ -39,14 +39,14 @@
 
 // Pixel clock frequency is generated using the 480 MHz PLL3 clock and a divide-by-n counter. Frequency is independent of CPU clock speed.
 // Must increment divider value by 2 (division ratio is always even)
-// Minimum tested working value is 20 (corresponding to 24 MHz clock frequency) due to panel hardware limitations on the panels tested
-// Using value of 24 (corresponding to 20 MHz clock frequency) because it seems to improve intermittent glitching issue
+// Minimum tested working value is 20 (corresponding to 24 MHz clock frequency) on DP5020B panel
+// Using value of 26 (corresponding to 18.462 MHz clock frequency) to improve stability and reduce glitching
 // Larger values may be more stable, but will decrease maximum refresh rate
-#define FLEXIO_CLOCK_DIVIDER 24
+#define FLEXIO_CLOCK_DIVIDER 26
 
 // Amount of time required to transfer 32 pixels
-// Adding 50 ns overhead time to improve stability
-#define PANEL_32_PIXELDATA_TRANSFER_MAXIMUM_NS  ((32*FLEXIO_CLOCK_DIVIDER*1000/480) + 50)
+// Adding 200 ns overhead time to improve stability
+#define PANEL_32_PIXELDATA_TRANSFER_MAXIMUM_NS  ((32*FLEXIO_CLOCK_DIVIDER*1000/480) + 200)
 
 /* this section describes how the microcontroller is attached to the display */
 

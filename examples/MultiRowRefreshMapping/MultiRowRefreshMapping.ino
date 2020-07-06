@@ -1,6 +1,8 @@
 /*
  * This example can be used to determine the mapping of pixels onto a panel that refreshes multiple rows in parallel.
  * e.g. each RGB channel on a HUB75 P10 32x16 /2 panel fills pixels across four rows at once, and in a non-linear order
+ *
+ * Note: this functionality is not yet implemented for Teensy 4.x.
  * 
  * The example code moves a single pixel across the width of the display across one row at a time.  To help reverse-
  * engineer the mapping of a panel, we can "unwrap" the panel so a /2 panel looks like a 4-row high panel
@@ -74,7 +76,6 @@
  */
 
 // uncomment one line to select your MatrixHardware configuration - configuration header needs to be included before <SmartMatrix3.h>
-//#include <SmartLEDShieldV4.h>           // SmartLED Shield V4 (needs to be before #include <SmartMatrix3.h>)
 //#include <MatrixHardware_ESP32_V0.h>    // This file contains multiple ESP32 hardware configurations, edit the file to define GPIOPINOUT (or add #define GPIOPINOUT with a hardcoded number before this #include)
 //#include <MatrixHardware_KitV1.h>       // SmartMatrix Shield for Teensy 3 V1-V3
 //#include <MatrixHardware_KitV4.h>       // SmartLED Shield for Teensy 3 V4
@@ -92,19 +93,19 @@
 #define COLOR_DEPTH 24                  // known working: 24, 48 - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
 
 #if (SKETCH_MODE == MODE_MAP_REVERSE_ENGINEERING)
-const uint8_t kMatrixWidth = 128;        // known working: 16, 32, 48, 64
-const uint8_t kMatrixHeight = 4;       // known working: 32, 64, 96, 128
+const uint16_t kMatrixWidth = 128;        // known working: 16, 32, 48, 64
+const uint16_t kMatrixHeight = 4;       // known working: 32, 64, 96, 128
 const uint8_t kPanelType = SMARTMATRIX_HUB75_4ROW_MOD2SCAN;   // Use this to reverse engineer mapping for a MOD2 panel
 //const uint8_t kPanelType = SMARTMATRIX_HUB75_8ROW_MOD4SCAN;   // Use this to reverse engineer mapping for a MOD4 panel
 #endif
 
 #if (SKETCH_MODE == MODE_MAP_TESTING)
-const uint8_t kMatrixWidth = 32;        // known working: 16, 32, 48, 64
-const uint8_t kMatrixHeight = 16;       // known working: 32, 64, 96, 128
+const uint16_t kMatrixWidth = 32;        // known working: 16, 32, 48, 64
+const uint16_t kMatrixHeight = 16;       // known working: 32, 64, 96, 128
 const uint8_t kPanelType = SMARTMATRIX_HUB75_16ROW_32COL_MOD2SCAN;   // use SMARTMATRIX_HUB75_16ROW_MOD8SCAN for common 16x32 panels
 #endif
 
-const uint8_t kRefreshDepth = 36;       // known working: 24, 36, 48
+const uint8_t kRefreshDepth = 36;       // known working: 24, 36, 48 (on Teensy 4.x: 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48)
 const uint8_t kDmaBufferRows = 4;       // known working: 2-4, use 2 to save memory, more to keep from dropping frames and automatically lowering refresh rate
 const uint8_t kMatrixOptions = (SMARTMATRIX_OPTIONS_NONE);      // see http://docs.pixelmatix.com/SmartMatrix for options
 const uint8_t kBackgroundLayerOptions = (SM_BACKGROUND_OPTIONS_NONE);
