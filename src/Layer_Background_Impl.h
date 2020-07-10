@@ -107,9 +107,11 @@ void SMLayerBackground<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb
     RGB currentPixel;
     int i;
 
+    RGB *ptr = currentRefreshBufferPtr + (hardwareY * this->matrixWidth);
+
     if(this->ccEnabled) {
         for(i=0; i<this->matrixWidth; i++) {
-            currentPixel = currentRefreshBufferPtr[(hardwareY * this->matrixWidth) + i];
+            currentPixel = *ptr++;
             // load background pixel with color correction
             if(sizeof(RGB) <= 3) {
                 // 24-bit source (8 bits per color channel): backgroundColorCorrectionLUT expects 8-bit value, returns 16-bit value
@@ -125,7 +127,7 @@ void SMLayerBackground<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb
         }
     } else {
         for(i=0; i<this->matrixWidth; i++) {
-            currentPixel = currentRefreshBufferPtr[(hardwareY * this->matrixWidth) + i];
+            currentPixel = *ptr++;
             // load background pixel without color correction
             if(sizeof(RGB) <= 3) {
                 // 24-bit source (8 bits per color channel): shift to fit in 16-bit color channel
@@ -147,9 +149,11 @@ void SMLayerBackground<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb
     RGB currentPixel;
     int i;
 
+    RGB *ptr = currentRefreshBufferPtr + (hardwareY * this->matrixWidth);
+
     if(this->ccEnabled) {
         for(i=0; i<this->matrixWidth; i++) {
-            currentPixel = currentRefreshBufferPtr[(hardwareY * this->matrixWidth) + i];
+            currentPixel = *ptr++;
             // load background pixel with color correction
             if(sizeof(RGB) <= 3) {
                 // 24-bit source (8 bits per color channel): backgroundColorCorrectionLUT expects 8-bit value, returns 16-bit value
@@ -165,7 +169,7 @@ void SMLayerBackground<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb
         }
     } else {
         for(i=0; i<this->matrixWidth; i++) {
-            currentPixel = currentRefreshBufferPtr[(hardwareY * this->matrixWidth) + i];
+            currentPixel = *ptr++;
             // load background pixel without color correction
             if(sizeof(RGB) <= 3) {
                 refreshRow[i] = rgb24(currentPixel.red << brightnessShifts,
@@ -1056,5 +1060,3 @@ template<typename RGB, unsigned int optionFlags>
 RGB *SMLayerBackground<RGB, optionFlags>::getCurrentRefreshRow(uint16_t y) {
   return &currentRefreshBufferPtr[y*this->matrixWidth];
 }
-
-
