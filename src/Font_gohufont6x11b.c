@@ -7,8 +7,16 @@
 
 #include "MatrixFontCommon.h"
 
+#if defined(__IMXRT1062__) // For Teensy 4.0/4.1, use PROGMEM to keep font bitmaps in flash
+  #define PROGMEM __attribute__((section(".progmem"))) // from <avr/pgmspace.h>
+#else
+  #if !defined(PROGMEM)
+    #define PROGMEM
+  #endif
+#endif
+
 	/// character bitmap for each encoding
-static const unsigned char __gohufont6x11b_bitmap__[] = {
+static const PROGMEM unsigned char __gohufont6x11b_bitmap__[] = {
 //  32 $20 'SPACE'
 //	width 6, bbx 0, bby 0, bbw 0, bbh 0
 	________,
@@ -2495,7 +2503,7 @@ static const unsigned char __gohufont6x11b_bitmap__[] = {
 };
 
 	/// character encoding for each index entry
-static const unsigned short __gohufont6x11b_index__[] = {
+static const PROGMEM unsigned short __gohufont6x11b_index__[] = {
 	32,
 	33,
 	34,
@@ -2697,4 +2705,3 @@ const struct bitmap_font gohufont6x11b = {
 	.Index = __gohufont6x11b_index__,
 	.Bitmap = __gohufont6x11b_bitmap__,
 };
-
