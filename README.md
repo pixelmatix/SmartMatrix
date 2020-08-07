@@ -1,4 +1,8 @@
-# SmartMatrix Library for Teensy 3
+# SmartMatrix Library for Teensy 3, Teensy 4, and ESP32
+
+The **teensy4** branch of the SmartMatrix Library is currently the most up-to-date version of the library. It is built on the **teensylc** branch and has support for Teensy 4.1, Teensy 4.0, Teensy 3.6, Teensy 3.5, Teensy 3.2, and Teensy LC, as well as experimental support for ESP32.
+
+Todo: Move the following documentation (specific to the ESP32 port) to the [SmartMatrix Wiki](https://github.com/pixelmatix/SmartMatrix/wiki).
 
 ## Changes for ESP32
 
