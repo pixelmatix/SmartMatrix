@@ -4,10 +4,6 @@ The **teensy4** branch of the SmartMatrix Library is currently the most up-to-da
 
 Compared to SmartMatrix Library 3.x, this branch has extensive refactoring of the Calculation and Refresh classes that allowed the library to be extended to more platforms, and to support HUB75 panels with non-standard mapping.
 
-Todo: Keep this readme very high level, and move the detailed documentation to the [SmartMatrix Wiki](https://github.com/pixelmatix/SmartMatrix/wiki).
-
-For details on the ESP32 port, see the [Wiki](https://github.com/pixelmatix/SmartMatrix/wiki/ESP32-Wiring)
-
 ## Teensy 4
 
 The biggest feature in this new branch is Teensy 4 support, with the new SmartLED Shield for Teensy 4, [currently being launched on Crowd Supply](https://www.crowdsupply.com/pixelmatix/smartled-shield-for-teensy-4)
@@ -18,10 +14,16 @@ Teensy 4 support was contributed by Eric Eason
 
 See Teensy 4 focused Todo list here: https://github.com/pixelmatix/SmartMatrix/issues/124
 
+## ESP32
+
+For details on the ESP32 port, see the [Wiki](https://github.com/pixelmatix/SmartMatrix/wiki/ESP32-Wiring)
+
 ## Changes from SmartMatrix Library 3.x
 
 - Sketches written for SmartMatrix Library 3.x should work with this branch with few changes as of now.
 - A `MatrixHardware*.h` file must be included to tell the library which hardware you're using.  The file doesn't have to be inside the library, it can be inside your sketch folder if you want to use custom hardware.
+
+Todo: Keep this readme very high level, and move the detailed documentation to the [SmartMatrix Wiki](https://github.com/pixelmatix/SmartMatrix/wiki).
 
 ## Overview (old, based on SmartMatrix Library 3.x)
 
