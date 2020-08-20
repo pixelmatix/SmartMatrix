@@ -4,7 +4,7 @@ The SmartMatrix Library is designed to make it easy to display graphics and scro
 
 Version 3.0 is a significant upgrade from 2.x, with a new API that is not backwards compatible.  See the [release notes on GitHub](https://github.com/pixelmatix/SmartMatrix/releases) for more details, and [MIGRATION.md](https://github.com/pixelmatix/SmartMatrix/blob/sm3.0/MIGRATION.md) for details on migrating sketches from SmartMatrix 2.x to 3.0.  You can have SmartMatrix3 installed in parallel with an existing SmartMatrix_32x32 or SmartMatrix_16x32 library without conflicts.
 
-Experimental ESP32 support was added in the teensylc branch, but it is not going to be fully supported like the Teensy 3 platform. See https://community.pixelmatix.com/t/smartmatrix-library-esp32-port/272/48
+For the latest SmartMatrix Library code, with Work-In-Progress Teensy 4 support, experimental ESP32 support, and support for more panel types, see the [teensy4 branch](https://github.com/pixelmatix/SmartMatrix/tree/teensy4).
 
 More documentation here including details on the HUB75 panel types supported by SmartMatrix Library:  
 [docs.pixelmatix.com/SmartMatrix](http://docs.pixelmatix.com/SmartMatrix)
