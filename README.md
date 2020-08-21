@@ -10,7 +10,9 @@ The biggest feature in this new branch is Teensy 4 support, with the new SmartLE
 
 In the meantime you can use the prototype SmartLED Shield for Teensy 4 design in the extras/hardware folder, or the T4toT3Adapter design ([details here](https://community.pixelmatix.com/t/teensy-4-0-released/498/32?u=louis)) which can be plugged into a SmartLED Shield for Teensy 3.
 
-Teensy 4 support was contributed by Eric Eason
+The V0 SmartLED Shield for Teensy 4 is close to the final version, the only significant change that is planned is the default settings of the APA102 jumpers, to use FlexIO pins 4/5 by default.  (The T4toT3Adapter already uses pins 4/5 by default)
+
+Teensy 4 support was contributed by [Eric Eason](https://github.com/easone)
 
 See Teensy 4 focused Todo list here: https://github.com/pixelmatix/SmartMatrix/issues/124
 
