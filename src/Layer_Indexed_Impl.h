@@ -189,7 +189,7 @@ template <typename RGB, unsigned int optionFlags>
 void SMLayerIndexed<RGB, optionFlags>::drawPixel(int16_t x, int16_t y, uint8_t index) {
     uint8_t tempBitmask;
 
-    if(x < 0 || x >= this->localWidth || y < 0 || y >= this->localWidth)
+    if(x < 0 || x >= this->localWidth || y < 0 || y >= this->localHeight)
         return;
 
     if(index) {
