@@ -63,7 +63,7 @@ bool SMLayerScrolling<RGB, optionFlags>::getPixel(uint16_t hardwareX, uint16_t h
     uint16_t localScreenX, localScreenY;
 
     // convert hardware x/y to the pixel in the local screen
-    switch( this->rotation ) {
+    switch( this->layerRotation ) {
       case rotation0 :
         localScreenX = hardwareX;
         localScreenY = hardwareY;
@@ -100,7 +100,7 @@ bool SMLayerScrolling<RGB, optionFlags>::getPixel(uint16_t hardwareX, uint16_t h
     uint16_t localScreenX, localScreenY;
 
     // convert hardware x/y to the pixel in the local screen
-    switch( this->rotation ) {
+    switch( this->layerRotation ) {
       case rotation0 :
         localScreenX = hardwareX;
         localScreenY = hardwareY;
@@ -350,7 +350,6 @@ void SMLayerScrolling<RGB, optionFlags>::redrawScrollingText(void) {
     int j, k;
     int charPosition, textPosition;
     uint16_t charY0, charY1;
-
 
     for (j = 0; j < this->localHeight; j++) {
 

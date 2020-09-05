@@ -24,9 +24,9 @@
 #include "Layer.h"
 
 void SM_Layer::setRotation(rotationDegrees newrotation) {
-    rotation = newrotation;
+    layerRotation = newrotation;
 
-    if (rotation == rotation0 || rotation == rotation180) {
+    if (layerRotation == rotation0 || layerRotation == rotation180) {
         localWidth = matrixWidth;
         localHeight = matrixHeight;
     } else {

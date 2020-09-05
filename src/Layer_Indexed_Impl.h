@@ -68,7 +68,7 @@ bool SMLayerIndexed<RGB, optionFlags>::getPixel(uint16_t hardwareX, uint16_t har
     uint16_t localScreenX, localScreenY;
 
     // convert hardware x/y to the pixel in the local screen
-    switch( this->rotation ) {
+    switch( this->layerRotation ) {
       case rotation0 :
         localScreenX = hardwareX;
         localScreenY = hardwareY;
