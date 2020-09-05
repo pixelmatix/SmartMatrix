@@ -66,7 +66,6 @@ class SMLayerIndexed : public SM_Layer {
         // double buffered to prevent flicker while drawing
         uint8_t * indexedBitmap;
 
-        void handleBufferCopy(void);
 
         RGB color;
         unsigned char currentframe = 0;
@@ -89,7 +88,11 @@ class SMLayerIndexed : public SM_Layer {
         int scrollMin, scrollMax;
         int scrollPosition;
 
-        volatile bool copyPending = false;
+        // keeping track of drawing buffers
+        volatile unsigned char currentDrawBuffer;
+        volatile unsigned char currentRefreshBuffer;
+        volatile bool swapPending;
+        void handleBufferSwap(void);
 
         bitmap_font *layerFont = (bitmap_font *) &apple3x5;
 };
@@ -97,4 +100,3 @@ class SMLayerIndexed : public SM_Layer {
 #include "Layer_Indexed_Impl.h"
 
 #endif
-

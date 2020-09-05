@@ -23,9 +23,6 @@
 
 #include <string.h>
 
-const unsigned char indexedDrawBuffer = 0;
-const unsigned char indexedRefreshBuffer = 1;
-
 #define INDEXED_BUFFER_ROW_SIZE     (this->localWidth / 8)
 #define INDEXED_BUFFER_SIZE         (INDEXED_BUFFER_ROW_SIZE * this->localHeight)
 
@@ -55,11 +52,14 @@ SMLayerIndexed<RGB, optionFlags>::SMLayerIndexed(uint16_t width, uint16_t height
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerIndexed<RGB, optionFlags>::begin(void) {
+    currentDrawBuffer = 0;
+    currentRefreshBuffer = 1;
+    swapPending = false;
 }
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerIndexed<RGB, optionFlags>::frameRefreshCallback(void) {
-    handleBufferCopy();
+    handleBufferSwap();
 }
 
 // returns true and copies color to xyPixel if pixel is opaque, returns false if not
@@ -92,7 +92,7 @@ bool SMLayerIndexed<RGB, optionFlags>::getPixel(uint16_t hardwareX, uint16_t har
 
     uint8_t bitmask = 0x80 >> (localScreenX % 8);
 
-    if (indexedBitmap[(indexedRefreshBuffer * INDEXED_BUFFER_SIZE) + (localScreenY * INDEXED_BUFFER_ROW_SIZE) + (localScreenX/8)] & bitmask) {
+    if (indexedBitmap[(currentRefreshBuffer * INDEXED_BUFFER_SIZE) + (localScreenY * INDEXED_BUFFER_ROW_SIZE) + (localScreenX/8)] & bitmask) {
         xyPixel = color;
         return true;
     }
@@ -164,25 +164,51 @@ void SMLayerIndexed<RGB, optionFlags>::fillScreen(uint8_t index) {
     else
         fillValue = 0x00;
 
-    memset(&indexedBitmap[indexedDrawBuffer*INDEXED_BUFFER_SIZE], fillValue, INDEXED_BUFFER_SIZE);
+    memset(&indexedBitmap[currentDrawBuffer*INDEXED_BUFFER_SIZE], fillValue, INDEXED_BUFFER_SIZE);
 }
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerIndexed<RGB, optionFlags>::swapBuffers(bool copy) {
-    while (copyPending);
+    while (swapPending);
 
-    copyPending = true;
+    swapPending = true;
 
-    while (copy && copyPending);
+    if(copy) {
+        while(swapPending);
+
+#if 1
+        // workaround for bizarre (optimization) bug - currentDrawBuffer and currentRefreshBuffer are volatile and are changed by an ISR while we're waiting for swapPending here.  They can't be used as parameters to memcpy directly though.  
+        if(currentDrawBuffer)
+            memcpy(&indexedBitmap[INDEXED_BUFFER_SIZE], &indexedBitmap[0], INDEXED_BUFFER_SIZE);
+        else
+            memcpy(&indexedBitmap[0], &indexedBitmap[INDEXED_BUFFER_SIZE], INDEXED_BUFFER_SIZE);
+#else
+        // below is untested after copying from backgroundLayer to indexedLayer:
+
+        // Similar code also drawing from volatile variables doesn't work if optimization is turned on: currentDrawBuffer will be equal to currentRefreshBuffer and cause a crash from memcpy copying a buffer to itself.  Why?
+        memcpy(&indexedBitmap[currentRefreshBuffer*INDEXED_BUFFER_SIZE], &indexedBitmap[currentDrawBuffer*INDEXED_BUFFER_SIZE], INDEXED_BUFFER_SIZE);
+
+        // this also doesn't work
+        //copyRefreshToDrawing();  
+
+        // first checking for (currentDrawBuffer != currentRefreshBuffer) prevents a crash by skipping the copy, but currentDrawBuffer should never be equal to currentRefreshBuffer, except briefly inside an ISR during handleBufferSwap() call
+        //if(currentDrawBuffer != currentRefreshBuffer)     
+        //   memcpy(backgroundBuffers[currentDrawBuffer], backgroundBuffers[currentRefreshBuffer], sizeof(RGB) * (this->matrixWidth * this->matrixHeight));
+#endif
+    }
 }
 
 template <typename RGB, unsigned int optionFlags>
-void SMLayerIndexed<RGB, optionFlags>::handleBufferCopy(void) {
-    if (!copyPending)
+void SMLayerIndexed<RGB, optionFlags>::handleBufferSwap(void) {
+    if (!swapPending)
         return;
 
-    memcpy(&indexedBitmap[indexedRefreshBuffer*INDEXED_BUFFER_SIZE], &indexedBitmap[indexedDrawBuffer*INDEXED_BUFFER_SIZE], INDEXED_BUFFER_SIZE);
-    copyPending = false;
+    unsigned char newDrawBuffer = currentRefreshBuffer;
+
+    currentRefreshBuffer = currentDrawBuffer;
+    currentDrawBuffer = newDrawBuffer;
+
+    swapPending = false;
 }
 
 template <typename RGB, unsigned int optionFlags>
@@ -194,10 +220,10 @@ void SMLayerIndexed<RGB, optionFlags>::drawPixel(int16_t x, int16_t y, uint8_t i
 
     if(index) {
         tempBitmask = 0x80 >> (x%8);
-        indexedBitmap[indexedDrawBuffer*INDEXED_BUFFER_SIZE + (y * INDEXED_BUFFER_ROW_SIZE) + (x/8)] |= tempBitmask;
+        indexedBitmap[currentDrawBuffer*INDEXED_BUFFER_SIZE + (y * INDEXED_BUFFER_ROW_SIZE) + (x/8)] |= tempBitmask;
     } else {
         tempBitmask = ~(0x80 >> (x%8));
-        indexedBitmap[indexedDrawBuffer*INDEXED_BUFFER_SIZE + (y * INDEXED_BUFFER_ROW_SIZE) + (x/8)] &= tempBitmask;
+        indexedBitmap[currentDrawBuffer*INDEXED_BUFFER_SIZE + (y * INDEXED_BUFFER_ROW_SIZE) + (x/8)] &= tempBitmask;
     }
 }
 
@@ -224,12 +250,12 @@ void SMLayerIndexed<RGB, optionFlags>::drawChar(int16_t x, int16_t y, uint8_t in
 
         tempBitmask = getBitmapFontRowAtXY(character, k - y, layerFont);
         if (x < 0) {
-            indexedBitmap[indexedDrawBuffer*INDEXED_BUFFER_SIZE + (k * INDEXED_BUFFER_ROW_SIZE) + 0] |= tempBitmask << -x;
+            indexedBitmap[currentDrawBuffer*INDEXED_BUFFER_SIZE + (k * INDEXED_BUFFER_ROW_SIZE) + 0] |= tempBitmask << -x;
         } else {
-            indexedBitmap[indexedDrawBuffer*INDEXED_BUFFER_SIZE + (k * INDEXED_BUFFER_ROW_SIZE) + (x/8)] |= tempBitmask >> (x%8);
+            indexedBitmap[currentDrawBuffer*INDEXED_BUFFER_SIZE + (k * INDEXED_BUFFER_ROW_SIZE) + (x/8)] |= tempBitmask >> (x%8);
             // do two writes if the shifted 8-bit wide bitmask is still on the screen
             if(x + 8 < this->localWidth && x % 8)
-                indexedBitmap[indexedDrawBuffer*INDEXED_BUFFER_SIZE + (k * INDEXED_BUFFER_ROW_SIZE) + (x/8) + 1] |= tempBitmask << (8-(x%8));
+                indexedBitmap[currentDrawBuffer*INDEXED_BUFFER_SIZE + (k * INDEXED_BUFFER_ROW_SIZE) + (x/8) + 1] |= tempBitmask << (8-(x%8));
         }
     }
 }
