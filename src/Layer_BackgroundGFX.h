@@ -28,10 +28,16 @@
 #include "MatrixCommon.h"
 #include "MatrixFontCommon.h"
 
+// Adafruit_GFX includes
+#include <Adafruit_GFX.h>
+
 #define SM_BACKGROUND_GFX_OPTIONS_NONE     0
 
+#define SM_BACKGROUND_GFX_BACKWARDS_COMPATIBILITY
+#define SM_BACKGROUND_GFX_OLD_DRAWING_FUNCTIONS
+
 template <typename RGB, unsigned int optionFlags>
-class SMLayerBackgroundGFX : public SM_Layer {
+class SMLayerBackgroundGFX : public SM_Layer, public Adafruit_GFX {
     public:
         /* RGB specific methods */
         SMLayerBackgroundGFX(RGB * buffer, uint16_t width, uint16_t height, color_chan_t * colorCorrectionLUT);
@@ -49,11 +55,14 @@ class SMLayerBackgroundGFX : public SM_Layer {
         void drawPixel(int16_t x, int16_t y, const RGB& color);
 
         /* RGB Specific Adafruit_GFX methods  */
+        void drawPixel(int16_t x, int16_t y, uint16_t color);
 
         /* RGB Specific SmartMatrix Library 3.0 Backwards Compatibility */
+#ifdef SM_BACKGROUND_GFX_BACKWARDS_COMPATIBILITY
         void drawFastHLine(int16_t x0, int16_t x1, int16_t y, const RGB& color);
         void drawFastVLine(int16_t x, int16_t y0, int16_t y1, const RGB& color);
         void fillScreen(const RGB& color);
+#endif
 
         /* RGB Specific Raw Buffer Access */
         // reads pixel from drawing buffer, not refresh buffer
@@ -72,13 +81,16 @@ class SMLayerBackgroundGFX : public SM_Layer {
 
         /* Shared SmartMatrix Library 3.0 Backwards Compatibility */
         // right category?
+#ifdef SM_BACKGROUND_GFX_BACKWARDS_COMPATIBILITY
         void drawChar(int16_t x, int16_t y, const RGB& charColor, char character);
         void drawString(int16_t x, int16_t y, const RGB& charColor, const char text[]);
         void drawString(int16_t x, int16_t y, const RGB& charColor, const RGB& backColor, const char text[]);
         void drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, const RGB& bitmapColor, const uint8_t *bitmap);
         void setFont(fontChoices newFont);
+#endif
 
         /* Replaced by Adafruit_GFX */
+#ifdef SM_BACKGROUND_GFX_OLD_DRAWING_FUNCTIONS
         void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& color);
         void drawCircle(int16_t x0, int16_t y0, uint16_t radius, const RGB& color);
         void fillCircle(int16_t x0, int16_t y0, uint16_t radius, const RGB& outlineColor, const RGB& fillColor);
@@ -95,6 +107,7 @@ class SMLayerBackgroundGFX : public SM_Layer {
         void fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t radius, const RGB& fillColor);
         void fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t radius,
             const RGB& outlineColor, const RGB& fillColor);
+#endif
 
     private:
         // todo: move somewhere else
@@ -117,8 +130,10 @@ class SMLayerBackgroundGFX : public SM_Layer {
         bool getForegroundRefreshPixel(uint16_t x, uint16_t y, RGB &xyPixel);
 
         /* Replaced by Adafruit_GFX */
+#ifdef SM_BACKGROUND_GFX_OLD_DRAWING_FUNCTIONS
         void bresteepline(int16_t x3, int16_t y3, int16_t x4, int16_t y4, const RGB& color);
         void fillFlatSideTriangleInt(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const RGB& color);
+#endif
 
         uint8_t backgroundBrightness = 255;
         color_chan_t * backgroundColorCorrectionLUT;

@@ -29,7 +29,7 @@
 
 // call when backgroundBuffers and backgroundColorCorrectionLUT buffer is allocated outside of class
 template <typename RGB, unsigned int optionFlags>
-SMLayerBackgroundGFX<RGB, optionFlags>::SMLayerBackgroundGFX(RGB * buffer, uint16_t width, uint16_t height, color_chan_t * colorCorrectionLUT) {
+SMLayerBackgroundGFX<RGB, optionFlags>::SMLayerBackgroundGFX(RGB * buffer, uint16_t width, uint16_t height, color_chan_t * colorCorrectionLUT) : Adafruit_GFX(width, height) {
     backgroundBuffers[0] = buffer;
     backgroundBuffers[1] = buffer + (width * height);
     backgroundColorCorrectionLUT = colorCorrectionLUT;
@@ -39,7 +39,7 @@ SMLayerBackgroundGFX<RGB, optionFlags>::SMLayerBackgroundGFX(RGB * buffer, uint1
 
 // call this when buffers should be sourced from malloc inside begin()
 template <typename RGB, unsigned int optionFlags>
-SMLayerBackgroundGFX<RGB, optionFlags>::SMLayerBackgroundGFX(uint16_t width, uint16_t height) {
+SMLayerBackgroundGFX<RGB, optionFlags>::SMLayerBackgroundGFX(uint16_t width, uint16_t height) : Adafruit_GFX(width, height) {
     this->matrixWidth = width;
     this->matrixHeight = height;
 }
@@ -266,6 +266,8 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::drawPixel(int16_t x, int16_t y, uin
 
 /* RGB Specific SmartMatrix Library 3.0 Backwards Compatibility */
 
+#ifdef SM_BACKGROUND_GFX_BACKWARDS_COMPATIBILITY
+
 // x0, x1, and y must be in bounds (0-this->localWidth/Height-1), x1 > x0
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackgroundGFX<RGB, optionFlags>::drawHardwareHLine(uint16_t x0, uint16_t x1, uint16_t y, const RGB& color) {
@@ -348,6 +350,7 @@ template <typename RGB, unsigned int optionFlags>
 void SMLayerBackgroundGFX<RGB, optionFlags>::fillScreen(const RGB& color) {
     fillRectangle(0, 0, this->localWidth - 1, this->localHeight - 1, color);
 }
+#endif
 
 /* RGB Specific Raw Buffer Access */
 
@@ -515,6 +518,7 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::setFont(fontChoices newFont) {
 
 /* Replaced by Adafruit_GFX */
 
+#ifdef SM_BACKGROUND_GFX_OLD_DRAWING_FUNCTIONS
 #define SWAPint(X,Y) { \
         int temp = X ; \
         X = Y ; \
@@ -1075,4 +1079,4 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::fillRectangle(int16_t x0, int16_t y
     fillRectangle(x0, y0, x1, y1, fillColor);
     drawRectangle(x0, y0, x1, y1, outlineColor);
 }
-
+#endif
