@@ -23,6 +23,10 @@
 
 #include <stdlib.h>     
 
+#define INLINE __attribute__( ( always_inline ) ) inline
+
+/* RGB specific methods */
+
 // call when backgroundBuffers and backgroundColorCorrectionLUT buffer is allocated outside of class
 template <typename RGB, unsigned int optionFlags>
 SMLayerBackgroundGFX<RGB, optionFlags>::SMLayerBackgroundGFX(RGB * buffer, uint16_t width, uint16_t height, color_chan_t * colorCorrectionLUT) {
@@ -77,6 +81,22 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::begin(void) {
 }
 
 template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::handleBufferSwap(void) {
+    if (!swapPending)
+        return;
+
+    unsigned char newDrawBuffer = currentRefreshBuffer;
+
+    currentRefreshBuffer = currentDrawBuffer;
+    currentDrawBuffer = newDrawBuffer;
+
+    currentRefreshBufferPtr = backgroundBuffers[currentRefreshBuffer];
+    currentDrawBufferPtr = backgroundBuffers[currentDrawBuffer];
+
+    swapPending = false;
+}
+
+template <typename RGB, unsigned int optionFlags>
 void SMLayerBackgroundGFX<RGB, optionFlags>::frameRefreshCallback(void) {
     handleBufferSwap();
 
@@ -84,22 +104,6 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::frameRefreshCallback(void) {
         calculate12BitBackgroundLUT(backgroundColorCorrectionLUT, backgroundBrightness);
     else
         calculate8BitBackgroundLUT(backgroundColorCorrectionLUT, backgroundBrightness);
-}
-
-template <typename RGB, unsigned int optionFlags>
-int SMLayerBackgroundGFX<RGB, optionFlags>::getRequestedBrightnessShifts() {
-    return idealBrightnessShifts;
-}
-
-template <typename RGB, unsigned int optionFlags>
-bool SMLayerBackgroundGFX<RGB, optionFlags>::isLayerChanged() {
-    return swapPending;
-}
-
-// numShifts must be in range of 0-4, otherwise 16-bit to 12-bit conversion code breaks (would be an easy fix, but 4 is enough for APA102 GBC application)
-template <typename RGB, unsigned int optionFlags>
-void SMLayerBackgroundGFX<RGB, optionFlags>::setBrightnessShifts(int numShifts) {
-    pendingIdealBrightnessShifts = numShifts;
 }
 
 template <typename RGB, unsigned int optionFlags>
@@ -184,17 +188,48 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, 
     }
 }
 
-#define INLINE __attribute__( ( always_inline ) ) inline
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::copyRefreshToDrawing() {
+    memcpy(currentDrawBufferPtr, currentRefreshBufferPtr, sizeof(RGB) * (this->matrixWidth * this->matrixHeight));
+}
+
+// waits until previous swap is complete
+// waits until current swap is complete if copy is enabled
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::swapBuffers(bool copy) {
+    while (swapPending);
+
+    swapPending = true;
+
+    if (copy) {
+        while (swapPending);
+#if 1
+        // workaround for bizarre (optimization) bug - currentDrawBuffer and currentRefreshBuffer are volatile and are changed by an ISR while we're waiting for swapPending here.  They can't be used as parameters to memcpy directly though.  
+        if(currentDrawBuffer)
+            memcpy(backgroundBuffers[1], backgroundBuffers[0], sizeof(RGB) * (this->matrixWidth * this->matrixHeight));
+        else
+            memcpy(backgroundBuffers[0], backgroundBuffers[1], sizeof(RGB) * (this->matrixWidth * this->matrixHeight));
+#else
+        // Similar code also drawing from volatile variables doesn't work if optimization is turned on: currentDrawBuffer will be equal to currentRefreshBuffer and cause a crash from memcpy copying a buffer to itself.  Why?
+        memcpy(backgroundBuffers[currentDrawBuffer], backgroundBuffers[currentRefreshBuffer], sizeof(RGB) * (this->matrixWidth * this->matrixHeight));
+
+        // this also doesn't work
+        //copyRefreshToDrawing();  
+
+        // first checking for (currentDrawBuffer != currentRefreshBuffer) prevents a crash by skipping the copy, but currentDrawBuffer should never be equal to currentRefreshBuffer, except briefly inside an ISR during handleBufferSwap() call
+        //if(currentDrawBuffer != currentRefreshBuffer)     
+        //   memcpy(backgroundBuffers[currentDrawBuffer], backgroundBuffers[currentRefreshBuffer], sizeof(RGB) * (this->matrixWidth * this->matrixHeight));
+#endif
+    }
+}
+
+/* RGB Specific Adafruit_GFX methods  */
+
+/* RGB Specific SmartMatrix Library 3.0 Backwards Compatibility */
 
 template <typename RGB, unsigned int optionFlags>
 INLINE void SMLayerBackgroundGFX<RGB, optionFlags>::loadPixelToDrawBuffer(int16_t hwx, int16_t hwy, const RGB& color) {
     currentDrawBufferPtr[(hwy * this->matrixWidth) + hwx] = color;
-}
-
-template <typename RGB, unsigned int optionFlags>
-INLINE const RGB SMLayerBackgroundGFX<RGB, optionFlags>::readPixelFromDrawBuffer(int16_t hwx, int16_t hwy) {
-    RGB pixel = currentDrawBufferPtr[(hwy * this->matrixWidth) + hwx];
-    return pixel;
 }
 
 template <typename RGB, unsigned int optionFlags>
@@ -222,12 +257,6 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::drawPixel(int16_t x, int16_t y, con
 
     loadPixelToDrawBuffer(hwx, hwy, color);
 }
-
-#define SWAPint(X,Y) { \
-        int temp = X ; \
-        X = Y ; \
-        Y = temp ; \
-    }
 
 // x0, x1, and y must be in bounds (0-this->localWidth/Height-1), x1 > x0
 template <typename RGB, unsigned int optionFlags>
@@ -306,6 +335,183 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::drawFastVLine(int16_t x, int16_t y0
         drawHardwareHLine(y0, y1, (this->matrixHeight - 1) - x, color);
     }
 }
+
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::fillScreen(const RGB& color) {
+    fillRectangle(0, 0, this->localWidth - 1, this->localHeight - 1, color);
+}
+
+/* RGB Specific Raw Buffer Access */
+
+template <typename RGB, unsigned int optionFlags>
+INLINE const RGB SMLayerBackgroundGFX<RGB, optionFlags>::readPixelFromDrawBuffer(int16_t hwx, int16_t hwy) {
+    RGB pixel = currentDrawBufferPtr[(hwy * this->matrixWidth) + hwx];
+    return pixel;
+}
+
+// reads pixel from drawing buffer, not refresh buffer
+template<typename RGB, unsigned int optionFlags>
+const RGB SMLayerBackgroundGFX<RGB, optionFlags>::readPixel(int16_t x, int16_t y) {
+    int hwx, hwy;
+
+    // check for out of bounds coordinates
+    if (x < 0 || y < 0 || x >= this->localWidth || y >= this->localHeight)
+        return (RGB){0, 0, 0};
+
+    // map pixel into hardware buffer before reading
+    if (this->layerRotation == rotation0) {
+        hwx = x;
+        hwy = y;
+    } else if (this->layerRotation == rotation180) {
+        hwx = (this->matrixWidth - 1) - x;
+        hwy = (this->matrixHeight - 1) - y;
+    } else if (this->layerRotation == rotation90) {
+        hwx = (this->matrixWidth - 1) - y;
+        hwy = x;
+    } else { /* if (layerRotation == rotation270)*/
+        hwx = y;
+        hwy = (this->matrixHeight - 1) - x;
+    }
+
+    return readPixelFromDrawBuffer(hwx, hwy);
+}
+
+// return pointer to start of currentDrawBuffer, so application can do efficient loading of bitmaps
+template <typename RGB, unsigned int optionFlags>
+RGB *SMLayerBackgroundGFX<RGB, optionFlags>::backBuffer(void) {
+    return currentDrawBufferPtr;
+}
+
+template<typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::setBackBuffer(RGB *newBuffer) {
+  currentDrawBufferPtr = newBuffer;
+}
+
+
+template<typename RGB, unsigned int optionFlags>
+RGB *SMLayerBackgroundGFX<RGB, optionFlags>::getRealBackBuffer() {
+  return backgroundBuffers[currentDrawBuffer];
+}
+
+/* Shared */
+
+// numShifts must be in range of 0-4, otherwise 16-bit to 12-bit conversion code breaks (would be an easy fix, but 4 is enough for APA102 GBC application)
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::setBrightnessShifts(int numShifts) {
+    pendingIdealBrightnessShifts = numShifts;
+}
+
+template <typename RGB, unsigned int optionFlags>
+int SMLayerBackgroundGFX<RGB, optionFlags>::getRequestedBrightnessShifts() {
+    return idealBrightnessShifts;
+}
+
+template <typename RGB, unsigned int optionFlags>
+bool SMLayerBackgroundGFX<RGB, optionFlags>::isLayerChanged() {
+    return swapPending;
+}
+
+template <typename RGB, unsigned int optionFlags>
+bool SMLayerBackgroundGFX<RGB, optionFlags>::isSwapPending(void) {
+    return swapPending;
+}
+
+template<typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::setBrightness(uint8_t brightness) {
+    backgroundBrightness = brightness;
+}
+
+template<typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::enableColorCorrection(bool enabled) {
+    this->ccEnabled = enabled;
+}
+
+/* Shared SmartMatrix Library 3.0 Backwards Compatibility */
+
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::drawChar(int16_t x, int16_t y, const RGB& charColor, char character) {
+    int xcnt, ycnt;
+
+    for (ycnt = 0; ycnt < font->Height; ycnt++) {
+        for (xcnt = 0; xcnt < font->Width; xcnt++) {
+            if (getBitmapFontPixelAtXY(character, xcnt, ycnt, font)) {
+                drawPixel(x + xcnt, y + ycnt, charColor);
+            }
+        }
+    }
+}
+
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::drawString(int16_t x, int16_t y, const RGB& charColor, const char text[]) {
+    int xcnt, ycnt, offset = 0;
+    char character;
+
+    while ((character = text[offset++]) != '\0') {
+        for (ycnt = 0; ycnt < font->Height; ycnt++) {
+            for (xcnt = 0; xcnt < font->Width; xcnt++) {
+                if (getBitmapFontPixelAtXY(character, xcnt, ycnt, font)) {
+                    drawPixel(x + xcnt, y + ycnt, charColor);
+                }
+            }
+        }
+        x += font->Width;
+    }
+}
+
+// draw string while clearing background
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::drawString(int16_t x, int16_t y, const RGB& charColor, const RGB& backColor, const char text[]) {
+    int xcnt, ycnt, offset = 0;
+    char character;
+
+    while ((character = text[offset++]) != '\0') {
+        for (ycnt = 0; ycnt < font->Height; ycnt++) {
+            for (xcnt = 0; xcnt < font->Width; xcnt++) {
+                if (getBitmapFontPixelAtXY(character, xcnt, ycnt, font)) {
+                    drawPixel(x + xcnt, y + ycnt, charColor);
+                } else {
+                    drawPixel(x + xcnt, y + ycnt, backColor);
+                }
+            }
+        }
+        x += font->Width;
+    }
+}
+
+template <typename RGB, unsigned int optionFlags>
+bool SMLayerBackgroundGFX<RGB, optionFlags>::getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap) {
+    int cell = (y * ((width / 8) + 1)) + (x / 8);
+
+    uint8_t mask = 0x80 >> (x % 8);
+    return (mask & bitmap[cell]);
+}
+
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height,
+  const RGB& bitmapColor, const uint8_t *bitmap) {
+    int xcnt, ycnt;
+
+    for (ycnt = 0; ycnt < height; ycnt++) {
+        for (xcnt = 0; xcnt < width; xcnt++) {
+            if (getBitmapPixelAtXY(xcnt, ycnt, width, height, bitmap)) {
+                drawPixel(x + xcnt, y + ycnt, bitmapColor);
+            }
+        }
+    }
+}
+
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::setFont(fontChoices newFont) {
+    font = (bitmap_font *)fontLookup(newFont);
+}
+
+/* Replaced by Adafruit_GFX */
+
+#define SWAPint(X,Y) { \
+        int temp = X ; \
+        X = Y ; \
+        Y = temp ; \
+    }
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackgroundGFX<RGB, optionFlags>::bresteepline(int16_t x3, int16_t y3, int16_t x4, int16_t y4, const RGB& color) {
@@ -857,203 +1063,8 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::fillRectangle(int16_t x0, int16_t y
 }
 
 template <typename RGB, unsigned int optionFlags>
-void SMLayerBackgroundGFX<RGB, optionFlags>::fillScreen(const RGB& color) {
-    fillRectangle(0, 0, this->localWidth - 1, this->localHeight - 1, color);
-}
-
-template <typename RGB, unsigned int optionFlags>
 void SMLayerBackgroundGFX<RGB, optionFlags>::fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& outlineColor, const RGB& fillColor) {
     fillRectangle(x0, y0, x1, y1, fillColor);
     drawRectangle(x0, y0, x1, y1, outlineColor);
 }
 
-template <typename RGB, unsigned int optionFlags>
-bool SMLayerBackgroundGFX<RGB, optionFlags>::getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap) {
-    int cell = (y * ((width / 8) + 1)) + (x / 8);
-
-    uint8_t mask = 0x80 >> (x % 8);
-    return (mask & bitmap[cell]);
-}
-
-template <typename RGB, unsigned int optionFlags>
-void SMLayerBackgroundGFX<RGB, optionFlags>::setFont(fontChoices newFont) {
-    font = (bitmap_font *)fontLookup(newFont);
-}
-
-template <typename RGB, unsigned int optionFlags>
-void SMLayerBackgroundGFX<RGB, optionFlags>::drawChar(int16_t x, int16_t y, const RGB& charColor, char character) {
-    int xcnt, ycnt;
-
-    for (ycnt = 0; ycnt < font->Height; ycnt++) {
-        for (xcnt = 0; xcnt < font->Width; xcnt++) {
-            if (getBitmapFontPixelAtXY(character, xcnt, ycnt, font)) {
-                drawPixel(x + xcnt, y + ycnt, charColor);
-            }
-        }
-    }
-}
-
-template <typename RGB, unsigned int optionFlags>
-void SMLayerBackgroundGFX<RGB, optionFlags>::drawString(int16_t x, int16_t y, const RGB& charColor, const char text[]) {
-    int xcnt, ycnt, offset = 0;
-    char character;
-
-    while ((character = text[offset++]) != '\0') {
-        for (ycnt = 0; ycnt < font->Height; ycnt++) {
-            for (xcnt = 0; xcnt < font->Width; xcnt++) {
-                if (getBitmapFontPixelAtXY(character, xcnt, ycnt, font)) {
-                    drawPixel(x + xcnt, y + ycnt, charColor);
-                }
-            }
-        }
-        x += font->Width;
-    }
-}
-
-// draw string while clearing background
-template <typename RGB, unsigned int optionFlags>
-void SMLayerBackgroundGFX<RGB, optionFlags>::drawString(int16_t x, int16_t y, const RGB& charColor, const RGB& backColor, const char text[]) {
-    int xcnt, ycnt, offset = 0;
-    char character;
-
-    while ((character = text[offset++]) != '\0') {
-        for (ycnt = 0; ycnt < font->Height; ycnt++) {
-            for (xcnt = 0; xcnt < font->Width; xcnt++) {
-                if (getBitmapFontPixelAtXY(character, xcnt, ycnt, font)) {
-                    drawPixel(x + xcnt, y + ycnt, charColor);
-                } else {
-                    drawPixel(x + xcnt, y + ycnt, backColor);
-                }
-            }
-        }
-        x += font->Width;
-    }
-}
-
-template <typename RGB, unsigned int optionFlags>
-void SMLayerBackgroundGFX<RGB, optionFlags>::drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height,
-  const RGB& bitmapColor, const uint8_t *bitmap) {
-    int xcnt, ycnt;
-
-    for (ycnt = 0; ycnt < height; ycnt++) {
-        for (xcnt = 0; xcnt < width; xcnt++) {
-            if (getBitmapPixelAtXY(xcnt, ycnt, width, height, bitmap)) {
-                drawPixel(x + xcnt, y + ycnt, bitmapColor);
-            }
-        }
-    }
-}
-
-template <typename RGB, unsigned int optionFlags>
-bool SMLayerBackgroundGFX<RGB, optionFlags>::isSwapPending(void) {
-    return swapPending;
-}
-
-template <typename RGB, unsigned int optionFlags>
-void SMLayerBackgroundGFX<RGB, optionFlags>::handleBufferSwap(void) {
-    if (!swapPending)
-        return;
-
-    unsigned char newDrawBuffer = currentRefreshBuffer;
-
-    currentRefreshBuffer = currentDrawBuffer;
-    currentDrawBuffer = newDrawBuffer;
-
-    currentRefreshBufferPtr = backgroundBuffers[currentRefreshBuffer];
-    currentDrawBufferPtr = backgroundBuffers[currentDrawBuffer];
-
-    swapPending = false;
-}
-
-// waits until previous swap is complete
-// waits until current swap is complete if copy is enabled
-template <typename RGB, unsigned int optionFlags>
-void SMLayerBackgroundGFX<RGB, optionFlags>::swapBuffers(bool copy) {
-    while (swapPending);
-
-    swapPending = true;
-
-    if (copy) {
-        while (swapPending);
-#if 1
-        // workaround for bizarre (optimization) bug - currentDrawBuffer and currentRefreshBuffer are volatile and are changed by an ISR while we're waiting for swapPending here.  They can't be used as parameters to memcpy directly though.  
-        if(currentDrawBuffer)
-            memcpy(backgroundBuffers[1], backgroundBuffers[0], sizeof(RGB) * (this->matrixWidth * this->matrixHeight));
-        else
-            memcpy(backgroundBuffers[0], backgroundBuffers[1], sizeof(RGB) * (this->matrixWidth * this->matrixHeight));
-#else
-        // Similar code also drawing from volatile variables doesn't work if optimization is turned on: currentDrawBuffer will be equal to currentRefreshBuffer and cause a crash from memcpy copying a buffer to itself.  Why?
-        memcpy(backgroundBuffers[currentDrawBuffer], backgroundBuffers[currentRefreshBuffer], sizeof(RGB) * (this->matrixWidth * this->matrixHeight));
-
-        // this also doesn't work
-        //copyRefreshToDrawing();  
-
-        // first checking for (currentDrawBuffer != currentRefreshBuffer) prevents a crash by skipping the copy, but currentDrawBuffer should never be equal to currentRefreshBuffer, except briefly inside an ISR during handleBufferSwap() call
-        //if(currentDrawBuffer != currentRefreshBuffer)     
-        //   memcpy(backgroundBuffers[currentDrawBuffer], backgroundBuffers[currentRefreshBuffer], sizeof(RGB) * (this->matrixWidth * this->matrixHeight));
-#endif
-    }
-}
-
-template <typename RGB, unsigned int optionFlags>
-void SMLayerBackgroundGFX<RGB, optionFlags>::copyRefreshToDrawing() {
-    memcpy(currentDrawBufferPtr, currentRefreshBufferPtr, sizeof(RGB) * (this->matrixWidth * this->matrixHeight));
-}
-
-// return pointer to start of currentDrawBuffer, so application can do efficient loading of bitmaps
-template <typename RGB, unsigned int optionFlags>
-RGB *SMLayerBackgroundGFX<RGB, optionFlags>::backBuffer(void) {
-    return currentDrawBufferPtr;
-}
-
-template<typename RGB, unsigned int optionFlags>
-void SMLayerBackgroundGFX<RGB, optionFlags>::setBackBuffer(RGB *newBuffer) {
-  currentDrawBufferPtr = newBuffer;
-}
-
-template<typename RGB, unsigned int optionFlags>
-void SMLayerBackgroundGFX<RGB, optionFlags>::setBrightness(uint8_t brightness) {
-    backgroundBrightness = brightness;
-}
-
-template<typename RGB, unsigned int optionFlags>
-void SMLayerBackgroundGFX<RGB, optionFlags>::enableColorCorrection(bool enabled) {
-    this->ccEnabled = enabled;
-}
-
-// reads pixel from drawing buffer, not refresh buffer
-template<typename RGB, unsigned int optionFlags>
-const RGB SMLayerBackgroundGFX<RGB, optionFlags>::readPixel(int16_t x, int16_t y) {
-    int hwx, hwy;
-
-    // check for out of bounds coordinates
-    if (x < 0 || y < 0 || x >= this->localWidth || y >= this->localHeight)
-        return (RGB){0, 0, 0};
-
-    // map pixel into hardware buffer before reading
-    if (this->layerRotation == rotation0) {
-        hwx = x;
-        hwy = y;
-    } else if (this->layerRotation == rotation180) {
-        hwx = (this->matrixWidth - 1) - x;
-        hwy = (this->matrixHeight - 1) - y;
-    } else if (this->layerRotation == rotation90) {
-        hwx = (this->matrixWidth - 1) - y;
-        hwy = x;
-    } else { /* if (layerRotation == rotation270)*/
-        hwx = y;
-        hwy = (this->matrixHeight - 1) - x;
-    }
-
-    return readPixelFromDrawBuffer(hwx, hwy);
-}
-
-template<typename RGB, unsigned int optionFlags>
-RGB *SMLayerBackgroundGFX<RGB, optionFlags>::getRealBackBuffer() {
-  return backgroundBuffers[currentDrawBuffer];
-}
-
-template<typename RGB, unsigned int optionFlags>
-RGB *SMLayerBackgroundGFX<RGB, optionFlags>::getCurrentRefreshRow(uint16_t y) {
-  return &currentRefreshBufferPtr[y*this->matrixWidth];
-}

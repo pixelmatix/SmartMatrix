@@ -33,24 +33,51 @@
 template <typename RGB, unsigned int optionFlags>
 class SMLayerBackgroundGFX : public SM_Layer {
     public:
+        /* RGB specific methods */
         SMLayerBackgroundGFX(RGB * buffer, uint16_t width, uint16_t height, color_chan_t * colorCorrectionLUT);
         SMLayerBackgroundGFX(uint16_t width, uint16_t height);
         void begin(void);
         void frameRefreshCallback();
         void fillRefreshRow(uint16_t hardwareY, rgb48 refreshRow[], int brightnessShifts = 0);
         void fillRefreshRow(uint16_t hardwareY, rgb24 refreshRow[], int brightnessShifts = 0);
+        void copyRefreshToDrawing(void);
+
+        // could make this generic if moving the buffer copy code to a new function
+        void swapBuffers(bool copy = true);
+
+        /* RGB Specific Adafruit_GFX methods  */
+
+        /* RGB Specific SmartMatrix Library 3.0 Backwards Compatibility */
+        void drawPixel(int16_t x, int16_t y, const RGB& color);
+        void drawFastHLine(int16_t x0, int16_t x1, int16_t y, const RGB& color);
+        void drawFastVLine(int16_t x, int16_t y0, int16_t y1, const RGB& color);
+        void fillScreen(const RGB& color);
+
+        /* RGB Specific Raw Buffer Access */
+        // reads pixel from drawing buffer, not refresh buffer
+        const RGB readPixel(int16_t x, int16_t y);
+        RGB *backBuffer(void);
+        void setBackBuffer(RGB *newBuffer);
+        RGB *getRealBackBuffer();
+
+        /* Shared */
+        void setBrightnessShifts(int numShifts);
         int getRequestedBrightnessShifts();
         bool isLayerChanged();
-        
-        void swapBuffers(bool copy = true);
         bool isSwapPending();
-        void copyRefreshToDrawing(void);
-        void setBrightnessShifts(int numShifts);
+        void setBrightness(uint8_t brightness);
+        void enableColorCorrection(bool enabled);
 
-        void drawPixel(int16_t x, int16_t y, const RGB& color);
+        /* Shared SmartMatrix Library 3.0 Backwards Compatibility */
+        // right category?
+        void drawChar(int16_t x, int16_t y, const RGB& charColor, char character);
+        void drawString(int16_t x, int16_t y, const RGB& charColor, const char text[]);
+        void drawString(int16_t x, int16_t y, const RGB& charColor, const RGB& backColor, const char text[]);
+        void drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, const RGB& bitmapColor, const uint8_t *bitmap);
+        void setFont(fontChoices newFont);
+
+        /* Replaced by Adafruit_GFX */
         void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& color);
-        void drawFastVLine(int16_t x, int16_t y0, int16_t y1, const RGB& color);
-        void drawFastHLine(int16_t x0, int16_t x1, int16_t y, const RGB& color);
         void drawCircle(int16_t x0, int16_t y0, uint16_t radius, const RGB& color);
         void fillCircle(int16_t x0, int16_t y0, uint16_t radius, const RGB& outlineColor, const RGB& fillColor);
         void fillCircle(int16_t x0, int16_t y0, uint16_t radius, const RGB& color);
@@ -66,25 +93,15 @@ class SMLayerBackgroundGFX : public SM_Layer {
         void fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t radius, const RGB& fillColor);
         void fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t radius,
             const RGB& outlineColor, const RGB& fillColor);
-        void fillScreen(const RGB& color);
-        void drawChar(int16_t x, int16_t y, const RGB& charColor, char character);
-        void drawString(int16_t x, int16_t y, const RGB& charColor, const char text[]);
-        void drawString(int16_t x, int16_t y, const RGB& charColor, const RGB& backColor, const char text[]);
-        void drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, const RGB& bitmapColor, const uint8_t *bitmap);
-
-        // reads pixel from drawing buffer, not refresh buffer
-        const RGB readPixel(int16_t x, int16_t y);
-
-        RGB *backBuffer(void);
-        void setBackBuffer(RGB *newBuffer);
-
-        RGB *getRealBackBuffer();
-
-        void setFont(fontChoices newFont);
-        void setBrightness(uint8_t brightness);
-        void enableColorCorrection(bool enabled);
 
     private:
+        // todo: move somewhere else
+        static bool getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap);
+
+        // drawing functions not meant for user
+        void drawHardwareHLine(uint16_t x0, uint16_t x1, uint16_t y, const RGB& color);
+        void drawHardwareVLine(uint16_t x, uint16_t y0, uint16_t y1, const RGB& color);
+
         bool ccEnabled = true;
 
         RGB *currentDrawBufferPtr;
@@ -92,20 +109,14 @@ class SMLayerBackgroundGFX : public SM_Layer {
 
         RGB *backgroundBuffers[2];
 
-        RGB *getCurrentRefreshRow(uint16_t y);
-
         void loadPixelToDrawBuffer(int16_t hwx, int16_t hwy, const RGB& color);
         const RGB readPixelFromDrawBuffer(int16_t hwx, int16_t hwy);
         void getBackgroundRefreshPixel(uint16_t x, uint16_t y, RGB &refreshPixel);
         bool getForegroundRefreshPixel(uint16_t x, uint16_t y, RGB &xyPixel);
 
-        // drawing functions not meant for user
-        void drawHardwareHLine(uint16_t x0, uint16_t x1, uint16_t y, const RGB& color);
-        void drawHardwareVLine(uint16_t x, uint16_t y0, uint16_t y1, const RGB& color);
+        /* Replaced by Adafruit_GFX */
         void bresteepline(int16_t x3, int16_t y3, int16_t x4, int16_t y4, const RGB& color);
         void fillFlatSideTriangleInt(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const RGB& color);
-        // todo: move somewhere else
-        static bool getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap);
 
         uint8_t backgroundBrightness = 255;
         color_chan_t * backgroundColorCorrectionLUT;
