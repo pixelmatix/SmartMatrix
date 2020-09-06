@@ -223,10 +223,7 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::swapBuffers(bool copy) {
     }
 }
 
-/* RGB Specific Adafruit_GFX methods  */
-
-/* RGB Specific SmartMatrix Library 3.0 Backwards Compatibility */
-
+/* RGB Specific Core Drawing Methods */
 template <typename RGB, unsigned int optionFlags>
 INLINE void SMLayerBackgroundGFX<RGB, optionFlags>::loadPixelToDrawBuffer(int16_t hwx, int16_t hwy, const RGB& color) {
     currentDrawBufferPtr[(hwy * this->matrixWidth) + hwx] = color;
@@ -257,6 +254,17 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::drawPixel(int16_t x, int16_t y, con
 
     loadPixelToDrawBuffer(hwx, hwy, color);
 }
+
+
+/* RGB Specific Adafruit_GFX methods  */
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::drawPixel(int16_t x, int16_t y, uint16_t color) {
+    rgb16 temp16;
+    temp16.rgb = color;
+    drawPixel(x, y, temp16);
+}
+
+/* RGB Specific SmartMatrix Library 3.0 Backwards Compatibility */
 
 // x0, x1, and y must be in bounds (0-this->localWidth/Height-1), x1 > x0
 template <typename RGB, unsigned int optionFlags>

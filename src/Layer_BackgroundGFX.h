@@ -45,10 +45,12 @@ class SMLayerBackgroundGFX : public SM_Layer {
         // could make this generic if moving the buffer copy code to a new function
         void swapBuffers(bool copy = true);
 
+        /* RGB Specific Core Drawing Methods */
+        void drawPixel(int16_t x, int16_t y, const RGB& color);
+
         /* RGB Specific Adafruit_GFX methods  */
 
         /* RGB Specific SmartMatrix Library 3.0 Backwards Compatibility */
-        void drawPixel(int16_t x, int16_t y, const RGB& color);
         void drawFastHLine(int16_t x0, int16_t x1, int16_t y, const RGB& color);
         void drawFastVLine(int16_t x, int16_t y0, int16_t y1, const RGB& color);
         void fillScreen(const RGB& color);
