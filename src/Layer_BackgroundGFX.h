@@ -110,6 +110,7 @@ class SMLayerBackgroundGFX : public SM_Layer, public Adafruit_GFX {
 
         /* Adafruit_GFX methods */
         void setRotation(uint8_t x);
+        inline uint16_t color565(uint8_t red, uint8_t green, uint8_t blue) { return rgb16(red, green, blue).rgb; }
         using Adafruit_GFX::drawLine;
         using Adafruit_GFX::drawTriangle;
         using Adafruit_GFX::drawCircle;
