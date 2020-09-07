@@ -224,6 +224,7 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::swapBuffers(bool copy) {
 }
 
 /* RGB Specific Core Drawing Methods */
+
 template <typename RGB, unsigned int optionFlags>
 INLINE void SMLayerBackgroundGFX<RGB, optionFlags>::loadPixelToDrawBuffer(int16_t hwx, int16_t hwy, const RGB& color) {
     currentDrawBufferPtr[(hwy * this->matrixWidth) + hwx] = color;
@@ -257,9 +258,13 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::drawPixel(int16_t x, int16_t y, con
 
 
 /* RGB Specific Adafruit_GFX methods */
+
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackgroundGFX<RGB, optionFlags>::drawPixel(int16_t x, int16_t y, uint16_t color) {
-    drawPixel(x, y, (RGB)color);
+    if(passThruColorFlag)
+        drawPixel(x, y, passThruColor);
+    else
+        drawPixel(x, y, (RGB)color);
 }
 
 /* RGB Specific SmartMatrix Library 3.0 Backwards Compatibility */
@@ -1016,73 +1021,139 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::fillRectangle(int16_t x0, int16_t y
 }
 
 #else
+
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackgroundGFX<RGB, optionFlags>::drawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, const RGB& color) {
-    drawLine(x1, y1, x2, y2, ((rgb16)color).rgb);
+    passThruColorFlag = true;
+    passThruColor = color;
+
+    drawLine(x1, y1, x2, y2, 0);
+
+    passThruColorFlag = false;
 }
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackgroundGFX<RGB, optionFlags>::drawTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const RGB& color) {
-    drawTriangle(x1, y1, x2, y2, x3, y3, ((rgb16)color).rgb);
+    passThruColorFlag = true;
+    passThruColor = color;
+
+    drawTriangle(x1, y1, x2, y2, x3, y3, 0);
+
+    passThruColorFlag = false;
 }
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackgroundGFX<RGB, optionFlags>::drawCircle(int16_t x0, int16_t y0, uint16_t radius, const RGB& color) {
-    drawCircle(x0, y0, (int16_t)radius, ((rgb16)color).rgb);
+    passThruColorFlag = true;
+    passThruColor = color;
+
+    drawCircle(x0, y0, (int16_t)radius, 0);
+
+    passThruColorFlag = false;
 }
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackgroundGFX<RGB, optionFlags>::fillCircle(int16_t x0, int16_t y0, uint16_t radius, const RGB& fillColor) {
-    fillCircle(x0, y0, (int16_t)radius, ((rgb16)fillColor).rgb);
+    passThruColorFlag = true;
+    passThruColor = fillColor;
+
+    fillCircle(x0, y0, (int16_t)radius, 0);
+
+    passThruColorFlag = false;
 }
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackgroundGFX<RGB, optionFlags>::drawRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& color) {
-    drawRect(x0, y0, x1-x0, y1-y0, ((rgb16)color).rgb);
+    passThruColorFlag = true;
+    passThruColor = color;
+
+    drawRect(x0, y0, x1-x0, y1-y0, 0);
+
+    passThruColorFlag = false;
 }
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackgroundGFX<RGB, optionFlags>::drawRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
     uint16_t radius, const RGB& outlineColor) {
-    drawRoundRect(x0, y0, x1-x0, y1-y0, radius, ((rgb16)outlineColor).rgb);
+    passThruColorFlag = true;
+    passThruColor = outlineColor;
+
+    drawRoundRect(x0, y0, x1-x0, y1-y0, radius, 0);
+
+    passThruColorFlag = false;
 }
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackgroundGFX<RGB, optionFlags>::fillCircle(int16_t x0, int16_t y0, uint16_t radius, const RGB& outlineColor, const RGB& fillColor) {
-    fillCircle(x0, y0, (int16_t)radius, ((rgb16)fillColor).rgb);
-    drawCircle(x0, y0, (int16_t)radius, ((rgb16)outlineColor).rgb);
-}
+    passThruColorFlag = true;
+    passThruColor = fillColor;
 
+    fillCircle(x0, y0, (int16_t)radius, 0);
+
+    passThruColor = outlineColor;
+    drawCircle(x0, y0, (int16_t)radius, 0);
+
+    passThruColorFlag = false;
+}
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackgroundGFX<RGB, optionFlags>::fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const RGB& fillColor) {
-    fillTriangle(x1, y1, x2, y2, x3, y3, ((rgb16)fillColor).rgb);
+    passThruColorFlag = true;
+    passThruColor = fillColor;
+
+    fillTriangle(x1, y1, x2, y2, x3, y3, 0);
+
+    passThruColorFlag = false;
 }
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackgroundGFX<RGB, optionFlags>::fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3,
     const RGB& outlineColor, const RGB& fillColor) {
-    fillTriangle(x1, y1, x2, y2, x3, y3, ((rgb16)fillColor).rgb);
-    drawTriangle(x1, y1, x2, y2, x3, y3, ((rgb16)outlineColor).rgb);
+    passThruColorFlag = true;
+    passThruColor = fillColor;
+
+    fillTriangle(x1, y1, x2, y2, x3, y3, 0);
+    drawTriangle(x1, y1, x2, y2, x3, y3, 0);
+
+    passThruColorFlag = false;
 }
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackgroundGFX<RGB, optionFlags>::fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
     uint16_t radius, const RGB& fillColor) {
-    fillRoundRect(x0, y0, x1-x0, y1-y0, radius, ((rgb16)fillColor).rgb);
+    passThruColorFlag = true;
+    passThruColor = fillColor;
+
+    fillRoundRect(x0, y0, x1-x0, y1-y0, radius, 0);
+    
+    passThruColorFlag = false;
 }
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackgroundGFX<RGB, optionFlags>::fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
     uint16_t radius, const RGB& outlineColor, const RGB& fillColor) {
-    fillRoundRect(x0, y0, x1-x0, y1-y0, radius, ((rgb16)fillColor).rgb);
-    drawRoundRect(x0, y0, x1-x0, y1-y0, radius, ((rgb16)outlineColor).rgb);
+    passThruColorFlag = true;
+    passThruColor = fillColor;
+
+    fillRoundRect(x0, y0, x1-x0, y1-y0, radius, 0);
+
+    passThruColor = outlineColor;
+    drawRoundRect(x0, y0, x1-x0, y1-y0, radius, 0);
+
+    passThruColorFlag = false;
 }
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackgroundGFX<RGB, optionFlags>::fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& outlineColor, const RGB& fillColor) {
-    fillRect(x0, y0, x1-x0, y1-y0, ((rgb16)fillColor).rgb);
-    drawRect(x0, y0, x1-x0, y1-y0, ((rgb16)outlineColor).rgb);
+    passThruColorFlag = true;
+    passThruColor = fillColor;
+
+    fillRect(x0, y0, x1-x0, y1-y0, 0);
+
+    passThruColor = outlineColor;
+    drawRect(x0, y0, x1-x0, y1-y0, 0);
+
+    passThruColorFlag = false;
 }
 #endif
 

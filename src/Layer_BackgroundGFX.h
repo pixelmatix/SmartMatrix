@@ -129,6 +129,9 @@ class SMLayerBackgroundGFX : public SM_Layer, public Adafruit_GFX {
 
         RGB *backgroundBuffers[2];
 
+        RGB passThruColor;
+        bool passThruColorFlag = false;
+
         void loadPixelToDrawBuffer(int16_t hwx, int16_t hwy, const RGB& color);
         const RGB readPixelFromDrawBuffer(int16_t hwx, int16_t hwy);
         void getBackgroundRefreshPixel(uint16_t x, uint16_t y, RGB &refreshPixel);
