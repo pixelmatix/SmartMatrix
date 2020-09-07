@@ -30,6 +30,7 @@
 
 // Adafruit_GFX includes
 #include <Adafruit_GFX.h>
+#include "MatrixGfxFontCommon.h"
 
 #define SM_BACKGROUND_GFX_OPTIONS_NONE     0
 
@@ -82,7 +83,6 @@ class SMLayerBackgroundGFX : public SM_Layer, public Adafruit_GFX {
         void setRotation(rotationDegrees newrotation);
 
         /* Shared SmartMatrix Library 3.0 Backwards Compatibility */
-        // right category?
 #ifdef SM_BACKGROUND_GFX_BACKWARDS_COMPATIBILITY
         void drawChar(int16_t x, int16_t y, const RGB& charColor, char character);
         void drawString(int16_t x, int16_t y, const RGB& charColor, const char text[]);
@@ -116,6 +116,8 @@ class SMLayerBackgroundGFX : public SM_Layer, public Adafruit_GFX {
         using Adafruit_GFX::drawCircle;
         using Adafruit_GFX::fillCircle;
         using Adafruit_GFX::fillTriangle;
+        using Adafruit_GFX::setFont;
+        using Adafruit_GFX::drawChar;
 
     private:
         // todo: move somewhere else

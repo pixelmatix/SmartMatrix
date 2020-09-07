@@ -485,6 +485,8 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::setRotation(rotationDegrees newrota
 
 /* Shared SmartMatrix Library 3.0 Backwards Compatibility */
 
+#ifdef SM_BACKGROUND_GFX_BACKWARDS_COMPATIBILITY
+#ifdef SM_BACKGROUND_GFX_OLD_DRAWING_FUNCTIONS
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackgroundGFX<RGB, optionFlags>::drawChar(int16_t x, int16_t y, const RGB& charColor, char character) {
     int xcnt, ycnt;
@@ -561,6 +563,107 @@ template <typename RGB, unsigned int optionFlags>
 void SMLayerBackgroundGFX<RGB, optionFlags>::setFont(fontChoices newFont) {
     font = (bitmap_font *)fontLookup(newFont);
 }
+
+#else // !defined(SM_BACKGROUND_GFX_OLD_DRAWING_FUNCTIONS)
+
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::drawChar(int16_t x, int16_t y, const RGB& charColor, char character) {
+    // gfxFont = NULL positions xy at top left of font.  Custom gfxFont positions xy at bottom left of font.  SmartMatrix Library used top left, so yAdvance needs to be used for custom font
+    int16_t yOffset = 0;
+
+    // yAdvance includes font height plus two spaces between lines, and we subtract one line for the top line of the font
+    if(gfxFont)
+        yOffset = ((int16_t)textsize_y * (uint8_t)pgm_read_byte(&gfxFont->yAdvance)) - 2 - 1;
+
+    drawChar(x, y + yOffset, character, ((rgb16)charColor).rgb, ((rgb16)charColor).rgb, 1);
+
+    setCursor(x, y + yOffset);
+    setTextColor(((rgb16)charColor).rgb);
+    write(character);
+}
+
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::drawString(int16_t x, int16_t y, const RGB& charColor, const char text[]) {
+    // gfxFont = NULL positions xy at top left of font.  Custom gfxFont positions xy at bottom left of font.  SmartMatrix Library used top left, so yAdvance needs to be used for custom font
+    int16_t yOffset = 0;
+
+    // yAdvance includes font height plus two spaces between lines, and we subtract one line for the top line of the font
+    if(gfxFont)
+        yOffset = ((int16_t)textsize_y * (uint8_t)pgm_read_byte(&gfxFont->yAdvance)) - 2 - 1;
+
+    setCursor(x, y + yOffset);
+    setTextColor(((rgb16)charColor).rgb);
+    write(text, strlen(text));
+}
+
+// draw string while clearing background
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::drawString(int16_t x, int16_t y, const RGB& charColor, const RGB& backColor, const char text[]) {
+    // gfxFont = NULL positions xy at top left of font.  Custom gfxFont positions xy at bottom left of font.  SmartMatrix Library used top left, so yAdvance needs to be used for custom font
+    int16_t yOffset = 0;
+
+    // yAdvance includes font height plus two spaces between lines, and we subtract one line for the top line of the font
+    if(gfxFont)
+        yOffset = ((int16_t)textsize_y * (uint8_t)pgm_read_byte(&gfxFont->yAdvance)) - 2 - 1;
+
+    setCursor(x, y + yOffset);
+    setTextColor(((rgb16)charColor).rgb);
+    write(text, strlen(text));
+}
+
+template <typename RGB, unsigned int optionFlags>
+bool SMLayerBackgroundGFX<RGB, optionFlags>::getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap) {
+    int cell = (y * ((width / 8) + 1)) + (x / 8);
+
+    uint8_t mask = 0x80 >> (x % 8);
+    return (mask & bitmap[cell]);
+}
+
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height,
+  const RGB& bitmapColor, const uint8_t *bitmap) {
+    int xcnt, ycnt;
+
+    for (ycnt = 0; ycnt < height; ycnt++) {
+        for (xcnt = 0; xcnt < width; xcnt++) {
+            if (getBitmapPixelAtXY(xcnt, ycnt, width, height, bitmap)) {
+                drawPixel(x + xcnt, y + ycnt, bitmapColor);
+            }
+        }
+    }
+}
+
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::setFont(fontChoices newFont) {
+    const GFXfont *gfxFont;
+
+    switch(newFont) {
+        default:
+        case font3x5:
+            gfxFont = &Picopixel;
+            break;
+        case font5x7:
+            gfxFont = &Picopixel;
+            break;
+        case font6x10:
+            gfxFont = &Picopixel;
+            break;
+        case font8x13:
+            gfxFont = &Picopixel;
+            break;
+        case gohufont11:
+            gfxFont = &Picopixel;
+            break;
+        case gohufont11b:
+            gfxFont = &Picopixel;
+            break;
+        }
+    setFont(gfxFont);
+}
+
+#endif //SM_BACKGROUND_GFX_OLD_DRAWING_FUNCTIONS
+
+#endif //SM_BACKGROUND_GFX_BACKWARDS_COMPATIBILITY
 
 /* Replaced by Adafruit_GFX */
 
