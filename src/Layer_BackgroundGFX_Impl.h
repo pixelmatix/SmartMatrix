@@ -344,6 +344,29 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::drawFastVLine(int16_t x, int16_t y0
     }
 }
 
+#define SWAPint(X,Y) { \
+        int temp = X ; \
+        X = Y ; \
+        Y = temp ; \
+    }
+
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& color) {
+    int i;
+    // Loop only works if y1 > y0
+    if (y0 > y1) {
+        SWAPint(y0, y1);
+    };
+    // Putting the x coordinates in order saves multiple swaps in drawFastHLine
+    if (x0 > x1) {
+        SWAPint(x0, x1);
+    };
+
+    for (i = y0; i <= y1; i++) {
+        drawFastHLine(x0, x1, i, color);
+    }
+}
+
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackgroundGFX<RGB, optionFlags>::fillScreen(const RGB& color) {
     fillRectangle(0, 0, this->localWidth - 1, this->localHeight - 1, color);
@@ -517,12 +540,6 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::setFont(fontChoices newFont) {
 /* Replaced by Adafruit_GFX */
 
 #ifdef SM_BACKGROUND_GFX_OLD_DRAWING_FUNCTIONS
-#define SWAPint(X,Y) { \
-        int temp = X ; \
-        X = Y ; \
-        Y = temp ; \
-    }
-
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackgroundGFX<RGB, optionFlags>::bresteepline(int16_t x3, int16_t y3, int16_t x4, int16_t y4, const RGB& color) {
     // if point x3, y3 is on the right side of point x4, y4, change them
@@ -576,6 +593,13 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::drawLine(int16_t x1, int16_t y1, in
     }
 }
 
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::drawTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const RGB& color) {
+    drawLine(x1, y1, x2, y2, color);
+    drawLine(x2, y2, x3, y3, color);
+    drawLine(x1, y1, x3, y3, color);
+}
+
 // algorithm from http://en.wikipedia.org/wiki/Midpoint_circle_algorithm
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackgroundGFX<RGB, optionFlags>::drawCircle(int16_t x0, int16_t y0, uint16_t radius, const RGB& color)
@@ -604,6 +628,72 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::drawCircle(int16_t x0, int16_t y0, 
             radiusError += 2 * b + 1;
         else
         {
+            a--;
+            radiusError += 2 * (b - a + 1);
+        }
+    }
+}
+
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::drawRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& color) {
+    drawFastHLine(x0, x1, y0, color);
+    drawFastHLine(x0, x1, y1, color);
+    drawFastVLine(x0, y0, y1, color);
+    drawFastVLine(x1, y0, y1, color);
+}
+
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::drawRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
+  uint16_t radius, const RGB& outlineColor) {
+    if (x1 < x0)
+        SWAPint(x1, x0);
+
+    if (y1 < y0)
+        SWAPint(y1, y0);
+
+    // decrease large radius that would break shape
+    if(radius > (x1-x0)/2)
+        radius = (x1-x0)/2;
+    if(radius > (y1-y0)/2)
+        radius = (y1-y0)/2;
+
+    int a = radius, b = 0;
+    int radiusError = 1 - a;
+
+    // draw straight part of outline
+    drawFastHLine(x0 + radius, x1 - radius, y0, outlineColor);
+    drawFastHLine(x0 + radius, x1 - radius, y1, outlineColor);
+    drawFastVLine(x0, y0 + radius, y1 - radius, outlineColor);
+    drawFastVLine(x1, y0 + radius, y1 - radius, outlineColor);
+
+    // convert coordinates to point at center of rounded sections
+    x0 += radius;
+    x1 -= radius;
+    y0 += radius;
+    y1 -= radius;
+
+    while (a >= b)
+    {
+        // this pair sweeps from far left towards right
+        drawPixel(-a + x0, -b + y0, outlineColor);
+        drawPixel(-a + x0, b + y1, outlineColor);
+
+        // this pair sweeps from far right towards left
+        drawPixel(a + x1, -b + y0, outlineColor);
+        drawPixel(a + x1, b + y1, outlineColor);
+
+        // this pair sweeps from very top towards bottom
+        drawPixel(-b + x0, -a + y0, outlineColor);
+        drawPixel(b + x1, -a + y0, outlineColor);
+
+        // this pair sweeps from bottom up
+        drawPixel(-b + x0, a + y1, outlineColor);
+        drawPixel(b + x1, a + y1, outlineColor);
+
+        b++;
+        if (radiusError < 0) {
+            radiusError += 2 * b + 1;
+        } else {
             a--;
             radiusError += 2 * (b - a + 1);
         }
@@ -693,216 +783,6 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::fillCircle(int16_t x0, int16_t y0, 
         } else {
             a--;
             hlineDrawn = false;
-            radiusError += 2 * (b - a + 1);
-        }
-    }
-}
-
-// from https://web.archive.org/web/20120225095359/http://homepage.smc.edu/kennedy_john/belipse.pdf
-template <typename RGB, unsigned int optionFlags>
-void SMLayerBackgroundGFX<RGB, optionFlags>::drawEllipse(int16_t x0, int16_t y0, uint16_t radiusX, uint16_t radiusY, const RGB& color) {
-    int16_t twoASquare = 2 * radiusX * radiusX;
-    int16_t twoBSquare = 2 * radiusY * radiusY;
-    
-    int16_t x = radiusX;
-    int16_t y = 0;
-    int16_t changeX = radiusY * radiusY * (1 - (2 * radiusX));
-    int16_t changeY = radiusX * radiusX;
-    int16_t ellipseError = 0;
-    int16_t stoppingX = twoBSquare * radiusX;
-    int16_t stoppingY = 0;
-    
-    while (stoppingX >= stoppingY) {    // first set of points, y' > -1
-        drawPixel(x0 + x, y0 + y, color);
-        drawPixel(x0 - x, y0 + y, color);
-        drawPixel(x0 - x, y0 - y, color);
-        drawPixel(x0 + x, y0 - y, color);
-        
-        y++;
-        stoppingY += twoASquare;
-        ellipseError += changeY;
-        changeY += twoASquare;
-        
-        if (((2 * ellipseError) + changeX) > 0) {
-            x--;
-            stoppingX -= twoBSquare;
-            ellipseError += changeX;
-            changeX += twoBSquare;
-        }
-    }
-    
-    // first point set is done, start the second set of points
-    
-    x = 0;
-    y = radiusY;
-    changeX = radiusY * radiusY;
-    changeY = radiusX * radiusX * (1 - 2 * radiusY);
-    ellipseError = 0;
-    stoppingX = 0;
-    stoppingY = twoASquare * radiusY;
-    
-    while (stoppingX <= stoppingY) {    // second set of points, y' < -1
-        drawPixel(x0 + x, y0 + y, color);
-        drawPixel(x0 - x, y0 + y, color);
-        drawPixel(x0 - x, y0 - y, color);
-        drawPixel(x0 + x, y0 - y, color);
-        
-        x++;
-        stoppingX += twoBSquare;
-        ellipseError += changeX;
-        changeX += twoBSquare;
-        
-        if (((2 * ellipseError) + changeY) > 0) {
-            y--;
-            stoppingY -= twoASquare;
-            ellipseError += changeY;
-            changeY += twoASquare;
-        }
-    }
-}
-
-template <typename RGB, unsigned int optionFlags>
-void SMLayerBackgroundGFX<RGB, optionFlags>::fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
-  uint16_t radius, const RGB& fillColor) {
-    fillRoundRectangle(x0, y0, x1, y1, radius, fillColor, fillColor);
-}
-
-template <typename RGB, unsigned int optionFlags>
-void SMLayerBackgroundGFX<RGB, optionFlags>::fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
-  uint16_t radius, const RGB& outlineColor, const RGB& fillColor) {
-    if (x1 < x0)
-        SWAPint(x1, x0);
-
-    if (y1 < y0)
-        SWAPint(y1, y0);
-
-    // decrease large radius that would break shape
-    if(radius > (x1-x0)/2)
-        radius = (x1-x0)/2;
-    if(radius > (y1-y0)/2)
-        radius = (y1-y0)/2;
-
-    int a = radius, b = 0;
-    int radiusError = 1 - a;
-
-    if (radius == 0) {
-        fillRectangle(x0, y0, x1, y1, outlineColor, fillColor);
-    }
-
-    // draw straight part of outline
-    drawFastHLine(x0 + radius, x1 - radius, y0, outlineColor);
-    drawFastHLine(x0 + radius, x1 - radius, y1, outlineColor);
-    drawFastVLine(x0, y0 + radius, y1 - radius, outlineColor);
-    drawFastVLine(x1, y0 + radius, y1 - radius, outlineColor);
-
-    // convert coordinates to point at center of rounded sections
-    x0 += radius;
-    x1 -= radius;
-    y0 += radius;
-    y1 -= radius;
-
-    // only draw one line per row/column, skipping the sides
-    bool hlineDrawn = true;
-    bool vlineDrawn = true;
-
-    while (a >= b)
-    {
-        // this pair sweeps from far left towards right
-        drawPixel(-a + x0, -b + y0, outlineColor);
-        drawPixel(-a + x0, b + y1, outlineColor);
-
-        // this pair sweeps from far right towards left
-        drawPixel(a + x1, -b + y0, outlineColor);
-        drawPixel(a + x1, b + y1, outlineColor);
-
-        if (!vlineDrawn) {
-            drawFastVLine(-a + x0, (-b + 1) + y0, (b - 1) + y1, fillColor);
-            drawFastVLine(a + x1, (-b + 1) + y0, (b - 1) + y1, fillColor);
-            vlineDrawn = true;
-        }
-
-        // this pair sweeps from very top towards bottom
-        drawPixel(-b + x0, -a + y0, outlineColor);
-        drawPixel(b + x1, -a + y0, outlineColor);
-
-        // this pair sweeps from bottom up
-        drawPixel(-b + x0, a + y1, outlineColor);
-        drawPixel(b + x1, a + y1, outlineColor);
-
-        if (!hlineDrawn) {
-            drawFastHLine((-b + 1) + x0, (b - 1) + x1, -a + y0, fillColor);
-            drawFastHLine((-b + 1) + x0, (b - 1) + x1, a + y1, fillColor);
-            hlineDrawn = true;
-        }
-
-        b++;
-        if (radiusError < 0) {
-            radiusError += 2 * b + 1;
-        } else {
-            a--;
-            hlineDrawn = false;
-            vlineDrawn = false;
-            radiusError += 2 * (b - a + 1);
-        }
-    }
-
-    // draw rectangle in center
-    fillRectangle(x0 - a, y0 - a, x1 + a, y1 + a, fillColor);
-}
-
-template <typename RGB, unsigned int optionFlags>
-void SMLayerBackgroundGFX<RGB, optionFlags>::drawRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
-  uint16_t radius, const RGB& outlineColor) {
-    if (x1 < x0)
-        SWAPint(x1, x0);
-
-    if (y1 < y0)
-        SWAPint(y1, y0);
-
-    // decrease large radius that would break shape
-    if(radius > (x1-x0)/2)
-        radius = (x1-x0)/2;
-    if(radius > (y1-y0)/2)
-        radius = (y1-y0)/2;
-
-    int a = radius, b = 0;
-    int radiusError = 1 - a;
-
-    // draw straight part of outline
-    drawFastHLine(x0 + radius, x1 - radius, y0, outlineColor);
-    drawFastHLine(x0 + radius, x1 - radius, y1, outlineColor);
-    drawFastVLine(x0, y0 + radius, y1 - radius, outlineColor);
-    drawFastVLine(x1, y0 + radius, y1 - radius, outlineColor);
-
-    // convert coordinates to point at center of rounded sections
-    x0 += radius;
-    x1 -= radius;
-    y0 += radius;
-    y1 -= radius;
-
-    while (a >= b)
-    {
-        // this pair sweeps from far left towards right
-        drawPixel(-a + x0, -b + y0, outlineColor);
-        drawPixel(-a + x0, b + y1, outlineColor);
-
-        // this pair sweeps from far right towards left
-        drawPixel(a + x1, -b + y0, outlineColor);
-        drawPixel(a + x1, b + y1, outlineColor);
-
-        // this pair sweeps from very top towards bottom
-        drawPixel(-b + x0, -a + y0, outlineColor);
-        drawPixel(b + x1, -a + y0, outlineColor);
-
-        // this pair sweeps from bottom up
-        drawPixel(-b + x0, a + y1, outlineColor);
-        drawPixel(b + x1, a + y1, outlineColor);
-
-        b++;
-        if (radiusError < 0) {
-            radiusError += 2 * b + 1;
-        } else {
-            a--;
             radiusError += 2 * (b - a + 1);
         }
     }
@@ -1041,35 +921,92 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::fillTriangle(int16_t x1, int16_t y1
 }
 
 template <typename RGB, unsigned int optionFlags>
-void SMLayerBackgroundGFX<RGB, optionFlags>::drawTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const RGB& color) {
-    drawLine(x1, y1, x2, y2, color);
-    drawLine(x2, y2, x3, y3, color);
-    drawLine(x1, y1, x3, y3, color);
+void SMLayerBackgroundGFX<RGB, optionFlags>::fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
+  uint16_t radius, const RGB& fillColor) {
+    fillRoundRectangle(x0, y0, x1, y1, radius, fillColor, fillColor);
 }
 
 template <typename RGB, unsigned int optionFlags>
-void SMLayerBackgroundGFX<RGB, optionFlags>::drawRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& color) {
-    drawFastHLine(x0, x1, y0, color);
-    drawFastHLine(x0, x1, y1, color);
-    drawFastVLine(x0, y0, y1, color);
-    drawFastVLine(x1, y0, y1, color);
-}
+void SMLayerBackgroundGFX<RGB, optionFlags>::fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
+  uint16_t radius, const RGB& outlineColor, const RGB& fillColor) {
+    if (x1 < x0)
+        SWAPint(x1, x0);
 
-template <typename RGB, unsigned int optionFlags>
-void SMLayerBackgroundGFX<RGB, optionFlags>::fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& color) {
-    int i;
-// Loop only works if y1 > y0
-    if (y0 > y1) {
-        SWAPint(y0, y1);
-    };
-// Putting the x coordinates in order saves multiple swaps in drawFastHLine
-    if (x0 > x1) {
-        SWAPint(x0, x1);
-    };
+    if (y1 < y0)
+        SWAPint(y1, y0);
 
-    for (i = y0; i <= y1; i++) {
-        drawFastHLine(x0, x1, i, color);
+    // decrease large radius that would break shape
+    if(radius > (x1-x0)/2)
+        radius = (x1-x0)/2;
+    if(radius > (y1-y0)/2)
+        radius = (y1-y0)/2;
+
+    int a = radius, b = 0;
+    int radiusError = 1 - a;
+
+    if (radius == 0) {
+        fillRectangle(x0, y0, x1, y1, outlineColor, fillColor);
     }
+
+    // draw straight part of outline
+    drawFastHLine(x0 + radius, x1 - radius, y0, outlineColor);
+    drawFastHLine(x0 + radius, x1 - radius, y1, outlineColor);
+    drawFastVLine(x0, y0 + radius, y1 - radius, outlineColor);
+    drawFastVLine(x1, y0 + radius, y1 - radius, outlineColor);
+
+    // convert coordinates to point at center of rounded sections
+    x0 += radius;
+    x1 -= radius;
+    y0 += radius;
+    y1 -= radius;
+
+    // only draw one line per row/column, skipping the sides
+    bool hlineDrawn = true;
+    bool vlineDrawn = true;
+
+    while (a >= b)
+    {
+        // this pair sweeps from far left towards right
+        drawPixel(-a + x0, -b + y0, outlineColor);
+        drawPixel(-a + x0, b + y1, outlineColor);
+
+        // this pair sweeps from far right towards left
+        drawPixel(a + x1, -b + y0, outlineColor);
+        drawPixel(a + x1, b + y1, outlineColor);
+
+        if (!vlineDrawn) {
+            drawFastVLine(-a + x0, (-b + 1) + y0, (b - 1) + y1, fillColor);
+            drawFastVLine(a + x1, (-b + 1) + y0, (b - 1) + y1, fillColor);
+            vlineDrawn = true;
+        }
+
+        // this pair sweeps from very top towards bottom
+        drawPixel(-b + x0, -a + y0, outlineColor);
+        drawPixel(b + x1, -a + y0, outlineColor);
+
+        // this pair sweeps from bottom up
+        drawPixel(-b + x0, a + y1, outlineColor);
+        drawPixel(b + x1, a + y1, outlineColor);
+
+        if (!hlineDrawn) {
+            drawFastHLine((-b + 1) + x0, (b - 1) + x1, -a + y0, fillColor);
+            drawFastHLine((-b + 1) + x0, (b - 1) + x1, a + y1, fillColor);
+            hlineDrawn = true;
+        }
+
+        b++;
+        if (radiusError < 0) {
+            radiusError += 2 * b + 1;
+        } else {
+            a--;
+            hlineDrawn = false;
+            vlineDrawn = false;
+            radiusError += 2 * (b - a + 1);
+        }
+    }
+
+    // draw rectangle in center
+    fillRectangle(x0 - a, y0 - a, x1 + a, y1 + a, fillColor);
 }
 
 template <typename RGB, unsigned int optionFlags>
@@ -1077,4 +1014,137 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::fillRectangle(int16_t x0, int16_t y
     fillRectangle(x0, y0, x1, y1, fillColor);
     drawRectangle(x0, y0, x1, y1, outlineColor);
 }
+
+#else
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::drawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, const RGB& color) {
+    drawLine(x1, y1, x2, y2, ((rgb16)color).rgb);
+}
+
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::drawTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const RGB& color) {
+    drawTriangle(x1, y1, x2, y2, x3, y3, ((rgb16)color).rgb);
+}
+
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::drawCircle(int16_t x0, int16_t y0, uint16_t radius, const RGB& color) {
+    drawCircle(x0, y0, (int16_t)radius, ((rgb16)color).rgb);
+}
+
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::fillCircle(int16_t x0, int16_t y0, uint16_t radius, const RGB& fillColor) {
+    fillCircle(x0, y0, (int16_t)radius, ((rgb16)fillColor).rgb);
+}
+
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::drawRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& color) {
+    drawRect(x0, y0, x1-x0, y1-y0, ((rgb16)color).rgb);
+}
+
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::drawRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
+    uint16_t radius, const RGB& outlineColor) {
+    drawRoundRect(x0, y0, x1-x0, y1-y0, radius, ((rgb16)outlineColor).rgb);
+}
+
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::fillCircle(int16_t x0, int16_t y0, uint16_t radius, const RGB& outlineColor, const RGB& fillColor) {
+    fillCircle(x0, y0, (int16_t)radius, ((rgb16)fillColor).rgb);
+    drawCircle(x0, y0, (int16_t)radius, ((rgb16)outlineColor).rgb);
+}
+
+
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const RGB& fillColor) {
+    fillTriangle(x1, y1, x2, y2, x3, y3, ((rgb16)fillColor).rgb);
+}
+
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3,
+    const RGB& outlineColor, const RGB& fillColor) {
+    fillTriangle(x1, y1, x2, y2, x3, y3, ((rgb16)fillColor).rgb);
+    drawTriangle(x1, y1, x2, y2, x3, y3, ((rgb16)outlineColor).rgb);
+}
+
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
+    uint16_t radius, const RGB& fillColor) {
+    fillRoundRect(x0, y0, x1-x0, y1-y0, radius, ((rgb16)fillColor).rgb);
+}
+
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
+    uint16_t radius, const RGB& outlineColor, const RGB& fillColor) {
+    fillRoundRect(x0, y0, x1-x0, y1-y0, radius, ((rgb16)fillColor).rgb);
+    drawRoundRect(x0, y0, x1-x0, y1-y0, radius, ((rgb16)outlineColor).rgb);
+}
+
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& outlineColor, const RGB& fillColor) {
+    fillRect(x0, y0, x1-x0, y1-y0, ((rgb16)fillColor).rgb);
+    drawRect(x0, y0, x1-x0, y1-y0, ((rgb16)outlineColor).rgb);
+}
 #endif
+
+// from https://web.archive.org/web/20120225095359/http://homepage.smc.edu/kennedy_john/belipse.pdf
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::drawEllipse(int16_t x0, int16_t y0, uint16_t radiusX, uint16_t radiusY, const RGB& color) {
+    int16_t twoASquare = 2 * radiusX * radiusX;
+    int16_t twoBSquare = 2 * radiusY * radiusY;
+    
+    int16_t x = radiusX;
+    int16_t y = 0;
+    int16_t changeX = radiusY * radiusY * (1 - (2 * radiusX));
+    int16_t changeY = radiusX * radiusX;
+    int16_t ellipseError = 0;
+    int16_t stoppingX = twoBSquare * radiusX;
+    int16_t stoppingY = 0;
+    
+    while (stoppingX >= stoppingY) {    // first set of points, y' > -1
+        drawPixel(x0 + x, y0 + y, color);
+        drawPixel(x0 - x, y0 + y, color);
+        drawPixel(x0 - x, y0 - y, color);
+        drawPixel(x0 + x, y0 - y, color);
+        
+        y++;
+        stoppingY += twoASquare;
+        ellipseError += changeY;
+        changeY += twoASquare;
+        
+        if (((2 * ellipseError) + changeX) > 0) {
+            x--;
+            stoppingX -= twoBSquare;
+            ellipseError += changeX;
+            changeX += twoBSquare;
+        }
+    }
+    
+    // first point set is done, start the second set of points
+    
+    x = 0;
+    y = radiusY;
+    changeX = radiusY * radiusY;
+    changeY = radiusX * radiusX * (1 - 2 * radiusY);
+    ellipseError = 0;
+    stoppingX = 0;
+    stoppingY = twoASquare * radiusY;
+    
+    while (stoppingX <= stoppingY) {    // second set of points, y' < -1
+        drawPixel(x0 + x, y0 + y, color);
+        drawPixel(x0 - x, y0 + y, color);
+        drawPixel(x0 - x, y0 - y, color);
+        drawPixel(x0 + x, y0 - y, color);
+        
+        x++;
+        stoppingX += twoBSquare;
+        ellipseError += changeX;
+        changeX += twoBSquare;
+        
+        if (((2 * ellipseError) + changeY) > 0) {
+            y--;
+            stoppingY -= twoASquare;
+            ellipseError += changeY;
+            changeY += twoASquare;
+        }
+    }
+}

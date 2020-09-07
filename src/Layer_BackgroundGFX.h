@@ -34,7 +34,7 @@
 #define SM_BACKGROUND_GFX_OPTIONS_NONE     0
 
 #define SM_BACKGROUND_GFX_BACKWARDS_COMPATIBILITY
-#define SM_BACKGROUND_GFX_OLD_DRAWING_FUNCTIONS
+//#define SM_BACKGROUND_GFX_OLD_DRAWING_FUNCTIONS
 
 template <typename RGB, unsigned int optionFlags>
 class SMLayerBackgroundGFX : public SM_Layer, public Adafruit_GFX {
@@ -61,6 +61,7 @@ class SMLayerBackgroundGFX : public SM_Layer, public Adafruit_GFX {
 #ifdef SM_BACKGROUND_GFX_BACKWARDS_COMPATIBILITY
         void drawFastHLine(int16_t x0, int16_t x1, int16_t y, const RGB& color);
         void drawFastVLine(int16_t x, int16_t y0, int16_t y1, const RGB& color);
+        void fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& color);
         void fillScreen(const RGB& color);
 #endif
 
@@ -90,26 +91,28 @@ class SMLayerBackgroundGFX : public SM_Layer, public Adafruit_GFX {
 #endif
 
         /* Replaced by Adafruit_GFX */
-#ifdef SM_BACKGROUND_GFX_OLD_DRAWING_FUNCTIONS
         void drawLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& color);
         void drawCircle(int16_t x0, int16_t y0, uint16_t radius, const RGB& color);
-        void fillCircle(int16_t x0, int16_t y0, uint16_t radius, const RGB& outlineColor, const RGB& fillColor);
         void fillCircle(int16_t x0, int16_t y0, uint16_t radius, const RGB& color);
+        void fillCircle(int16_t x0, int16_t y0, uint16_t radius, const RGB& outlineColor, const RGB& fillColor);
         void drawEllipse(int16_t x0, int16_t y0, uint16_t radiusX, uint16_t radiusY, const RGB& color);
         void drawTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const RGB& color);
         void fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const RGB& fillColor);
         void fillTriangle(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3,
             const RGB& outlineColor, const RGB& fillColor);
         void drawRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& color);
-        void fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& color);
         void fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& outlineColor, const RGB& fillColor);
         void drawRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t radius, const RGB& outlineColor);
         void fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t radius, const RGB& fillColor);
         void fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t radius,
             const RGB& outlineColor, const RGB& fillColor);
-#endif
 
         /* Adafruit_GFX methods */
+        using Adafruit_GFX::drawLine;
+        using Adafruit_GFX::drawTriangle;
+        using Adafruit_GFX::drawCircle;
+        using Adafruit_GFX::fillCircle;
+        using Adafruit_GFX::fillTriangle;
 
     private:
         // todo: move somewhere else
