@@ -463,6 +463,26 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::enableColorCorrection(bool enabled)
     this->ccEnabled = enabled;
 }
 
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::setRotation(rotationDegrees newrotation) {
+    this->layerRotation = newrotation;
+
+    // update Adafruit_GFX rotation
+    rotation = (uint8_t)newrotation;
+
+    if (this->layerRotation == rotation0 || this->layerRotation == rotation180) {
+        this->localWidth = matrixWidth;
+        this->localHeight = matrixHeight;
+        _width = matrixWidth;
+        _height = matrixHeight;
+    } else {
+        this->localWidth = matrixHeight;
+        this->localHeight = matrixWidth;
+        _width = matrixHeight;
+        _height = matrixWidth;        
+    }
+}
+
 /* Shared SmartMatrix Library 3.0 Backwards Compatibility */
 
 template <typename RGB, unsigned int optionFlags>
@@ -1218,4 +1238,9 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::drawEllipse(int16_t x0, int16_t y0,
             changeY += twoASquare;
         }
     }
+}
+
+template <typename RGB, unsigned int optionFlags>
+void SMLayerBackgroundGFX<RGB, optionFlags>::setRotation(uint8_t x) {
+    setRotation((rotationDegrees)(x & 3));
 }

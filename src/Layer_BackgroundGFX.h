@@ -79,6 +79,7 @@ class SMLayerBackgroundGFX : public SM_Layer, public Adafruit_GFX {
         bool isSwapPending();
         void setBrightness(uint8_t brightness);
         void enableColorCorrection(bool enabled);
+        void setRotation(rotationDegrees newrotation);
 
         /* Shared SmartMatrix Library 3.0 Backwards Compatibility */
         // right category?
@@ -108,6 +109,7 @@ class SMLayerBackgroundGFX : public SM_Layer, public Adafruit_GFX {
             const RGB& outlineColor, const RGB& fillColor);
 
         /* Adafruit_GFX methods */
+        void setRotation(uint8_t x);
         using Adafruit_GFX::drawLine;
         using Adafruit_GFX::drawTriangle;
         using Adafruit_GFX::drawCircle;
