@@ -1021,10 +1021,10 @@ void calculate12BitBackgroundLUT(color_chan_t * lut, uint8_t backgroundBrightnes
 
 // config
 typedef enum rotationDegrees {
-    rotation0,
-    rotation90,
-    rotation180,
-    rotation270
+    rotation0 = 0,
+    rotation90 = 1,
+    rotation180 = 2,
+    rotation270 = 3
 } rotationDegrees;
 
 #endif
