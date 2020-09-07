@@ -34,7 +34,11 @@
 #include "Layer_Scrolling.h"
 #include "Layer_Indexed.h"
 #include "Layer_Background.h"
+
+// For backwards compatiblity, this needs to be defined at the top of the sketch, so that "Adafruit_GFX.h" is only included if desired
+#ifdef SUPPORT_ADAFRUIT_GFX_LIBRARY
 #include "Layer_BackgroundGFX.h"
+#endif
 
 #include "SmartMatrixMultiplexedCommon.h"
 
