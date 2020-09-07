@@ -41,16 +41,112 @@
 // struct definitions for rgb24 and rgb48 with assignment operators
 // between them; adding rgb36 didn't seem to make sense because even when
 // packed with bitfields, it would only save 1 byte over rgb48.
+struct rgb8;
+struct rgb16;
 struct rgb24;
 struct rgb48;
 
+const uint8_t cs_scale2to5[] = {
+  0, 10, 20, 31
+};
+const uint8_t cs_scale2to8[] = {
+  0, 85, 170, 255
+};
+const uint8_t cs_scale3to5[] = {
+  0, 4, 8, 13, 17, 22, 26, 31
+};
+const uint8_t cs_scale3to6[] = {
+  0, 9, 18, 27, 36, 45, 54, 63
+};
+const uint8_t cs_scale3to8[] = {
+  0, 36, 72, 109, 145, 182, 218, 255
+};
+const uint8_t cs_scale5to8[] = {
+  0, 8, 16, 24, 32, 41, 49, 57, 65, 74, 82, 90, 98, 106, 115, 123, 131, 139, 148,
+  156, 164, 172, 180, 189, 197, 205, 213, 222, 230, 238, 246, 255
+};
+const uint8_t cs_scale6to8[] = {
+  0, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72, 76, 80,
+  85, 89, 93, 97, 101, 105, 109, 113, 117, 121, 125, 129, 133, 137, 141, 145, 149,
+  153, 157, 161, 165, 170, 174, 178, 182, 186, 190, 194, 198, 202, 206, 210, 214,
+  218, 222, 226, 230, 234, 238, 242, 246, 250, 255
+};
+const uint16_t cs_scale2to16[] = {
+  0, 21845, 43690, 65535
+};
+const uint16_t cs_scale3to16[] = {
+  0, 9362, 18724, 28086, 37448, 46810, 56172, 65535
+};
+const uint16_t cs_scale5to16[] = {
+  0, 2114, 4228, 6342, 8456, 10570, 12684, 14798, 16912, 19026, 21140, 23254, 25368,
+  27482, 29596, 31710, 33824, 35938, 38052, 40166, 42280, 44394, 46508, 48622, 50736,
+  52850, 54964, 57078, 59192, 61306, 63420, 65535
+};
+const uint16_t cs_scale6to16[] = {
+  0, 1040, 2080, 3120, 4160, 5201, 6241, 7281, 8321, 9362, 10402, 11442, 12482, 13523,
+  14563, 15603, 16643, 17684, 18724, 19764, 20804, 21845, 22885, 23925, 24965, 26005, 27046,
+  28086, 29126, 30166, 31207, 32247, 33287, 34327, 35368, 36408, 37448, 38488, 39529, 40569,
+  41609, 42649, 43690, 44730, 45770, 46810, 47850, 48891, 49931, 50971, 52011, 53052, 54092,
+  55132, 56172, 57213, 58253, 59293, 60333, 61374, 62414, 63454, 64494, 65535
+};
+typedef struct rgb8 {  // RGB332
+    rgb8() : rgb8(0,0,0) {}
+    rgb8(float r, float g, float b, float t) { red = r * 7.0; green = g * 7.0; blue = b * 3.0; }
+    rgb8(uint8_t r, uint8_t g, uint8_t b) {
+        red = r; green = g; blue = b;
+    }
+    rgb8& operator=(const rgb8& col);
+    rgb8& operator=(const rgb16& col);
+    rgb8& operator=(const rgb24& col);
+    rgb8& operator=(const rgb48& col);
+    rgb8( const rgb16& col );
+    rgb8( const rgb24& col );
+    rgb8( const rgb48& col );
+    union {
+      struct {
+        uint8_t blue  :2;
+        uint8_t green :3;
+        uint8_t red   :3;
+      };
+      uint8_t rgb;
+    };
+} rgb8;
+typedef struct rgb16 { // RGB565
+    rgb16() : rgb16(0,0,0) {}
+    rgb16(float r, float g, float b, float t) { red = r * 31.0; green = g * 63.0; blue = b * 31.0; }
+    rgb16(uint8_t r, uint8_t g, uint8_t b) {
+        red = r; green = g; blue = b;
+    }
+    rgb16& operator=(const rgb8& col);
+    rgb16& operator=(const rgb16& col);
+    rgb16& operator=(const rgb24& col);
+    rgb16& operator=(const rgb48& col);
+    rgb16& operator=(const uint16_t& col);
+    rgb16( const rgb8& col );
+    rgb16( const rgb24& col );
+    rgb16( const rgb48& col );
+    union {
+      struct {
+        uint16_t blue  :5;
+        uint16_t green :6;
+        uint16_t red   :5;
+      };
+      uint16_t rgb;
+    };
+} rgb16;
 typedef struct rgb24 {
     rgb24() : rgb24(0,0,0) {}
+    rgb24(float r, float g, float b, float t) { red = r * 255.0; green = g * 255.0; blue = b * 255.0; }
     rgb24(uint8_t r, uint8_t g, uint8_t b) {
         red = r; green = g; blue = b;
     }
+    rgb24& operator=(const rgb8& col);
+    rgb24& operator=(const rgb16& col);
     rgb24& operator=(const rgb24& col);
     rgb24& operator=(const rgb48& col);
+    rgb24& operator=(const uint16_t& col);
+    rgb24( const rgb8& col);
+    rgb24( const rgb16& col);
     rgb24( const rgb24& col);
     rgb24( const rgb48& col);
 
@@ -61,10 +157,17 @@ typedef struct rgb24 {
 
 typedef struct rgb48 {
     rgb48() : rgb48(0,0,0) {}
+    rgb48(float r, float g, float b, float t) {
+        red = (uint16_t)(r * 65535.0); green = (uint16_t)(g * 65535.0); blue = (uint16_t)(b * 65535.0);
+    }
     rgb48(uint16_t r, uint16_t g, uint16_t b) {
         red = r; green = g; blue = b;
     }
+    rgb48& operator=(const rgb8& col);
+    rgb48& operator=(const rgb16& col);
     rgb48& operator=(const rgb24& col);
+    rgb48( const rgb8& col);
+    rgb48( const rgb16& col);
     rgb48( const rgb24& col);
     rgb48( const rgb48& col);
 
@@ -74,6 +177,94 @@ typedef struct rgb48 {
 } rgb48;
 
 // todo: why is this assignment operator needed?  Implicitly defined assignment operator causes crashes when drawing to last pixel of last buffer of background bitmap (because it's a multiple of 3x bytes, not 2x like rgb48?)
+inline rgb8& rgb8::operator=(const rgb8& col) {
+    rgb = col.rgb;
+    return *this;
+}
+inline rgb8& rgb8::operator=(const rgb16& col) {
+    red   = col.red   >> 2;    /* 5 -> 3 */
+    green = col.green >> 3;    /* 6 -> 3 */
+    blue  = col.blue  >> 3;    /* 5 -> 2 */
+    return *this;
+}
+inline rgb8& rgb8::operator=(const rgb24& col) {
+    red   = col.red   >> 5;    /* 8 -> 3 */
+    green = col.green >> 5;    /* 8 -> 3 */
+    blue  = col.blue  >> 6;    /* 8 -> 2 */
+    return *this;
+}
+inline rgb8& rgb8::operator=(const rgb48& col) {
+    red   = col.red   >> 13;   /* 16 -> 3 */
+    green = col.green >> 13;   /* 16 -> 3 */
+    blue  = col.blue  >> 14;   /* 16 -> 2 */
+    return *this;
+}
+inline rgb8::rgb8(const rgb16& col) {
+    red   = col.red   >> 2;    /* 5 -> 3 */
+    green = col.green >> 3;    /* 6 -> 3 */
+    blue  = col.blue  >> 3;    /* 5 -> 2 */
+}
+inline rgb8::rgb8(const rgb24& col) {
+    red   = col.red   >> 5;    /* 8 -> 3 */
+    green = col.green >> 5;    /* 8 -> 3 */
+    blue  = col.blue  >> 6;    /* 8 -> 2 */
+}
+inline rgb8::rgb8(const rgb48& col) {
+    red   = col.red   >> 13;   /* 16 -> 3 */
+    green = col.green >> 13;   /* 16 -> 3 */
+    blue  = col.blue  >> 14;   /* 16 -> 2 */
+}
+inline rgb16& rgb16::operator=(const rgb8& col) {
+    red =   cs_scale3to5[col.red];      // 3 -> 5
+    green = cs_scale3to6[col.green];    // 3 -> 6
+    blue =  cs_scale2to5[col.blue];     // 2 -> 5
+    return *this;
+}
+inline rgb16& rgb16::operator=(const rgb16& col) {
+    rgb = col.rgb;
+    return *this;
+}
+inline rgb16& rgb16::operator=(const rgb24& col) {
+    red = col.red >> 3;      // 8 -> 5
+    green = col.green >> 2;  // 8 -> 6
+    blue = col.blue >> 3;    // 8 -> 5
+    return *this;
+}
+inline rgb16& rgb16::operator=(const rgb48& col) {
+    red = col.red >> 11;     // 16 -> 5
+    green = col.green >> 10; // 16 -> 6
+    blue = col.blue >> 11;   // 16 -> 5
+    return *this;
+}
+
+inline rgb16::rgb16(const rgb8& col) {
+    red =   cs_scale3to5[col.red];      // 3 -> 5
+    green = cs_scale3to6[col.green];    // 3 -> 6
+    blue =  cs_scale2to5[col.blue];     // 2 -> 5
+}
+inline rgb16::rgb16(const rgb24& col) {
+    red = col.red >> 3;      // 8 -> 5
+    green = col.green >> 2;  // 8 -> 6
+    blue = col.blue >> 3;    // 8 -> 5
+}
+inline rgb16::rgb16(const rgb48& col) {
+    red = col.red >> 11;     // 16 -> 5
+    green = col.green >> 10; // 16 -> 6
+    blue = col.blue >> 11;   // 16 -> 5
+}
+
+inline rgb24& rgb24::operator=(const rgb8& col) {
+    red =   cs_scale3to8[col.red];      // 3 -> 8
+    green = cs_scale3to8[col.green];    // 3 -> 8
+    blue =  cs_scale2to8[col.blue];     // 2 -> 8
+    return *this;
+}
+inline rgb24& rgb24::operator=(const rgb16& col) {
+    red =   cs_scale5to8[col.red];      // 5 -> 8
+    green = cs_scale6to8[col.green];    // 6 -> 8
+    blue =  cs_scale5to8[col.blue];     // 5 -> 8
+    return *this;
+}
 inline rgb24& rgb24::operator=(const rgb24& col) {
     red = col.red;
     green = col.green;
@@ -88,6 +279,16 @@ inline rgb24& rgb24::operator=(const rgb48& col) {
     return *this;
 }
 
+inline rgb24::rgb24(const rgb8& col) {
+    red =   cs_scale3to8[col.red];      // 3 -> 8
+    green = cs_scale3to8[col.green];    // 3 -> 8
+    blue =  cs_scale2to8[col.blue];     // 2 -> 8
+}
+inline rgb24::rgb24(const rgb16& col) {
+    red =   cs_scale5to8[col.red];      // 5 -> 8
+    green = cs_scale6to8[col.green];    // 6 -> 8
+    blue =  cs_scale5to8[col.blue];     // 5 -> 8
+}
 inline rgb24::rgb24(const rgb24& col) {
     red = col.red;
     green = col.green;
@@ -100,6 +301,18 @@ inline rgb24::rgb24(const rgb48& col) {
     blue = col.blue >> 8;
 }
 
+inline rgb48& rgb48::operator=(const rgb8& col) {
+    red =   cs_scale3to16[col.red];     // 3 -> 16
+    green = cs_scale3to16[col.green];   // 3 -> 16
+    blue =  cs_scale2to16[col.blue];    // 2 -> 16
+    return *this;
+}
+inline rgb48& rgb48::operator=(const rgb16& col) {
+    red =   cs_scale5to16[col.red];     // 5 -> 16
+    green = cs_scale6to16[col.green];   // 6 -> 16
+    blue =  cs_scale5to16[col.blue];    // 5 -> 16
+    return *this;
+}
 /* cheap trick to extend destination range from
  * [0x000000000000 .. 0xFF00FF00FF00] to [0x000000000000 .. 0xFFFFFFFFFFFF]
  * and maintain some level of accuracy:
@@ -111,6 +324,16 @@ inline rgb48& rgb48::operator=(const rgb24& col) {
     green = (col.green << 8)  | col.green;
     blue = (col.blue << 8) | col.blue;
     return *this;
+}
+inline rgb48::rgb48(const rgb8& col) {
+    red =   cs_scale3to16[col.red];     // 3 -> 16
+    green = cs_scale3to16[col.green];   // 3 -> 16
+    blue =  cs_scale2to16[col.blue];    // 2 -> 16
+}
+inline rgb48::rgb48(const rgb16& col) {
+    red =   cs_scale5to16[col.red];     // 5 -> 16
+    green = cs_scale6to16[col.green];   // 6 -> 16
+    blue =  cs_scale5to16[col.blue];    // 5 -> 16
 }
 
 inline rgb48::rgb48(const rgb24& col) {
