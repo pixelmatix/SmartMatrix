@@ -125,6 +125,7 @@ typedef struct rgb16 { // RGB565
     rgb16( const rgb8& col );
     rgb16( const rgb24& col );
     rgb16( const rgb48& col );
+    rgb16( const uint16_t& col );
     union {
       struct {
         uint16_t blue  :5;
@@ -149,6 +150,7 @@ typedef struct rgb24 {
     rgb24( const rgb16& col);
     rgb24( const rgb24& col);
     rgb24( const rgb48& col);
+    rgb24( const uint16_t& col);
 
     uint8_t red;
     uint8_t green;
@@ -236,7 +238,11 @@ inline rgb16& rgb16::operator=(const rgb48& col) {
     blue = col.blue >> 11;   // 16 -> 5
     return *this;
 }
-
+// Adafruit_GFX (uint16_t == rgb16) conversion
+inline rgb16& rgb16::operator=(const uint16_t& col) {
+    rgb = col;
+    return *this;
+}
 inline rgb16::rgb16(const rgb8& col) {
     red =   cs_scale3to5[col.red];      // 3 -> 5
     green = cs_scale3to6[col.green];    // 3 -> 6
@@ -252,7 +258,10 @@ inline rgb16::rgb16(const rgb48& col) {
     green = col.green >> 10; // 16 -> 6
     blue = col.blue >> 11;   // 16 -> 5
 }
-
+// Adafruit_GFX (uint16_t == rgb16) conversion
+inline rgb16::rgb16(const uint16_t& col) {
+    rgb = col;
+}
 inline rgb24& rgb24::operator=(const rgb8& col) {
     red =   cs_scale3to8[col.red];      // 3 -> 8
     green = cs_scale3to8[col.green];    // 3 -> 8
@@ -278,7 +287,13 @@ inline rgb24& rgb24::operator=(const rgb48& col) {
     blue = col.blue >> 8;
     return *this;
 }
-
+// Adafruit_GFX (uint16_t == rgb16) conversion
+inline rgb24& rgb24::operator=(const uint16_t& col) {
+    red = cs_scale5to8[((rgb16)col).red];
+    green = cs_scale6to8[((rgb16)col).green];
+    blue = cs_scale5to8[((rgb16)col).blue];
+    return *this;
+}
 inline rgb24::rgb24(const rgb8& col) {
     red =   cs_scale3to8[col.red];      // 3 -> 8
     green = cs_scale3to8[col.green];    // 3 -> 8
@@ -294,11 +309,16 @@ inline rgb24::rgb24(const rgb24& col) {
     green = col.green;
     blue = col.blue;
 }
-
 inline rgb24::rgb24(const rgb48& col) {
     red = col.red >> 8;
     green = col.green >> 8;
     blue = col.blue >> 8;
+}
+// Adafruit_GFX (uint16_t == rgb16) conversion
+inline rgb24::rgb24(const uint16_t& col) {
+    red = cs_scale5to8[((rgb16)col).red];
+    green = cs_scale6to8[((rgb16)col).green];
+    blue = cs_scale5to8[((rgb16)col).blue];
 }
 
 inline rgb48& rgb48::operator=(const rgb8& col) {

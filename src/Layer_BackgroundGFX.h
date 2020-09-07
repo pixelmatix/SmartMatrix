@@ -54,7 +54,7 @@ class SMLayerBackgroundGFX : public SM_Layer, public Adafruit_GFX {
         /* RGB Specific Core Drawing Methods */
         void drawPixel(int16_t x, int16_t y, const RGB& color);
 
-        /* RGB Specific Adafruit_GFX methods  */
+        /* RGB Specific Adafruit_GFX methods */
         void drawPixel(int16_t x, int16_t y, uint16_t color);
 
         /* RGB Specific SmartMatrix Library 3.0 Backwards Compatibility */
@@ -108,6 +108,8 @@ class SMLayerBackgroundGFX : public SM_Layer, public Adafruit_GFX {
         void fillRoundRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t radius,
             const RGB& outlineColor, const RGB& fillColor);
 #endif
+
+        /* Adafruit_GFX methods */
 
     private:
         // todo: move somewhere else

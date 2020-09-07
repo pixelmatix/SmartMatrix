@@ -256,12 +256,10 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::drawPixel(int16_t x, int16_t y, con
 }
 
 
-/* RGB Specific Adafruit_GFX methods  */
+/* RGB Specific Adafruit_GFX methods */
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackgroundGFX<RGB, optionFlags>::drawPixel(int16_t x, int16_t y, uint16_t color) {
-    rgb16 temp16;
-    temp16.rgb = color;
-    drawPixel(x, y, temp16);
+    drawPixel(x, y, (RGB)color);
 }
 
 /* RGB Specific SmartMatrix Library 3.0 Backwards Compatibility */
