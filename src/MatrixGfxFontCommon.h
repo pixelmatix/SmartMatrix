@@ -3,8 +3,8 @@
 
 #include <Adafruit_GFX.h>
 #include "MatrixFontCommon.h"
-#include <Fonts/Picopixel.h>
 
-const GFXfont *gfxFontLookup(fontChoices font);
+// Adafruit_GFX fonts can be included only once, so include fonts used by the different GFX Layers in a central location
+#include <Fonts/Picopixel.h>
 
 #endif
