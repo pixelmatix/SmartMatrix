@@ -605,8 +605,6 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::drawChar(int16_t x, int16_t y, cons
     if(gfxFont)
         yOffset = ((int16_t)textsize_y * (uint8_t)pgm_read_byte(&gfxFont->yAdvance)) - 2 - 1;
 
-    drawChar(x, y + yOffset, character, ((rgb16)charColor).rgb, ((rgb16)charColor).rgb, 1);
-
     setCursor(x, y + yOffset);
     setTextColor(((rgb16)charColor).rgb);
     write(character);
