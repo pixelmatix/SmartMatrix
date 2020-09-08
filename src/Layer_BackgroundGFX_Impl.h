@@ -111,21 +111,21 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, 
     RGB currentPixel;
     int i;
 
-    // if the row requested is outside of this layer with the yOffset applied, we have nothing to do
-    if(((hardwareY - yOffset) > (this->matrixHeight - 1)) || ((hardwareY - yOffset) < 0))
+    // if the row requested is outside of this layer with the layerYOffset applied, we have nothing to do
+    if(((hardwareY - layerYOffset) > (this->matrixHeight - 1)) || ((hardwareY - layerYOffset) < 0))
         return;
 
-    RGB *ptr = currentRefreshBufferPtr + ((hardwareY - yOffset) * this->matrixWidth);
+    RGB *ptr = currentRefreshBufferPtr + ((hardwareY - layerYOffset) * this->matrixWidth);
 
     int16_t iRangeMin = 0;
     int16_t iRangeMax = this->matrixWidth;
-    if(xOffset < 0) {
-        ptr -= xOffset; // increase ptr by offset
-        iRangeMax += xOffset; // decrease range, with offset on the max end
+    if(layerXOffset < 0) {
+        ptr -= layerXOffset; // increase ptr by offset
+        iRangeMax += layerXOffset; // decrease range, with offset on the max end
     }
 
-    if(xOffset > 0) {
-        iRangeMin += xOffset; // decrease range, with offset on the min end
+    if(layerXOffset > 0) {
+        iRangeMin += layerXOffset; // decrease range, with offset on the min end
     }
 
     if(this->ccEnabled) {
@@ -168,21 +168,21 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, 
     RGB currentPixel;
     int i;
 
-    // if the row requested is outside of this layer with the yOffset applied, we have nothing to do
-    if(((hardwareY - yOffset) > (this->matrixHeight - 1)) || ((hardwareY - yOffset) < 0))
+    // if the row requested is outside of this layer with the layerYOffset applied, we have nothing to do
+    if(((hardwareY - layerYOffset) > (this->matrixHeight - 1)) || ((hardwareY - layerYOffset) < 0))
         return;
 
-    RGB *ptr = currentRefreshBufferPtr + ((hardwareY - yOffset) * this->matrixWidth);
+    RGB *ptr = currentRefreshBufferPtr + ((hardwareY - layerYOffset) * this->matrixWidth);
 
     int16_t iRangeMin = 0;
     int16_t iRangeMax = this->matrixWidth;
-    if(xOffset < 0) {
-        ptr -= xOffset; // increase ptr by offset
-        iRangeMax += xOffset; // decrease range, with offset on the max end
+    if(layerXOffset < 0) {
+        ptr -= layerXOffset; // increase ptr by offset
+        iRangeMax += layerXOffset; // decrease range, with offset on the max end
     }
 
-    if(xOffset > 0) {
-        iRangeMin += xOffset; // decrease range, with offset on the min end
+    if(layerXOffset > 0) {
+        iRangeMin += layerXOffset; // decrease range, with offset on the min end
     }
 
     if(this->ccEnabled) {

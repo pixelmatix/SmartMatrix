@@ -152,8 +152,8 @@ class SMLayerBackgroundGFX : public SM_Layer, public Adafruit_GFX {
         color_chan_t * backgroundColorCorrectionLUT;
         bitmap_font *font;
 
-        int16_t xOffset = 0;
-        int16_t yOffset = 0;
+        int16_t layerXOffset = 0;
+        int16_t layerYOffset = 0;
 
         // idealBrightnessShifts is the number of shifts towards MSB the pixel data can handle without overflowing
         int idealBrightnessShifts = 0;
