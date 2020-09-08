@@ -111,10 +111,25 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, 
     RGB currentPixel;
     int i;
 
-    RGB *ptr = currentRefreshBufferPtr + (hardwareY * this->matrixWidth);
+    // if the row requested is outside of this layer with the yOffset applied, we have nothing to do
+    if(((hardwareY - yOffset) > (this->matrixHeight - 1)) || ((hardwareY - yOffset) < 0))
+        return;
+
+    RGB *ptr = currentRefreshBufferPtr + ((hardwareY - yOffset) * this->matrixWidth);
+
+    int16_t iRangeMin = 0;
+    int16_t iRangeMax = this->matrixWidth;
+    if(xOffset < 0) {
+        ptr -= xOffset; // increase ptr by offset
+        iRangeMax += xOffset; // decrease range, with offset on the max end
+    }
+
+    if(xOffset > 0) {
+        iRangeMin += xOffset; // decrease range, with offset on the min end
+    }
 
     if(this->ccEnabled) {
-        for(i=0; i<this->matrixWidth; i++) {
+        for(i=iRangeMin; i<iRangeMax; i++) {
             currentPixel = *ptr++;
             // load background pixel with color correction
             if(sizeof(RGB) <= 3) {
@@ -130,7 +145,7 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, 
             }
         }
     } else {
-        for(i=0; i<this->matrixWidth; i++) {
+        for(i=iRangeMin; i<iRangeMax; i++) {
             currentPixel = *ptr++;
             // load background pixel without color correction
             if(sizeof(RGB) <= 3) {
@@ -153,10 +168,25 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, 
     RGB currentPixel;
     int i;
 
-    RGB *ptr = currentRefreshBufferPtr + (hardwareY * this->matrixWidth);
+    // if the row requested is outside of this layer with the yOffset applied, we have nothing to do
+    if(((hardwareY - yOffset) > (this->matrixHeight - 1)) || ((hardwareY - yOffset) < 0))
+        return;
+
+    RGB *ptr = currentRefreshBufferPtr + ((hardwareY - yOffset) * this->matrixWidth);
+
+    int16_t iRangeMin = 0;
+    int16_t iRangeMax = this->matrixWidth;
+    if(xOffset < 0) {
+        ptr -= xOffset; // increase ptr by offset
+        iRangeMax += xOffset; // decrease range, with offset on the max end
+    }
+
+    if(xOffset > 0) {
+        iRangeMin += xOffset; // decrease range, with offset on the min end
+    }
 
     if(this->ccEnabled) {
-        for(i=0; i<this->matrixWidth; i++) {
+        for(i=iRangeMin; i<iRangeMax; i++) {
             currentPixel = *ptr++;
             // load background pixel with color correction
             if(sizeof(RGB) <= 3) {
@@ -172,7 +202,7 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, 
             }
         }
     } else {
-        for(i=0; i<this->matrixWidth; i++) {
+        for(i=iRangeMin; i<iRangeMax; i++) {
             currentPixel = *ptr++;
             // load background pixel without color correction
             if(sizeof(RGB) <= 3) {
