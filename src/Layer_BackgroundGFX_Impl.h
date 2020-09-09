@@ -495,15 +495,15 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::setRotation(rotationDegrees newrota
     rotation = (uint8_t)newrotation;
 
     if (this->layerRotation == rotation0 || this->layerRotation == rotation180) {
-        this->localWidth = matrixWidth;
-        this->localHeight = matrixHeight;
-        _width = matrixWidth;
-        _height = matrixHeight;
+        this->localWidth = this->matrixWidth;
+        this->localHeight = this->matrixHeight;
+        _width = this->matrixWidth;
+        _height = this->matrixHeight;
     } else {
-        this->localWidth = matrixHeight;
-        this->localHeight = matrixWidth;
-        _width = matrixHeight;
-        _height = matrixWidth;        
+        this->localWidth = this->matrixHeight;
+        this->localHeight = this->matrixWidth;
+        _width = this->matrixHeight;
+        _height = this->matrixWidth;        
     }
 }
 
