@@ -226,12 +226,6 @@ void SMLayerBackground<RGB, optionFlags>::drawPixel(int16_t x, int16_t y, const 
     loadPixelToDrawBuffer(hwx, hwy, color);
 }
 
-#define SWAPint(X,Y) { \
-        int temp = X ; \
-        X = Y ; \
-        Y = temp ; \
-    }
-
 // x0, x1, and y must be in bounds (0-this->localWidth/Height-1), x1 > x0
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackground<RGB, optionFlags>::drawHardwareHLine(uint16_t x0, uint16_t x1, uint16_t y, const RGB& color) {

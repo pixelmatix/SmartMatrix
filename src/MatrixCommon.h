@@ -1041,4 +1041,12 @@ typedef enum rotationDegrees {
     rotation270 = 3
 } rotationDegrees;
 
+#ifndef SWAPint
+#define SWAPint(X,Y) { \
+        int temp = X ; \
+        X = Y ; \
+        Y = temp ; \
+    }
+#endif
+
 #endif

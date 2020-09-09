@@ -379,12 +379,6 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::drawFastVLine(int16_t x, int16_t y0
     }
 }
 
-#define SWAPint(X,Y) { \
-        int temp = X ; \
-        X = Y ; \
-        Y = temp ; \
-    }
-
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackgroundGFX<RGB, optionFlags>::fillRectangle(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const RGB& color) {
     int i;
