@@ -149,7 +149,7 @@
         typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
         static SMLayerBackground<RGB_TYPE(storage_depth), background_options> layer_name(width, height)  
 
-    #define SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(layer_name, width, height, storage_depth, background_options) \
+    #define SMARTMATRIX_ALLOCATE_BACKGROUND_GFX_LAYER(layer_name, width, height, storage_depth, background_options) \
         typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
         static SMLayerBackgroundGFX<RGB_TYPE(storage_depth), background_options> layer_name(width, height)  
 
