@@ -104,8 +104,6 @@ class SMLayerBackground : public SM_Layer {
         void drawHardwareVLine(uint16_t x, uint16_t y0, uint16_t y1, const RGB& color);
         void bresteepline(int16_t x3, int16_t y3, int16_t x4, int16_t y4, const RGB& color);
         void fillFlatSideTriangleInt(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const RGB& color);
-        // todo: move somewhere else
-        static bool getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap);
 
         uint8_t backgroundBrightness = 255;
         color_chan_t * backgroundColorCorrectionLUT;

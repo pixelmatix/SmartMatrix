@@ -865,14 +865,6 @@ void SMLayerBackground<RGB, optionFlags>::fillRectangle(int16_t x0, int16_t y0, 
 }
 
 template <typename RGB, unsigned int optionFlags>
-bool SMLayerBackground<RGB, optionFlags>::getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap) {
-    int cell = (y * ((width / 8) + 1)) + (x / 8);
-
-    uint8_t mask = 0x80 >> (x % 8);
-    return (mask & bitmap[cell]);
-}
-
-template <typename RGB, unsigned int optionFlags>
 void SMLayerBackground<RGB, optionFlags>::setFont(fontChoices newFont) {
     font = (bitmap_font *)fontLookup(newFont);
 }

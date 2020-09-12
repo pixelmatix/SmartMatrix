@@ -57,6 +57,7 @@ typedef enum fontChoices {
 bool getBitmapFontPixelAtXY(unsigned char letter, unsigned char x, unsigned char y, const bitmap_font *font);
 const bitmap_font *fontLookup(fontChoices font);
 uint16_t getBitmapFontRowAtXY(unsigned char letter, unsigned char y, const bitmap_font *font);
+bool getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap);
 
 /// @{ defines to have human readable font files
 #define ________ 0x00

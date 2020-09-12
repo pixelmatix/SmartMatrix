@@ -80,6 +80,13 @@ uint16_t getBitmapFontRowAtXY(unsigned char letter, unsigned char y, const bitma
     return(font->Bitmap[(location * font->Height) + y]);
 }
 
+bool getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap) {
+    int cell = (y * ((width / 8) + 1)) + (x / 8);
+
+    uint8_t mask = 0x80 >> (x % 8);
+    return (mask & bitmap[cell]);
+}
+
 // order needs to match fontChoices enum
 static const bitmap_font *fontArray[] = {
     &apple3x5,

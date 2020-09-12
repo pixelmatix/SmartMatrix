@@ -517,14 +517,6 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::drawString(int16_t x, int16_t y, co
 }
 
 template <typename RGB, unsigned int optionFlags>
-bool SMLayerBackgroundGFX<RGB, optionFlags>::getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap) {
-    int cell = (y * ((width / 8) + 1)) + (x / 8);
-
-    uint8_t mask = 0x80 >> (x % 8);
-    return (mask & bitmap[cell]);
-}
-
-template <typename RGB, unsigned int optionFlags>
 void SMLayerBackgroundGFX<RGB, optionFlags>::drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height,
   const RGB& bitmapColor, const uint8_t *bitmap) {
     int xcnt, ycnt;
@@ -586,14 +578,6 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::drawString(int16_t x, int16_t y, co
     setCursor(x, y + yOffset);
     setTextColor(((rgb16)charColor).rgb);
     write(text, strlen(text));
-}
-
-template <typename RGB, unsigned int optionFlags>
-bool SMLayerBackgroundGFX<RGB, optionFlags>::getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap) {
-    int cell = (y * ((width / 8) + 1)) + (x / 8);
-
-    uint8_t mask = 0x80 >> (x % 8);
-    return (mask & bitmap[cell]);
 }
 
 template <typename RGB, unsigned int optionFlags>

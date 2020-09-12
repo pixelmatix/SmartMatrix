@@ -66,8 +66,6 @@ class SMLayerScrolling : public SM_Layer {
         void redrawScrollingText(void);
         void setMinMax(void);
 
-        // todo: move somewhere else
-        static bool getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap);
         void updateScrollingText(void);
 
         template <typename RGB_OUT>
