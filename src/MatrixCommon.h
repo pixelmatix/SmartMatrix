@@ -1049,4 +1049,7 @@ typedef enum rotationDegrees {
     }
 #endif
 
+#define ROUND_UP_TO_MULTIPLE_OF_8(x) ((x + 7) &(-8))
+#define ROUND_DOWN_TO_MULTIPLE_OF_8(x) (x&(-8))
+
 #endif
