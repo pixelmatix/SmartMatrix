@@ -37,6 +37,10 @@ class SM_Layer {
 
         virtual void setRotation(rotationDegrees newrotation);
         rotationDegrees getRotation(void) const { return layerRotation; };
+        uint16_t getLayerWidth(void) const { return layerWidth; };
+        uint16_t getLayerHeight(void) const { return layerHeight; };
+        uint16_t getLocalWidth(void) const { return localWidth; };
+        uint16_t getLocalHeight(void) const { return localHeight; };
         virtual void setRefreshRate(uint8_t newRefreshRate);
         virtual int getRequestedBrightnessShifts();
         virtual bool isLayerChanged();
@@ -45,7 +49,12 @@ class SM_Layer {
 
     protected:
         rotationDegrees layerRotation;
+        
+        // matrixWidth/Height: the dimensions of the physical hardware, with physical row 0 column 0 always in the upper left, independent of any rotation done in software
         uint16_t matrixWidth, matrixHeight;
+        // layerWidth/Height: the dimensions of the pixels stored in this layer, matching the orientation of the physical hardware, with physical row 0 column 0 always in the upper left, independent of any rotation done in software
+        uint16_t layerWidth, layerHeight;
+        // the local dimensions of this layer with rotation applied, local x=0,y=0 in the upper left
         uint16_t localWidth, localHeight;
         uint8_t refreshRate;
         
