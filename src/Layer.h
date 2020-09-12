@@ -35,7 +35,8 @@ class SM_Layer {
         virtual void fillRefreshRow(uint16_t hardwareY, rgb48 refreshRow[], int brightnessShifts = 0) = 0;
         virtual void fillRefreshRow(uint16_t hardwareY, rgb24 refreshRow[], int brightnessShifts = 0) = 0;
 
-        void setRotation(rotationDegrees newrotation);
+        virtual void setRotation(rotationDegrees newrotation);
+        rotationDegrees getRotation(void) const { return layerRotation; };
         virtual void setRefreshRate(uint8_t newRefreshRate);
         virtual int getRequestedBrightnessShifts();
         virtual bool isLayerChanged();
