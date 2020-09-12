@@ -1041,6 +1041,15 @@ typedef enum rotationDegrees {
     rotation270 = 3
 } rotationDegrees;
 
+typedef enum ScrollMode {
+    wrapForward = 0,
+    bounceForward = 1,
+    bounceReverse = 2,
+    stopped = 3,
+    off = 4,
+    wrapForwardFromLeft = 5
+} ScrollMode;
+
 #ifndef SWAPint
 #define SWAPint(X,Y) { \
         int temp = X ; \

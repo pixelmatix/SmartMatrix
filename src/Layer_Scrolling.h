@@ -30,15 +30,6 @@
 // scroll text
 const int textLayerMaxStringLength = 100;
 
-typedef enum ScrollMode {
-    wrapForward,
-    bounceForward,
-    bounceReverse,
-    stopped,
-    off,
-    wrapForwardFromLeft,
-} ScrollMode;
-
 #define SM_SCROLLING_OPTIONS_NONE     0
 
 // font
