@@ -731,7 +731,7 @@ void loop() {
         scrollingLayer.setFont(font6x10);
         scrollingLayer.start("Built In Fonts", 1);
 
-        const uint transitionTime = 5500;
+        const uint transitionTime = 7500;
         const int delayBetweenCharacters = 1000;
         const int leftEdgeOffset = 1;
 
@@ -762,6 +762,18 @@ void loop() {
         backgroundLayer.setFont(font8x13);
         backgroundLayer.fillScreen({0, 0x80, 0x80});
         backgroundLayer.drawString(leftEdgeOffset, matrix.getScreenHeight() / 2, {0xff, 0, 0}, "8x13");
+        delay(delayBetweenCharacters);
+        backgroundLayer.swapBuffers();
+
+        backgroundLayer.setFont(gohufont11);
+        backgroundLayer.fillScreen({0, 0x80, 0x80});
+        backgroundLayer.drawString(leftEdgeOffset, matrix.getScreenHeight() / 2, {0xff, 0, 0}, "GohuFont8x11");
+        delay(delayBetweenCharacters);
+        backgroundLayer.swapBuffers();
+
+        backgroundLayer.setFont(gohufont11b);
+        backgroundLayer.fillScreen({0, 0x80, 0x80});
+        backgroundLayer.drawString(leftEdgeOffset, matrix.getScreenHeight() / 2, {0xff, 0, 0}, "GohuFont8x11b");
         delay(delayBetweenCharacters);
         backgroundLayer.swapBuffers();
 
