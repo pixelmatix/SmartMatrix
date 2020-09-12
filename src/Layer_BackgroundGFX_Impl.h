@@ -617,24 +617,25 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::setFont(fontChoices newFont) {
     switch(newFont) {
         default:
         case font3x5:
-            gfxFont = &Picopixel;
+            gfxFont = &Apple4x6;
             break;
         case font5x7:
-            gfxFont = &Picopixel;
+            gfxFont = &Apple5x7;
             break;
         case font6x10:
-            gfxFont = &Picopixel;
+            gfxFont = &Apple6x10;
             break;
         case font8x13:
-            gfxFont = &Picopixel;
+            gfxFont = &Apple8x13;
             break;
         case gohufont11:
-            gfxFont = &Picopixel;
+            gfxFont = &GohuFont6x11;
             break;
         case gohufont11b:
-            gfxFont = &Picopixel;
+            gfxFont = &GohuFont6x11b;
             break;
-        }
+    }
+
     setFont(gfxFont);
 }
 
