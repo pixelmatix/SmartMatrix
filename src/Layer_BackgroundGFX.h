@@ -123,6 +123,10 @@ class SMLayerBackgroundGFX : public SM_Layer, public Adafruit_GFX {
         // todo: move somewhere else
         static bool getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap);
 
+        // Note we'd use a function template for the public functions but are keeping them fixed with rgb24/rgb48 parameters for backwards compatibility
+        template <typename RGB_OUT>
+        void fillRefreshRowTemplated(uint16_t hardwareY, RGB_OUT refreshRow[], int brightnessShifts);
+
         // drawing functions not meant for user
         void drawHardwareHLine(uint16_t x0, uint16_t x1, uint16_t y, const RGB& color);
         void drawHardwareVLine(uint16_t x, uint16_t y0, uint16_t y1, const RGB& color);
