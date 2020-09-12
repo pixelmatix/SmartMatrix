@@ -146,11 +146,11 @@ class SMLayerBackgroundGFX : public SM_Layer, public Adafruit_GFX {
 #ifdef SM_BACKGROUND_GFX_OLD_DRAWING_FUNCTIONS
         void bresteepline(int16_t x3, int16_t y3, int16_t x4, int16_t y4, const RGB& color);
         void fillFlatSideTriangleInt(int16_t x1, int16_t y1, int16_t x2, int16_t y2, int16_t x3, int16_t y3, const RGB& color);
+        bitmap_font *font;
 #endif
 
         uint8_t backgroundBrightness = 255;
         color_chan_t * backgroundColorCorrectionLUT;
-        bitmap_font *font;
 
         int16_t layerXOffset = 0;
         int16_t layerYOffset = 0;

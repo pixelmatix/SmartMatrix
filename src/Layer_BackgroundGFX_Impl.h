@@ -74,7 +74,10 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::begin(void) {
     currentDrawBuffer = 0;
     currentRefreshBuffer = 1;
     swapPending = false;
+
+#ifdef SM_BACKGROUND_GFX_OLD_DRAWING_FUNCTIONS
     font = (bitmap_font *) &apple3x5;
+#endif
 
     currentDrawBufferPtr = backgroundBuffers[0];
     currentRefreshBufferPtr = backgroundBuffers[1];
