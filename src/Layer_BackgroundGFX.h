@@ -29,7 +29,6 @@
 #include "MatrixFontCommon.h"
 
 // Adafruit_GFX includes
-#include <Adafruit_GFX.h>
 #include "MatrixGfxFontCommon.h"
 
 #define SM_BACKGROUND_GFX_OPTIONS_NONE     0
