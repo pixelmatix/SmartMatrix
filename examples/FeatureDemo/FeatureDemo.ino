@@ -1,7 +1,19 @@
 /*
-    SmartMatrix Features Demo - Louis Beaudoin (Pixelmatix)
-    This example code is released into the public domain
+  SmartMatrix Features Demo - Louis Beaudoin (Pixelmatix)
+  This example code is released into the public domain
+
+  To update a SmartMatrix Library sketch to use Adafruit_GFX compatible layers:
+
+  - Make sure you have the Adafruit_GFX Library installed in Arduino (you can use Arduino Library Manager)
+  - add `#define SUPPORT_ADAFRUIT_GFX_LIBRARY` below (this is needed for any sketch to tell SmartMatrix Library that Adafruit_GFX is present, not just this sketch)
+  - change the name of the ALLOCATE layer macros, adding "GFX_" before "LAYER":
+    - change SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER() to SMARTMATRIX_ALLOCATE_BACKGROUND_GFX_LAYER()
+    - change SMARTMATRIX_ALLOCATE_SCROLLING_LAYER() to SMARTMATRIX_ALLOCATE_SCROLLING_GFX_LAYER()
+    - change SMARTMATRIX_ALLOCATE_INDEXED_LAYER() to SMARTMATRIX_ALLOCATE_INDEXED_GFX_LAYER()
 */
+
+//#define SUPPORT_ADAFRUIT_GFX_LIBRARY
+
 // uncomment one line to select your MatrixHardware configuration - configuration header needs to be included before <SmartMatrix3.h>
 //#include <MatrixHardware_ESP32_V0.h>    // This file contains multiple ESP32 hardware configurations, edit the file to define GPIOPINOUT (or add #define GPIOPINOUT with a hardcoded number before this #include)
 //#include <MatrixHardware_KitV1.h>       // SmartMatrix Shield for Teensy 3 V1-V3
@@ -10,8 +22,6 @@
 //#include <MatrixHardware_T4Adapter.h>   // Teensy 4 Adapter attached to SmartLED Shield for Teensy 3 V4
 //#include "MatrixHardware_Custom.h"      // Copy an existing MatrixHardware file to your Sketch directory, rename, customize, and you can include it like this
 #include <SmartMatrix3.h>
-#include "colorwheel.c"
-#include "gimpbitmap.h"
 
 #define COLOR_DEPTH 24                  // known working: 24, 48 - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
 const uint16_t kMatrixWidth = 32;        // known working: 32, 64, 96, 128, 256
@@ -20,14 +30,27 @@ const uint8_t kRefreshDepth = 24;       // known working: 24, 36, 48 (on Teensy 
 const uint8_t kDmaBufferRows = 4;       // known working: 2-4, use 2 to save memory, more to keep from dropping frames and automatically lowering refresh rate
 const uint8_t kPanelType = SMARTMATRIX_HUB75_32ROW_MOD16SCAN;   // use SMARTMATRIX_HUB75_16ROW_MOD8SCAN for common 16x32 panels
 const uint8_t kMatrixOptions = SMARTMATRIX_OPTIONS_NONE;   // see http://docs.pixelmatix.com/SmartMatrix for options
-const uint8_t kBackgroundLayerOptions = (SM_BACKGROUND_OPTIONS_NONE);
-const uint8_t kScrollingLayerOptions = (SM_SCROLLING_OPTIONS_NONE);
-const uint8_t kIndexedLayerOptions = (SM_INDEXED_OPTIONS_NONE);
 
 SMARTMATRIX_ALLOCATE_BUFFERS(matrix, kMatrixWidth, kMatrixHeight, kRefreshDepth, kDmaBufferRows, kPanelType, kMatrixOptions);
-SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kBackgroundLayerOptions);
-SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
-SMARTMATRIX_ALLOCATE_INDEXED_LAYER(indexedLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kIndexedLayerOptions);
+
+#ifdef SUPPORT_ADAFRUIT_GFX_LIBRARY
+  const uint8_t kBackgroundLayerOptions = (SM_BACKGROUND_GFX_OPTIONS_NONE);
+  const uint8_t kScrollingLayerOptions = (SM_GFX_MONO_OPTIONS_NONE);
+  const uint8_t kIndexedLayerOptions = (SM_GFX_MONO_OPTIONS_NONE);
+  SMARTMATRIX_ALLOCATE_BACKGROUND_GFX_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kBackgroundLayerOptions);
+  SMARTMATRIX_ALLOCATE_SCROLLING_GFX_LAYER(scrollingLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
+  SMARTMATRIX_ALLOCATE_INDEXED_GFX_LAYER(indexedLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kIndexedLayerOptions);
+#else
+  const uint8_t kBackgroundLayerOptions = (SM_BACKGROUND_OPTIONS_NONE);
+  const uint8_t kScrollingLayerOptions = (SM_SCROLLING_OPTIONS_NONE);
+  const uint8_t kIndexedLayerOptions = (SM_INDEXED_OPTIONS_NONE);
+  SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kBackgroundLayerOptions);
+  SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
+  SMARTMATRIX_ALLOCATE_INDEXED_LAYER(indexedLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kIndexedLayerOptions);
+#endif
+
+#include "colorwheel.c"
+#include "gimpbitmap.h"
 
 const int defaultBrightness = (100*255)/100;        // full (100%) brightness
 //const int defaultBrightness = (15*255)/100;       // dim: 15% brightness
