@@ -101,10 +101,10 @@ void SMLayerGFXMono<RGB_API, RGB_STORAGE, optionFlags>::fillRefreshRowTemplated(
     // layer is larger and offset to the left: sweep 0..matrixWidth
 
     // when the layer starts to the right of the hardware (layerXOffset > 0), "i" sweeps starting from layerXOffset
-    int16_t iRangeMin = max(0, layerXOffset);
+    int16_t iRangeMin = max((int)0, (int)layerXOffset);
 
     // we stop sweeping when we run out of layer pixels to read, or hardware pixels to write to
-    int16_t iRangeMax = min(this->matrixWidth, this->layerWidth + layerXOffset);
+    int16_t iRangeMax = min((int)this->matrixWidth, (int)(this->layerWidth + layerXOffset));
 
     // our current hardware row is set by hardwareY
     // to map to the row in the current layer:
