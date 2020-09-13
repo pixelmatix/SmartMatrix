@@ -252,7 +252,7 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::drawPixel(int16_t x, int16_t y, uin
     if(passThruColorFlag)
         drawPixel(x, y, passThruColor);
     else
-        drawPixel(x, y, (RGB)color);
+        drawPixel(x, y, (rgb16)color);
 }
 
 /* RGB Specific SmartMatrix Library 3.0 Backwards Compatibility */

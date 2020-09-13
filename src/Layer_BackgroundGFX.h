@@ -117,6 +117,9 @@ class SMLayerBackgroundGFX : public SM_Layer, public Adafruit_GFX {
         using Adafruit_GFX::fillTriangle;
         using Adafruit_GFX::setFont;
         using Adafruit_GFX::drawChar;
+        using Adafruit_GFX::fillScreen;
+        using Adafruit_GFX::drawFastVLine;
+        using Adafruit_GFX::drawFastHLine;
 
     private:
         // Note we'd use a function template for the public functions but are keeping them fixed with rgb24/rgb48 parameters for backwards compatibility
