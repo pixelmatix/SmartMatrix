@@ -1,7 +1,21 @@
 /*
   Note: This example currently has very low performance on large displays (~38FPS refresh rate on 64x64)
-  The Scrolling Layer refresh code will be optimized in a future SmartMatrix Library release 
+  The Scrolling Layer refresh code is optimized if you use the new "GFX" Adafruit_GFX compatible layers instead.
+
+  To update a SmartMatrix Library sketch to use Adafruit_GFX compatible layers:
+
+  - Make sure you have the Adafruit_GFX Library installed in Arduino (you can use Arduino Library Manager)
+  - add `#define SUPPORT_ADAFRUIT_GFX_LIBRARY` below (this is needed for any sketch to tell SmartMatrix Library that Adafruit_GFX is present, not just this sketch)
+  - change the name of the ALLOCATE layer macros, adding "GFX_" before "LAYER":
+    - change SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER() to SMARTMATRIX_ALLOCATE_BACKGROUND_GFX_LAYER()
+    - change SMARTMATRIX_ALLOCATE_SCROLLING_LAYER() to SMARTMATRIX_ALLOCATE_SCROLLING_GFX_LAYER()
+    - change SMARTMATRIX_ALLOCATE_INDEXED_LAYER() to SMARTMATRIX_ALLOCATE_INDEXED_GFX_LAYER()
+
+  With the "GFX" layers you're no longer limited to the fonts built into the SmartMatrix Library.  You can use any of the
+    fonts included in Adafruit_GFX, or add custom fonts
 */
+
+//#define SUPPORT_ADAFRUIT_GFX_LIBRARY
 
 // uncomment one line to select your MatrixHardware configuration - configuration header needs to be included before <SmartMatrix3.h>
 //#include <MatrixHardware_ESP32_V0.h>    // This file contains multiple ESP32 hardware configurations, edit the file to define GPIOPINOUT (or add #define GPIOPINOUT with a hardcoded number before this #include)
@@ -19,14 +33,24 @@ const uint8_t kRefreshDepth = 36;       // known working: 24, 36, 48 (on Teensy 
 const uint8_t kDmaBufferRows = 4;       // known working: 2-4, use 2 to save memory, more to keep from dropping frames and automatically lowering refresh rate
 const uint8_t kPanelType = SMARTMATRIX_HUB75_32ROW_MOD16SCAN;   // use SMARTMATRIX_HUB75_16ROW_MOD8SCAN for common 16x32 panels
 const uint8_t kMatrixOptions = (SMARTMATRIX_OPTIONS_NONE);      // see http://docs.pixelmatix.com/SmartMatrix for options
-const uint8_t kScrollingLayerOptions = (SM_SCROLLING_OPTIONS_NONE);
 
 SMARTMATRIX_ALLOCATE_BUFFERS(matrix, kMatrixWidth, kMatrixHeight, kRefreshDepth, kDmaBufferRows, kPanelType, kMatrixOptions);
-SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer1, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
-SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer2, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
-SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer3, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
-SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer4, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
-SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer5, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
+
+#ifdef SUPPORT_ADAFRUIT_GFX_LIBRARY
+  const uint8_t kScrollingLayerOptions = (SM_GFX_MONO_OPTIONS_NONE);
+  SMARTMATRIX_ALLOCATE_SCROLLING_GFX_LAYER(scrollingLayer1, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
+  SMARTMATRIX_ALLOCATE_SCROLLING_GFX_LAYER(scrollingLayer2, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
+  SMARTMATRIX_ALLOCATE_SCROLLING_GFX_LAYER(scrollingLayer3, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
+  SMARTMATRIX_ALLOCATE_SCROLLING_GFX_LAYER(scrollingLayer4, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
+  SMARTMATRIX_ALLOCATE_SCROLLING_GFX_LAYER(scrollingLayer5, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
+#else
+  const uint8_t kScrollingLayerOptions = (SM_SCROLLING_OPTIONS_NONE);
+  SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer1, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
+  SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer2, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
+  SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer3, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
+  SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer4, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
+  SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer5, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
+#endif
 
 void setup() {
   matrix.addLayer(&scrollingLayer1); 
