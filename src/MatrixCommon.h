@@ -41,6 +41,7 @@
 // struct definitions for rgb24 and rgb48 with assignment operators
 // between them; adding rgb36 didn't seem to make sense because even when
 // packed with bitfields, it would only save 1 byte over rgb48.
+typedef bool rgb1;
 struct rgb8;
 struct rgb16;
 struct rgb24;
