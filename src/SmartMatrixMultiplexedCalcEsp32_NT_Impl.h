@@ -39,20 +39,24 @@ void SmartMatrix3_NT<dummyvar>::addLayer(SM_Layer * newlayer) {
 }
 
 template <int dummyvar>
-void SmartMatrix3_NT<dummyvar>::countFPS(void) {
-  static long loops = 0;
-  static long lastMillis = 0;
-  long currentMillis = millis();
+int SmartMatrix3_NT<dummyvar>::countFPS(void) {
+    static long loops = 0;
+    static long lastMillis = 0;
+    long currentMillis = millis();
+    int ret = 0;
 
-  loops++;
-  if(currentMillis - lastMillis >= 1000){
-    if(Serial) {
-        Serial.print("Loops last second:");
-        Serial.println(loops);
+    loops++;
+    if(currentMillis - lastMillis >= 1000){
+        if(Serial) {
+            Serial.print("Loops last second:");
+            Serial.println(loops);
+        }
+        ret = loops;
+        lastMillis = currentMillis;
+        loops = 0;
     }
-    lastMillis = currentMillis;
-    loops = 0;
-  }
+    
+    return ret;
 }
 
 template <int dummyvar>

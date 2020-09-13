@@ -47,7 +47,7 @@ public:
     bool getRefreshRateLoweredFlag(void);
 
     // debug
-    void countFPS(void);
+    int countFPS(void);
 
     // functions called by ISR
     static void matrixCalculations(bool initial);

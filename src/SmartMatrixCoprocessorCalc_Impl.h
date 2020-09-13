@@ -60,22 +60,26 @@ void SmartMatrixCoprocessorCalc<refreshDepth, matrixWidth, matrixHeight, panelTy
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrixCoprocessorCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::countFPS(void) {
-  static long loops = 0;
-  static long lastMillis = 0;
-  long currentMillis = millis();
+int SmartMatrixCoprocessorCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::countFPS(void) {
+    static long loops = 0;
+    static long lastMillis = 0;
+    long currentMillis = millis();
+    int ret = 0;
 
-  loops++;
-  if(currentMillis - lastMillis >= 1000){
+    loops++;
+    if(currentMillis - lastMillis >= 1000){
 #if defined(USB_SERIAL)
-    if(Serial) {
-        Serial.print("Loops last second:");
-        Serial.println(loops);
-    }
+        if(Serial) {
+            Serial.print("Loops last second:");
+            Serial.println(loops);
+        }
 #endif    
-    lastMillis = currentMillis;
-    loops = 0;
-  }
+        ret = loops;
+        lastMillis = currentMillis;
+        loops = 0;
+    }
+    
+    return ret;
 }
 
 #define MAX_MATRIXCALCULATIONS_LOOPS_WITHOUT_EXIT  5

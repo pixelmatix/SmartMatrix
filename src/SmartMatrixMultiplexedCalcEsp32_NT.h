@@ -52,7 +52,7 @@ public:
     void setMaxCalculationCpuPercentage(uint8_t newMaxCpuPercentage);
 
     // debug
-    void countFPS(void);
+    int countFPS(void);
 
     // functions called by ISR
     void matrixCalculations(void);

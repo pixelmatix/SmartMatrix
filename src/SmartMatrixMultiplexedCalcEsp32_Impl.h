@@ -90,20 +90,23 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
-void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::countFPS(void) {
-  static long loops = 0;
-  static long lastMillis = 0;
-  long currentMillis = millis();
+int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::countFPS(void) {
+    static long loops = 0;
+    static long lastMillis = 0;
+    long currentMillis = millis();
+    int ret = 0;
 
-  loops++;
-  if(currentMillis - lastMillis >= 1000){
-    if(Serial) {
-        Serial.print("Loops last second:");
-        Serial.println(loops);
+    loops++;
+    if(currentMillis - lastMillis >= 1000){
+        if(Serial) {
+            Serial.print("Loops last second:");
+            Serial.println(loops);
+        }
+        ret = loops;
+        lastMillis = currentMillis;
+        loops = 0;
     }
-    lastMillis = currentMillis;
-    loops = 0;
-  }
+    return ret;
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>

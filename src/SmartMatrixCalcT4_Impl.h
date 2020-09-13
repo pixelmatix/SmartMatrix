@@ -50,10 +50,11 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
-void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::countFPS(void) {
+int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::countFPS(void) {
     static long loops = 0;
     static long lastMillis = 0;
     long currentMillis = millis();
+    int ret = 0;
 
     loops++;
     if (currentMillis - lastMillis >= 1000) {
@@ -63,9 +64,12 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
             Serial.println(loops);
         }
 #endif
+        ret = loops;
         lastMillis = currentMillis;
         loops = 0;
     }
+
+    return ret;
 }
 
 
