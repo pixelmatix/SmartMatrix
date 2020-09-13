@@ -1,13 +1,22 @@
-#define SUPPORT_ADAFRUIT_GFX_LIBRARY
-
 /*
- * This example shows how to display bitmaps that are exported from GIMP and
- * compiled into the sketch and stored in the Teensy's Flash memory
- * See more details here:
- * http://docs.pixelmatix.com/SmartMatrix/library.html#smartmatrix-library-how-to-use-the-library-drawing-raw-bitmaps
- *
- * This example uses only the SmartMatrix Background layer
+ * This example shows how to use the Adafruit_GFX compatible Layers in SmartMatrix Library
+ * This example was adapted from Adafruit's FX example for the Adafruit ILI9341 Breakout and Shield, see text below
  */
+
+/***************************************************
+  This is our GFX example for the Adafruit ILI9341 Breakout and Shield
+  ----> http://www.adafruit.com/products/1651
+  Check out the links above for our tutorials and wiring diagrams
+  These displays use SPI to communicate, 4 or 5 pins are required to
+  interface (RST is optional)
+  Adafruit invests time and resources providing this open source code,
+  please support Adafruit and open-source hardware by purchasing
+  products from Adafruit!
+  Written by Limor Fried/Ladyada for Adafruit Industries.
+  MIT license, all text above must be included in any redistribution
+ ****************************************************/
+
+#define SUPPORT_ADAFRUIT_GFX_LIBRARY
 
 // uncomment one line to select your MatrixHardware configuration - configuration header needs to be included before <SmartMatrix3.h>
 //#include <MatrixHardware_ESP32_V0.h>    // This file contains multiple ESP32 hardware configurations, edit the file to define GPIOPINOUT (or add #define GPIOPINOUT with a hardcoded number before this #include)
@@ -25,10 +34,17 @@ const uint8_t kRefreshDepth = 36;       // known working: 24, 36, 48 (on Teensy 
 const uint8_t kDmaBufferRows = 4;       // known working: 2-4, use 2 to save memory, more to keep from dropping frames and automatically lowering refresh rate
 const uint8_t kPanelType = SMARTMATRIX_HUB75_64ROW_MOD32SCAN;   // use SMARTMATRIX_HUB75_16ROW_MOD8SCAN for common 16x32 panels
 const uint8_t kMatrixOptions = (SMARTMATRIX_OPTIONS_NONE);      // see http://docs.pixelmatix.com/SmartMatrix for options
-const uint8_t kBackgroundLayerOptions = (SM_BACKGROUND_GFX_OPTIONS_NONE);
 
 SMARTMATRIX_ALLOCATE_BUFFERS(matrix, kMatrixWidth, kMatrixHeight, kRefreshDepth, kDmaBufferRows, kPanelType, kMatrixOptions);
-SMARTMATRIX_ALLOCATE_BACKGROUND_GFX_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kBackgroundLayerOptions);
+
+// There are two Adafruit_GFX compatible layers, a Mono layer and an RGB layer, and this example sketch works with either (choose one):
+#if 1
+  const uint8_t kBackgroundLayerOptions = (SM_BACKGROUND_GFX_OPTIONS_NONE);
+  SMARTMATRIX_ALLOCATE_BACKGROUND_GFX_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kBackgroundLayerOptions);
+#else
+  const uint8_t kGFXMonoLayerOptions = (SM_GFX_MONO_OPTIONS_NONE);
+  SMARTMATRIX_ALLOCATE_GFX_MONO_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kGFXMonoLayerOptions);
+#endif
 
 // Assign human-readable names to some common 16-bit color values:
 #define BLACK   0x0000
