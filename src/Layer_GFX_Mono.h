@@ -69,6 +69,7 @@ class SMLayerGFXMono : public SM_Layer, public Adafruit_GFX {
         /* RGB Specific SmartMatrix Library 3.0 Backwards Compatibility */
         void drawPixel(int16_t x, int16_t y, uint8_t index);
         void fillScreen(uint8_t index);
+
         /* RGB Specific (only because indexed color is set separately) SmartMatrix Library 3.0 Backwards Compatibility */
         void drawChar(int16_t x, int16_t y, uint8_t index, char character);
         void drawString(int16_t x, int16_t y, uint8_t index, const char text []);
@@ -100,6 +101,10 @@ class SMLayerGFXMono : public SM_Layer, public Adafruit_GFX {
         using Adafruit_GFX::drawPixel;
         using Adafruit_GFX::setFont;
         using Adafruit_GFX::drawChar;
+
+        /* Adafruit_GFX wrappers for lazily typed colors (with color defaulting as int) */
+        inline void fillScreen(int color) { fillScreen((rgb1)(color > 0)); };
+        inline void drawPixel(int color) { drawPixel((rgb1)(color > 0)); };
 
     private:
         /* RGB specific */
