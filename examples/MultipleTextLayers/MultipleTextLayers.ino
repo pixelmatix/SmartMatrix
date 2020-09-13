@@ -77,5 +77,7 @@ void setup() {
 }
 
 void loop() {
-
+  Serial.print("Refresh Rate: ");
+  Serial.println(matrix.getRefreshRate());
+  delay(1000);
 }
