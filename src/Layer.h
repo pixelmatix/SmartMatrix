@@ -36,7 +36,7 @@ class SM_Layer {
         virtual void fillRefreshRow(uint16_t hardwareY, rgb24 refreshRow[], int brightnessShifts = 0) = 0;
 
         virtual void setRotation(rotationDegrees newrotation);
-        rotationDegrees getRotation(void) const { return layerRotation; };
+        rotationDegrees getLayerRotation(void) const { return layerRotation; };
         uint16_t getLayerWidth(void) const { return layerWidth; };
         uint16_t getLayerHeight(void) const { return layerHeight; };
         uint16_t getLocalWidth(void) const { return localWidth; };
