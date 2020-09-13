@@ -95,6 +95,7 @@ class SMLayerGFXMono : public SM_Layer, public Adafruit_GFX {
 
         /* Adafruit_GFX methods */
         void setRotation(uint8_t x);
+        inline uint16_t color565(uint8_t red, uint8_t green, uint8_t blue) { return rgb16(red, green, blue).rgb; }
         // we need to tell the compiler that we want to use the methods that are included in Adafruit_GFX, in addition to our overloaded custom versions
         using Adafruit_GFX::drawPixel;
         using Adafruit_GFX::setFont;
