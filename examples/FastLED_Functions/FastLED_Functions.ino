@@ -114,7 +114,7 @@ void loop() {
       // We use the value at the (i,j) coordinate in the noise
       // array for our brightness, and the flipped value from (j,i)
       // for our pixel's hue.
-      buffer[kMatrixWidth*j + i] = CRGB(CHSV(noise[j][i],255,noise[i][j]));
+      buffer[kMatrixWidth*j + i] = (rgb24)CRGB(CHSV(noise[j][i],255,noise[i][j]));
 
       // You can also explore other ways to constrain the hue used, like below
       // buffer[kMatrixHeight*j + i] = CRGB(CHSV(ihue + (noise[j][i]>>2),255,noise[i][j]));
@@ -122,7 +122,7 @@ void loop() {
   }
   ihue+=1;
 
-  backgroundLayer.fillCircle(circlex % kMatrixWidth,circley % kMatrixHeight,6,CRGB(CHSV(ihue+128,255,255)));
+  backgroundLayer.fillCircle(circlex % kMatrixWidth, circley % kMatrixHeight, 6, (rgb24)CRGB(CHSV(ihue+128,255,255)));
   circlex += random16(2);
   circley += random16(2);
 
