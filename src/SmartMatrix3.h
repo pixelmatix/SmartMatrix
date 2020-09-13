@@ -38,6 +38,7 @@
 // For backwards compatiblity, this needs to be defined at the top of the sketch, so that "Adafruit_GFX.h" is only included if desired
 #ifdef SUPPORT_ADAFRUIT_GFX_LIBRARY
 #include "Layer_BackgroundGFX.h"
+#include "Layer_GFX_Mono.h"
 #endif
 
 #include "SmartMatrixMultiplexedCommon.h"
