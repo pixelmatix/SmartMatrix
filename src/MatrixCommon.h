@@ -167,7 +167,6 @@ typedef struct rgb48 {
     rgb48& operator=(const rgb8& col);
     rgb48& operator=(const rgb16& col);
     rgb48& operator=(const rgb24& col);
-    rgb48& operator=(const rgb48& col);
     rgb48( const rgb8& col);
     rgb48( const rgb16& col);
     rgb48( const rgb24& col);
