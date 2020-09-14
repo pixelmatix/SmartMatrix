@@ -271,7 +271,7 @@ void loop() {
   }
   ihue+=1;
 
-  //backgroundLayer.fillCircle(circlex % kMatrixWidth,circley % kMatrixHeight,6,CRGB(CHSV(ihue+128,255,255)));
+  backgroundLayer.fillCircle(circlex % kMatrixWidth, circley % kMatrixHeight, 6, (rgb24)CRGB(CHSV(ihue+128,255,255)));
   circlex += random16(2);
   circley += random16(2);
 
