@@ -263,8 +263,7 @@ void loop() {
       // We use the value at the (i,j) coordinate in the noise
       // array for our brightness, and the flipped value from (j,i)
       // for our pixel's hue.
-      CRGB temprgb = CRGB(CHSV(noise[j][i],255,noise[i][j]));
-      buffer[kMatrixWidth*j + i] = rgb24(temprgb.r, temprgb.g, temprgb.b);
+      buffer[kMatrixWidth*j + i] = CRGB(CHSV(noise[j][i],255,noise[i][j]));
 
       // You can also explore other ways to constrain the hue used, like below
       // buffer[kMatrixHeight*j + i] = CRGB(CHSV(ihue + (noise[j][i]>>2),255,noise[i][j]));
