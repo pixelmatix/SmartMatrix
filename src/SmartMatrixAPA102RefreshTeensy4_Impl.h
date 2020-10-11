@@ -22,8 +22,8 @@
  */
 
 #include "SmartMatrix3.h"
-#include <FlexIO_t4.h> // requires FlexIO_t4 library from https://github.com/KurtE/FlexIO_t4
-#include <FlexIOSPI.h>
+#include <lib/FlexIO_t4/FlexIO_t4.h> // requires FlexIO_t4 library from https://github.com/KurtE/FlexIO_t4
+#include <lib/FlexIO_t4/FlexIOSPI.h>
 
 #define TIME_PER_FRAME_US      (1000000/refreshRate)
 

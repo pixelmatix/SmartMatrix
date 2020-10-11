@@ -1,7 +1,7 @@
 #ifndef SMARTMATRIXREFRESHT4_H
 #define SMARTMATRIXREFRESHT4_H
 
-#include <FlexIO_t4.h> // requires FlexIO_t4 library from https://github.com/KurtE/FlexIO_t4
+#include <lib/FlexIO_t4/FlexIO_t4.h> // requires FlexIO_t4 library from https://github.com/KurtE/FlexIO_t4
 
 // Number of 32-bit FlexIO shifters to use for data buffering.
 // Larger numbers decrease DMA usage.
