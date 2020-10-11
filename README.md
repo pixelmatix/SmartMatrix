@@ -14,6 +14,8 @@ The V0 SmartLED Shield for Teensy 4 is close to the final version, the only sign
 
 Teensy 4 support was contributed by [Eric Eason](https://github.com/easone)
 
+Teensy 4 APA102 support depends on FlexIO_t4 by KurtE, which is included as a submodule in `src/lib/`.  The original FlexIO_t4 library is [on GitHub](https://github.com/KurtE/FlexIO_t4)
+
 See Teensy 4 focused Todo list here: https://github.com/pixelmatix/SmartMatrix/issues/124
 
 ## ESP32
