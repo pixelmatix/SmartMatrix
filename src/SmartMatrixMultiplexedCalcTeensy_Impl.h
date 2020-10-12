@@ -353,11 +353,14 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     static rgb48 tempRow0[numPixelsPerTempRow];
     static rgb48 tempRow1[numPixelsPerTempRow];
 
+// multi row refresh isn't very efficient, slowing this function down by ~30% for panels that don't even need multi row refresh.  For now, only enable the code if needed
+#if MULTI_ROW_REFRESH_REQUIRED
     int c = 0;
     resetMultiRowRefreshMapPosition();
 
     // go through this process for each physical row that is contained in the refresh row
     do {
+#endif
         // clear buffer to prevent garbage data showing through transparent layers
         memset(tempRow0, 0x00, sizeof(tempRow0));
         memset(tempRow1, 0x00, sizeof(tempRow1));
@@ -441,10 +444,13 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
             
             int i=0;
 
+#if MULTI_ROW_REFRESH_REQUIRED
             // reset pixel map offset so we start filling from the first panel again
             resetMultiRowRefreshMapPositionPixelGroupToStartOfRow();
+#endif
 
             while(i < numPixelsPerTempRow) {
+#if MULTI_ROW_REFRESH_REQUIRED
                 // get number of pixels to go through with current pass
                 int numPixelsToMap = getMultiRowRefreshNumPixelsToMap();
 
@@ -456,17 +462,24 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 
                 // get offset where pixels are written in the refresh buffer
                 int currentMapOffset = getMultiRowRefreshPixelGroupOffset();
+#else
+                const int numPixelsToMap = matrixWidth;
+#endif
 
                 // parse through grouping of pixels, loading from temp buffer and writing to refresh buffer
                 for(int k=0; k < numPixelsToMap; k++) {
                     o0.word = 0x00;
 
                     int refreshBufferPosition;
+#if MULTI_ROW_REFRESH_REQUIRED
                     if(reversePixelBlock) {
                         refreshBufferPosition = currentMapOffset-k;
                     } else {
                         refreshBufferPosition = currentMapOffset+k;
                     }
+#else
+                    refreshBufferPosition = i+k;
+#endif                    
 
                     if (tempRow0[i+k].red & mask)
                         o0.hub75_r0 = 1;
@@ -504,7 +517,9 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                     }
                 }
                 i += numPixelsToMap; // keep track of current position on this temp buffer
+#if MULTI_ROW_REFRESH_REQUIRED
                 advanceMultiRowRefreshMapToNextPixelGroup();
+#endif
             }
             currentRowDataPtr->rowbits[j].rowAddress = currentRow;
         }
@@ -522,11 +537,13 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         }
 #endif
 
+#if MULTI_ROW_REFRESH_REQUIRED
         c += numPixelsPerTempRow; // keep track of cumulative number of pixels filled in refresh buffer before this temp buffer
 
         advanceMultiRowRefreshMapToNextRow();
         multiRowRefreshRowOffset = getMultiRowRefreshRowOffset();
     } while (multiRowRefreshRowOffset > 0);
+#endif
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
@@ -539,11 +556,14 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
     static rgb24 tempRow0[numPixelsPerTempRow];
     static rgb24 tempRow1[numPixelsPerTempRow];
 
+// multi row refresh isn't very efficient, slowing this function down by ~30% for panels that don't even need multi row refresh.  For now, only enable the code if needed
+#if MULTI_ROW_REFRESH_REQUIRED
     int c = 0;
     resetMultiRowRefreshMapPosition();
 
     // go through this process for each physical row that is contained in the refresh row
     do {
+#endif
         // clear buffer to prevent garbage data showing through transparent layers
         memset(tempRow0, 0x00, sizeof(tempRow0));
         memset(tempRow1, 0x00, sizeof(tempRow1));
@@ -629,10 +649,13 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
             
             int i=0;
 
+#if MULTI_ROW_REFRESH_REQUIRED
             // reset pixel map offset so we start filling from the first panel again
             resetMultiRowRefreshMapPositionPixelGroupToStartOfRow();
+#endif
 
             while(i < numPixelsPerTempRow) {
+#if MULTI_ROW_REFRESH_REQUIRED
                 // get number of pixels to go through with current pass
                 int numPixelsToMap = getMultiRowRefreshNumPixelsToMap();
 
@@ -644,17 +667,24 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 
                 // get offset where pixels are written in the refresh buffer
                 int currentMapOffset = getMultiRowRefreshPixelGroupOffset();
+#else
+                const int numPixelsToMap = matrixWidth;
+#endif
 
                 // parse through grouping of pixels, loading from temp buffer and writing to refresh buffer
                 for(int k=0; k < numPixelsToMap; k++) {
                     o0.word = 0x00;
 
                     int refreshBufferPosition;
+#if MULTI_ROW_REFRESH_REQUIRED
                     if(reversePixelBlock) {
                         refreshBufferPosition = currentMapOffset-k;
                     } else {
                         refreshBufferPosition = currentMapOffset+k;
                     }
+#else
+                    refreshBufferPosition = i+k;
+#endif                    
 
                     if (tempRow0[i+k].red & mask)
                         o0.hub75_r0 = 1;
@@ -692,7 +722,9 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                     }
                 }
                 i += numPixelsToMap; // keep track of current position on this temp buffer
+#if MULTI_ROW_REFRESH_REQUIRED
                 advanceMultiRowRefreshMapToNextPixelGroup();
+#endif
             }
             currentRowDataPtr->rowbits[j].rowAddress = currentRow;
         }
@@ -710,11 +742,13 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
         }
 #endif
 
+#if MULTI_ROW_REFRESH_REQUIRED
         c += numPixelsPerTempRow; // keep track of cumulative number of pixels filled in refresh buffer before this temp buffer
 
         advanceMultiRowRefreshMapToNextRow();
         multiRowRefreshRowOffset = getMultiRowRefreshRowOffset();
     } while (multiRowRefreshRowOffset > 0);    
+#endif
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
