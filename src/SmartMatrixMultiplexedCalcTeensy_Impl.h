@@ -369,36 +369,50 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 // Z-shape, bottom to top
                 if(!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
                     (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
-                    // load data buffer with top panels first, bottom panels last, as top panels are at the furthest end of the chain (initial data is shifted out the furthest)
-                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) +                     i*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
-                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + ROW_PAIR_OFFSET +   i*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+                    // Bottom to Top Stacking: load data buffer with top panels first, bottom panels last, as top panels are at the furthest end of the chain (initial data is shifted out the furthest)
+                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset)                   + i*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + ROW_PAIR_OFFSET + i*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
                 // Z-shape, top to bottom
                 } else if(!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
                     !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
-                    // load data buffer with bottom panels first, top panels last, as bottom panels are at the furthest end of the chain (initial data is shifted out the furthest)
-                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) +                     (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
-                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + ROW_PAIR_OFFSET +   (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+                    // Top to Bottom Stacking: load data buffer with bottom panels first, top panels last, as bottom panels are at the furthest end of the chain (initial data is shifted out the furthest)
+                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset)                   + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
                 // C-shape, bottom to top
                 } else if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
                     (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
-                    // alternate direction of filling (or loading) for each matrixwidth
-                    // swap row order from top to bottom for each stack (tempRow1 filled with top half of panel, tempRow0 filled with bottom half)
-                    if((MATRIX_STACK_HEIGHT-i+1)%2) {
-                        templayer->fillRefreshRow((MATRIX_SCAN_MOD-(currentRow + multiRowRefreshRowOffset)-1) + ROW_PAIR_OFFSET + (i)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
-                        templayer->fillRefreshRow((MATRIX_SCAN_MOD-(currentRow + multiRowRefreshRowOffset)-1) + (i)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
-                    } else {
-                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + (i)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                    // C-shaped stacking: alternate direction of filling (or loading) for each matrixwidth-sized stack, stack closest to Teensy is right-side up
+                    //   swap row order from top to bottom for each stack (tempRow1 filled with top half of panel, tempRow0 filled with bottom half when upside down)
+                    //   the last stack is always right-side up, figure out orientation of other stacks based on that
+                    // Bottom to Top Stacking: load data buffer with top panels first, bottom panels last, as top panels are at the furthest end of the chain (initial data is shifted out the furthest)
+
+                    // is i the last stack, or an even number of stacks away from the last stack?
+                    if((i % 2) == ((MATRIX_STACK_HEIGHT - 1) % 2)) {
+                        // load rows right-side up
+                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset)                   + (i)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
                         templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + ROW_PAIR_OFFSET + (i)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+                    } else {
+                        // load rows upside down
+                        templayer->fillRefreshRow((MATRIX_SCAN_MOD-(currentRow + multiRowRefreshRowOffset)-1) + ROW_PAIR_OFFSET + (i)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                        templayer->fillRefreshRow((MATRIX_SCAN_MOD-(currentRow + multiRowRefreshRowOffset)-1)                   + (i)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
                     }
                 // C-shape, top to bottom
                 } else if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && 
                     !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
-                    if((MATRIX_STACK_HEIGHT-i)%2) {
-                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
+                    // C-shaped stacking: alternate direction of filling (or loading) for each matrixwidth-sized stack, stack closest to Teensy is right-side up
+                    //   swap row order from top to bottom for each stack (tempRow1 filled with top half of panel, tempRow0 filled with bottom half when upside down)
+                    //   the last stack is always right-side up, figure out orientation of other stacks based on that
+                    // Top to Bottom Stacking: load data buffer with bottom panels first, top panels last, as bottom panels are at the furthest end of the chain (initial data is shifted out the furthest)
+
+                    // is i the last stack, or an even number of stacks away from the last stack?
+                    if((i % 2) == ((MATRIX_STACK_HEIGHT - 1) % 2)) {
+                        // load rows right-side up
+                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset)                   + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
                         templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
                     } else {
+                        // load rows upside down
                         templayer->fillRefreshRow((MATRIX_SCAN_MOD-(currentRow + multiRowRefreshRowOffset)-1) + ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth]);
-                        templayer->fillRefreshRow((MATRIX_SCAN_MOD-(currentRow + multiRowRefreshRowOffset)-1) + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
+                        templayer->fillRefreshRow((MATRIX_SCAN_MOD-(currentRow + multiRowRefreshRowOffset)-1)                   + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth]);
                     }
                 }
             }
@@ -475,12 +489,15 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                             o0.hub75_r0 = 1;                        
                     }               
 
-                    if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && !((i/matrixWidth)%2)) {
-                        // TODO: fix C_Shape_stacking after applying multi-row-refresh support
-                        //currentRowDataPtr->rowbits[j].data[(((i+matrixWidth-1)-k)*DMA_UPDATES_PER_CLOCK)] = o0.word;
-                        //o0.hub75_clk = 1;
-                        //currentRowDataPtr->rowbits[j].data[(((i+matrixWidth-1)-k)*DMA_UPDATES_PER_CLOCK)+1] = o0.word;
+                    int currentStack = i/matrixWidth;
+                    if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && !((currentStack % 2) == ((MATRIX_STACK_HEIGHT - 1) % 2))) {
+                        // reverse order of this stack's data if it's reversed (if (i/matrixWidth) the last stack, or an even number of stacks away from the last stack?)
+                        int tempIndex = (currentStack*matrixWidth) + (matrixWidth-1) - (refreshBufferPosition%matrixWidth);
+                        currentRowDataPtr->rowbits[j].data[((tempIndex)*DMA_UPDATES_PER_CLOCK)] = o0.word;
+                        o0.hub75_clk = 1;
+                        currentRowDataPtr->rowbits[j].data[((tempIndex)*DMA_UPDATES_PER_CLOCK)+1] = o0.word;
                     } else {
+                        // load data to buffer in normal order
                         currentRowDataPtr->rowbits[j].data[((refreshBufferPosition)*DMA_UPDATES_PER_CLOCK)] = o0.word;
                         o0.hub75_clk = 1;
                         currentRowDataPtr->rowbits[j].data[((refreshBufferPosition)*DMA_UPDATES_PER_CLOCK)+1] = o0.word;

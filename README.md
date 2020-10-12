@@ -78,6 +78,7 @@ The examples are configured to run on a 32x32-pixel panel.  If your resolution i
 New with SmartMatrix Library 3.0, you can chain several panels together to create a wider or taller display than one panel would allow.  Set `kMatrixWidth` and `kMatrixHeight` to the overall width and height of your display.  If your display is more than one panel high, set `kMatrixOptions` to how you tiled your panels:  
 
 * Panel Order - By default, the first panel of each row starts on the same side, so you need a long ribbon cable to go from the last panel of the previous row to the first panel of the next row.  `SMARTMATRIX_OPTIONS_C_SHAPE_STACKING` inverts the panel on each row to minimize the length of the cable going from the last panel of each row the first panel of the other row.  
+  * Note SMARTMATRIX_OPTIONS_C_SHAPE_STACKING isn't compatible with panels that require the Multi Row Refresh Mapping feature (if your `kPanelType` value includes the column size, it likely requires Multi Row Refresh Mapping, e.g. `SMARTMATRIX_HUB75_16ROW_32COL_MOD2SCAN`)
 * Panel Direction - By default the first panel is on the top row.  To stack panels the other way, use `SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING`.  
 * To set multiple options, use the bitwise-OR operator e.g. C-shape Bottom-to-top stacking: `const uint8_t kMatrixOptions = (SMARTMATRIX_OPTIONS_C_SHAPE_STACKING | SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING);`
 
