@@ -69,8 +69,8 @@ private:
 
     // functions for refreshing
     static void loadMatrixBuffers(int lsbMsbTransitionBit, int numBrightnessShifts = 0);
-    static void loadMatrixBuffers48(frameStruct * currentFrameDataPtr, int currentRow, int lsbMsbTransitionBit, int numBrightnessShifts = 0);
-    static void loadMatrixBuffers24(frameStruct * currentFrameDataPtr, int currentRow, int lsbMsbTransitionBit, int numBrightnessShifts = 0);
+    template <typename RGB_TEMP>
+    static void loadMatrixBuffers48(frameStruct * currentFrameDataPtr, int currentRow, int lsbMsbTransitionBit, int numBrightnessShifts, RGB_TEMP tempBufferType);
     static void calcTask(void* pvParameters);
     static void resetMultiRowRefreshMapPosition(void);
     static void resetMultiRowRefreshMapPositionPixelGroupToStartOfRow(void);
