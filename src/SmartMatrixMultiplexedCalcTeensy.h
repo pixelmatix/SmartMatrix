@@ -58,8 +58,8 @@ private:
 
     // functions for refreshing
     static void loadMatrixBuffers(unsigned char currentRow);
-    static void loadMatrixBuffers48(rowDataStruct * currentRowDataPtr, unsigned char currentRow);
-    static void loadMatrixBuffers24(rowDataStruct * currentRowDataPtr, unsigned char currentRow);
+    template <typename RGB_TEMP>
+    static void loadMatrixBuffers48(rowDataStruct * currentRowDataPtr, unsigned char currentRow, RGB_TEMP tempBufferType);
     static void resetMultiRowRefreshMapPosition(void);
     static void resetMultiRowRefreshMapPositionPixelGroupToStartOfRow(void);
     static void advanceMultiRowRefreshMapToNextRow(void);
