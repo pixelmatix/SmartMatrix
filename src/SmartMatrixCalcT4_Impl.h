@@ -237,128 +237,185 @@ FLASHMEM void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, o
     SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin();
 }
 
-
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 FASTRUN INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers48(volatile rowDataStruct * currentRowDataPtr, unsigned int currentRow) {
     /*  Read a new row of pixel data from the layers, extract the bitplanes for each pixel, reformat
         the data into the format needed for FlexIO, and store that in the rowDataBuffer.
-        Bit depths are supported from 1 bit per color channel (3 bits per pixel) to 16 bits per color channel (48 bits per pixel).
-        For now, multi-row "multiplexed" panels are not supported. */
+        Bit depths are supported from 1 bit per color channel (3 bits per pixel) to 16 bits per color channel (48 bits per pixel). */
+
+    int i;
+    int multiRowRefreshRowOffset = 0;
+    const int numPixelsPerTempRow = PIXELS_PER_LATCH/PHYSICAL_ROWS_PER_REFRESH_ROW;
 
     // Temporary buffers to store rgb pixel data for reformatting (static to avoid putting large buffer on the stack)
-    static rgb48 tempRow0[PIXELS_PER_LATCH];
-    static rgb48 tempRow1[PIXELS_PER_LATCH];
+    static rgb48 tempRow0[numPixelsPerTempRow];
+    static rgb48 tempRow1[numPixelsPerTempRow];
 
-    // clear buffer to prevent garbage data showing
-    memset(tempRow0, 0, sizeof(tempRow0));
-    memset(tempRow1, 0, sizeof(tempRow1));
+// multi row refresh isn't very efficient, slowing this function down by ~30% for panels that don't even need multi row refresh.  For now, only enable the code if needed
+#if MULTI_ROW_REFRESH_REQUIRED
+    int c = 0;
+    resetMultiRowRefreshMapPosition();
 
-    // Get pixel data from layers and store in tempRow0 and tempRow1
-    // Scan through the entire chain of panels and extract rows from each one
-    // using the stacking options to get the correct rows (some panels can be upside down).
-    SM_Layer * templayer = SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
-    int y0, y1; // positions of the two rows we need
-    while (templayer) {
-        for (int i = 0; i < MATRIX_STACK_HEIGHT; i++) {
-            // Z-shape, bottom to top
-            if (!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
-                    (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
-                // Bottom to Top Stacking: load data buffer with top panels first, bottom panels last, as top panels are at the furthest end of the chain (initial data is shifted out the furthest)
-                y0 = currentRow + i * MATRIX_PANEL_HEIGHT;
-                y1 = y0 + ROW_PAIR_OFFSET;
-            // Z-shape, top to bottom
-            } else if (!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
-                       !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
-                // Top to Bottom Stacking: load data buffer with bottom panels first, top panels last, as bottom panels are at the furthest end of the chain (initial data is shifted out the furthest)
-                y0 = currentRow + (MATRIX_STACK_HEIGHT - i - 1) * MATRIX_PANEL_HEIGHT;
-                y1 = y0 + ROW_PAIR_OFFSET;
-            // C-shape, bottom to top
-            } else if ((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
-                       (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
-                // C-shaped stacking: alternate direction of filling (or loading) for each matrixwidth-sized stack, stack closest to Teensy is right-side up
-                //   swap row order from top to bottom for each stack (tempRow1 filled with top half of panel, tempRow0 filled with bottom half when upside down)
-                //   the last stack is always right-side up, figure out orientation of other stacks based on that
-                // Bottom to Top Stacking: load data buffer with top panels first, bottom panels last, as top panels are at the furthest end of the chain (initial data is shifted out the furthest)
+    // go through this process for each physical row that is contained in the refresh row
+    do {
+#endif
+        // clear buffer to prevent garbage data showing
+        memset(tempRow0, 0, sizeof(tempRow0));
+        memset(tempRow1, 0, sizeof(tempRow1));
 
-                // is i the last stack, or an even number of stacks away from the last stack?
-                if((i % 2) == ((MATRIX_STACK_HEIGHT - 1) % 2)) {
-                    y0 = currentRow + (i) * MATRIX_PANEL_HEIGHT;
+        // Get pixel data from layers and store in tempRow0 and tempRow1
+        // Scan through the entire chain of panels and extract rows from each one
+        // using the stacking options to get the correct rows (some panels can be upside down).
+        SM_Layer * templayer = SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
+        int y0, y1; // positions of the two rows we need
+        while (templayer) {
+            for (i = 0; i < MATRIX_STACK_HEIGHT; i++) {
+                // Z-shape, bottom to top
+                if (!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
+                        (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
+                    // Bottom to Top Stacking: load data buffer with top panels first, bottom panels last, as top panels are at the furthest end of the chain (initial data is shifted out the furthest)
+                    y0 = currentRow + multiRowRefreshRowOffset + i * MATRIX_PANEL_HEIGHT;
                     y1 = y0 + ROW_PAIR_OFFSET;
-                } else {
-                    y1 = (MATRIX_SCAN_MOD - currentRow - 1) + (i) * MATRIX_PANEL_HEIGHT;
-                    y0 = y1 + ROW_PAIR_OFFSET;
+                // Z-shape, top to bottom
+                } else if (!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
+                           !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
+                    // Top to Bottom Stacking: load data buffer with bottom panels first, top panels last, as bottom panels are at the furthest end of the chain (initial data is shifted out the furthest)
+                    y0 = currentRow + multiRowRefreshRowOffset + (MATRIX_STACK_HEIGHT - i - 1) * MATRIX_PANEL_HEIGHT;
+                    y1 = y0 + ROW_PAIR_OFFSET;
+                // C-shape, bottom to top
+                } else if ((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
+                           (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
+                    // C-shaped stacking: alternate direction of filling (or loading) for each matrixwidth-sized stack, stack closest to Teensy is right-side up
+                    //   swap row order from top to bottom for each stack (tempRow1 filled with top half of panel, tempRow0 filled with bottom half when upside down)
+                    //   the last stack is always right-side up, figure out orientation of other stacks based on that
+                    // Bottom to Top Stacking: load data buffer with top panels first, bottom panels last, as top panels are at the furthest end of the chain (initial data is shifted out the furthest)
+
+                    // is i the last stack, or an even number of stacks away from the last stack?
+                    if((i % 2) == ((MATRIX_STACK_HEIGHT - 1) % 2)) {
+                        y0 = currentRow + multiRowRefreshRowOffset + (i) * MATRIX_PANEL_HEIGHT;
+                        y1 = y0 + ROW_PAIR_OFFSET;
+                    } else {
+                        y1 = (MATRIX_SCAN_MOD - currentRow + multiRowRefreshRowOffset - 1) + (i) * MATRIX_PANEL_HEIGHT;
+                        y0 = y1 + ROW_PAIR_OFFSET;
+                    }
+                // C-shape, top to bottom
+                } else if ((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
+                           !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
+                    // C-shaped stacking: alternate direction of filling (or loading) for each matrixwidth-sized stack, stack closest to Teensy is right-side up
+                    //   swap row order from top to bottom for each stack (tempRow1 filled with top half of panel, tempRow0 filled with bottom half when upside down)
+                    //   the last stack is always right-side up, figure out orientation of other stacks based on that
+                    // Top to Bottom Stacking: load data buffer with bottom panels first, top panels last, as bottom panels are at the furthest end of the chain (initial data is shifted out the furthest)
+
+                    // is i the last stack, or an even number of stacks away from the last stack?
+                    if((i % 2) == ((MATRIX_STACK_HEIGHT - 1) % 2)) {
+                        y0 = currentRow + multiRowRefreshRowOffset + (MATRIX_STACK_HEIGHT - i - 1) * MATRIX_PANEL_HEIGHT;
+                        y1 = y0 + ROW_PAIR_OFFSET;
+                    } else {
+                        y1 = (MATRIX_SCAN_MOD - currentRow + multiRowRefreshRowOffset - 1) + (MATRIX_STACK_HEIGHT - i - 1) * MATRIX_PANEL_HEIGHT;
+                        y0 = y1 + ROW_PAIR_OFFSET;
+                    }
                 }
-            // C-shape, top to bottom
-            } else if ((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
-                       !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
-                // C-shaped stacking: alternate direction of filling (or loading) for each matrixwidth-sized stack, stack closest to Teensy is right-side up
-                //   swap row order from top to bottom for each stack (tempRow1 filled with top half of panel, tempRow0 filled with bottom half when upside down)
-                //   the last stack is always right-side up, figure out orientation of other stacks based on that
-                // Top to Bottom Stacking: load data buffer with bottom panels first, top panels last, as bottom panels are at the furthest end of the chain (initial data is shifted out the furthest)
+                templayer->fillRefreshRow(y0, &tempRow0[i * matrixWidth]);
+                templayer->fillRefreshRow(y1, &tempRow1[i * matrixWidth]);
+            }
+            templayer = templayer->nextLayer;
+        }
 
-                // is i the last stack, or an even number of stacks away from the last stack?
-                if((i % 2) == ((MATRIX_STACK_HEIGHT - 1) % 2)) {
-                    y0 = currentRow + (MATRIX_STACK_HEIGHT - i - 1) * MATRIX_PANEL_HEIGHT;
-                    y1 = y0 + ROW_PAIR_OFFSET;
+        i=0;
+
+#if MULTI_ROW_REFRESH_REQUIRED
+            // reset pixel map offset so we start filling from the first panel again
+        resetMultiRowRefreshMapPositionPixelGroupToStartOfRow();
+#endif
+
+        while(i < numPixelsPerTempRow) {
+
+#if MULTI_ROW_REFRESH_REQUIRED
+            // get number of pixels to go through with current pass
+            int numPixelsToMap = getMultiRowRefreshNumPixelsToMap();
+
+            bool reversePixelBlock = false;
+            if(numPixelsToMap < 0) {
+                reversePixelBlock = true;
+                numPixelsToMap = abs(numPixelsToMap);
+            }
+
+            // get offset where pixels are written in the refresh buffer
+            int currentMapOffset = getMultiRowRefreshPixelGroupOffset();
+#else
+            const int numPixelsToMap = matrixWidth;
+#endif
+
+            // parse through grouping of pixels, loading from temp buffer and writing to refresh buffer
+            for(int k=0; k < numPixelsToMap; k++) {
+                uint16_t r0, g0, b0, r1, g1, b1;
+                int ind;
+
+                int refreshBufferPosition;
+#if MULTI_ROW_REFRESH_REQUIRED
+                if(reversePixelBlock) {
+                    refreshBufferPosition = currentMapOffset-k;
                 } else {
-                    y1 = (MATRIX_SCAN_MOD - currentRow - 1) + (MATRIX_STACK_HEIGHT - i - 1) * MATRIX_PANEL_HEIGHT;
-                    y0 = y1 + ROW_PAIR_OFFSET;
+                    refreshBufferPosition = currentMapOffset+k;
+                }
+#else
+                refreshBufferPosition = i+k;
+#endif                    
+
+                // for upside down stacks, flip order
+                int currentStack = i/matrixWidth;
+                if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && !((currentStack % 2) == ((MATRIX_STACK_HEIGHT - 1) % 2))) {
+                    // reverse order of this stack's data if it's reversed (if (i/matrixWidth) the last stack, or an even number of stacks away from the last stack?)
+                    int tempPosition = (currentStack*matrixWidth) + (matrixWidth-1) - (refreshBufferPosition%matrixWidth);
+                    ind = tempPosition;
+                } else {
+                    // load data to buffer in normal order
+                    ind = refreshBufferPosition;
+                }
+                r0 = tempRow0[ind].red;
+                g0 = tempRow0[ind].green;
+                b0 = tempRow0[ind].blue;
+                r1 = tempRow1[ind].red;
+                g1 = tempRow1[ind].green;
+                b1 = tempRow1[ind].blue;
+
+                // loop through each bitplane in the current pixel's RGB values and format the bits to match the FlexIO pin configuration
+                uint32_t rgbdata;
+                uint8_t shift = (16 - COLOR_DEPTH_BITS);
+                uint16_t mask = 1 << shift;
+
+                for (int bitindex = 0; bitindex < COLOR_DEPTH_BITS; bitindex++) {
+
+                    rgbdata  = (r0 & mask) << (SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getFlexPinConfig().r0);
+                    rgbdata |= (g0 & mask) << (SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getFlexPinConfig().g0);
+                    rgbdata |= (b0 & mask) << (SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getFlexPinConfig().b0);
+                    rgbdata |= (r1 & mask) << (SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getFlexPinConfig().r1);
+                    rgbdata |= (g1 & mask) << (SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getFlexPinConfig().g1);
+                    rgbdata |= (b1 & mask) << (SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getFlexPinConfig().b1);
+                    rgbdata >>= shift;
+
+                    shift++;
+                    mask <<= 1;
+
+                    // store these pixel bits in the rowDataBuffer, leaving the initial pixels as padding
+                    currentRowDataPtr->rowbits[bitindex].data[PAD_PIXELS + refreshBufferPosition] = rgbdata;
                 }
             }
-            templayer->fillRefreshRow(y0, &tempRow0[i * matrixWidth]);
-            templayer->fillRefreshRow(y1, &tempRow1[i * matrixWidth]);
+            i += numPixelsToMap; // keep track of current position on this temp buffer
+#if MULTI_ROW_REFRESH_REQUIRED
+            advanceMultiRowRefreshMapToNextPixelGroup();
+#endif
         }
-        templayer = templayer->nextLayer;
-    }
+        // record the address in the first rowAddress field in the rowBitStruct (other rowAddress fields are unused)
+        currentRowDataPtr->rowbits[0].rowAddress = currentRow;
+#if MULTI_ROW_REFRESH_REQUIRED
+        c += numPixelsPerTempRow; // keep track of cumulative number of pixels filled in refresh buffer before this temp buffer
 
-    // go through the entire row pixel by pixel to reformat bits
-    for (int i = 0; i < PIXELS_PER_LATCH; i++) {
-        uint16_t r0, g0, b0, r1, g1, b1;
-        int ind;
-
-        // for upside down stacks, flip order
-        int currentStack = i/matrixWidth;
-        if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && !((currentStack % 2) == ((MATRIX_STACK_HEIGHT - 1) % 2))) {
-            // reverse order of this stack's data if it's reversed (if (i/matrixWidth) the last stack, or an even number of stacks away from the last stack?)
-            int tempPosition = (currentStack*matrixWidth) + (matrixWidth-1) - (i%matrixWidth);
-            ind = tempPosition;
-        } else {
-            // load data to buffer in normal order
-            ind = i;
-        }
-        r0 = tempRow0[ind].red;
-        g0 = tempRow0[ind].green;
-        b0 = tempRow0[ind].blue;
-        r1 = tempRow1[ind].red;
-        g1 = tempRow1[ind].green;
-        b1 = tempRow1[ind].blue;
-
-        // loop through each bitplane in the current pixel's RGB values and format the bits to match the FlexIO pin configuration
-        uint32_t rgbdata;
-        uint8_t shift = (16 - COLOR_DEPTH_BITS);
-        uint16_t mask = 1 << shift;
-
-        for (int bitindex = 0; bitindex < COLOR_DEPTH_BITS; bitindex++) {
-
-            rgbdata  = (r0 & mask) << (SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getFlexPinConfig().r0);
-            rgbdata |= (g0 & mask) << (SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getFlexPinConfig().g0);
-            rgbdata |= (b0 & mask) << (SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getFlexPinConfig().b0);
-            rgbdata |= (r1 & mask) << (SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getFlexPinConfig().r1);
-            rgbdata |= (g1 & mask) << (SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getFlexPinConfig().g1);
-            rgbdata |= (b1 & mask) << (SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getFlexPinConfig().b1);
-            rgbdata >>= shift;
-
-            shift++;
-            mask <<= 1;
-
-            // store these pixel bits in the rowDataBuffer, leaving the initial pixels as padding
-            currentRowDataPtr->rowbits[bitindex].data[PAD_PIXELS + i] = rgbdata;
-        }
-    }
-    // record the address in the first rowAddress field in the rowBitStruct (other rowAddress fields are unused)
-    currentRowDataPtr->rowbits[0].rowAddress = currentRow;
+        advanceMultiRowRefreshMapToNextRow();
+        multiRowRefreshRowOffset = getMultiRowRefreshRowOffset();
+    } while (multiRowRefreshRowOffset > 0);
+#endif
 }
-
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 FASTRUN INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers(unsigned int currentRow) {
