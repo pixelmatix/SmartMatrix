@@ -418,7 +418,8 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                 }
                 templayer->fillRefreshRow(y0, &tempRow0[i * matrixWidth]);
                 templayer->fillRefreshRow(y1, &tempRow1[i * matrixWidth]);
-            }            templayer = templayer->nextLayer;        
+            }
+            templayer = templayer->nextLayer;        
         }
 
         union {
