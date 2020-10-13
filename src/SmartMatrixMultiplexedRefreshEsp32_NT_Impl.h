@@ -39,9 +39,6 @@
 #endif
 
 #include "ESP32MemDisplay.h"
-#include "driver/mcpwm.h"
-#include "soc/mcpwm_reg.h"
-#include "soc/mcpwm_struct.h"
 #include "rom/lldesc.h"
 
 #define INLINE __attribute__( ( always_inline ) ) inline
