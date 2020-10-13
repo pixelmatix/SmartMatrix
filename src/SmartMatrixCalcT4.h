@@ -36,6 +36,13 @@ class SmartMatrix3 {
         // functions for refreshing
         static void loadMatrixBuffers(unsigned int currentRow);
         static void loadMatrixBuffers48(volatile rowDataStruct * currentRowDataPtr, unsigned int currentRow);
+        static void resetMultiRowRefreshMapPosition(void);
+        static void resetMultiRowRefreshMapPositionPixelGroupToStartOfRow(void);
+        static void advanceMultiRowRefreshMapToNextRow(void);
+        static void advanceMultiRowRefreshMapToNextPixelGroup(void);
+        static int getMultiRowRefreshRowOffset(void);
+        static int getMultiRowRefreshNumPixelsToMap(void);
+        static int getMultiRowRefreshPixelGroupOffset(void);
 
         // configuration
         static volatile bool brightnessChange;
@@ -47,6 +54,11 @@ class SmartMatrix3 {
         static bool dmaBufferUnderrunSinceLastCheck;
         static bool refreshRateLowered;
         static bool refreshRateChanged;
+
+        static int multiRowRefresh_mapIndex_CurrentRowGroups;
+        static int multiRowRefresh_mapIndex_CurrentPixelGroup;
+        static int multiRowRefresh_PixelOffsetFromPanelsAlreadyMapped;
+        static int multiRowRefresh_NumPanelsAlreadyMapped;
 };
 
 #endif

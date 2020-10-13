@@ -30,6 +30,18 @@ rotationDegrees SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType,
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 uint8_t SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::brightness;
 
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
+int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::multiRowRefresh_mapIndex_CurrentRowGroups = 0;
+
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
+int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::multiRowRefresh_mapIndex_CurrentPixelGroup = -1;
+
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
+int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::multiRowRefresh_PixelOffsetFromPanelsAlreadyMapped = 0;
+
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
+int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::multiRowRefresh_NumPanelsAlreadyMapped = 0;
+
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::SmartMatrix3(uint8_t bufferrows, volatile rowDataStruct * rowDataBuf) {
@@ -237,6 +249,91 @@ FLASHMEM void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, o
     SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin();
 }
 
+#define IS_LAST_PANEL_MAP_ENTRY(x) (!x.rowOffset && !x.bufferOffset && !x.numPixels)
+
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
+void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::resetMultiRowRefreshMapPosition(void) {   
+    multiRowRefresh_mapIndex_CurrentRowGroups = 0;
+    resetMultiRowRefreshMapPositionPixelGroupToStartOfRow();
+}
+
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
+void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::resetMultiRowRefreshMapPositionPixelGroupToStartOfRow(void) {   
+    multiRowRefresh_mapIndex_CurrentPixelGroup = multiRowRefresh_mapIndex_CurrentRowGroups;
+    multiRowRefresh_PixelOffsetFromPanelsAlreadyMapped = 0;
+    multiRowRefresh_NumPanelsAlreadyMapped = 0;
+}
+
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
+void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::advanceMultiRowRefreshMapToNextRow(void) {   
+    static const PanelMappingEntry * map = getMultiRowRefreshPanelMap(panelType);
+
+    int currentRowOffset = map[multiRowRefresh_mapIndex_CurrentRowGroups].rowOffset;
+
+    // advance until end of table, or entry with new row nubmer is found
+    while(!IS_LAST_PANEL_MAP_ENTRY(map[multiRowRefresh_mapIndex_CurrentRowGroups])) {
+        multiRowRefresh_mapIndex_CurrentRowGroups++;
+
+        if(map[multiRowRefresh_mapIndex_CurrentRowGroups].rowOffset != currentRowOffset)
+            break;
+    }
+
+    resetMultiRowRefreshMapPositionPixelGroupToStartOfRow();
+}
+
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
+void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::advanceMultiRowRefreshMapToNextPixelGroup(void) {   
+    static const PanelMappingEntry * map = getMultiRowRefreshPanelMap(panelType);
+
+    int currentRowOffset = map[multiRowRefresh_mapIndex_CurrentPixelGroup].rowOffset;
+
+    // don't change if we're already on the end
+    if(IS_LAST_PANEL_MAP_ENTRY(map[multiRowRefresh_mapIndex_CurrentPixelGroup])) {
+        return;
+    }
+
+    if(!IS_LAST_PANEL_MAP_ENTRY(map[multiRowRefresh_mapIndex_CurrentPixelGroup + 1]) &&
+        // go to the next entry if it's in the same row offset
+        (map[multiRowRefresh_mapIndex_CurrentPixelGroup + 1].rowOffset == currentRowOffset)) {
+        multiRowRefresh_mapIndex_CurrentPixelGroup++;
+    } else {
+        // else we just finished mapping a panel and we're wrapping to the beginning of this row in the list
+        // keep going back until we get to the first entry, or the first entry in this row
+        while((multiRowRefresh_mapIndex_CurrentPixelGroup > 0) && (map[multiRowRefresh_mapIndex_CurrentPixelGroup - 1].rowOffset == currentRowOffset))
+            multiRowRefresh_mapIndex_CurrentPixelGroup--;
+
+        // we need to set the total offset to the beginning offset of the next panel.  Calculate what that would be
+        multiRowRefresh_NumPanelsAlreadyMapped++;
+        multiRowRefresh_PixelOffsetFromPanelsAlreadyMapped = multiRowRefresh_NumPanelsAlreadyMapped * COLS_PER_PANEL * PHYSICAL_ROWS_PER_REFRESH_ROW;
+    }
+}
+
+// returns the row offset from the map, or -1 if we've gone through the whole map already
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
+int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getMultiRowRefreshRowOffset(void) {   
+    static const PanelMappingEntry * map = getMultiRowRefreshPanelMap(panelType);
+
+    if(IS_LAST_PANEL_MAP_ENTRY(map[multiRowRefresh_mapIndex_CurrentRowGroups])){
+        return -1;
+    }
+
+    return map[multiRowRefresh_mapIndex_CurrentRowGroups].rowOffset;    
+}
+
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
+int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getMultiRowRefreshNumPixelsToMap(void) {        
+    static const PanelMappingEntry * map = getMultiRowRefreshPanelMap(panelType);
+
+    return map[multiRowRefresh_mapIndex_CurrentPixelGroup].numPixels;    
+}
+
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
+int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getMultiRowRefreshPixelGroupOffset(void) {        
+    static const PanelMappingEntry * map = getMultiRowRefreshPanelMap(panelType);
+
+    return map[multiRowRefresh_mapIndex_CurrentPixelGroup].bufferOffset + multiRowRefresh_PixelOffsetFromPanelsAlreadyMapped;
+}
+
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 FASTRUN INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers48(volatile rowDataStruct * currentRowDataPtr, unsigned int currentRow) {
     /*  Read a new row of pixel data from the layers, extract the bitplanes for each pixel, reformat
@@ -251,14 +348,15 @@ FASTRUN INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelT
     static rgb48 tempRow0[numPixelsPerTempRow];
     static rgb48 tempRow1[numPixelsPerTempRow];
 
-// multi row refresh isn't very efficient, slowing this function down by ~30% for panels that don't even need multi row refresh.  For now, only enable the code if needed
-#if MULTI_ROW_REFRESH_REQUIRED
     int c = 0;
-    resetMultiRowRefreshMapPosition();
+
+    // multi row refresh isn't very efficient, slowing this function down by ~30% for panels that don't even need multi row refresh.  For now, only enable the code if needed
+    if(MULTI_ROW_REFRESH_REQUIRED) { 
+        resetMultiRowRefreshMapPosition();
+    }
 
     // go through this process for each physical row that is contained in the refresh row
     do {
-#endif
         // clear buffer to prevent garbage data showing
         memset(tempRow0, 0, sizeof(tempRow0));
         memset(tempRow1, 0, sizeof(tempRow1));
@@ -323,28 +421,32 @@ FASTRUN INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelT
 
         i=0;
 
-#if MULTI_ROW_REFRESH_REQUIRED
+        if(MULTI_ROW_REFRESH_REQUIRED) { 
             // reset pixel map offset so we start filling from the first panel again
-        resetMultiRowRefreshMapPositionPixelGroupToStartOfRow();
-#endif
+            resetMultiRowRefreshMapPositionPixelGroupToStartOfRow();
+        }
 
         while(i < numPixelsPerTempRow) {
 
-#if MULTI_ROW_REFRESH_REQUIRED
-            // get number of pixels to go through with current pass
-            int numPixelsToMap = getMultiRowRefreshNumPixelsToMap();
+            int numPixelsToMap;
+            int currentMapOffset;
+            bool reversePixelBlock;
 
-            bool reversePixelBlock = false;
-            if(numPixelsToMap < 0) {
-                reversePixelBlock = true;
-                numPixelsToMap = abs(numPixelsToMap);
+            if(MULTI_ROW_REFRESH_REQUIRED) { 
+                // get number of pixels to go through with current pass
+                numPixelsToMap = getMultiRowRefreshNumPixelsToMap();
+
+                reversePixelBlock = false;
+                if(numPixelsToMap < 0) {
+                    reversePixelBlock = true;
+                    numPixelsToMap = abs(numPixelsToMap);
+                }
+
+                // get offset where pixels are written in the refresh buffer
+                currentMapOffset = getMultiRowRefreshPixelGroupOffset();
+            } else {
+                numPixelsToMap = matrixWidth;
             }
-
-            // get offset where pixels are written in the refresh buffer
-            int currentMapOffset = getMultiRowRefreshPixelGroupOffset();
-#else
-            const int numPixelsToMap = matrixWidth;
-#endif
 
             // parse through grouping of pixels, loading from temp buffer and writing to refresh buffer
             for(int k=0; k < numPixelsToMap; k++) {
@@ -352,25 +454,24 @@ FASTRUN INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelT
                 int ind;
 
                 int refreshBufferPosition;
-#if MULTI_ROW_REFRESH_REQUIRED
-                if(reversePixelBlock) {
-                    refreshBufferPosition = currentMapOffset-k;
+                if(MULTI_ROW_REFRESH_REQUIRED) { 
+                    if(reversePixelBlock) {
+                        refreshBufferPosition = currentMapOffset-k;
+                    } else {
+                        refreshBufferPosition = currentMapOffset+k;
+                    }
                 } else {
-                    refreshBufferPosition = currentMapOffset+k;
+                    refreshBufferPosition = i+k;
                 }
-#else
-                refreshBufferPosition = i+k;
-#endif                    
 
                 // for upside down stacks, flip order
                 int currentStack = i/matrixWidth;
                 if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && !((currentStack % 2) == ((MATRIX_STACK_HEIGHT - 1) % 2))) {
-                    // reverse order of this stack's data if it's reversed (if (i/matrixWidth) the last stack, or an even number of stacks away from the last stack?)
-                    int tempPosition = (currentStack*matrixWidth) + (matrixWidth-1) - (refreshBufferPosition%matrixWidth);
-                    ind = tempPosition;
+                    // reverse order of this stack's data if it's reversed (if currentStack is the last stack, or an even number of stacks away from the last stack)
+                    ind = (currentStack*matrixWidth) + (matrixWidth-1) - ((i+k)%matrixWidth);
                 } else {
                     // load data to buffer in normal order
-                    ind = refreshBufferPosition;
+                    ind = i+k;
                 }
                 r0 = tempRow0[ind].red;
                 g0 = tempRow0[ind].green;
@@ -402,19 +503,19 @@ FASTRUN INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelT
                 }
             }
             i += numPixelsToMap; // keep track of current position on this temp buffer
-#if MULTI_ROW_REFRESH_REQUIRED
-            advanceMultiRowRefreshMapToNextPixelGroup();
-#endif
+            if(MULTI_ROW_REFRESH_REQUIRED) { 
+                advanceMultiRowRefreshMapToNextPixelGroup();
+            }
         }
         // record the address in the first rowAddress field in the rowBitStruct (other rowAddress fields are unused)
         currentRowDataPtr->rowbits[0].rowAddress = currentRow;
-#if MULTI_ROW_REFRESH_REQUIRED
-        c += numPixelsPerTempRow; // keep track of cumulative number of pixels filled in refresh buffer before this temp buffer
+        if(MULTI_ROW_REFRESH_REQUIRED) { 
+            c += numPixelsPerTempRow; // keep track of cumulative number of pixels filled in refresh buffer before this temp buffer
 
-        advanceMultiRowRefreshMapToNextRow();
-        multiRowRefreshRowOffset = getMultiRowRefreshRowOffset();
-    } while (multiRowRefreshRowOffset > 0);
-#endif
+            advanceMultiRowRefreshMapToNextRow();
+            multiRowRefreshRowOffset = getMultiRowRefreshRowOffset();
+        }
+    } while (MULTI_ROW_REFRESH_REQUIRED ? (multiRowRefreshRowOffset > 0) : 0);
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
