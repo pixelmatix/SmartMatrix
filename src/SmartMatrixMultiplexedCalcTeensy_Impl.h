@@ -445,10 +445,10 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
             
             int i=0;
 
-if(MULTI_ROW_REFRESH_REQUIRED) { 
-            // reset pixel map offset so we start filling from the first panel again
-            resetMultiRowRefreshMapPositionPixelGroupToStartOfRow();
-}
+            if(MULTI_ROW_REFRESH_REQUIRED) { 
+                // reset pixel map offset so we start filling from the first panel again
+                resetMultiRowRefreshMapPositionPixelGroupToStartOfRow();
+            }
 
 #ifdef DEBUG_PINS_ENABLED
             digitalWriteFast(DEBUG_PIN_3, HIGH); // oscilloscope trigger
@@ -512,7 +512,7 @@ if(MULTI_ROW_REFRESH_REQUIRED) {
 
                     int currentStack = i/matrixWidth;
                     if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && !((currentStack % 2) == ((MATRIX_STACK_HEIGHT - 1) % 2))) {
-                        // reverse order of this stack's data if it's reversed (if (i/matrixWidth) the last stack, or an even number of stacks away from the last stack?)
+                        // reverse order of this stack's data if it's reversed (if currentStack is the last stack, or an even number of stacks away from the last stack)
                         int tempIndex = (currentStack*matrixWidth) + (matrixWidth-1) - (refreshBufferPosition%matrixWidth);
                         currentRowDataPtr->rowbits[j].data[((tempIndex)*DMA_UPDATES_PER_CLOCK)] = o0.word;
                         o0.hub75_clk = 1;
