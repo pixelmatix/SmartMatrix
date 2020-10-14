@@ -373,7 +373,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     // malloc temporary buffers needed for loadMatrixBuffers
     int numPixelsPerTempRow = PIXELS_PER_LATCH/PHYSICAL_ROWS_PER_REFRESH_ROW;
 
-    if(COLOR_DEPTH_BITS > 8) {
+    if((COLOR_DEPTH_BITS == 12) || (COLOR_DEPTH_BITS == 16)){
         tempRow0Ptr = malloc(sizeof(rgb48) * numPixelsPerTempRow);
         tempRow1Ptr = malloc(sizeof(rgb48) * numPixelsPerTempRow);
     } else {
@@ -488,8 +488,8 @@ int SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags
 //#define OEPWM_TEST_ENABLE // this is likely broken now
 #define OEPWM_THRESHOLD_BIT 1
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags> template <typename RGB_TEMP>
-INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers48(frameStruct * currentFrameDataPtr, int currentRow, int lsbMsbTransitionBit, int numBrightnessShifts, RGB_TEMP tempBufferType) {
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers48(frameStruct * frameBuffer, int currentRow, int lsbMsbTransitionBit, int numBrightnessShifts) {
     int i;
     int multiRowRefreshRowOffset = 0;
     int numPixelsPerTempRow = PIXELS_PER_LATCH/PHYSICAL_ROWS_PER_REFRESH_ROW;
@@ -500,26 +500,22 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 
 #if defined(ESP32)
     // use buffers malloc'd previously
-    RGB_TEMP * tempRow0 = (RGB_TEMP*)tempRow0Ptr;
-    RGB_TEMP * tempRow1 = (RGB_TEMP*)tempRow1Ptr;
+    rgb48 * tempRow0 = (rgb48*)tempRow0Ptr;
+    rgb48 * tempRow1 = (rgb48*)tempRow1Ptr;
 #else
     // static to avoid putting large buffer on the stack
-    static RGB_TEMP tempRow0[numPixelsPerTempRow];
-    static RGB_TEMP tempRow1[numPixelsPerTempRow];
+    static rgb48 tempRow0[numPixelsPerTempRow];
+    static rgb48 tempRow1[numPixelsPerTempRow];
 #endif
 
     int c = 0;
-
-    // multi row refresh isn't very efficient, slowing this function down by ~30% for panels that don't even need multi row refresh.  For now, only enable the code if needed
-    if(MULTI_ROW_REFRESH_REQUIRED) { 
-        resetMultiRowRefreshMapPosition();
-    }
+    resetMultiRowRefreshMapPosition();
 
     // go through this process for each physical row that is contained in the refresh row
     do {
         // clear buffer to prevent garbage data showing through transparent layers
-        memset(tempRow0, 0x00, sizeof(RGB_TEMP) * numPixelsPerTempRow);
-        memset(tempRow1, 0x00, sizeof(RGB_TEMP) * numPixelsPerTempRow);
+        memset(tempRow0, 0x00, sizeof(rgb48) * numPixelsPerTempRow);
+        memset(tempRow1, 0x00, sizeof(rgb48) * numPixelsPerTempRow);
 
 #if (REFRESH_PRINTFS >= 1)
         printf("multiRowRefreshRowOffset = %d\r\n", multiRowRefreshRowOffset);
@@ -527,145 +523,106 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 
         // get a row of physical pixel data (HUB75 paired) from the layers
         SM_Layer * templayer = SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
-        int y0, y1; // positions of the two rows we need
         while(templayer) {
-            for (i = 0; i < MATRIX_STACK_HEIGHT; i++) {
+            for(i=0; i<MATRIX_STACK_HEIGHT; i++) {
                 // Z-shape, bottom to top
-                if (!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
-                        (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
-                    // Bottom to Top Stacking: load data buffer with top panels first, bottom panels last, as top panels are at the furthest end of the chain (initial data is shifted out the furthest)
-                    y0 = currentRow + multiRowRefreshRowOffset + i * MATRIX_PANEL_HEIGHT;
-                    y1 = y0 + ROW_PAIR_OFFSET;
+                if(!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
+                    (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
+                    // fill data from bottom to top, so bottom panel is the one closest to Teensy
+                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth], numBrightnessShifts);
+                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth], numBrightnessShifts);
                 // Z-shape, top to bottom
-                } else if (!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
-                           !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
-                    // Top to Bottom Stacking: load data buffer with bottom panels first, top panels last, as bottom panels are at the furthest end of the chain (initial data is shifted out the furthest)
-                    y0 = currentRow + multiRowRefreshRowOffset + (MATRIX_STACK_HEIGHT - i - 1) * MATRIX_PANEL_HEIGHT;
-                    y1 = y0 + ROW_PAIR_OFFSET;
+                } else if(!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
+                    !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
+                    // fill data from top to bottom, so top panel is the one closest to Teensy
+                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + i*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth], numBrightnessShifts);
+                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + ROW_PAIR_OFFSET + i*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth], numBrightnessShifts);
                 // C-shape, bottom to top
-                } else if ((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
-                           (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
-                    // C-shaped stacking: alternate direction of filling (or loading) for each matrixwidth-sized stack, stack closest to Teensy is right-side up
-                    //   swap row order from top to bottom for each stack (tempRow1 filled with top half of panel, tempRow0 filled with bottom half when upside down)
-                    //   the last stack is always right-side up, figure out orientation of other stacks based on that
-                    // Bottom to Top Stacking: load data buffer with top panels first, bottom panels last, as top panels are at the furthest end of the chain (initial data is shifted out the furthest)
-
-                    // is i the last stack, or an even number of stacks away from the last stack?
-                    if((i % 2) == ((MATRIX_STACK_HEIGHT - 1) % 2)) {
-                        y0 = currentRow + multiRowRefreshRowOffset + (i) * MATRIX_PANEL_HEIGHT;
-                        y1 = y0 + ROW_PAIR_OFFSET;
+                } else if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
+                    (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
+                    // alternate direction of filling (or loading) for each matrixwidth
+                    // swap row order from top to bottom for each stack (tempRow1 filled with top half of panel, tempRow0 filled with bottom half)
+                    if((MATRIX_STACK_HEIGHT-i+1)%2) {
+                        templayer->fillRefreshRow((MATRIX_SCAN_MOD-(currentRow + multiRowRefreshRowOffset)-1) + ROW_PAIR_OFFSET + (i)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth], numBrightnessShifts);
+                        templayer->fillRefreshRow((MATRIX_SCAN_MOD-(currentRow + multiRowRefreshRowOffset)-1) + (i)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth], numBrightnessShifts);
                     } else {
-                        y1 = (MATRIX_SCAN_MOD - currentRow + multiRowRefreshRowOffset - 1) + (i) * MATRIX_PANEL_HEIGHT;
-                        y0 = y1 + ROW_PAIR_OFFSET;
+                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + (i)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth], numBrightnessShifts);
+                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + ROW_PAIR_OFFSET + (i)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth], numBrightnessShifts);
                     }
                 // C-shape, top to bottom
-                } else if ((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
-                           !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
-                    // C-shaped stacking: alternate direction of filling (or loading) for each matrixwidth-sized stack, stack closest to Teensy is right-side up
-                    //   swap row order from top to bottom for each stack (tempRow1 filled with top half of panel, tempRow0 filled with bottom half when upside down)
-                    //   the last stack is always right-side up, figure out orientation of other stacks based on that
-                    // Top to Bottom Stacking: load data buffer with bottom panels first, top panels last, as bottom panels are at the furthest end of the chain (initial data is shifted out the furthest)
-
-                    // is i the last stack, or an even number of stacks away from the last stack?
-                    if((i % 2) == ((MATRIX_STACK_HEIGHT - 1) % 2)) {
-                        y0 = currentRow + multiRowRefreshRowOffset + (MATRIX_STACK_HEIGHT - i - 1) * MATRIX_PANEL_HEIGHT;
-                        y1 = y0 + ROW_PAIR_OFFSET;
+                } else if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && 
+                    !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
+                    if((MATRIX_STACK_HEIGHT-i)%2) {
+                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth], numBrightnessShifts);
+                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth], numBrightnessShifts);
                     } else {
-                        y1 = (MATRIX_SCAN_MOD - currentRow + multiRowRefreshRowOffset - 1) + (MATRIX_STACK_HEIGHT - i - 1) * MATRIX_PANEL_HEIGHT;
-                        y0 = y1 + ROW_PAIR_OFFSET;
+                        templayer->fillRefreshRow((MATRIX_SCAN_MOD-(currentRow + multiRowRefreshRowOffset)-1) + ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth], numBrightnessShifts);
+                        templayer->fillRefreshRow((MATRIX_SCAN_MOD-(currentRow + multiRowRefreshRowOffset)-1) + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth], numBrightnessShifts);
                     }
                 }
-                templayer->fillRefreshRow(y0, &tempRow0[i * matrixWidth], numBrightnessShifts);
-                templayer->fillRefreshRow(y1, &tempRow1[i * matrixWidth], numBrightnessShifts);
             }
             templayer = templayer->nextLayer;        
         }
 
-        int i=0;
+        for(int j=0; j<COLOR_DEPTH_BITS; j++) {
+            int maskoffset = 0;
+            if(COLOR_DEPTH_BITS == 12)   // 36-bit color
+                maskoffset = 4;
+            else if (COLOR_DEPTH_BITS == 16) // 48-bit color
+                maskoffset = 0;
+            else if (COLOR_DEPTH_BITS == 8)  // 24-bit color
+                maskoffset = 0;
 
-        if(MULTI_ROW_REFRESH_REQUIRED) { 
+            uint16_t mask = (1 << (j + maskoffset));
+            
+            SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowBitStruct *p=&(frameBuffer->rowdata[currentRow].rowbits[j]); //bitplane location to write to
+            
+            int i=0;
+
             // reset pixel map offset so we start filling from the first panel again
             resetMultiRowRefreshMapPositionPixelGroupToStartOfRow();
-        }
 
-        while(i < numPixelsPerTempRow) {
-            int numPixelsToMap;
-            int currentMapOffset;
-            bool reversePixelBlock;
-
-            if(MULTI_ROW_REFRESH_REQUIRED) { 
+            while(i < numPixelsPerTempRow) {
                 // get number of pixels to go through with current pass
-                numPixelsToMap = getMultiRowRefreshNumPixelsToMap();
+                int numPixelsToMap = getMultiRowRefreshNumPixelsToMap();
 
 #if (REFRESH_PRINTFS >= 1)
                 printf("numPixelsToMap = %d\r\n", numPixelsToMap);
 #endif
 
-                reversePixelBlock = false;
+                bool reversePixelBlock = false;
                 if(numPixelsToMap < 0) {
                     reversePixelBlock = true;
                     numPixelsToMap = abs(numPixelsToMap);
                 }
 
                 // get offset where pixels are written in the refresh buffer
-                currentMapOffset = getMultiRowRefreshPixelGroupOffset();
+                int currentMapOffset = getMultiRowRefreshPixelGroupOffset();
 
 #if (REFRESH_PRINTFS >= 1)
                 printf("currentMapOffset = %d\r\n", currentMapOffset);
 #endif
-            } else {
-                numPixelsToMap = matrixWidth;
-            }
 
-            // parse through grouping of pixels, loading from temp buffer and writing to refresh buffer
-            for(int k=0; k < numPixelsToMap; k++) {
-                uint16_t r0, g0, b0, r1, g1, b1;
-                int ind;
-                int v;
+                // parse through grouping of pixels, loading from temp buffer and writing to refresh buffer
+                for(int k=0; k < numPixelsToMap; k++) {
+                    int v=0;
 
-                int refreshBufferPosition;
-                if(MULTI_ROW_REFRESH_REQUIRED) { 
+                    int refreshBufferPosition;
                     if(reversePixelBlock) {
                         refreshBufferPosition = currentMapOffset-k;
                     } else {
                         refreshBufferPosition = currentMapOffset+k;
                     }
-                } else {
-                    refreshBufferPosition = i+k;
-                }
 
 #if (REFRESH_PRINTFS >= 2)
-                printf("bitindex = %02d, i = %03d, c = %03d, k = %03d, pos = %03d\r\n", bitindex, i, c, k, refreshBufferPosition);
+                printf("j = %02d, i = %03d, c = %03d, k = %03d, pos = %03d\r\n", j, i, c, k, refreshBufferPosition);
 #endif
 
-                // for upside down stacks, flip order
-                int currentStack = i/matrixWidth;
-                if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && !((currentStack % 2) == ((MATRIX_STACK_HEIGHT - 1) % 2))) {
-                    // reverse order of this stack's data if it's reversed (if currentStack is the last stack, or an even number of stacks away from the last stack)
-                    ind = (currentStack*matrixWidth) + (matrixWidth-1) - ((i+k)%matrixWidth);
-                } else {
-                    // load data to buffer in normal order
-                    ind = i+k;
-                }
-                r0 = tempRow0[ind].red;
-                g0 = tempRow0[ind].green;
-                b0 = tempRow0[ind].blue;
-                r1 = tempRow1[ind].red;
-                g1 = tempRow1[ind].green;
-                b1 = tempRow1[ind].blue;
-
-                // loop through each bitplane in the current pixel's RGB values and format the bits to match the FlexIO pin configuration
-                int sizeOfSourceColor = (sizeof(RGB_TEMP) <= 3) ? 8 : 16;
-                uint8_t shift = (sizeOfSourceColor - COLOR_DEPTH_BITS);
-                uint16_t mask = 1 << shift;
-
-                for (int bitindex = 0; bitindex < COLOR_DEPTH_BITS; bitindex++) {
-                    v=0;
 #if (CLKS_DURING_LATCH == 0)
                     // if there is no latch to hold address, output ADDX lines directly to GPIO and latch data at end of cycle
                     int gpioRowAddress = currentRow;
                     // normally output current rows ADDX, special case for LSB, output previous row's ADDX (as previous row is being displayed for one latch cycle)
-                    if(bitindex == 0)
+                    if(j == 0)
                         gpioRowAddress = currentRow-1;
 
                     if (gpioRowAddress & 0x01) v|=BIT_A;
@@ -690,15 +647,33 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                     // turn off OE after brightness value is reached when displaying MSBs
                     // MSBs always output normal brightness
                     // LSB (!j) outputs normal brightness as MSB from previous row is being displayed
-                    if((bitindex > lsbMsbTransitionBit || !bitindex) && ((refreshBufferPosition) >= shiftedBrightness)) v|=BIT_OE;
+                    if((j > lsbMsbTransitionBit || !j) && ((refreshBufferPosition) >= shiftedBrightness)) v|=BIT_OE;
 
+#ifndef OEPWM_TEST_ENABLE
                     // special case for the bits *after* LSB through (lsbMsbTransitionBit) - OE is output after data is shifted, so need to set OE to fractional brightness
-                    if(bitindex && bitindex <= lsbMsbTransitionBit) {
+                    if(j && j <= lsbMsbTransitionBit) {
                         // divide brightness in half for each bit below lsbMsbTransitionBit
-                        int lsbBrightness = shiftedBrightness >> (lsbMsbTransitionBit - bitindex + 1);
+                        int lsbBrightness = shiftedBrightness >> (lsbMsbTransitionBit - j + 1);
                         if((refreshBufferPosition) >= lsbBrightness) v|=BIT_OE;
                     }
-
+#else
+                    // TODO: this is probably not working after adding support for multi-row refresh panels
+                    // special case for the bits *after* LSB through (lsbMsbTransitionBit) - OE is output after data is shifted, so need to set OE to fractional brightness
+                    if(j && j <= lsbMsbTransitionBit) {
+                        // all bits through OEPWM_THRESHOLD_BIT we handle by toggling short PWM pulses smaller than one clock cycle
+                        if(j >= 1 && j <= OEPWM_THRESHOLD_BIT) {
+                            // width of pwm OE pulse is ~1/2 the width of a DMA OE pulse (so shift lsbPwmBrightnessPulses one fewer times than lsbBrightness)
+                            int lsbPwmBrightnessPulses = (shiftedBrightness) >> (lsbMsbTransitionBit - j + 1 - 1);
+                            // now setting brightness for LSB, use PWM OE
+                            if((k%2) || k >= (2 * lsbPwmBrightnessPulses)) v|=BIT_OE;
+                        } else {
+                            // divide brightness in half for each bit below lsbMsbTransitionBit
+                            int lsbBrightness = shiftedBrightness >> (lsbMsbTransitionBit - j + 1);
+                            if((refreshBufferPosition) >= lsbBrightness) v|=BIT_OE;
+                        }
+                    }                
+#endif
+                    
                     // need to turn off OE one clock before latch, otherwise can get ghosting
 #if (CLKS_DURING_LATCH > 0)
                     if((refreshBufferPosition)==PIXELS_PER_LATCH-1) v|=BIT_OE;
@@ -706,23 +681,22 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                     if((refreshBufferPosition)>=PIXELS_PER_LATCH-2) v|=BIT_OE;
 #endif
 
-                    if (r0 & mask)
+                    if (tempRow0[i+k].red & mask)
                         v|=BIT_R1;
-                    if (g0 & mask)
+                    if (tempRow0[i+k].green & mask)
                         v|=BIT_G1;
-                    if (b0 & mask)
+                    if (tempRow0[i+k].blue & mask)
                         v|=BIT_B1;
-                    if (r1 & mask)
+                    if (tempRow1[i+k].red & mask)
                         v|=BIT_R2;
-                    if (g1 & mask)
+                    if (tempRow1[i+k].green & mask)
                         v|=BIT_G2;
-                    if (b1 & mask)
+                    if (tempRow1[i+k].blue & mask)
                         v|=BIT_B2;
-
-                    mask <<= 1;
 
                     if(optionFlags & SMARTMATRIX_OPTIONS_HUB12_MODE) {
                         // HUB12 format inverts the data (assume we're only using R1 for now), and OE signals
+
                         if(v & BIT_OE) {
                             v = v & ~(BIT_OE);
                         } else {
@@ -736,39 +710,321 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                         }
                     }               
 
-                    // TODO: can this be done more efficiently?
-                    SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowBitStruct *p=&(currentFrameDataPtr->rowdata[currentRow].rowbits[bitindex]); //bitplane location to write to
-
-                    if(MATRIX_I2S_MODE == I2S_PARALLEL_BITS_8) {
-                        //Save the calculated value to the bitplane memory in 16-bit reversed order to account for I2S Tx FIFO mode1 ordering
-                        if(refreshBufferPosition%4 == 0){
-                            p->data[(refreshBufferPosition)+2] = v;
-                        } else if(refreshBufferPosition%4 == 1) {
-                            p->data[(refreshBufferPosition)+2] = v;
-                        } else if(refreshBufferPosition%4 == 2) {
-                            p->data[(refreshBufferPosition)-2] = v;
-                        } else { //if(refreshBufferPosition%4 == 3)
-                            p->data[(refreshBufferPosition)-2] = v;
-                        }
+                    if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && !((i/matrixWidth)%2)) {
+                        //currentRowDataPtr->rowbits[j].data[(((i+matrixWidth-1)-k)*DMA_UPDATES_PER_CLOCK)] = o0.word;
+                        //TODO: support C-shape stacking
                     } else {
-                        //Save the calculated value to the bitplane memory in reverse order to account for I2S Tx FIFO mode1 ordering
-                        if(refreshBufferPosition%2){
-                            p->data[(refreshBufferPosition)-1] = v;
+                        if(MATRIX_I2S_MODE == I2S_PARALLEL_BITS_8) {
+                            //Save the calculated value to the bitplane memory in 16-bit reversed order to account for I2S Tx FIFO mode1 ordering
+                            if(refreshBufferPosition%4 == 0){
+                                p->data[(refreshBufferPosition)+2] = v;
+                            } else if(refreshBufferPosition%4 == 1) {
+                                p->data[(refreshBufferPosition)+2] = v;
+                            } else if(refreshBufferPosition%4 == 2) {
+                                p->data[(refreshBufferPosition)-2] = v;
+                            } else { //if(refreshBufferPosition%4 == 3)
+                                p->data[(refreshBufferPosition)-2] = v;
+                            }
                         } else {
-                            p->data[(refreshBufferPosition)+1] = v;
+                            //Save the calculated value to the bitplane memory in reverse order to account for I2S Tx FIFO mode1 ordering
+                            if(refreshBufferPosition%2){
+                                p->data[(refreshBufferPosition)-1] = v;
+                            } else {
+                                p->data[(refreshBufferPosition)+1] = v;
+                            }
                         }
                     }
                 }
-            }
-            i += numPixelsToMap; // keep track of current position on this temp buffer
-            if(MULTI_ROW_REFRESH_REQUIRED) { 
+
+                i += numPixelsToMap; // keep track of current position on this temp buffer
                 advanceMultiRowRefreshMapToNextPixelGroup();
             }
-        }
 
-        for (int bitindex = 0; bitindex < COLOR_DEPTH_BITS; bitindex++) {
             // TODO: insert latch data for all color depth bits all at once at the end, saving a few cycles?
             // TODO: prefill latch across all frames during begin() and only need to update when brightness/refreshrate changed?
+#if (CLKS_DURING_LATCH > 0)
+            // if external latch is used to hold ADDX lines, load the ADDX latch and latch the RGB data here
+            for(int k=PIXELS_PER_LATCH; k < PIXELS_PER_LATCH + CLKS_DURING_LATCH; k++) {
+                int v = 0;
+                // after data is shifted in, pulse latch for one clock cycle
+                if(k == PIXELS_PER_LATCH) {
+                    v|=BIT_LAT;
+                }
+
+                //Do not show image while the line bits are changing
+                v|=BIT_OE;
+
+                // set ADDX values to high while latch is high, keep them high while latch drops to clock it in to ADDX latch
+                if(k >= PIXELS_PER_LATCH) {               
+                    if (currentRow & 0x01) v|=BIT_R1;
+                    if (currentRow & 0x02) v|=BIT_G1;
+                    if (currentRow & 0x04) v|=BIT_B1;
+                    if (currentRow & 0x08) v|=BIT_R2;
+                    if (currentRow & 0x10) v|=BIT_G2;
+                    // reserve B2 for OE SWITCH
+#ifdef OEPWM_TEST_ENABLE
+                    //if(j == 0) {
+                    // set the MUX to output PWM_OE instead of DMA_OE, for the latches corresponding to bit 0 - OEPWM_THRESHOLD_BIT
+                    if(j < OEPWM_THRESHOLD_BIT) {
+                        // now setting brightness for LSB, use PWM OE
+                        v|=BIT_B2;
+                    }
+#endif
+                }
+
+                if(optionFlags & SMARTMATRIX_OPTIONS_HUB12_MODE) {
+                    // HUB12 inverts data (irrelevant here) and OE signals
+                    if(v & BIT_OE) {
+                        v = v & ~(BIT_OE);
+                    } else {
+                        v |= BIT_OE;
+                    }
+                }
+
+                if(MATRIX_I2S_MODE == I2S_PARALLEL_BITS_8) {
+                    //Save the calculated value to the bitplane memory in 16-bit reversed order to account for I2S Tx FIFO mode1 ordering
+                    if(k%4 == 0){
+                        p->data[k+2] = v;
+                    } else if(k%4 == 1) {
+                        p->data[k+2] = v;
+                    } else if(k%4 == 2) {
+                        p->data[k-2] = v;
+                    } else { //if(k%4 == 3)
+                        p->data[k-2] = v;
+                    }
+                } else {
+                    //Save the calculated value to the bitplane memory in reverse order to account for I2S Tx FIFO mode1 ordering
+                    if(k%2){
+                        p->data[k-1] = v;
+                    } else {
+                        p->data[k+1] = v;
+                    }
+                }
+            }
+#endif
+        }
+
+        c += numPixelsPerTempRow; // keep track of cumulative number of pixels filled in refresh buffer before this temp buffer
+
+        advanceMultiRowRefreshMapToNextRow();
+        multiRowRefreshRowOffset = getMultiRowRefreshRowOffset();
+    } while (multiRowRefreshRowOffset > 0);
+}
+
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers24(frameStruct * frameBuffer, int currentRow, int lsbMsbTransitionBit, int numBrightnessShifts) {
+    int i;
+    int multiRowRefreshRowOffset = 0;
+    int numPixelsPerTempRow = PIXELS_PER_LATCH/PHYSICAL_ROWS_PER_REFRESH_ROW;
+
+#if defined(ESP32)
+    // use buffers malloc'd previously
+    rgb24 * tempRow0 = (rgb24*)tempRow0Ptr;
+    rgb24 * tempRow1 = (rgb24*)tempRow1Ptr;
+#else
+    // static to avoid putting large buffer on the stack
+    static rgb24 tempRow0[numPixelsPerTempRow];
+    static rgb24 tempRow1[numPixelsPerTempRow];
+#endif
+
+    int c = 0;
+    resetMultiRowRefreshMapPosition();
+
+    // go through this process for each physical row that is contained in the refresh row
+    do {
+        // clear buffer to prevent garbage data showing through transparent layers
+        memset(tempRow0, 0x00, sizeof(rgb24) * numPixelsPerTempRow);
+        memset(tempRow1, 0x00, sizeof(rgb24) * numPixelsPerTempRow);
+
+        // get a row of physical pixel data (HUB75 paired) from the layers
+        SM_Layer * templayer = SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
+        while(templayer) {
+            for(i=0; i<MATRIX_STACK_HEIGHT; i++) {
+                // Z-shape, bottom to top
+                if(!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
+                    (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
+                    // fill data from bottom to top, so bottom panel is the one closest to Teensy
+                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth], numBrightnessShifts);
+                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth], numBrightnessShifts);
+                // Z-shape, top to bottom
+                } else if(!(optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
+                    !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
+                    // fill data from top to bottom, so top panel is the one closest to Teensy
+                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + i*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth], numBrightnessShifts);
+                    templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + ROW_PAIR_OFFSET + i*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth], numBrightnessShifts);
+                // C-shape, bottom to top
+                } else if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) &&
+                    (optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
+                    // alternate direction of filling (or loading) for each matrixwidth
+                    // swap row order from top to bottom for each stack (tempRow1 filled with top half of panel, tempRow0 filled with bottom half)
+                    if((MATRIX_STACK_HEIGHT-i+1)%2) {
+                        templayer->fillRefreshRow((MATRIX_SCAN_MOD-(currentRow + multiRowRefreshRowOffset)-1) + ROW_PAIR_OFFSET + (i)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth], numBrightnessShifts);
+                        templayer->fillRefreshRow((MATRIX_SCAN_MOD-(currentRow + multiRowRefreshRowOffset)-1) + (i)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth], numBrightnessShifts);
+                    } else {
+                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + (i)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth], numBrightnessShifts);
+                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + ROW_PAIR_OFFSET + (i)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth], numBrightnessShifts);
+                    }
+                // C-shape, top to bottom
+                } else if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && 
+                    !(optionFlags & SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING)) {
+                    if((MATRIX_STACK_HEIGHT-i)%2) {
+                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth], numBrightnessShifts);
+                        templayer->fillRefreshRow((currentRow + multiRowRefreshRowOffset) + ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth], numBrightnessShifts);
+                    } else {
+                        templayer->fillRefreshRow((MATRIX_SCAN_MOD-(currentRow + multiRowRefreshRowOffset)-1) + ROW_PAIR_OFFSET + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow0[i*matrixWidth], numBrightnessShifts);
+                        templayer->fillRefreshRow((MATRIX_SCAN_MOD-(currentRow + multiRowRefreshRowOffset)-1) + (MATRIX_STACK_HEIGHT-i-1)*MATRIX_PANEL_HEIGHT, &tempRow1[i*matrixWidth], numBrightnessShifts);
+                    }
+                }
+            }
+            templayer = templayer->nextLayer;        
+        }
+  
+        for(int j=0; j<COLOR_DEPTH_BITS; j++) {
+            int maskoffset = 0;
+            if(COLOR_DEPTH_BITS == 12)   // 36-bit color
+                maskoffset = 4;
+            else if (COLOR_DEPTH_BITS == 16) // 48-bit color
+                maskoffset = 0;
+            else if (COLOR_DEPTH_BITS == 8)  // 24-bit color
+                maskoffset = 0;
+
+            uint16_t mask = (1 << (j + maskoffset));
+            
+            SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowBitStruct *p=&(frameBuffer->rowdata[currentRow].rowbits[j]); //bitplane location to write to
+            
+            int i=0;
+
+            // reset pixel map offset so we start filling from the first panel again
+            resetMultiRowRefreshMapPositionPixelGroupToStartOfRow();
+
+            while(i < numPixelsPerTempRow) {
+                // get number of pixels to go through with current pass
+                int numPixelsToMap = getMultiRowRefreshNumPixelsToMap();
+
+                bool reversePixelBlock = false;
+                if(numPixelsToMap < 0) {
+                    reversePixelBlock = true;
+                    numPixelsToMap = abs(numPixelsToMap);
+                }
+
+                // get offset where pixels are written in the refresh buffer
+                int currentMapOffset = getMultiRowRefreshPixelGroupOffset();
+
+                // parse through grouping of pixels, loading from temp buffer and writing to refresh buffer
+                for(int k=0; k < numPixelsToMap; k++) {
+                    int v=0;
+
+                    int refreshBufferPosition;
+                    if(reversePixelBlock) {
+                        refreshBufferPosition = currentMapOffset-k;
+                    } else {
+                        refreshBufferPosition = currentMapOffset+k;
+                    }
+
+#if (CLKS_DURING_LATCH == 0)
+                    // if there is no latch to hold address, output ADDX lines directly to GPIO and latch data at end of cycle
+                    int gpioRowAddress = currentRow;
+                    // normally output current rows ADDX, special case for LSB, output previous row's ADDX (as previous row is being displayed for one latch cycle)
+                    if(j == 0)
+                        gpioRowAddress = currentRow-1;
+
+                    if (gpioRowAddress & 0x01) v|=BIT_A;
+                    if (gpioRowAddress & 0x02) v|=BIT_B;
+                    if (gpioRowAddress & 0x04) v|=BIT_C;
+                    if (gpioRowAddress & 0x08) v|=BIT_D;
+                    if (gpioRowAddress & 0x10) v|=BIT_E;
+
+                    // need to disable OE after latch to hide row transition
+                    if((refreshBufferPosition) == 0) v|=BIT_OE;
+
+                    // drive latch while shifting out last bit of RGB data
+                    if((refreshBufferPosition) == PIXELS_PER_LATCH-1) v|=BIT_LAT;
+
+                    // experimental FM6126A support on ESP32 without external latch: make LAT pulse 3x clocks wide, matching the FM6126A "DATA_LATCH" command (and not the "RESET_OEN" command)
+                    if(optionFlags & SMARTMATRIX_OPTIONS_FM6126A_RESET_AT_START) {
+                        if((refreshBufferPosition) == PIXELS_PER_LATCH-2) v|=BIT_LAT;
+                        if((refreshBufferPosition) == PIXELS_PER_LATCH-3) v|=BIT_LAT;
+                    }
+#endif
+
+                    // turn off OE after brightness value is reached when displaying MSBs
+                    // MSBs always output normal brightness
+                    // LSB (!j) outputs normal brightness as MSB from previous row is being displayed
+                    if((j > lsbMsbTransitionBit || !j) && ((refreshBufferPosition) >= shiftedBrightness)) v|=BIT_OE;
+
+                    // special case for the bits *after* LSB through (lsbMsbTransitionBit) - OE is output after data is shifted, so need to set OE to fractional brightness
+                    if(j && j <= lsbMsbTransitionBit) {
+                        // divide brightness in half for each bit below lsbMsbTransitionBit
+                        int lsbBrightness = shiftedBrightness >> (lsbMsbTransitionBit - j + 1);
+                        if((refreshBufferPosition) >= lsbBrightness) v|=BIT_OE;
+                    }
+
+                    // need to turn off OE one clock before latch, otherwise can get ghosting
+#if (CLKS_DURING_LATCH > 0)
+                    if((refreshBufferPosition)==PIXELS_PER_LATCH-1) v|=BIT_OE;
+#else
+                    if((refreshBufferPosition)>=PIXELS_PER_LATCH-2) v|=BIT_OE;
+#endif
+
+                    if (tempRow0[i+k].red & mask)
+                        v|=BIT_R1;
+                    if (tempRow0[i+k].green & mask)
+                        v|=BIT_G1;
+                    if (tempRow0[i+k].blue & mask)
+                        v|=BIT_B1;
+                    if (tempRow1[i+k].red & mask)
+                        v|=BIT_R2;
+                    if (tempRow1[i+k].green & mask)
+                        v|=BIT_G2;
+                    if (tempRow1[i+k].blue & mask)
+                        v|=BIT_B2;
+
+                    if(optionFlags & SMARTMATRIX_OPTIONS_HUB12_MODE) {
+                        // HUB12 format inverts the data (assume we're only using R1 for now), and OE signals
+
+                        if(v & BIT_OE) {
+                            v = v & ~(BIT_OE);
+                        } else {
+                            v |= BIT_OE;
+                        }
+
+                        if(v & BIT_R1) {
+                            v = v & ~(BIT_R1);
+                        } else {
+                            v |= BIT_R1;
+                        }
+                    }               
+
+                    if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && !((i/matrixWidth)%2)) {
+                        //currentRowDataPtr->rowbits[j].data[(((i+matrixWidth-1)-k)*DMA_UPDATES_PER_CLOCK)] = o0.word;
+                        //TODO: support C-shape stacking
+                    } else {
+                        if(MATRIX_I2S_MODE == I2S_PARALLEL_BITS_8) {
+                            //Save the calculated value to the bitplane memory in 16-bit reversed order to account for I2S Tx FIFO mode1 ordering
+                            if(refreshBufferPosition%4 == 0){
+                                p->data[(refreshBufferPosition)+2] = v;
+                            } else if(refreshBufferPosition%4 == 1) {
+                                p->data[(refreshBufferPosition)+2] = v;
+                            } else if(refreshBufferPosition%4 == 2) {
+                                p->data[(refreshBufferPosition)-2] = v;
+                            } else { //if(refreshBufferPosition%4 == 3)
+                                p->data[(refreshBufferPosition)-2] = v;
+                            }
+                        } else {
+                            //Save the calculated value to the bitplane memory in reverse order to account for I2S Tx FIFO mode1 ordering
+                            if(refreshBufferPosition%2){
+                                p->data[(refreshBufferPosition)-1] = v;
+                            } else {
+                                p->data[(refreshBufferPosition)+1] = v;
+                            }
+                        }
+                    }
+                }
+
+                i += numPixelsToMap; // keep track of current position on this temp buffer
+                advanceMultiRowRefreshMapToNextPixelGroup();
+            }
+
 #if (CLKS_DURING_LATCH > 0)
             // if external latch is used to hold ADDX lines, load the ADDX latch and latch the RGB data here
             for(int k=PIXELS_PER_LATCH; k < PIXELS_PER_LATCH + CLKS_DURING_LATCH; k++) {
@@ -800,9 +1056,6 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
                     }
                 }
 
-                // TODO: can this be done more efficiently?
-                SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowBitStruct *p=&(currentFrameDataPtr->rowdata[currentRow].rowbits[bitindex]); //bitplane location to write to
-
                 if(MATRIX_I2S_MODE == I2S_PARALLEL_BITS_8) {
                     //Save the calculated value to the bitplane memory in 16-bit reversed order to account for I2S Tx FIFO mode1 ordering
                     if(k%4 == 0){
@@ -826,26 +1079,28 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 #endif
         }
 
-        if(MULTI_ROW_REFRESH_REQUIRED) { 
-            c += numPixelsPerTempRow; // keep track of cumulative number of pixels filled in refresh buffer before this temp buffer
+        c += numPixelsPerTempRow; // keep track of cumulative number of pixels filled in refresh buffer before this temp buffer
 
-            advanceMultiRowRefreshMapToNextRow();
-            multiRowRefreshRowOffset = getMultiRowRefreshRowOffset();
-        }
-    } while (MULTI_ROW_REFRESH_REQUIRED ? (multiRowRefreshRowOffset > 0) : 0);
+        advanceMultiRowRefreshMapToNextRow();
+        multiRowRefreshRowOffset = getMultiRowRefreshRowOffset();
+    } while (multiRowRefreshRowOffset > 0);
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
 INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers(int lsbMsbTransitionBit, int numBrightnessShifts) {
+#if 1
     unsigned char currentRow;
 
     frameStruct * currentFrameDataPtr = SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getNextFrameBufferPtr();
 
     for(currentRow = 0; currentRow < MATRIX_SCAN_MOD; currentRow++) {
-        // same function supports any refresh depth up to 48, choose between rgb24 and rgb48 for temporary storage to save RAM
-        if(COLOR_DEPTH_BITS <= 8)
-            loadMatrixBuffers48(currentFrameDataPtr, currentRow, lsbMsbTransitionBit, numBrightnessShifts, rgb24(0,0,0));
-        else
-            loadMatrixBuffers48(currentFrameDataPtr, currentRow, lsbMsbTransitionBit, numBrightnessShifts, rgb48(0,0,0));
+        // TODO: support rgb36/48 with same function, copy function to rgb24
+        if(COLOR_DEPTH_BITS == 16)
+            loadMatrixBuffers48(currentFrameDataPtr, currentRow, lsbMsbTransitionBit, numBrightnessShifts);
+        else if(COLOR_DEPTH_BITS == 12)
+            loadMatrixBuffers48(currentFrameDataPtr, currentRow, lsbMsbTransitionBit, numBrightnessShifts);
+        else if(COLOR_DEPTH_BITS == 8)
+            loadMatrixBuffers24(currentFrameDataPtr, currentRow, lsbMsbTransitionBit, numBrightnessShifts);
     }
+#endif
 }
