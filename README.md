@@ -4,6 +4,8 @@ The **teensy4** branch of the SmartMatrix Library is currently the most up-to-da
 
 Compared to SmartMatrix Library 3.x, this branch has extensive refactoring of the Calculation and Refresh classes that allowed the library to be extended to more platforms, and to support HUB75 panels with non-standard mapping.
 
+Note: in the few years this branch has been in development, the `SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING` option logic has been reversed, but as of 2020-10-13 this logic is fixed, likely breaking the assumptions you made in your sketches and panel layout prior to this date.  By default, the stacking was from bottom to top (controller on the bottom of a stack of panels, with additional panels stacked upwards).  With the `SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING` option enabled, the stacking is from top to bottom.  Now, the default is from top to bottom, and the `SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING` correctly changes the stacking order from bottom to top.  If you compile an existing project and find the logic is reversed, just add the option flag (or remove it if it's already there).  Change `const uint8_t kBackgroundLayerOptions = (SM_BACKGROUND_OPTIONS_NONE);` to this: `const uint32_t kMatrixOptions = (SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING);`
+
 ## Teensy 4
 
 The biggest feature in this new branch is Teensy 4 support, with the new SmartLED Shield for Teensy 4, [currently being launched on Crowd Supply](https://www.crowdsupply.com/pixelmatix/smartled-shield-for-teensy-4)
