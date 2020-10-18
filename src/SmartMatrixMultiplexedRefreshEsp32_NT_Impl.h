@@ -108,17 +108,6 @@ void SmartMatrix3RefreshMultiplexed_NT<dummyvar>::begin(uint32_t dmaRamToKeepFre
     cbInit(&dmaBuffer, ESP32_NUM_FRAME_BUFFERS);
 
     printf("Starting SmartMatrix DMA Mallocs\r\n");
-    //printf("sizeof framestruct: %08X\r\n", (uint32_t)SIZE_OF_FRAMESTRUCT);
-    //printf("sizeof rowdatastruct: %08X\r\n", (uint32_t)SIZE_OF_ROWDATASTRUCT);
-    //printf("sizeof rowbitstruct: %08X\r\n", (uint32_t)SIZE_OF_ROWBITSTRUCT);
-    //printf("PIXELS_PER_LATCH: %08X\r\n", (uint32_t)PIXELS_PER_LATCH);
-    //printf("CLKS_DURING_LATCH: %08X\r\n", (uint32_t)CLKS_DURING_LATCH);
-    //printf("matrixWidth: %08X\r\n", (uint32_t)matrixWidth);
-    //printf("matrixHeight: %08X\r\n", (uint32_t)matrixHeight);
-    //printf("panelType: %08X\r\n", (uint32_t)panelType);
-    //printf("MATRIX_PANEL_HEIGHT: %08X\r\n", (uint32_t)MATRIX_PANEL_HEIGHT);
-    //printf("PHYSICAL_ROWS_PER_REFRESH_ROW: %08X\r\n", (uint32_t)PHYSICAL_ROWS_PER_REFRESH_ROW);
-    //printf("MATRIX_SCAN_MOD: %08X\r\n", (uint32_t)MATRIX_SCAN_MOD);
 
     // TODO: malloc this buffer before other smaller buffers as this is (by far) the largest buffer to allocate?
     matrixUpdateFrames[0] = (MATRIX_DATA_STORAGE_TYPE *)heap_caps_malloc(SIZE_OF_FRAMESTRUCT * sizeof(MATRIX_DATA_STORAGE_TYPE), MALLOC_CAP_DMA);
@@ -126,6 +115,7 @@ void SmartMatrix3RefreshMultiplexed_NT<dummyvar>::begin(uint32_t dmaRamToKeepFre
     matrixUpdateFrames[1] = (MATRIX_DATA_STORAGE_TYPE *)heap_caps_malloc(SIZE_OF_FRAMESTRUCT * sizeof(MATRIX_DATA_STORAGE_TYPE), MALLOC_CAP_DMA);
     assert(matrixUpdateFrames[1] != NULL);
 
+    printf("sizeof framestruct: %08X\r\n", SIZE_OF_FRAMESTRUCT);
     show_esp32_dma_mem("DMA Memory Available before ptr1 alloc");
     printf("matrixUpdateFrames[0] pointer: %08X\r\n", (uint32_t)matrixUpdateFrames[0]);
     show_esp32_dma_mem("DMA Memory Available before ptr2 alloc");
