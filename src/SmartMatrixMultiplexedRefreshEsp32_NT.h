@@ -41,7 +41,7 @@ public:
     typedef void (*matrix_calc_callback)(void);
 
     // init
-    SmartMatrix3RefreshMultiplexed_NT(int width, int height, unsigned char depth, unsigned char type, unsigned char options) :
+    SmartMatrix3RefreshMultiplexed_NT(uint16_t width, uint16_t height, uint8_t depth, uint8_t type, uint32_t options) :
         matrixWidth(width), matrixHeight(height), optionFlags(options), panelType(type), refreshDepth(depth) {
             // load parameter defaults
             refreshRate = 120;
@@ -74,8 +74,8 @@ private:
 
     const uint32_t optionFlags;
     const uint8_t panelType;
-    const int matrixWidth;
-    const int matrixHeight;
+    const uint16_t matrixWidth;
+    const uint16_t matrixHeight;
     const uint8_t refreshDepth;
 };
 
