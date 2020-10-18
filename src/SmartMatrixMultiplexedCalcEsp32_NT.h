@@ -27,6 +27,7 @@
 extern SemaphoreHandle_t calcTaskSemaphore;
 extern void matrixCalculationsSignal(void);
 
+// use a dummy template, as a way to allow class to be defined in header and not separate .cpp file (to help manage #include matrixhardware* files)
 template <int dummyvar>
 class SmartMatrix3_NT {
 public:

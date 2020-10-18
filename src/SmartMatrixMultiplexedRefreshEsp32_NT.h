@@ -35,6 +35,7 @@
 
 #define GET_DATA_OFFSET_FROM_ROW_AND_COLOR_DEPTH_BIT(row, bit) ((row * SIZE_OF_ROWDATASTRUCT) + (bit * SIZE_OF_ROWBITSTRUCT))
 
+// use a dummy template, as a way to allow class to be defined in header and not separate .cpp file (to help manage #include matrixhardware* files)
 template <int dummyvar>
 class SmartMatrix3RefreshMultiplexed_NT {
 public:
