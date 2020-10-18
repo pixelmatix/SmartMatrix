@@ -34,7 +34,24 @@ public:
     SmartMatrix3_NT(SmartMatrix3RefreshMultiplexed_NT<0>* matrixRefresh, int width, int height, unsigned char depth, unsigned char type, unsigned char options) :
         _matrixRefresh(matrixRefresh), matrixWidth(width), matrixHeight(height), optionFlags(options), panelType(type), refreshDepth(depth), pixels_per_latch(PIXELS_PER_LATCH),
         matrix_panel_height(MATRIX_PANEL_HEIGHT), matrix_stack_height(MATRIX_STACK_HEIGHT), color_depth_bits(COLOR_DEPTH_BITS), matrix_scan_mod(MATRIX_SCAN_MOD),
-        cols_per_panel(COLS_PER_PANEL), physical_rows_per_refresh_row(PHYSICAL_ROWS_PER_REFRESH_ROW), row_pair_offset(ROW_PAIR_OFFSET) {};
+        cols_per_panel(COLS_PER_PANEL), physical_rows_per_refresh_row(PHYSICAL_ROWS_PER_REFRESH_ROW), row_pair_offset(ROW_PAIR_OFFSET) {
+            // parameter defaults
+            maxCalcCpuPercentage = 80; // to avoid 100% CPU usage, we by default don't calculate on every frame.  Calc refresh rate will be a fraction of Refresh refresh rate
+            calc_refreshRateDivider = 2;
+            calc_refreshRate = 120/calc_refreshRateDivider;
+            dmaBufferUnderrun = false;
+            dmaBufferUnderrunSinceLastCheck = false;
+            refreshRateLowered = false;
+            refreshRateChanged = true;  // set to true initially so all layers get the initial refresh rate
+            multiRowRefresh_mapIndex_CurrentRowGroups = 0;
+            multiRowRefresh_mapIndex_CurrentPixelGroup = -1;
+            multiRowRefresh_PixelOffsetFromPanelsAlreadyMapped = 0;
+            multiRowRefresh_NumPanelsAlreadyMapped = 0;
+            brightnessChange = false;
+            rotationChange = true;
+            rotation = rotation0;
+            brightness = pixels_per_latch;
+        };
     void begin(uint32_t dmaRamToKeepFreeBytes = 0);
     void addLayer(SM_Layer * newlayer);
 

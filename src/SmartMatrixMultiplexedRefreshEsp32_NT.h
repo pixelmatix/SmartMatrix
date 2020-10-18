@@ -42,7 +42,12 @@ public:
 
     // init
     SmartMatrix3RefreshMultiplexed_NT(int width, int height, unsigned char depth, unsigned char type, unsigned char options) :
-        matrixWidth(width), matrixHeight(height), optionFlags(options), panelType(type), refreshDepth(depth) {};
+        matrixWidth(width), matrixHeight(height), optionFlags(options), panelType(type), refreshDepth(depth) {
+            // load parameter defaults
+            refreshRate = 120;
+            minRefreshRate = 120;
+            lsbMsbTransitionBit = 0;
+        };
     void begin(uint32_t dmaRamToKeepFreeBytes = 0);
 
     // refresh API

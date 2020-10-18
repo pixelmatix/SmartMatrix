@@ -100,11 +100,6 @@ uint16_t SmartMatrix3RefreshMultiplexed_NT<dummyvar>::getRefreshRate(void) {
 
 template <int dummyvar>
 void SmartMatrix3RefreshMultiplexed_NT<dummyvar>::begin(uint32_t dmaRamToKeepFreeBytes) {
-    // only load user-settable parameter defaults if they haven't already been set before begin() was called
-    if(!refreshRate) refreshRate = 120;
-    if(!minRefreshRate) minRefreshRate = 120;
-    lsbMsbTransitionBit = 0;
-
     cbInit(&dmaBuffer, ESP32_NUM_FRAME_BUFFERS);
 
     printf("Starting SmartMatrix DMA Mallocs\r\n");
