@@ -104,14 +104,19 @@ void SmartMatrix3RefreshMultiplexed_NT<dummyvar>::begin(uint32_t dmaRamToKeepFre
 
     printf("Starting SmartMatrix DMA Mallocs\r\n");
 
+    printf("sizeof framestruct: %08X\r\n", SIZE_OF_FRAMESTRUCT);
+    show_esp32_dma_mem("DMA Memory Available before ptr1 alloc");
+
     // TODO: malloc this buffer before other smaller buffers as this is (by far) the largest buffer to allocate?
     matrixUpdateFrames[0] = (MATRIX_DATA_STORAGE_TYPE *)heap_caps_malloc(SIZE_OF_FRAMESTRUCT, MALLOC_CAP_DMA);
     assert(matrixUpdateFrames[0] != NULL);
 
-    printf("sizeof framestruct: %08X\r\n", SIZE_OF_FRAMESTRUCT);
-    show_esp32_dma_mem("DMA Memory Available before ptr1 alloc");
     printf("matrixUpdateFrames[0] pointer: %08X\r\n", (uint32_t)matrixUpdateFrames[0]);
     show_esp32_dma_mem("DMA Memory Available before ptr2 alloc");
+
+    matrixUpdateFrames[1] = (MATRIX_DATA_STORAGE_TYPE *)heap_caps_malloc(SIZE_OF_FRAMESTRUCT, MALLOC_CAP_DMA);
+    assert(matrixUpdateFrames[1] != NULL);
+
     printf("matrixUpdateFrames[1] pointer: %08X\r\n", (uint32_t)matrixUpdateFrames[1]);
 
     printf("Frame Structs Allocated from Heap:\r\n");
@@ -231,7 +236,7 @@ void SmartMatrix3RefreshMultiplexed_NT<dummyvar>::begin(uint32_t dmaRamToKeepFre
 
     // fill DMA linked lists for both frames
     for(int j=0; j<MATRIX_SCAN_MOD; j++) {
-        // first set of data is LSB through MSB, single pass - all color bits are displayed once, which takes care of everything below and inlcluding LSBMSB_TRANSITION_BIT
+        // first set of data is LSB through MSB, single pass - all color bits are displayed once, which takes care of everything below and including LSBMSB_TRANSITION_BIT
         // TODO: size must be less than DMA_MAX - worst case for SmartMatrix Library: 16-bpp with 256 pixels per row would exceed this, need to break into two
         //link_dma_desc(&dmadesc_a[currentDescOffset], prevdmadesca, matrixUpdateFrames[0]->rowdata[j].rowbits[0].data, sizeof(rowBitStruct) * COLOR_DEPTH_BITS);
         link_dma_desc(&dmadesc_a[currentDescOffset], prevdmadesca, &matrixUpdateFrames[0][GET_DATA_OFFSET_FROM_ROW_AND_COLOR_DEPTH_BIT(j, 0)], SIZE_OF_ROWDATASTRUCT);
