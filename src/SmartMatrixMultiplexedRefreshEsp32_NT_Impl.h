@@ -105,10 +105,8 @@ void SmartMatrix3RefreshMultiplexed_NT<dummyvar>::begin(uint32_t dmaRamToKeepFre
     printf("Starting SmartMatrix DMA Mallocs\r\n");
 
     // TODO: malloc this buffer before other smaller buffers as this is (by far) the largest buffer to allocate?
-    matrixUpdateFrames[0] = (MATRIX_DATA_STORAGE_TYPE *)heap_caps_malloc(SIZE_OF_FRAMESTRUCT * sizeof(MATRIX_DATA_STORAGE_TYPE), MALLOC_CAP_DMA);
+    matrixUpdateFrames[0] = (MATRIX_DATA_STORAGE_TYPE *)heap_caps_malloc(SIZE_OF_FRAMESTRUCT, MALLOC_CAP_DMA);
     assert(matrixUpdateFrames[0] != NULL);
-    matrixUpdateFrames[1] = (MATRIX_DATA_STORAGE_TYPE *)heap_caps_malloc(SIZE_OF_FRAMESTRUCT * sizeof(MATRIX_DATA_STORAGE_TYPE), MALLOC_CAP_DMA);
-    assert(matrixUpdateFrames[1] != NULL);
 
     printf("sizeof framestruct: %08X\r\n", SIZE_OF_FRAMESTRUCT);
     show_esp32_dma_mem("DMA Memory Available before ptr1 alloc");

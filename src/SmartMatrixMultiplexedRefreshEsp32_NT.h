@@ -28,12 +28,12 @@
 
 #define ESP32_NUM_FRAME_BUFFERS   2
 
-// note "SIZE_OF" refers to number of entries, not size in bytes
-#define SIZE_OF_ROWBITSTRUCT ((PIXELS_PER_LATCH + CLKS_DURING_LATCH))
+// note "SIZE_OF" refers to size in bytes, equivilent to sizeof(rowbitStruct), etc
+#define SIZE_OF_ROWBITSTRUCT ((PIXELS_PER_LATCH + CLKS_DURING_LATCH) * sizeof(MATRIX_DATA_STORAGE_TYPE))
 #define SIZE_OF_ROWDATASTRUCT (SIZE_OF_ROWBITSTRUCT * COLOR_DEPTH_BITS)
 #define SIZE_OF_FRAMESTRUCT (SIZE_OF_ROWDATASTRUCT * MATRIX_SCAN_MOD)
 
-#define GET_DATA_OFFSET_FROM_ROW_AND_COLOR_DEPTH_BIT(row, bit) ((row * SIZE_OF_ROWDATASTRUCT) + (bit * SIZE_OF_ROWBITSTRUCT))
+#define GET_DATA_OFFSET_FROM_ROW_AND_COLOR_DEPTH_BIT(row, bit) ((row * SIZE_OF_ROWDATASTRUCT / sizeof(MATRIX_DATA_STORAGE_TYPE)) + (bit * SIZE_OF_ROWBITSTRUCT / sizeof(MATRIX_DATA_STORAGE_TYPE)))
 
 // use a dummy template, as a way to allow class to be defined in header and not separate .cpp file (to help manage #include matrixhardware* files)
 template <int dummyvar>
