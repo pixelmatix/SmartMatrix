@@ -28,7 +28,7 @@
 #include "MatrixCommon.h"
 
 // scroll text
-const int textLayerMaxStringLength = 100;
+const int textLayerMaxStringLength = 1024;
 
 typedef enum ScrollMode {
     wrapForward,
