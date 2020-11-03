@@ -5,8 +5,9 @@
  * FastLED's dithering and color balance features can't be used this way, but SmartMatrix can draw in
  * 36-bit color and so dithering may not provide much advantage.
  *
- * This version of the example shows how to draw to an APA102 strip connected to the SmartLED Shield V4
- * in parallel with the matrix panel.
+ * This version of the example shows how to draw to an APA102 strip connected to the SmartLED Shield
+ * for Teensy 3 (V4) or SmartLED Shield for Teensy 4 (V5) in parallel with the matrix panel.
+ * The ESP32 platorm is not supported
  *
  * This example requires FastLED 3.0 or higher.  If you are having trouble compiling, see
  * the troubleshooting instructions here:
