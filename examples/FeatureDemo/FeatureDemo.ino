@@ -1117,6 +1117,8 @@ void loop() {
             if (fraction > 1.0)
                 fraction = 2.0 - fraction;
             int brightness = fraction * 255.0;
+            // scaling linearly doesn't look good, apply gamma correction to the brightness so the dimming looks smoother
+            brightness = lightPowerMap8bit[brightness];
             matrix.setBrightness(brightness);
 
             char value[] = "000";
@@ -1159,6 +1161,8 @@ void loop() {
             if (fraction > 1.0)
                 fraction = 2.0 - fraction;
             int brightness = fraction * 255.0;
+            // scaling linearly doesn't look good, apply gamma correction to the brightness so the dimming looks smoother
+            brightness = lightPowerMap8bit[brightness];
             matrix.setBrightness(brightness);
 
             char value[] = "000";
@@ -1257,8 +1261,22 @@ void loop() {
             if (fraction > 1.0)
                 fraction = fraction - 1.0;
             int brightness = fraction * 255.0;
+            // scaling linearly doesn't look good, apply gamma correction to the brightness so the dimming looks smoother
+            brightness = lightPowerMap8bit[brightness];
             backgroundLayer.setBrightness(brightness);
+
+            char value[] = "000";
+            value[0] = '0' + brightness / 100;
+            value[1] = '0' + (brightness % 100) / 10;
+            value[2] = '0' + brightness % 10;
+
+            indexedLayer.drawString(12, matrix.getScreenHeight()-1 -5, 1, value);
+            indexedLayer.swapBuffers();
+            indexedLayer.fillScreen(0);
+
         }
+
+        indexedLayer.swapBuffers();
     }
 #endif
 #if (DEMO_INDEXED_LAYER == 1)
