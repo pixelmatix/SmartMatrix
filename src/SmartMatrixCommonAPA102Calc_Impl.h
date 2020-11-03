@@ -227,7 +227,7 @@ void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, opti
 
 // large factor = more dim, default is full brightness
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
-int SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dimmingFactor = dimmingMaximum - (100 * 255)/100;
+int SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dimmingFactor = 0;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 INLINE void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers(frameDataStruct * currentRowDataPtr, unsigned char currentRow) {
@@ -276,7 +276,7 @@ INLINE void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelTyp
         uint16_t value = temp0red | temp0green | temp0blue;
 
         // shift until the highest bit of value is set, or until globalbrightness == 1)
-        while(!((value << localshift) & 0x8000) && (globalbrightness != 1)) {
+        while(!((value << localshift) & 0x8000) && (globalbrightness > 1)) {
             globalbrightness >>= 1;
             localshift++;
         }
