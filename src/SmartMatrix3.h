@@ -72,11 +72,6 @@
 #include "SmartMatrixAPA102Refresh.h"
 #include "SmartMatrixAPA102Calc.h"
 
-#if defined(__arm__) && defined(CORE_TEENSY) && !defined(__IMXRT1062__)  // Teensy 3.x
-    #include "SmartMatrixCoprocessorSend.h"
-    #include "SmartMatrixCoprocessorCalc.h"
-#endif
-
 #if defined(SMARTMATRIX_USE_PSRAM) && defined(ARDUINO_TEENSY41) // On Teensy 4.1 with PSRAM expansion
     #define BACKGROUND_MEMSECTION EXTMEM // Use PSRAM to store background layer drawing and refresh buffers (slower but saves RAM)
 #else
@@ -84,7 +79,6 @@
 #endif
 
 #if defined(__arm__) && defined(CORE_TEENSY)
-#if 1
     // TODO: use same definition for Teensy 3.x and 4.x HUB75 SMARTMATRIX_ALLOCATE_BUFFERS() if possible 
     #if !defined(__IMXRT1062__) // Teensy 3.x
         #define SMARTMATRIX_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
@@ -138,13 +132,6 @@
             typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
             static uint8_t layer_name##Bitmap[2 * width * (ROUND_UP_TO_MULTIPLE_OF_8(height) / 8)];                                              \
             static SMLayerGFXMono<RGB_TYPE(storage_depth), rgb1, adafruitgfxlayer_options> layer_name(layer_name##Bitmap, width, height, ROUND_UP_TO_MULTIPLE_OF_8(width), ROUND_UP_TO_MULTIPLE_OF_8(height))  
-#else
-    // SmartMatrix Co-processor test code, assume not working at this point
-    #define SMARTMATRIX_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
-        static DMAMEM SmartMatrix3CoprocessorSend<pwm_depth, width, height, panel_type, option_flags>::rowDataStruct rowsDataBuffer[buffer_rows]; \
-        SmartMatrix3CoprocessorSend<pwm_depth, width, height, panel_type, option_flags> matrix_name##Refresh(buffer_rows, rowsDataBuffer); \
-        SmartMatrixCoprocessorCalc<pwm_depth, width, height, panel_type, option_flags> matrix_name(buffer_rows, rowsDataBuffer)
-#endif
 #endif
 
 #if defined(ESP32)
@@ -201,12 +188,6 @@
     #include "SmartMatrixMultiplexedCalcEsp32_Impl.h"
     #include "SmartMatrixMultiplexedRefreshEsp32_NT_Impl.h"
     #include "SmartMatrixMultiplexedCalcEsp32_NT_Impl.h"
-#endif
-
-#if defined(__arm__) && defined(CORE_TEENSY) && !defined(__IMXRT1062__)  // Teensy 3.x
-    #include "SmartMatrixCoprocessorSend_Impl.h"
-    #include "SmartMatrixCoprocessorCalc_Impl.h"
-    #include "SmartMatrixAPA102Calc_Impl.h"
 #endif
 
 #endif
