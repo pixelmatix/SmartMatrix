@@ -94,7 +94,7 @@ void setup() {
 #define DEMO_INTRO              1
 #define DEMO_DRAWING_INTRO      1
 #define DEMO_DRAWING_PIXELS     1
-#define DEMO_DRAWING_LINES      1 
+#define DEMO_DRAWING_LINES      1
 #define DEMO_DRAWING_TRIANGLES  1
 #define DEMO_DRAWING_CIRCLES    1
 #define DEMO_DRAWING_RECTANGLES 1
