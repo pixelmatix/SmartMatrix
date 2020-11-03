@@ -184,7 +184,6 @@
 
 #if defined(ESP32)
     #include "SmartMatrixMultiplexedRefreshEsp32_Impl.h"
-    //#include "SmartMatrixAPA102RefreshEsp32_Impl.h"
     #include "SmartMatrixMultiplexedCalcEsp32_Impl.h"
     #include "SmartMatrixMultiplexedRefreshEsp32_NT_Impl.h"
     #include "SmartMatrixMultiplexedCalcEsp32_NT_Impl.h"
