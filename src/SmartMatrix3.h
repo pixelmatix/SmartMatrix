@@ -58,8 +58,8 @@
 #endif
 
 #if defined(__IMXRT1062__) // Teensy 4.0/4.1
-    #include "SmartMatrixRefreshT4.h"
-    #include "SmartMatrixCalcT4.h"
+    #include "SmartMatrixTeensy4Hub75Refresh.h"
+    #include "SmartMatrixTeensy4Hub75Calc.h"
 #endif
 
 #if defined(ESP32)
@@ -171,14 +171,14 @@
 // platform-specific
 #if defined(__arm__) && defined(CORE_TEENSY) && !defined(__IMXRT1062__)  // Teensy 3.x
     #include "SmartMatrixMultiplexedRefreshTeensy_Impl.h"
-    #include "SmartMatrixAPA102RefreshTeensy_Impl.h"
+    #include "SmartMatrixTeensy3APA102Refresh_Impl.h"
     #include "SmartMatrixMultiplexedCalcTeensy_Impl.h"
 #endif
 
 #if defined(__IMXRT1062__) // Teensy 4.0/4.1
-    #include "SmartMatrixRefreshT4_Impl.h"
-    #include "SmartMatrixCalcT4_Impl.h"
-    #include "SmartMatrixAPA102RefreshTeensy4_Impl.h"
+    #include "SmartMatrixTeensy4Hub75Refresh_Impl.h"
+    #include "SmartMatrixTeensy4Hub75Calc_Impl.h"
+    #include "SmartMatrixTeensy4APA102Refresh_Impl.h"
     #include "SmartMatrixAPA102Calc_Impl.h"
 #endif
 
