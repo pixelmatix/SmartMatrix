@@ -43,8 +43,8 @@
 
 #include "SmartMatrixCommonHUB75.h"
 
-#include "SmartMatrixAPA102Refresh.h"
-#include "SmartMatrixAPA102Calc.h"
+#include "SmartMatrixCommonAPA102Refresh.h"
+#include "SmartMatrixCommonAPA102Calc.h"
 
 #ifndef MATRIX_HARDWARE_H
 #pragma GCC error "No MatrixHardware*.h file included - You must include one at the top of your sketch"
@@ -69,8 +69,8 @@
     #include "SmartMatrixESP32HUB75Calc_NT.h"
 #endif
 
-#include "SmartMatrixAPA102Refresh.h"
-#include "SmartMatrixAPA102Calc.h"
+#include "SmartMatrixCommonAPA102Refresh.h"
+#include "SmartMatrixCommonAPA102Calc.h"
 
 #if defined(SMARTMATRIX_USE_PSRAM) && defined(ARDUINO_TEENSY41) // On Teensy 4.1 with PSRAM expansion
     #define BACKGROUND_MEMSECTION EXTMEM // Use PSRAM to store background layer drawing and refresh buffers (slower but saves RAM)
@@ -179,7 +179,7 @@
     #include "SmartMatrixTeensy4Hub75Refresh_Impl.h"
     #include "SmartMatrixTeensy4Hub75Calc_Impl.h"
     #include "SmartMatrixTeensy4APA102Refresh_Impl.h"
-    #include "SmartMatrixAPA102Calc_Impl.h"
+    #include "SmartMatrixCommonAPA102Calc_Impl.h"
 #endif
 
 #if defined(ESP32)
