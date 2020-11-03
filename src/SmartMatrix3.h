@@ -41,7 +41,7 @@
 #include "Layer_GFX_Mono.h"
 #endif
 
-#include "SmartMatrixMultiplexedCommon.h"
+#include "SmartMatrixCommonHUB75.h"
 
 #include "SmartMatrixAPA102Refresh.h"
 #include "SmartMatrixAPA102Calc.h"
@@ -53,8 +53,8 @@
 #include "SmartMatrixPanelMaps.h"
 
 #if defined(__arm__) && defined(CORE_TEENSY) && !defined(__IMXRT1062__)  // Teensy 3.x
-    #include "SmartMatrixMultiplexedRefreshTeensy.h"
-    #include "SmartMatrixMultiplexedCalcTeensy.h"
+    #include "SmartMatrixTeensy3HUB75Refresh.h"
+    #include "SmartMatrixTeensy3HUB75Calc.h"
 #endif
 
 #if defined(__IMXRT1062__) // Teensy 4.0/4.1
@@ -63,10 +63,10 @@
 #endif
 
 #if defined(ESP32)
-    #include "SmartMatrixMultiplexedRefreshEsp32.h"
-    #include "SmartMatrixMultiplexedCalcEsp32.h"
-    #include "SmartMatrixMultiplexedRefreshEsp32_NT.h"
-    #include "SmartMatrixMultiplexedCalcEsp32_NT.h"
+    #include "SmartMatrixESP32HUB75Refresh.h"
+    #include "SmartMatrixESP32HUB75Calc.h"
+    #include "SmartMatrixESP32HUB75Refresh_NT.h"
+    #include "SmartMatrixESP32HUB75Calc_NT.h"
 #endif
 
 #include "SmartMatrixAPA102Refresh.h"
@@ -170,9 +170,9 @@
 
 // platform-specific
 #if defined(__arm__) && defined(CORE_TEENSY) && !defined(__IMXRT1062__)  // Teensy 3.x
-    #include "SmartMatrixMultiplexedRefreshTeensy_Impl.h"
+    #include "SmartMatrixTeensy3HUB75Refresh_Impl.h"
     #include "SmartMatrixTeensy3APA102Refresh_Impl.h"
-    #include "SmartMatrixMultiplexedCalcTeensy_Impl.h"
+    #include "SmartMatrixTeensy3HUB75Calc_Impl.h"
 #endif
 
 #if defined(__IMXRT1062__) // Teensy 4.0/4.1
@@ -183,10 +183,10 @@
 #endif
 
 #if defined(ESP32)
-    #include "SmartMatrixMultiplexedRefreshEsp32_Impl.h"
-    #include "SmartMatrixMultiplexedCalcEsp32_Impl.h"
-    #include "SmartMatrixMultiplexedRefreshEsp32_NT_Impl.h"
-    #include "SmartMatrixMultiplexedCalcEsp32_NT_Impl.h"
+    #include "SmartMatrixESP32HUB75Refresh_Impl.h"
+    #include "SmartMatrixESP32HUB75Calc_Impl.h"
+    #include "SmartMatrixESP32HUB75Refresh_NT_Impl.h"
+    #include "SmartMatrixESP32HUB75Calc_NT_Impl.h"
 #endif
 
 #endif

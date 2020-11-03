@@ -1,4 +1,4 @@
-#include "SmartMatrixMultiplexedCommon.h"
+#include "SmartMatrixCommonHUB75.h"
 #include "SmartMatrixPanelMaps.h"
 
 // use this for all linear panels (e.g. panels that draw a single left-to-right line for each RGB channel)

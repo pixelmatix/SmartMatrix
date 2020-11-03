@@ -21,8 +21,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef SmartMatrixMultiplexedCommon_h
-#define SmartMatrixMultiplexedCommon_h
+#ifndef SmartMatrixCommonHUB75_h
+#define SmartMatrixCommonHUB75_h
 
 #define DEFAULT_PANEL_WIDTH_FOR_LINEAR_PANELS       32
 #define HUB75_RGB_COLOR_CHANNELS_IN_PARALLEL        2
