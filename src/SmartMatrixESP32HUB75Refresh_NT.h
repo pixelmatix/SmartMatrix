@@ -1,5 +1,5 @@
 /*
- * SmartMatrix Library - Multiplexed Panel Refresh Class
+ * SmartMatrix Library - HUB75 Panel Refresh Class
  *
  * Copyright (c) 2015 Louis Beaudoin (Pixelmatix)
  *
@@ -21,8 +21,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef SmartMatrixMultiplexedRefresh_NT_h
-#define SmartMatrixMultiplexedRefresh_NT_h
+#ifndef SmartMatrixHUB75Refresh_NT_h
+#define SmartMatrixHUB75Refresh_NT_h
 
 #include "esp32_i2s_parallel.h"
 
@@ -37,12 +37,12 @@
 
 // use a dummy template, as a way to allow class to be defined in header and not separate .cpp file (to help manage #include matrixhardware* files)
 template <int dummyvar>
-class SmartMatrix3RefreshMultiplexed_NT {
+class SmartMatrixRefreshHUB75_NT {
 public:
     typedef void (*matrix_calc_callback)(void);
 
     // init
-    SmartMatrix3RefreshMultiplexed_NT(uint16_t width, uint16_t height, uint8_t depth, uint8_t type, uint32_t options) :
+    SmartMatrixRefreshHUB75_NT(uint16_t width, uint16_t height, uint8_t depth, uint8_t type, uint32_t options) :
         matrixWidth(width), matrixHeight(height), optionFlags(options), panelType(type), refreshDepth(depth) {
             // load parameter defaults
             refreshRate = 120;

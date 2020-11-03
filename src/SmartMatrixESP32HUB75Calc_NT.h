@@ -1,5 +1,5 @@
 /*
- * SmartMatrix Library - Multiplexed Panel Calculation Class
+ * SmartMatrix Library - HUB75 Panel Calculation Class
  *
  * Copyright (c) 2015 Louis Beaudoin (Pixelmatix)
  *
@@ -21,8 +21,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef SmartMatrixMultiplexedCalc_NT_h
-#define SmartMatrixMultiplexedCalc_NT_h
+#ifndef SmartMatrixHUB75Calc_NT_h
+#define SmartMatrixHUB75Calc_NT_h
 
 extern SemaphoreHandle_t calcTaskSemaphore;
 extern void matrixCalculationsSignal(void);
@@ -32,7 +32,7 @@ template <int dummyvar>
 class SmartMatrix3_NT {
 public:
     // init
-    SmartMatrix3_NT(SmartMatrix3RefreshMultiplexed_NT<0>* matrixRefresh, uint16_t width, uint16_t height, uint8_t depth, uint8_t type, uint32_t options) :
+    SmartMatrix3_NT(SmartMatrixRefreshHUB75_NT<0>* matrixRefresh, uint16_t width, uint16_t height, uint8_t depth, uint8_t type, uint32_t options) :
         _matrixRefresh(matrixRefresh), matrixWidth(width), matrixHeight(height), optionFlags(options), panelType(type), refreshDepth(depth), pixels_per_latch(PIXELS_PER_LATCH),
         matrix_panel_height(MATRIX_PANEL_HEIGHT), matrix_stack_height(MATRIX_STACK_HEIGHT), color_depth_bits(COLOR_DEPTH_BITS), matrix_scan_mod(MATRIX_SCAN_MOD),
         cols_per_panel(COLS_PER_PANEL), physical_rows_per_refresh_row(PHYSICAL_ROWS_PER_REFRESH_ROW), row_pair_offset(ROW_PAIR_OFFSET) {
@@ -119,7 +119,7 @@ private:
     int multiRowRefresh_PixelOffsetFromPanelsAlreadyMapped;
     int multiRowRefresh_NumPanelsAlreadyMapped;
 
-    SmartMatrix3RefreshMultiplexed_NT<0> * _matrixRefresh;
+    SmartMatrixRefreshHUB75_NT<0> * _matrixRefresh;
     const uint32_t optionFlags;
     const uint8_t panelType;
     const uint16_t matrixWidth;

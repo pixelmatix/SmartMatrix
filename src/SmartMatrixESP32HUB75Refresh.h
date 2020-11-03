@@ -1,5 +1,5 @@
 /*
- * SmartMatrix Library - Multiplexed Panel Refresh Class
+ * SmartMatrix Library - HUB75 Panel Refresh Class
  *
  * Copyright (c) 2015 Louis Beaudoin (Pixelmatix)
  *
@@ -21,15 +21,15 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef SmartMatrixMultiplexedRefresh_h
-#define SmartMatrixMultiplexedRefresh_h
+#ifndef SmartMatrixHUB75Refresh_h
+#define SmartMatrixHUB75Refresh_h
 
 #include "esp32_i2s_parallel.h"
 
 #define ESP32_NUM_FRAME_BUFFERS   2
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
-class SmartMatrix3RefreshMultiplexed {
+class SmartMatrixRefreshHUB75 {
 public:
     struct rowBitStruct {
         MATRIX_DATA_STORAGE_TYPE data[PIXELS_PER_LATCH + CLKS_DURING_LATCH];
@@ -46,7 +46,7 @@ public:
     typedef void (*matrix_calc_callback)(void);
 
     // init
-    SmartMatrix3RefreshMultiplexed();
+    SmartMatrixRefreshHUB75();
     static void begin(uint32_t dmaRamToKeepFreeBytes = 0);
 
     // refresh API

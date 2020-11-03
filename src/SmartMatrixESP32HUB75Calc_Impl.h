@@ -137,7 +137,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     }
 
     // only do calculations if there is free space (should be redundant, as we only get called if there is free space)
-    if (!SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::isFrameBufferFree())
+    if (!SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::isFrameBufferFree())
         return;
 
     templayer = SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;
@@ -194,13 +194,13 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     }
 
     if (brightnessChange) {
-        SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setBrightness(shiftedBrightness);
+        SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setBrightness(shiftedBrightness);
         brightnessChange = false;
     }
 
     SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers(lsbMsbTransitionBit, largestRequestedBrightnessShifts);
 
-    SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::writeFrameBuffer(0);
+    SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::writeFrameBuffer(0);
 
     lastMillisEnd = millis();
 }
@@ -253,7 +253,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     calc_refreshRate = newRefreshRate / calc_refreshRateDivider;
 
     refreshRateChanged = true;
-    SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRefreshRate(newRefreshRate);
+    SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRefreshRate(newRefreshRate);
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
@@ -271,7 +271,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     if(newDivider == 0)
         newDivider = 1;
 
-    calc_refreshRate = SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getRefreshRate() / newDivider;
+    calc_refreshRate = SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getRefreshRate() / newDivider;
     calc_refreshRateDivider = newDivider;
     refreshRateChanged = true;
 }
@@ -326,7 +326,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
             }
 
             // we usually do this with an ISR in the refresh class, but ESP32 doesn't let us store a templated method in IRAM (at least not easily) so we call this from the calc task
-            SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::markRefreshComplete();
+            SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::markRefreshComplete();
 
             matrixCalculations();
 
@@ -385,12 +385,12 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     assert(tempRow1Ptr != NULL);
 #endif
 
-    SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setMatrixCalculationsCallback(matrixCalculationsSignal);
-    SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin(dmaRamToKeepFreeBytes);
+    SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setMatrixCalculationsCallback(matrixCalculationsSignal);
+    SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin(dmaRamToKeepFreeBytes);
 
     // refresh rate is now set, update calc refresh rate
     setCalcRefreshRateDivider(calc_refreshRateDivider);
-    lsbMsbTransitionBit = SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getLsbMsbTransitionBit();
+    lsbMsbTransitionBit = SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getLsbMsbTransitionBit();
 
     // wait for matrixCalculations to be run for first time inside calcTask - fill initial buffer and set Layer properties that are only set after first pass through matrixCalculations()
     while(rotationChange) {
@@ -1091,7 +1091,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 #if 1
     unsigned char currentRow;
 
-    frameStruct * currentFrameDataPtr = SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getNextFrameBufferPtr();
+    frameStruct * currentFrameDataPtr = SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getNextFrameBufferPtr();
 
     for(currentRow = 0; currentRow < MATRIX_SCAN_MOD; currentRow++) {
         // TODO: support rgb36/48 with same function, copy function to rgb24

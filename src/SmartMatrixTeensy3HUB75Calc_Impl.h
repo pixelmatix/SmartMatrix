@@ -103,14 +103,14 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     unsigned char numLoopsWithoutExit = 0;
 
     // only run the loop if there is free space, and fill the entire buffer before returning
-    while (SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::isRowBufferFree()) {
+    while (SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::isRowBufferFree()) {
         // check to see if the refresh rate is too high, and the application doesn't have time to run
         if(++numLoopsWithoutExit > MAX_MATRIXCALCULATIONS_LOOPS_WITHOUT_EXIT) {
 
             // minimum set to avoid overflowing timer at low refresh rates
             if(!initial && calc_refreshRate > MIN_REFRESH_RATE) {
                 calc_refreshRate--;
-                SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRefreshRate(calc_refreshRate);
+                SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRefreshRate(calc_refreshRate);
                 refreshRateLowered = true;
                 refreshRateChanged = true;
             }
@@ -140,7 +140,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
             }
             refreshRateChanged = false;
             if (brightnessChange) {
-                SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setBrightness(brightness);
+                SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setBrightness(brightness);
                 brightnessChange = false;
             }
         }
@@ -150,7 +150,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
 
         // enqueue row
         SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers(currentRow);
-        SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::writeRowBuffer(currentRow);
+        SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::writeRowBuffer(currentRow);
 
         if (++currentRow >= MATRIX_SCAN_MOD)
             currentRow = 0;
@@ -159,12 +159,12 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
             // if refreshrate is too high, lower - minimum set to avoid overflowing timer at low refresh rates
             if(calc_refreshRate > MIN_REFRESH_RATE) {
                 calc_refreshRate--;
-                SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRefreshRate(calc_refreshRate);
+                SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRefreshRate(calc_refreshRate);
                 refreshRateLowered = true;
                 refreshRateChanged = true;
             }
 
-            SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::recoverFromDmaUnderrun();
+            SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::recoverFromDmaUnderrun();
             dmaBufferUnderrunSinceLastCheck = true;
             dmaBufferUnderrun = false;
         }
@@ -218,7 +218,7 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
     else
         calc_refreshRate = MIN_REFRESH_RATE;
     refreshRateChanged = true;
-    SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRefreshRate(calc_refreshRate);
+    SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRefreshRate(calc_refreshRate);
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
@@ -253,9 +253,9 @@ void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlag
         templayer = templayer->nextLayer;
     }
 
-    SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setMatrixCalculationsCallback(matrixCalculations);
-    SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setMatrixUnderrunCallback(dmaBufferUnderrunCallback);
-    SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin();
+    SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setMatrixCalculationsCallback(matrixCalculations);
+    SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setMatrixUnderrunCallback(dmaBufferUnderrunCallback);
+    SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin();
 }
 
 #define IS_LAST_PANEL_MAP_ENTRY(x) (!x.rowOffset && !x.bufferOffset && !x.numPixels)
@@ -563,7 +563,7 @@ INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, opt
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 INLINE void SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers(unsigned char currentRow) {
-    rowDataStruct * currentRowDataPtr = SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getNextRowBufferPtr();
+    rowDataStruct * currentRowDataPtr = SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getNextRowBufferPtr();
 
     // same function supports any refresh depth up to 48, choose between rgb24 and rgb48 for temporary storage to save RAM
     if(COLOR_DEPTH_BITS <= 8)

@@ -1,5 +1,5 @@
 /*
- * SmartMatrix Library - Multiplexed Panel Calculation Class
+ * SmartMatrix Library - HUB75 Panel Calculation Class
  *
  * Copyright (c) 2015 Louis Beaudoin (Pixelmatix)
  *
@@ -21,13 +21,13 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef SmartMatrixMultiplexedCalc_h
-#define SmartMatrixMultiplexedCalc_h
+#ifndef SmartMatrixHUB75Calc_h
+#define SmartMatrixHUB75Calc_h
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 class SmartMatrix3 {
 public:
-    typedef typename SmartMatrix3RefreshMultiplexed<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowDataStruct rowDataStruct;
+    typedef typename SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowDataStruct rowDataStruct;
 
     // init
     SmartMatrix3(uint8_t bufferrows, rowDataStruct * rowDataBuffer);

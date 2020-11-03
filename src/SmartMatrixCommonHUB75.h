@@ -1,5 +1,5 @@
 /*
- * SmartMatrix Library - Common Definitions for Driving Multiplexed Panels
+ * SmartMatrix Library - Common Definitions for Driving HUB75 Panels
  *
  * Copyright (c) 2015 Louis Beaudoin (Pixelmatix)
  *
