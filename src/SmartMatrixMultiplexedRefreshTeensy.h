@@ -24,7 +24,7 @@
 #ifndef SmartMatrixMultiplexedRefresh_h
 #define SmartMatrixMultiplexedRefresh_h
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 class SmartMatrix3RefreshMultiplexed {
 public:
     struct timerpair {
@@ -77,14 +77,14 @@ public:
 
 private:
     // enable ISR access to private member variables
-    template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
+    template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, uint32_t optionFlags1>
     friend void rowCalculationISR(void);
 
     #if defined(KINETISL)
-        template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
+        template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, uint32_t optionFlags1>
         friend void rowBitShiftCompleteISR(void);
     #elif defined(KINETISK)
-        template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
+        template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, uint32_t optionFlags1>
         friend void rowShiftCompleteISR(void);
     #endif
 

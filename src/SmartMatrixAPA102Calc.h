@@ -24,7 +24,7 @@
 #ifndef SmartMatrixAPA102Calc_h
 #define SmartMatrixAPA102Calc_h
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 class SmartMatrixApaCalc {
 public:
     typedef typename SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::frameDataStruct frameDataStruct;

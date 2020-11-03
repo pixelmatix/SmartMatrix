@@ -24,7 +24,7 @@
 #ifndef SmartMatrixAPA102Refresh_h
 #define SmartMatrixAPA102Refresh_h
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 class SmartMatrixAPA102Refresh {
 public:
     struct frameDataStruct {
@@ -51,9 +51,9 @@ public:
 
 private:
     // enable ISR access to private member variables
-    template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
+    template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, uint32_t optionFlags1>
     friend void apaRowCalculationISR(void);
-    template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, unsigned char optionFlags1>
+    template <int refreshDepth1, int matrixWidth1, int matrixHeight1, unsigned char panelType1, uint32_t optionFlags1>
     friend void apaRowShiftCompleteISR(void);
 
     // configuration helper functions

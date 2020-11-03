@@ -28,7 +28,7 @@
 
 #define ESP32_NUM_FRAME_BUFFERS   2
 
-template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, unsigned char optionFlags>
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 class SmartMatrix3RefreshMultiplexed {
 public:
     struct rowBitStruct {
