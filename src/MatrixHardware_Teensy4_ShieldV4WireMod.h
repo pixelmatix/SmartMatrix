@@ -73,6 +73,7 @@
 // To use the alternate clock pin, you must set flag SMARTMATRIX_OPTIONS_T4_CLK_PIN_ALT in kMatrixOptions
 
 // APA102 driving is not supported with this hardware
+#define SMARTLED_APA_ENABLED_BY_DEFAULT true
 #define SMARTLED_APA_ENABLE_PIN         0xFF
 #define FLEXIO_PIN_APA102_CLK           0xFF
 #define FLEXIO_PIN_APA102_DAT           0xFF

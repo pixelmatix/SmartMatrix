@@ -115,8 +115,10 @@ void setup() {
 
 #if (ENABLE_APA102_REFRESH == 1)
   // enable the APA102 buffers to drive out the SPI signals
-  pinMode(SMARTLED_APA_ENABLE_PIN, OUTPUT);
-  digitalWrite(SMARTLED_APA_ENABLE_PIN, HIGH);  // enable access to LEDs
+  if(!SMARTLED_APA_ENABLED_BY_DEFAULT) {
+    pinMode(SMARTLED_APA_ENABLE_PIN, OUTPUT);
+    digitalWrite(SMARTLED_APA_ENABLE_PIN, HIGH);  // enable access to LEDs
+  }
 
   apamatrix.addLayer(&apaBackgroundLayer);
   apamatrix.begin();
