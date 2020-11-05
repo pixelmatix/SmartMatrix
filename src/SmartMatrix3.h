@@ -173,6 +173,7 @@
     #include "SmartMatrixTeensy3HUB75Refresh_Impl.h"
     #include "SmartMatrixTeensy3APA102Refresh_Impl.h"
     #include "SmartMatrixTeensy3HUB75Calc_Impl.h"
+    #include "SmartMatrixCommonAPA102Calc_Impl.h"
 #endif
 
 #if defined(__IMXRT1062__) // Teensy 4.0/4.1
