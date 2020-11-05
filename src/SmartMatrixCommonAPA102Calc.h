@@ -38,6 +38,7 @@ public:
     void setRotation(rotationDegrees rotation);
     void setBrightness(uint8_t newBrightness);
     void setRefreshRate(uint8_t newRefreshRate);
+    void setSpiClockSpeed(uint32_t newClockSpeed);
 
     // get info
     uint16_t getScreenWidth(void) const;
@@ -65,7 +66,8 @@ private:
     static int dimmingFactor;
     static const int dimmingMaximum = 255;
     static rotationDegrees rotation;
-    static uint8_t refreshRate;   
+    static uint8_t refreshRate;
+    static uint32_t spiClockSpeed;
     static bool dmaBufferUnderrunSinceLastCheck;
     static bool refreshRateLowered;
     static bool refreshRateChanged;

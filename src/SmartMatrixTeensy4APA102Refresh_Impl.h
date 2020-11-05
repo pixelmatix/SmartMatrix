@@ -53,8 +53,12 @@ CircularBuffer_SM SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeig
 // (increase this number if non-DMA interrupts are causing display problems)
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 uint8_t SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBufferNumRows;
+
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 uint8_t SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refreshRate = 60;
+
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
+uint32_t SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::spiClockSpeed = 5000000;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 uint16_t SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowBitStructBytesToShift;
@@ -124,6 +128,13 @@ void SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
+void SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setSpiClockSpeed(uint32_t newClockSpeed) {
+    spiClockSpeed = newClockSpeed;
+
+    // TODO: update clock speed after begin() called?
+}
+
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 void SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin(void) {
     cbInit(&dmaBuffer, dmaBufferNumRows);
 
@@ -146,7 +157,7 @@ void SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType
     // setup SPI and DMA to feed it
     SPIFLEX.begin();
     SPIFLEX.flexIOHandler()->setClockSettings(3, 0, 0); // not exactly sure what this does, but without it the clock seems limited to ~7.5MHz
-    SPIFLEX.beginTransaction(FlexIOSPISettings(20000000, MSBFIRST, SPI_MODE0));
+    SPIFLEX.beginTransaction(FlexIOSPISettings(spiClockSpeed, MSBFIRST, SPI_MODE0));
 
     // set interrupt with low priority for long compute time ISR
     apa102ShiftCompleteEvent.attachInterrupt((EventResponderFunction)&apaRowCalculationISR<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>, ROW_CALC_ISR_PRIORITY);

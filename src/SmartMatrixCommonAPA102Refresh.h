@@ -46,6 +46,7 @@ public:
     static void recoverFromDmaUnderrun(void);
     static bool isRowBufferFree(void);
     static void setRefreshRate(uint8_t newRefreshRate);
+    static void setSpiClockSpeed(uint32_t newClockSpeed);
     static void setMatrixCalculationsCallback(matrix_calc_callback f);
     static void setMatrixUnderrunCallback(matrix_underrun_callback f);
 
@@ -61,6 +62,7 @@ private:
 
     static uint16_t rowBitStructBytesToShift;
     static uint8_t refreshRate;
+    static uint32_t spiClockSpeed;
     static uint8_t dmaBufferNumRows;
     static frameDataStruct * matrixUpdateFrame;
 

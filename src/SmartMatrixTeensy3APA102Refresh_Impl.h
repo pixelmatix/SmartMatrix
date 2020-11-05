@@ -70,8 +70,12 @@ CircularBuffer_SM SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeig
 // (increase this number if non-DMA interrupts are causing display problems)
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 uint8_t SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBufferNumRows;
+
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 uint8_t SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refreshRate = 60;
+
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
+uint32_t SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::spiClockSpeed = 5000000;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 uint16_t SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowBitStructBytesToShift;
@@ -143,6 +147,13 @@ void SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType
 #ifdef USE_INTERVALTIMER_NOT_FTM
    myTimer.update(REFRESH_RATE_IN_US);
 #endif
+}
+
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
+void SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setSpiClockSpeed(uint32_t newClockSpeed) {
+    spiClockSpeed = newClockSpeed;
+
+    // TODO: update clock speed after begin() called?
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
@@ -249,7 +260,7 @@ void apaRowShiftCompleteISR(void) {
         ((matrixWidth * matrixHeight)*4) + (4+4));
     // Enable Transmit Fill DMA Requests
     SPI0_RSER = SPI_RSER_TFFF_RE | SPI_RSER_TFFF_DIRS;
-    SPI.beginTransaction(SPISettings());
+    SPI.beginTransaction(SPISettings(SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::spiClockSpeed, MSBFIRST, SPI_MODE0));
     dmaClockOutDataApa.enable();
 
 #ifndef USE_INTERVALTIMER_NOT_FTM

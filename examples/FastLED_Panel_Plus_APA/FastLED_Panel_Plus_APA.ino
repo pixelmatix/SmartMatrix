@@ -121,13 +121,18 @@ void setup() {
   }
 
   apamatrix.addLayer(&apaBackgroundLayer);
+
+  // The default SPI clock speed is 5MHz.  If you want to use a different clock speed, call this function _before_ begin()
+  //apamatrix.setSpiClockSpeed(15000000); // 16MHz is about as fast as the Teensy 3 can support reliably
+  //apamatrix.setSpiClockSpeed(40000000); // The Teensy 4 can go much faster, too fast for APA102 LEDs
+  //apamatrix.setSpiClockSpeed(20000000); // 20MHz is a reasonable speed for a short chain (e.g. 256 LEDs)
+  //apamatrix.setSpiClockSpeed(5000000); // A long chain of APA102 LEDs can't support a high clock rate, hence the default of 5MHz
+
   apamatrix.begin();
 
   // lower the brightness
   apamatrix.setBrightness(128);
 #endif
-
-
 
   // Initialize our coordinates to some random values
   x = random16();
