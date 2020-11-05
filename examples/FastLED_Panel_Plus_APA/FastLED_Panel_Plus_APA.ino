@@ -27,8 +27,9 @@
 #define ENABLE_HUB75_REFRESH    1
 #define ENABLE_APA102_REFRESH   1
 
-#if (ENABLE_HUB75_REFRESH == 1)
 #define COLOR_DEPTH 24                  // This sketch and FastLED uses type `rgb24` directly, COLOR_DEPTH must be 24
+
+#if (ENABLE_HUB75_REFRESH == 1)
 const uint16_t kMatrixWidth = 32;        // known working: 32, 64, 96, 128, 256
 const uint16_t kMatrixHeight = 32;       // known working: 16, 32, 48, 64, 128
 const uint8_t kRefreshDepth = 36;       // known working: 24, 36, 48 (on Teensy 4.x: 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48)
@@ -50,7 +51,7 @@ const uint8_t kApaMatrixHeight = 16;
 const uint8_t kApaRefreshDepth = 36;        // known working: 36
 const uint8_t kApaDmaBufferRows = 1;        // known working: 1
 const uint8_t kApaPanelType = 0;            // not used for APA matrices as of now
-const uint8_t kApaMatrixOptions = (SMARTMATRIX_OPTIONS_NONE);      // no options for APA matrices as of not 
+const uint32_t kApaMatrixOptions = (SMARTMATRIX_OPTIONS_NONE);      // no options for APA matrices as of now
 const uint8_t kApaBackgroundLayerOptions = (SM_BACKGROUND_OPTIONS_NONE);
 
 SMARTMATRIX_APA_ALLOCATE_BUFFERS(apamatrix, kApaMatrixWidth, kApaMatrixHeight, kApaRefreshDepth, kApaDmaBufferRows, kApaPanelType, kApaMatrixOptions);
@@ -140,12 +141,14 @@ void setup() {
   z = random16();
 
   // Show off smart matrix scrolling text
+#if (ENABLE_HUB75_REFRESH == 1)
   scrollingLayer.setMode(wrapForward);
   scrollingLayer.setColor({0xff, 0xff, 0xff});
   scrollingLayer.setSpeed(15);
   scrollingLayer.setFont(font6x10);
   scrollingLayer.start("SmartMatrix & FastLED", -1);
   scrollingLayer.setOffsetFromTop((kMatrixHeight/2) - 5);
+#endif
 }
 
 // Fill the x/y array of 8-bit noise values using the inoise8 function.
@@ -161,16 +164,18 @@ void fillnoise8() {
 }
 
 void loop() {
-  static uint8_t circlex = 0;
-  static uint8_t circley = 0;
+  static uint8_t ihue=0;
+
+  fillnoise8();
 
   // if sketch uses swapBuffers(false), wait to get a new backBuffer() pointer after the swap is done:
 #if (ENABLE_HUB75_REFRESH == 1)
+  static uint8_t circlex = 0;
+  static uint8_t circley = 0;
+
   while(backgroundLayer.isSwapPending());
   rgb24 *buffer = backgroundLayer.backBuffer();
 
-  static uint8_t ihue=0;
-  fillnoise8();
   for(int i = 0; i < kMatrixWidth; i++) {
     for(int j = 0; j < kMatrixHeight; j++) {
       // We use the value at the (i,j) coordinate in the noise
