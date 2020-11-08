@@ -276,32 +276,74 @@ INLINE void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelTyp
         temp0green = tempRow0[j].green;
         temp0blue = tempRow0[j].blue;
 
-        uint8_t globalbrightness = (0x20UL * (dimmingMaximum - dimmingFactor)) / dimmingMaximum;
-        uint8_t localshift = 0;
+        // "DEFAULT" mode attempts to get 13-bit color per channel using the full range of GBC bits, this looks better than "SIMPLE" mode, but takes longer, and there are still non-linearity issues
+        if((optionFlags & SMARTMATRIX_APA102_OPTIONS_GBC_MODE_MASK) == SMARTMATRIX_APA102_OPTIONS_GBC_MODE_DEFAULT) {
+            uint8_t globalbrightness = (0x1F * (dimmingMaximum - dimmingFactor)) / dimmingMaximum;
 
-        if(globalbrightness == 0x20)
-            globalbrightness = 0x1f;
+            uint16_t maxrgb = max(max(temp0red, temp0green), temp0blue);
 
-#if 1
-        uint16_t value = temp0red | temp0green | temp0blue;
+            uint16_t value  = (maxrgb * 31 * globalbrightness) / 0x10000 / 31;
 
-        // shift until the highest bit of value is set, or until globalbrightness == 1)
-        while(!((value << localshift) & 0x8000) && (globalbrightness > 1)) {
-            globalbrightness >>= 1;
-            localshift++;
+            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 0] = 0xE0 | (value+1);
+            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 1] = ((temp0blue * globalbrightness) / (value + 1)) >> 8;
+            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 2] = ((temp0green * globalbrightness) / (value + 1)) >> 8;
+            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 3] = ((temp0red * globalbrightness) / (value + 1)) >> 8;
         }
 
+        // "SIMPLE" mode attempts to get 13-bit color per channel by first applying the setBrightness() value to the GBC bits, then dividing by two to attempt to get more bits for dimmer colors, this is not as good as "DEFAULT" mode, but is more efficient
+        if((optionFlags & SMARTMATRIX_APA102_OPTIONS_GBC_MODE_MASK) == SMARTMATRIX_APA102_OPTIONS_GBC_MODE_SIMPLE) {
+            uint8_t globalbrightness = (0x20UL * (dimmingMaximum - dimmingFactor)) / dimmingMaximum;
+            uint8_t localshift = 0;
 
-        // shift needs to put 16-bit color value into lowest byte, which will be sent over SPI
-        localshift = 8 - localshift;
-#else
-        localshift = 8;
-#endif
-        // global brightness
-        currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 0] = 0xE0 | globalbrightness;
+            if(globalbrightness == 0x20)
+                globalbrightness = 0x1f;
 
-        currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 1] = temp0blue >> localshift;
-        currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 2] = temp0green >> localshift;
-        currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 3] = temp0red >> localshift;
+            uint16_t value = temp0red | temp0green | temp0blue;
+
+            // shift until the highest bit of value is set, or until globalbrightness == 1)
+            while(!((value << localshift) & 0x8000) && (globalbrightness > 1)) {
+                globalbrightness >>= 1;
+                localshift++;
+            }
+
+            // shift needs to put 16-bit color value into lowest byte, which will be sent over SPI
+            localshift = 8 - localshift;
+
+            // global brightness
+            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 0] = 0xE0 | globalbrightness;
+
+            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 1] = temp0blue >> localshift;
+            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 2] = temp0green >> localshift;
+            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 3] = temp0red >> localshift;
+        }
+
+        // "BRIGHTONLY" applies the setBrightness() value to the GBC bits, so the same GBC is used across all LEDs
+        if((optionFlags & SMARTMATRIX_APA102_OPTIONS_GBC_MODE_MASK) == SMARTMATRIX_APA102_OPTIONS_GBC_MODE_BRIGHTONLY) {
+            uint8_t globalbrightness = (0x20UL * (dimmingMaximum - dimmingFactor)) / dimmingMaximum;
+
+            if(globalbrightness == 0x20)
+                globalbrightness = 0x1f;
+
+            // global brightness
+            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 0] = 0xE0 | globalbrightness;
+
+            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 1] = temp0blue >> 8;
+            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 2] = temp0green >> 8;
+            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 3] = temp0red >> 8;
+        }
+
+        // "NONE" mode doesn't use GBC at all, the LED output is 24-bit color
+        if((optionFlags & SMARTMATRIX_APA102_OPTIONS_GBC_MODE_MASK) == SMARTMATRIX_APA102_OPTIONS_GBC_MODE_NONE) {
+            // global brightness
+            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 0] = 0xFF;
+
+            temp0blue = (temp0blue * (dimmingMaximum - dimmingFactor)) / dimmingMaximum;
+            temp0green = (temp0green * (dimmingMaximum - dimmingFactor)) / dimmingMaximum;
+            temp0red = (temp0red * (dimmingMaximum - dimmingFactor)) / dimmingMaximum;
+
+            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 1] = temp0blue >> 8;
+            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 2] = temp0green >> 8;
+            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 3] = temp0red >> 8;
+        }
     }
 }
