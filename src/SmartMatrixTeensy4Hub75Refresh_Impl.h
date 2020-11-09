@@ -88,7 +88,7 @@ FLASHMEM SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType
     dmaBufferNumRows = bufferrows;
     matrixUpdateRows = rowDataBuf;
     timerPairIdle.timer_period = MIN_BLOCK_PERIOD_TICKS;
-    timerPairIdle.timer_oe = MIN_BLOCK_PERIOD_TICKS;
+    timerPairIdle.timer_oe = MIN_BLOCK_PERIOD_TICKS + 1;
     arm_dcache_flush((void*)&timerPairIdle, sizeof(timerPairIdle));
 
     // initialize matrixUpdateRows to all zeros to ensure all padding pixels are blank
@@ -197,7 +197,7 @@ void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, op
             ontime += padding; // by adding the same padding to the "ontime", the observed intensity is not affected and is still correct
         }
 
-        timerLUT[i].timer_period = period;
+        timerLUT[i].timer_period = period - 1;
         timerLUT[i].timer_oe = ontime;
     }
 
@@ -207,7 +207,7 @@ void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, op
     Serial.print("Max brightness limited to "); Serial.print(msbBlockTicks * (200 - (200 >> LATCHES_PER_ROW)) / TICKS_PER_ROW); Serial.println("%");
     for (i = 0; i < LATCHES_PER_ROW; i++) {
         Serial.print("bitplane "); Serial.print(i);
-        Serial.print(": period: "); Serial.print(timerLUT[i].timer_period);
+        Serial.print(": period: "); Serial.print(timerLUT[i].timer_period + 1);
         Serial.print(": ontime: "); Serial.println(timerLUT[i].timer_oe);
     }
 #endif
