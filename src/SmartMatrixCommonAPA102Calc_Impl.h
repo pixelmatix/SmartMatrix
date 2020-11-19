@@ -265,6 +265,7 @@ INLINE void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelTyp
     }
 
     for (j = 0; j < matrixWidth; j++) {
+        // we send data out in serpentine layout only
         if(currentRow % 2)
             i=(matrixWidth-j-1);
         else
