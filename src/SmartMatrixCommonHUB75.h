@@ -96,6 +96,7 @@
 
 #define PIXELS_PER_LATCH    ((matrixWidth * matrixHeight) / MATRIX_PANEL_HEIGHT * PHYSICAL_ROWS_PER_REFRESH_ROW)
 
+// old naming convention kept for compatibility
 #define SMARTMATRIX_OPTIONS_NONE                    0
 #define SMARTMATRIX_OPTIONS_C_SHAPE_STACKING        (1 << 0)
 #define SMARTMATRIX_OPTIONS_BOTTOM_TO_TOP_STACKING  (1 << 1)
@@ -105,6 +106,16 @@
 #define SMARTMATRIX_OPTIONS_ESP32_CALC_TASK_CORE_1  (1 << 5)
 #define SMARTMATRIX_OPTIONS_FM6126A_RESET_AT_START  (1 << 6)
 #define SMARTMATRIX_OPTIONS_T4_CLK_PIN_ALT          (1 << 7)
+
+#define SM_HUB75_OPTIONS_NONE                       0
+#define SM_HUB75_OPTIONS_C_SHAPE_STACKING           (1 << 0)
+#define SM_HUB75_OPTIONS_BOTTOM_TO_TOP_STACKING     (1 << 1)
+#define SM_HUB75_OPTIONS_HUB12_MODE                 (1 << 2)
+#define SM_HUB75_OPTIONS_MATRIXCALC_LOWPRIORITY     (1 << 3)
+#define SM_HUB75_OPTIONS_ESP32_INVERT_CLK           (1 << 4)
+#define SM_HUB75_OPTIONS_ESP32_CALC_TASK_CORE_1     (1 << 5)
+#define SM_HUB75_OPTIONS_FM6126A_RESET_AT_START     (1 << 6)
+#define SM_HUB75_OPTIONS_T4_CLK_PIN_ALT             (1 << 7)
 
 // defines data bit order from bit 0-7, four times to fit in uint32_t
 #define PACKED_HUB75_WORD_ORDER p0r1:1, p0g1:1, p0b1:1, p0r2:1, p0g2:1, p0b2:1, p1r1:1, p1g1:1, \
