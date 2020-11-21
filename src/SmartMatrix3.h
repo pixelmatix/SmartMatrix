@@ -41,36 +41,36 @@
 #include "Layer_GFX_Mono.h"
 #endif
 
-#include "SmartMatrixCommonHUB75.h"
+#include "MatrixCommonHUB75.h"
 
-#include "SmartMatrixCommonAPA102Refresh.h"
-#include "SmartMatrixCommonAPA102Calc.h"
+#include "MatrixCommonAPA102Refresh.h"
+#include "MatrixCommonAPA102Calc.h"
 
 #ifndef MATRIX_HARDWARE_H
 #pragma GCC error "No MatrixHardware*.h file included - You must include one at the top of your sketch"
 #endif
 
-#include "SmartMatrixPanelMaps.h"
+#include "MatrixPanelMaps.h"
 
 #if defined(__arm__) && defined(CORE_TEENSY) && !defined(__IMXRT1062__)  // Teensy 3.x
-    #include "SmartMatrixTeensy3HUB75Refresh.h"
-    #include "SmartMatrixTeensy3HUB75Calc.h"
+    #include "MatrixTeensy3HUB75Refresh.h"
+    #include "MatrixTeensy3HUB75Calc.h"
 #endif
 
 #if defined(__IMXRT1062__) // Teensy 4.0/4.1
-    #include "SmartMatrixTeensy4Hub75Refresh.h"
-    #include "SmartMatrixTeensy4Hub75Calc.h"
+    #include "MatrixTeensy4Hub75Refresh.h"
+    #include "MatrixTeensy4Hub75Calc.h"
 #endif
 
 #if defined(ESP32)
-    #include "SmartMatrixESP32HUB75Refresh.h"
-    #include "SmartMatrixESP32HUB75Calc.h"
-    #include "SmartMatrixESP32HUB75Refresh_NT.h"
-    #include "SmartMatrixESP32HUB75Calc_NT.h"
+    #include "MatrixESP32HUB75Refresh.h"
+    #include "MatrixESP32HUB75Calc.h"
+    #include "MatrixESP32HUB75Refresh_NT.h"
+    #include "MatrixESP32HUB75Calc_NT.h"
 #endif
 
-#include "SmartMatrixCommonAPA102Refresh.h"
-#include "SmartMatrixCommonAPA102Calc.h"
+#include "MatrixCommonAPA102Refresh.h"
+#include "MatrixCommonAPA102Calc.h"
 
 #if defined(SMARTMATRIX_USE_PSRAM) && defined(ARDUINO_TEENSY41) // On Teensy 4.1 with PSRAM expansion
     #define BACKGROUND_MEMSECTION EXTMEM // Use PSRAM to store background layer drawing and refresh buffers (slower but saves RAM)
@@ -170,24 +170,24 @@
 
 // platform-specific
 #if defined(__arm__) && defined(CORE_TEENSY) && !defined(__IMXRT1062__)  // Teensy 3.x
-    #include "SmartMatrixTeensy3HUB75Refresh_Impl.h"
-    #include "SmartMatrixTeensy3APA102Refresh_Impl.h"
-    #include "SmartMatrixTeensy3HUB75Calc_Impl.h"
-    #include "SmartMatrixCommonAPA102Calc_Impl.h"
+    #include "MatrixTeensy3HUB75Refresh_Impl.h"
+    #include "MatrixTeensy3APA102Refresh_Impl.h"
+    #include "MatrixTeensy3HUB75Calc_Impl.h"
+    #include "MatrixCommonAPA102Calc_Impl.h"
 #endif
 
 #if defined(__IMXRT1062__) // Teensy 4.0/4.1
-    #include "SmartMatrixTeensy4Hub75Refresh_Impl.h"
-    #include "SmartMatrixTeensy4Hub75Calc_Impl.h"
-    #include "SmartMatrixTeensy4APA102Refresh_Impl.h"
-    #include "SmartMatrixCommonAPA102Calc_Impl.h"
+    #include "MatrixTeensy4Hub75Refresh_Impl.h"
+    #include "MatrixTeensy4Hub75Calc_Impl.h"
+    #include "MatrixTeensy4APA102Refresh_Impl.h"
+    #include "MatrixCommonAPA102Calc_Impl.h"
 #endif
 
 #if defined(ESP32)
-    #include "SmartMatrixESP32HUB75Refresh_Impl.h"
-    #include "SmartMatrixESP32HUB75Calc_Impl.h"
-    #include "SmartMatrixESP32HUB75Refresh_NT_Impl.h"
-    #include "SmartMatrixESP32HUB75Calc_NT_Impl.h"
+    #include "MatrixESP32HUB75Refresh_Impl.h"
+    #include "MatrixESP32HUB75Calc_Impl.h"
+    #include "MatrixESP32HUB75Refresh_NT_Impl.h"
+    #include "MatrixESP32HUB75Calc_NT_Impl.h"
 #endif
 
 #endif

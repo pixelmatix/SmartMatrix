@@ -1,5 +1,5 @@
-#include "SmartMatrixCommonHUB75.h"
-#include "SmartMatrixPanelMaps.h"
+#include "MatrixCommonHUB75.h"
+#include "MatrixPanelMaps.h"
 
 // use this for all linear panels (e.g. panels that draw a single left-to-right line for each RGB channel)
 const PanelMappingEntry defaultPanelMap[] =
