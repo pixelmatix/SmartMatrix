@@ -24,20 +24,7 @@
 #ifndef SmartMatrixAPA102Calc_h
 #define SmartMatrixAPA102Calc_h
 
-#define SMARTMATRIX_APA102_OPTIONS_NONE                 0
-#define SMARTMATRIX_APA102_OPTIONS_GBC_MODE_DEFAULT     (0x0 << 0)
-#define SMARTMATRIX_APA102_OPTIONS_GBC_MODE_SIMPLE      (0x1 << 0)
-#define SMARTMATRIX_APA102_OPTIONS_GBC_MODE_NONE        (0x2 << 0)
-#define SMARTMATRIX_APA102_OPTIONS_GBC_MODE_BRIGHTONLY  (0x3 << 0)
-#define SMARTMATRIX_APA102_OPTIONS_GBC_MODE_MASK        (0x3 << 0)
-
-#define SMARTMATRIX_APA102_OPTIONS_COLOR_ORDER_BGR      (0x0 << 2)
-#define SMARTMATRIX_APA102_OPTIONS_COLOR_ORDER_RBG      (0x1 << 2)
-#define SMARTMATRIX_APA102_OPTIONS_COLOR_ORDER_GRB      (0x2 << 2)
-#define SMARTMATRIX_APA102_OPTIONS_COLOR_ORDER_GBR      (0x3 << 2)
-#define SMARTMATRIX_APA102_OPTIONS_COLOR_ORDER_RGB      (0x4 << 2)
-#define SMARTMATRIX_APA102_OPTIONS_COLOR_ORDER_BRG      (0x5 << 2)
-#define SMARTMATRIX_APA102_OPTIONS_COLOR_ORDER_MASK     (0x7 << 2)
+#include "MatrixCommonAPA102.h"
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 class SmartMatrixApaCalc {

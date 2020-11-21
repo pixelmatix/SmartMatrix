@@ -51,7 +51,7 @@ const uint8_t kApaMatrixHeight = 16;
 const uint8_t kApaRefreshDepth = 36;        // known working: 36
 const uint8_t kApaDmaBufferRows = 1;        // known working: 1
 const uint8_t kApaPanelType = 0;            // not used for APA matrices as of now
-const uint32_t kApaMatrixOptions = (SMARTMATRIX_APA102_OPTIONS_COLOR_ORDER_BGR);      // The default color order is BGR, change here to match your LEDs
+const uint32_t kApaMatrixOptions = (SM_APA102_OPTIONS_COLOR_ORDER_BGR);      // The default color order is BGR, change here to match your LEDs
 const uint8_t kApaBackgroundLayerOptions = (SM_BACKGROUND_OPTIONS_NONE);
 
 SMARTMATRIX_APA_ALLOCATE_BUFFERS(apamatrix, kApaMatrixWidth, kApaMatrixHeight, kApaRefreshDepth, kApaDmaBufferRows, kApaPanelType, kApaMatrixOptions);

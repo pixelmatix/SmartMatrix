@@ -273,37 +273,37 @@ INLINE void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelTyp
 
         uint16_t tempPixel1, tempPixel2, tempPixel3;
 
-        switch(optionFlags & SMARTMATRIX_APA102_OPTIONS_COLOR_ORDER_MASK) {
-            case SMARTMATRIX_APA102_OPTIONS_COLOR_ORDER_RGB:
+        switch(optionFlags & SM_APA102_OPTIONS_COLOR_ORDER_MASK) {
+            case SM_APA102_OPTIONS_COLOR_ORDER_RGB:
                 tempPixel1 = tempRow0[j].red;
                 tempPixel2 = tempRow0[j].green;
                 tempPixel3 = tempRow0[j].blue;
                 break;
-            case SMARTMATRIX_APA102_OPTIONS_COLOR_ORDER_RBG:
+            case SM_APA102_OPTIONS_COLOR_ORDER_RBG:
                 tempPixel1 = tempRow0[j].red;
                 tempPixel2 = tempRow0[j].blue;
                 tempPixel3 = tempRow0[j].green;
                 break;
                 
-            case SMARTMATRIX_APA102_OPTIONS_COLOR_ORDER_GRB:
+            case SM_APA102_OPTIONS_COLOR_ORDER_GRB:
                 tempPixel1 = tempRow0[j].green;
                 tempPixel2 = tempRow0[j].red;
                 tempPixel3 = tempRow0[j].blue;
                 break;
                 
-            case SMARTMATRIX_APA102_OPTIONS_COLOR_ORDER_GBR:
+            case SM_APA102_OPTIONS_COLOR_ORDER_GBR:
                 tempPixel1 = tempRow0[j].green;
                 tempPixel2 = tempRow0[j].blue;
                 tempPixel3 = tempRow0[j].red;
                 break;
                 
-            case SMARTMATRIX_APA102_OPTIONS_COLOR_ORDER_BGR:
+            case SM_APA102_OPTIONS_COLOR_ORDER_BGR:
                 tempPixel1 = tempRow0[j].blue;
                 tempPixel2 = tempRow0[j].green;
                 tempPixel3 = tempRow0[j].red;
                 break;
                 
-            case SMARTMATRIX_APA102_OPTIONS_COLOR_ORDER_BRG:
+            case SM_APA102_OPTIONS_COLOR_ORDER_BRG:
                 tempPixel1 = tempRow0[j].blue;
                 tempPixel2 = tempRow0[j].red;
                 tempPixel3 = tempRow0[j].green;
@@ -311,7 +311,7 @@ INLINE void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelTyp
         }
 
         // "DEFAULT" mode attempts to get 13-bit color per channel using the full range of GBC bits, this looks better than "SIMPLE" mode, but takes longer, and there are still non-linearity issues
-        if((optionFlags & SMARTMATRIX_APA102_OPTIONS_GBC_MODE_MASK) == SMARTMATRIX_APA102_OPTIONS_GBC_MODE_DEFAULT) {
+        if((optionFlags & SM_APA102_OPTIONS_GBC_MODE_MASK) == SM_APA102_OPTIONS_GBC_MODE_DEFAULT) {
             uint8_t globalbrightness = (0x1F * (dimmingMaximum - dimmingFactor)) / dimmingMaximum;
 
             uint16_t maxrgb = max(max(tempPixel1, tempPixel2), tempPixel3);
@@ -325,7 +325,7 @@ INLINE void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelTyp
         }
 
         // "SIMPLE" mode attempts to get 13-bit color per channel by first applying the setBrightness() value to the GBC bits, then dividing by two to attempt to get more bits for dimmer colors, this is not as good as "DEFAULT" mode, but is more efficient
-        if((optionFlags & SMARTMATRIX_APA102_OPTIONS_GBC_MODE_MASK) == SMARTMATRIX_APA102_OPTIONS_GBC_MODE_SIMPLE) {
+        if((optionFlags & SM_APA102_OPTIONS_GBC_MODE_MASK) == SM_APA102_OPTIONS_GBC_MODE_SIMPLE) {
             uint8_t globalbrightness = (0x20UL * (dimmingMaximum - dimmingFactor)) / dimmingMaximum;
             uint8_t localshift = 0;
 
@@ -352,7 +352,7 @@ INLINE void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelTyp
         }
 
         // "BRIGHTONLY" applies the setBrightness() value to the GBC bits, so the same GBC is used across all LEDs
-        if((optionFlags & SMARTMATRIX_APA102_OPTIONS_GBC_MODE_MASK) == SMARTMATRIX_APA102_OPTIONS_GBC_MODE_BRIGHTONLY) {
+        if((optionFlags & SM_APA102_OPTIONS_GBC_MODE_MASK) == SM_APA102_OPTIONS_GBC_MODE_BRIGHTONLY) {
             uint8_t globalbrightness = (0x20UL * (dimmingMaximum - dimmingFactor)) / dimmingMaximum;
 
             if(globalbrightness == 0x20)
@@ -367,7 +367,7 @@ INLINE void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelTyp
         }
 
         // "NONE" mode doesn't use GBC at all, the LED output is 24-bit color
-        if((optionFlags & SMARTMATRIX_APA102_OPTIONS_GBC_MODE_MASK) == SMARTMATRIX_APA102_OPTIONS_GBC_MODE_NONE) {
+        if((optionFlags & SM_APA102_OPTIONS_GBC_MODE_MASK) == SM_APA102_OPTIONS_GBC_MODE_NONE) {
             // global brightness
             currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 0] = 0xFF;
 

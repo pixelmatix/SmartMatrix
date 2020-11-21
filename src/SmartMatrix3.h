@@ -43,6 +43,7 @@
 
 #include "MatrixCommonHUB75.h"
 
+#include "MatrixCommonAPA102.h"
 #include "MatrixCommonAPA102Refresh.h"
 #include "MatrixCommonAPA102Calc.h"
 
