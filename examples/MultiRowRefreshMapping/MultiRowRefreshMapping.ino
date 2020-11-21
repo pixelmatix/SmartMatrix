@@ -6,7 +6,7 @@
  * 
  * The example code moves a single pixel across the width of the display across one row at a time.  To help reverse-
  * engineer the mapping of a panel, we can "unwrap" the panel so a /2 panel looks like a 4-row high panel
- * (/2 means the panel is addressed with two addresses, times two RGB channels in a HUB75 pinout 2 x 2 = 4 rows)
+ * (/2 means the panel is addressed with two addresses, times two parallel RGB channels in a HUB75 pinout 2 x 2 = 4 rows)
  * or a /4 panel looks like an 8-row high panel (4 address x 2 parallel channels = 8 rows)
  * 
  * Example for a 32x16 /2 panel:
