@@ -7,7 +7,14 @@
  * https://www.pjrc.com/teensy/td_libs_DS1307RTC.html
  *
  * Requires a DS1307, DS1337 or DS3231 RTC chip connected to
- * Teensy pins 16 (SCL) and 17 (SDA)
+ * Teensy pins 19 (SCL) and 18 (SDA)
+ * 
+ * Use 3.3V power for RTC module and I2S Pullup Resistors as some Teensy modules aren't 5V tolerant
+ *
+ * If using an old (V1-V3) SmartMatrix Shield or bare Teensy 3 with address pins connected to your matrix
+ * you'll need to connect Teensy pins 16 (SCL) and 17 (SDA), and uncomment the alternate pin code below
+ *
+ * Not tested, and most likely doesn't work on ESP32
  * 
  * This SmartMatrix example uses just the indexed color layer
  */
@@ -52,12 +59,18 @@ void setup() {
   matrix.addLayer(&indexedLayer); 
   matrix.begin();
 
-  /* I2C Changes Needed for SmartMatrix Shield */
+  /* I2C Changes Needed for old SmartMatrix Shield (V1-V3) or bare Teensy 3 with address pins connected to matrix */
   // switch pins to use 16/17 for I2C instead of 18/19, after calling matrix.begin()//
+#if 0
   pinMode(18, INPUT);
   pinMode(19, INPUT);
   CORE_PIN16_CONFIG = (PORT_PCR_MUX(2) | PORT_PCR_PE | PORT_PCR_PS);
   CORE_PIN17_CONFIG = (PORT_PCR_MUX(2) | PORT_PCR_PE | PORT_PCR_PS);
+
+  // These code might work instead, but haven't been tested
+  //Wire.setSDA(17);
+  //Wire.setSCL(16);
+#endif
 
   // display a simple message - will stay on the screen if calls to the RTC library fail later
   indexedLayer.fillScreen(0);
