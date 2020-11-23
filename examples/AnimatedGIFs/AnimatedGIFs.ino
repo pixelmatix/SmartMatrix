@@ -27,12 +27,14 @@
  */
 
 /*
- * This SmartMatrix Library example displays GIF animations loaded from a SD Card connected to the Teensy 3
+ * This SmartMatrix Library example displays GIF animations loaded from a SD Card connected to the Teensy 3/4 and ESP32
+ *
+ * This example requires SmartMatrix Library 4.0 and AnimatedGIF Library to be installed, you can do this from Arduino Library Manager
+ *   - https://github.com/pixelmatix/SmartMatrix
+ *   - https://github.com/bitbank2/AnimatedGIF
  *
  * The example can be modified to drive displays other than SmartMatrix by replacing SmartMatrix Library calls in setup() and
  * the *Callback() functions with calls to a different library (look for the USE_SMARTMATRIX and ENABLE_SCROLLING blocks and replace)
- *
- * This code has been tested with many size GIFs including 128x32, 64x64, 32x32, and 16x16 pixel GIFs, but is optimized for 32x32 pixel GIFs.
  *
  * Wiring is on the default Teensy 3.2 SPI pins, and chip select can be on any GPIO,
  * set by defining SD_CS in the code below.  For Teensy 3.5/3.6/4.1 with the onboard SDIO, SD_CS should be the default BUILTIN_SDCARD
@@ -61,19 +63,24 @@
 
 /*
  * CONFIGURATION:
- *  - If you're not using SmartLED Shield V4 (or above), comment out the line that includes <SmartMatrixShieldV4.h>
+ *  - Uncomment one line to select your MatrixHardware configuration - configuration header needs to be included before <SmartMatrix3.h>
  *  - update the "SmartMatrix configuration and memory allocation" section to match the width and height and other configuration of your display
  *  - Note for 128x32 and 64x64 displays with Teensy 3.2 - need to reduce RAM:
  *    set kRefreshDepth=24 and kDmaBufferRows=2 or set USB Type: "None" in Arduino,
  *    decrease refreshRate in setup() to 90 or lower to get good an accurate GIF frame rate
- *  - Set the chip select pin for your board.  On Teensy 3.5/3.6, the onboard microSD CS pin is "BUILTIN_SDCARD"
- *  - For ESP32 and large panels, you don't need to lower the refreshRate, but you can lower the frameRate (number of times the refresh buffer
+ *  - Set the chip select pin for your board.  On Teensy 3.5/3.6/4.1, the onboard microSD CS pin is "BUILTIN_SDCARD"
+ *  - For ESP32 used with large panels, you don't need to lower the refreshRate, but you can lower the frameRate (number of times the refresh buffer
  *    is updaed with new data per second), giving more time for the CPU to decode the GIF.
  *    Use matrix.setMaxCalculationCpuPercentage() or matrix.setCalcRefreshRateDivider()
  */
 
-//#include <SmartLEDShieldV4.h>  // comment out this line for if you're not using SmartLED Shield V4 hardware (this line needs to be before #include <SmartMatrix3.h>)
-#include <MatrixHardware_T4Adapter.h>
+// uncomment one line to select your MatrixHardware configuration - configuration header needs to be included before <SmartMatrix3.h>
+//#include <MatrixHardware_Teensy3_ShieldV4.h>        // SmartLED Shield for Teensy 3 (V4)
+//#include <MatrixHardware_Teensy4_ShieldV5.h>        // SmartLED Shield for Teensy 4 (V5)
+//#include <MatrixHardware_Teensy3_ShieldV1toV3.h>    // SmartMatrix Shield for Teensy 3 V1-V3
+//#include <MatrixHardware_Teensy4_ShieldV4Adapter.h> // Teensy 4 Adapter attached to SmartLED Shield for Teensy 3 (V4)
+//#include <MatrixHardware_ESP32_V0.h>                // This file contains multiple ESP32 hardware configurations, edit the file to define GPIOPINOUT (or add #define GPIOPINOUT with a hardcoded number before this #include)
+//#include "MatrixHardware_Custom.h"                  // Copy an existing MatrixHardware file to your Sketch directory, rename, customize, and you can include it like this
 #include <SmartMatrix3.h>
 
 #include <SD.h>
@@ -95,13 +102,13 @@ const rgb24 COLOR_BLACK = {
 
 #if (USE_SMARTMATRIX == 1)
 /* SmartMatrix configuration and memory allocation */
-#define COLOR_DEPTH 24                  // known working: 24, 48 - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
-const uint8_t kMatrixWidth = 128;        // known working: 32, 64, 96, 128
-const uint8_t kMatrixHeight = 64;       // known working: 16, 32, 48, 64
-const uint8_t kRefreshDepth = 36;       // known working: 24, 36, 48
-const uint8_t kDmaBufferRows = 2;       // known working: 2-4
-const uint8_t kPanelType = SMARTMATRIX_HUB75_64ROW_MOD32SCAN; // use SM_PANELTYPE_HUB75_16ROW_MOD8SCAN for common 16x32 panels, or use SMARTMATRIX_HUB75_64ROW_MOD32SCAN for common 64x64 panels
-const uint8_t kMatrixOptions = (SM_HUB75_OPTIONS_NONE);    // see http://docs.pixelmatix.com/SmartMatrix for options
+#define COLOR_DEPTH 24                  // Choose the color depth used for storing pixels in the layers: 24 or 48 (24 is good for most sketches - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24)
+const uint16_t kMatrixWidth = 32;       // Set to the width of your display, must be a multiple of 8
+const uint16_t kMatrixHeight = 32;      // Set to the height of your display
+const uint8_t kRefreshDepth = 36;       // Tradeoff of color quality vs refresh rate, max brightness, and RAM usage.  36 is typically good, drop down to 24 if you need to.  On Teensy, multiples of 3, up to 48: 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48.  On ESP32: 24, 36, 48
+const uint8_t kDmaBufferRows = 4;       // known working: 2-4, use 2 to save RAM, more to keep from dropping frames and automatically lowering refresh rate.  (This isn't used on ESP32, leave as default)
+const uint8_t kPanelType = SM_PANELTYPE_HUB75_32ROW_MOD16SCAN;  // Choose the configuration that matches your panels.  See more details in MatrixCommonHUB75.h and the docs: https://github.com/pixelmatix/SmartMatrix/wiki
+const uint32_t kMatrixOptions = (SM_HUB75_OPTIONS_NONE);        // see docs for options: https://github.com/pixelmatix/SmartMatrix/wiki
 const uint8_t kBackgroundLayerOptions = (SM_BACKGROUND_OPTIONS_NONE);
 const uint8_t kScrollingLayerOptions = (SM_SCROLLING_OPTIONS_NONE);
 
