@@ -9,6 +9,9 @@
  * for Teensy 3 (V4) or SmartLED Shield for Teensy 4 (V5) in parallel with the matrix panel.
  * The ESP32 platorm is not supported
  *
+ * Note that the APA102 matrix is mapped inside the controller with normal rectangular coordiantes,
+ *   but is shifted out to the panel in serpentine layout.
+ *
  * This example requires FastLED 3.0 or higher.  If you are having trouble compiling, see
  * the troubleshooting instructions here:
  * https://github.com/pixelmatix/SmartMatrix/#external-libraries
