@@ -90,22 +90,22 @@
 #define SKETCH_MODE   MODE_MAP_REVERSE_ENGINEERING
 //#define SKETCH_MODE   MODE_MAP_TESTING
 
-#define COLOR_DEPTH 24                  // known working: 24, 48 - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
+#define COLOR_DEPTH 24                  // leave this as 24 for this sketch
 
 #if (SKETCH_MODE == MODE_MAP_REVERSE_ENGINEERING)
-const uint16_t kMatrixWidth = 128;        // known working: 16, 32, 48, 64
-const uint16_t kMatrixHeight = 4;       // known working: 32, 64, 96, 128
-const uint8_t kPanelType = SM_PANELTYPE_HUB75_4ROW_MOD2SCAN;   // Use this to reverse engineer mapping for a MOD2 panel
-//const uint8_t kPanelType = SM_PANELTYPE_HUB75_8ROW_MOD4SCAN;   // Use this to reverse engineer mapping for a MOD4 panel
+const uint16_t kMatrixWidth = 128;        // must be multiple of 8
+const uint16_t kMatrixHeight = 4;
+const uint8_t kPanelType = SM_PANELTYPE_HUB75_4ROW_MOD2SCAN;    // Use this to reverse engineer mapping for a MOD2 panel
+//const uint8_t kPanelType = SM_PANELTYPE_HUB75_8ROW_MOD4SCAN;  // Use this to reverse engineer mapping for a MOD4 panel
 #endif
 
 #if (SKETCH_MODE == MODE_MAP_TESTING)
-const uint16_t kMatrixWidth = 32;        // known working: 16, 32, 48, 64
-const uint16_t kMatrixHeight = 16;       // known working: 32, 64, 96, 128
+const uint16_t kMatrixWidth = 32;        // must be multiple of 8
+const uint16_t kMatrixHeight = 16;
 const uint8_t kPanelType = SM_PANELTYPE_HUB75_16ROW_32COL_MOD2SCAN;   // use SM_PANELTYPE_HUB75_16ROW_MOD8SCAN for common 16x32 panels
 #endif
 
-const uint8_t kRefreshDepth = 36;       // known working: 24, 36, 48 (on Teensy 4.x: 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48)
+const uint8_t kRefreshDepth = 36;       // leave as 36 for this sketch
 const uint8_t kDmaBufferRows = 4;       // known working: 2-4, use 2 to save memory, more to keep from dropping frames and automatically lowering refresh rate
 const uint32_t kMatrixOptions = (SM_HUB75_OPTIONS_NONE);      // see http://docs.pixelmatix.com/SmartMatrix for options
 const uint8_t kBackgroundLayerOptions = (SM_BACKGROUND_OPTIONS_NONE);
