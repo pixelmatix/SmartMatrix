@@ -13,7 +13,7 @@
  * Under the "MODE_MAP_REVERSE_ENGINEERING" section, set:
  * kMatrixHeight = 4 (why? see above)
  * kMatrixWidth = (32x16)/kMatrixHeight = 128
- * kPanelType = SMARTMATRIX_HUB75_4ROW_MOD2SCAN
+ * kPanelType = SM_PANELTYPE_HUB75_4ROW_MOD2SCAN
  * Set SKETCH_MODE to  MODE_MAP_REVERSE_ENGINEERING
  * Run the sketch, and record the output on the panel with video, so it's easy to scroll through the positions of pixels to analyze
  * You should see a red pixel move to 128 different locations on the panel, followed by a yellow pixel moving to 128 different locations, etc.
@@ -51,7 +51,7 @@
  * How to add a map and new panel config to SmartMatrix Library
  * - Follow the format in PanelMaps.cpp, and add your map with a unique name
  * - Open SmartMatrixCommonHUB75.h, add a new definition at the top for your panel.  Give it the format
- * - SMARTMATRIX_HUB75_NUMROW_NUMCOL_MODNSCAN filling in NUMROW, NUMCOL, MODNSCAN 
+ * - SM_PANELTYPE_NUMROW_NUMCOL_MODNSCAN filling in NUMROW, NUMCOL, MODNSCAN 
  * - Add entries for your new panelType to the CONVERT_PANELTYPE_TO_... Definitions
  *   - CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT - height of your panel
  *   - CONVERT_PANELTYPE_TO_MATRIXROWPAIROFFSET - HUB75 panels fill two rows in parallel, what's the spacing?  (normally half of panel height)
@@ -67,7 +67,7 @@
  * Change the width/height/paneltype to match the actual panel (not unwrapped)
  * kMatrixWidth = 32
  * kMatrixHeight = 16
- * kPanelType = SMARTMATRIX_HUB75_16ROW_32COL_MOD2SCAN
+ * kPanelType = SM_PANELTYPE_HUB75_16ROW_32COL_MOD2SCAN
  * Set SKETCH_MODE to  MODE_MAP_TESTING
  * Now when the sketch runs, you should see the pixel go from left to right, top to bottom, covering all the pixels on your panel in the correct order
  *
@@ -95,14 +95,14 @@
 #if (SKETCH_MODE == MODE_MAP_REVERSE_ENGINEERING)
 const uint16_t kMatrixWidth = 128;        // known working: 16, 32, 48, 64
 const uint16_t kMatrixHeight = 4;       // known working: 32, 64, 96, 128
-const uint8_t kPanelType = SMARTMATRIX_HUB75_4ROW_MOD2SCAN;   // Use this to reverse engineer mapping for a MOD2 panel
-//const uint8_t kPanelType = SMARTMATRIX_HUB75_8ROW_MOD4SCAN;   // Use this to reverse engineer mapping for a MOD4 panel
+const uint8_t kPanelType = SM_PANELTYPE_HUB75_4ROW_MOD2SCAN;   // Use this to reverse engineer mapping for a MOD2 panel
+//const uint8_t kPanelType = SM_PANELTYPE_HUB75_8ROW_MOD4SCAN;   // Use this to reverse engineer mapping for a MOD4 panel
 #endif
 
 #if (SKETCH_MODE == MODE_MAP_TESTING)
 const uint16_t kMatrixWidth = 32;        // known working: 16, 32, 48, 64
 const uint16_t kMatrixHeight = 16;       // known working: 32, 64, 96, 128
-const uint8_t kPanelType = SMARTMATRIX_HUB75_16ROW_32COL_MOD2SCAN;   // use SMARTMATRIX_HUB75_16ROW_MOD8SCAN for common 16x32 panels
+const uint8_t kPanelType = SM_PANELTYPE_HUB75_16ROW_32COL_MOD2SCAN;   // use SM_PANELTYPE_HUB75_16ROW_MOD8SCAN for common 16x32 panels
 #endif
 
 const uint8_t kRefreshDepth = 36;       // known working: 24, 36, 48 (on Teensy 4.x: 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48)
