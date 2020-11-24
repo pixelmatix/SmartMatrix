@@ -24,7 +24,7 @@
 #ifndef SmartMatrixAPA102Calc_h
 #define SmartMatrixAPA102Calc_h
 
-#include "MatrixCommonAPA102.h"
+#include "MatrixCommonApa102.h"
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 class SmartMatrixApaCalc {
