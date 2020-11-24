@@ -988,16 +988,16 @@ inline void calculate12BitBackgroundLUT(color_chan_t * lut, uint8_t backgroundBr
 
 template <typename RGB_IN>
 void colorCorrection(const RGB_IN& in, rgb48& out) {
-    out = rgb48(lightPowerMap16bit[in.red],
-                lightPowerMap16bit[in.green],
-                lightPowerMap16bit[in.blue]);
+    out.red = lightPowerMap16bit[in.red];
+    out.green = lightPowerMap16bit[in.green];
+    out.blue = lightPowerMap16bit[in.blue];
 }
 
 template <typename RGB_IN>
 void colorCorrection(const RGB_IN& in, rgb24& out) {
-    out = rgb24(lightPowerMap16bit[in.red],
-                lightPowerMap16bit[in.green],
-                lightPowerMap16bit[in.blue]);
+    out.red = lightPowerMap16bit[in.red] >> 8;
+    out.green = lightPowerMap16bit[in.green] >> 8;
+    out.blue = lightPowerMap16bit[in.blue] >> 8;
 }
 
 void calculate8BitBackgroundLUT(color_chan_t * lut, uint8_t backgroundBrightness);
