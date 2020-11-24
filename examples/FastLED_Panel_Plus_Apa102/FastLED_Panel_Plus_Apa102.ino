@@ -17,9 +17,9 @@
  * https://github.com/pixelmatix/SmartMatrix/#external-libraries
  */
 
-// uncomment one line to select your MatrixHardware configuration - configuration header needs to be included before <SmartMatrix3.h>
+// uncomment one line to select your MatrixHardware configuration - configuration header needs to be included before <SmartMatrix.h>
 //#include <MatrixHardware_Teensy3_ShieldV4.h>        // SmartLED Shield for Teensy 3 (V4)
-//#include <MatrixHardware_Teensy4_ShieldV5.h>        // SmartLED Shield for Teensy 4 (V5)
+#include <MatrixHardware_Teensy4_ShieldV5.h>        // SmartLED Shield for Teensy 4 (V5)
 //#include <MatrixHardware_Teensy3_ShieldV1toV3.h>    // SmartMatrix Shield for Teensy 3 V1-V3
 //#include <MatrixHardware_Teensy4_ShieldV4Adapter.h> // Teensy 4 Adapter attached to SmartLED Shield for Teensy 3 (V4)
 //#include <MatrixHardware_ESP32_V0.h>                // This file contains multiple ESP32 hardware configurations, edit the file to define GPIOPINOUT (or add #define GPIOPINOUT with a hardcoded number before this #include)
@@ -37,7 +37,7 @@ const uint16_t kMatrixWidth = 32;       // Set to the width of your display, mus
 const uint16_t kMatrixHeight = 32;      // Set to the height of your display
 const uint8_t kRefreshDepth = 36;       // Tradeoff of color quality vs refresh rate, max brightness, and RAM usage.  36 is typically good, drop down to 24 if you need to.  On Teensy, multiples of 3, up to 48: 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48.  On ESP32: 24, 36, 48
 const uint8_t kDmaBufferRows = 4;       // known working: 2-4, use 2 to save RAM, more to keep from dropping frames and automatically lowering refresh rate.  (This isn't used on ESP32, leave as default)
-const uint8_t kPanelType = SM_PANELTYPE_HUB75_32ROW_MOD16SCAN;   // Choose the configuration that matches your panels.  See more details in MatrixCommonHUB75.h and the docs: https://github.com/pixelmatix/SmartMatrix/wiki
+const uint8_t kPanelType = SM_PANELTYPE_HUB75_32ROW_MOD16SCAN;   // Choose the configuration that matches your panels.  See more details in MatrixCommonHub75.h and the docs: https://github.com/pixelmatix/SmartMatrix/wiki
 const uint32_t kMatrixOptions = (SM_HUB75_OPTIONS_NONE);        // see docs for options: https://github.com/pixelmatix/SmartMatrix/wiki
 const uint8_t kBackgroundLayerOptions = (SM_BACKGROUND_OPTIONS_NONE);
 const uint8_t kScrollingLayerOptions = (SM_SCROLLING_OPTIONS_NONE);
@@ -69,8 +69,8 @@ static uint16_t z;
 // use the z-axis for "time".  speed determines how fast time moves forward.  Try
 // 1 for a very slow moving effect, or 60 for something that ends up looking like
 // water.
-// uint16_t speed = 1; // almost looks like a painting, moves very slowly
-uint16_t speed = 20; // a nice starting speed, mixes well with a scale of 100
+uint16_t speed = 1; // almost looks like a painting, moves very slowly
+//uint16_t speed = 20; // a nice starting speed, mixes well with a scale of 100
 // uint16_t speed = 33;
 // uint16_t speed = 100; // wicked fast!
 
@@ -100,6 +100,25 @@ uint16_t scale = 31;
 // This is the array that we keep our computed noise values in
 uint8_t noise[MAX_DIMENSION_OVERALL][MAX_DIMENSION_OVERALL];
 
+uint16_t XY(uint8_t x, uint8_t y) {
+  return kApaMatrixWidth * y + x;
+}
+
+rgb24 *buffer;
+
+const uint16_t NUM_LEDS = kApaMatrixWidth * kApaMatrixHeight;
+
+// scale the brightness of all pixels down
+void dimAll(byte value)
+{
+  for (int i = 0; i < NUM_LEDS; i++) {
+    CRGB c = CRGB(buffer[i].red, buffer[i].green, buffer[i].blue);
+    c.nscale8(value);
+    buffer[i] = c;
+  }
+}
+
+
 void setup() {
   // uncomment the following lines if you want to see FPS count information
   // Serial.begin(115200);
@@ -110,6 +129,7 @@ void setup() {
 #if (ENABLE_HUB75_REFRESH == 1)
   matrix.addLayer(&backgroundLayer); 
   matrix.addLayer(&scrollingLayer); 
+  //matrix.setBrightness(0);
   matrix.begin();
 
   // lower the brightness
@@ -119,6 +139,7 @@ void setup() {
 #if (ENABLE_APA102_REFRESH == 1)
   // enable the APA102 buffers to drive out the SPI signals
   if(!SMARTLED_APA_ENABLED_BY_DEFAULT) {
+  //if(1) {
     pinMode(SMARTLED_APA_ENABLE_PIN, OUTPUT);
     digitalWrite(SMARTLED_APA_ENABLE_PIN, HIGH);  // enable access to LEDs
   }
@@ -134,7 +155,8 @@ void setup() {
   apamatrix.begin();
 
   // lower the brightness
-  apamatrix.setBrightness(128);
+  //apamatrix.setBrightness(128);
+  apamatrix.setBrightness(32);
 #endif
 
   // Initialize our coordinates to some random values
@@ -165,6 +187,7 @@ void fillnoise8() {
   z += speed;
 }
 
+#if 1
 void loop() {
   static uint8_t ihue=0;
 
@@ -223,3 +246,30 @@ void loop() {
 
   //matrix.countFPS();      // print the loop() frames per second to Serial
 }
+#else
+void loop() {
+  EVERY_N_MILLISECONDS(1000/30) {
+
+    while(apaBackgroundLayer.isSwapPending());
+    buffer = apaBackgroundLayer.backBuffer();
+
+    dimAll(250);
+
+    static uint8_t theta = 0;
+    static uint8_t hue = 0;
+    
+    for (uint8_t x = 0; x < kApaMatrixWidth; x++) {
+      uint8_t y = quadwave8(x * 2 + theta) / scale;
+      if(y < kApaMatrixHeight) {
+        buffer[XY(x, y)] = CRGB(CHSV(x + hue, 255, 255));
+        buffer[XY(x, y)].red = 0;
+      }
+    }
+
+    theta++;
+    hue++;
+
+    apaBackgroundLayer.swapBuffers(true);
+  }
+}
+#endif
