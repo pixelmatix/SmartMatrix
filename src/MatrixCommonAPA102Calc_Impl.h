@@ -1,7 +1,7 @@
 /*
- * SmartMatrix Library - APA102 Calculation Code for Teensy 3.x Platform
+ * SmartMatrix Library - APA102 Calculation Code for Teensy Platforms
  *
- * Copyright (c) 2017 Louis Beaudoin (Pixelmatix)
+ * Copyright (c) 2020 Louis Beaudoin (Pixelmatix)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in

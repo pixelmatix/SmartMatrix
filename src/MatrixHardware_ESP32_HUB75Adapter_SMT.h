@@ -1,7 +1,7 @@
 /*
- * SmartMatrix Library - Hardware-Specific Header File (for SmartMatrix Shield V4)
+ * SmartMatrix Library - Hardware-Specific Header File (ESP32 HUB75 Adapter SMT Version)
  *
- * Copyright (c) 2015 Louis Beaudoin (Pixelmatix)
+ * Copyright (c) 2020 Beaudoin (Pixelmatix)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in

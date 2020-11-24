@@ -1,5 +1,5 @@
 /*
- * SmartMatrix Library - Refresh Code for Teensy 3.x Platform
+ * SmartMatrix Library - ESP32 HUB75 Panel Refresh Class
  *
  * Copyright (c) 2015 Louis Beaudoin (Pixelmatix)
  *
