@@ -1,7 +1,7 @@
 /*
- * SmartMatrix Library - Main Refresh Class
+ * SmartMatrix Library - Teensy 4 HUB75 Refresh Class
  *
- * Copyright (c) 2015 Louis Beaudoin (Pixelmatix)
+ * Copyright (c) 2020 Louis Beaudoin (Pixelmatix)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -29,22 +29,8 @@
 #include <DMAChannel.h>
 #endif
 
-#if defined(KINETISL)
-    DMAChannel dmaClockOutData(false);
-    DMAChannel dmaClockOutData2(false);
-#elif defined(KINETISK)
-    #ifndef ADDX_UPDATE_ON_DATA_PINS
-        DMAChannel dmaOutputAddress(false);
-        DMAChannel dmaUpdateAddress(false);
-    #endif
-    DMAChannel dmaUpdateTimer(false);
-    DMAChannel dmaClockOutData(false);
-    DMAChannel dmaClockOutDataApa(false);
-#elif defined(__IMXRT1062__) // Teensy 4.0/4.1
-    #include <EventResponder.h>
+#if defined(__IMXRT1062__) // Teensy 4.0/4.1
     DMAChannel dmaClockOutData(false);
     DMAChannel dmaEnable(false);
     DMAChannel dmaUpdateTimer(false);
-    IntervalTimer myTimer;
-    EventResponder apa102ShiftCompleteEvent;
 #endif
