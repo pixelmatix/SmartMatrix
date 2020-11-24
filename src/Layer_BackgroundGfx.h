@@ -170,6 +170,6 @@ class SMLayerBackgroundGFX : public SM_Layer, public Adafruit_GFX {
         void handleBufferSwap(void);
 };
 
-#include "Layer_BackgroundGFX_Impl.h"
+#include "Layer_BackgroundGfx_Impl.h"
 
 #endif

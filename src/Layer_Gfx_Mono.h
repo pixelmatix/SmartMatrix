@@ -156,6 +156,6 @@ class SMLayerGFXMono : public SM_Layer, public Adafruit_GFX {
         volatile bool swapPending;
 };
 
-#include "Layer_GFX_Mono_Impl.h"
+#include "Layer_Gfx_Mono_Impl.h"
 
 #endif
