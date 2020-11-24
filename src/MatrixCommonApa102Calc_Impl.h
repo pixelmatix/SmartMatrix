@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "SmartMatrix3.h"
+#include "SmartMatrix.h"
 
 #define INLINE __attribute__( ( always_inline ) ) inline
 

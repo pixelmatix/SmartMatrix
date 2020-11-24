@@ -21,8 +21,13 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#ifndef SmartMatrix4_h
+#define SmartMatrix4_h
+
+// Temporary definition for FastLED Compatibility: to get the CRGB<->rgb24 conversion, FastLED expects SmartMatrix_h or SmartMatrix3_h to be definied, and defining SmartMatrix_h causes problems
 #ifndef SmartMatrix3_h
 #define SmartMatrix3_h
+#endif
 
 #include <stdint.h>
 

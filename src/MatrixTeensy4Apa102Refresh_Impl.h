@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "SmartMatrix3.h"
+#include "SmartMatrix.h"
 #include <lib/FlexIO_t4/FlexIO_t4.h> // requires FlexIO_t4 library from https://github.com/KurtE/FlexIO_t4
 #include <lib/FlexIO_t4/FlexIOSPI.h>
 

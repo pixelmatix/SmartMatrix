@@ -6,7 +6,7 @@
 
   - Make sure you have the Adafruit_GFX Library installed in Arduino (you can use Arduino Library Manager)
   - add `#define SUPPORT_ADAFRUIT_GFX_LIBRARY` at top of sketch (this is needed for any sketch to tell SmartMatrix Library that Adafruit_GFX is present, not just this sketch)
-    - Add this *before* #include <SmartMatrix3.h>
+    - Add this *before* #include <SmartMatrix.h>
   - change the name of the ALLOCATE layer macros, adding "GFX_" before "LAYER":
     - change SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER() to SMARTMATRIX_ALLOCATE_BACKGROUND_GFX_LAYER()
     - change SMARTMATRIX_ALLOCATE_SCROLLING_LAYER() to SMARTMATRIX_ALLOCATE_SCROLLING_GFX_LAYER()
@@ -22,7 +22,7 @@
 //#include <MatrixHardware_Teensy4_ShieldV4Adapter.h> // Teensy 4 Adapter attached to SmartLED Shield for Teensy 3 (V4)
 //#include <MatrixHardware_ESP32_V0.h>                // This file contains multiple ESP32 hardware configurations, edit the file to define GPIOPINOUT (or add #define GPIOPINOUT with a hardcoded number before this #include)
 //#include "MatrixHardware_Custom.h"                  // Copy an existing MatrixHardware file to your Sketch directory, rename, customize, and you can include it like this
-#include <SmartMatrix3.h>
+#include <SmartMatrix.h>
 
 #define COLOR_DEPTH 24                  // Choose the color depth used for storing pixels in the layers: 24 or 48 (24 is good for most sketches - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24)
 const uint16_t kMatrixWidth = 32;       // Set to the width of your display, must be a multiple of 8
