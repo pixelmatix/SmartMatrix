@@ -50,7 +50,7 @@ template <int dummyvar>
 void frameShiftCompleteISR(void);    
 
 template <int dummyvar>
-bool SmartMatrixRefreshHUB75_NT<dummyvar>::isFrameBufferFree(void) {
+bool SmartMatrixHub75Refresh_NT<dummyvar>::isFrameBufferFree(void) {
     if(cbIsFull(&dmaBuffer))
         return false;
     else
@@ -58,35 +58,35 @@ bool SmartMatrixRefreshHUB75_NT<dummyvar>::isFrameBufferFree(void) {
 }
 
 template <int dummyvar>
-MATRIX_DATA_STORAGE_TYPE * SmartMatrixRefreshHUB75_NT<dummyvar>::getNextFrameBufferPtr(void) {
+MATRIX_DATA_STORAGE_TYPE * SmartMatrixHub75Refresh_NT<dummyvar>::getNextFrameBufferPtr(void) {
     return matrixUpdateFrames[cbGetNextWrite(&dmaBuffer)];
 }
 
 template <int dummyvar>
-void SmartMatrixRefreshHUB75_NT<dummyvar>::writeFrameBuffer(uint8_t currentFrame) {
-    //SmartMatrixRefreshHUB75_NT<dummyvar>::frameStruct * currentFramePtr = SmartMatrixRefreshHUB75_NT<dummyvar>::getNextFrameBufferPtr();
+void SmartMatrixHub75Refresh_NT<dummyvar>::writeFrameBuffer(uint8_t currentFrame) {
+    //SmartMatrixHub75Refresh_NT<dummyvar>::frameStruct * currentFramePtr = SmartMatrixHub75Refresh_NT<dummyvar>::getNextFrameBufferPtr();
     i2s_parallel_flip_to_buffer(&I2S1, cbGetNextWrite(&dmaBuffer));
     cbWrite(&dmaBuffer);
 }
 
 template <int dummyvar>
-void SmartMatrixRefreshHUB75_NT<dummyvar>::recoverFromDmaUnderrun(void) {
+void SmartMatrixHub75Refresh_NT<dummyvar>::recoverFromDmaUnderrun(void) {
 
 }
 
 template <int dummyvar>
-void SmartMatrixRefreshHUB75_NT<dummyvar>::setMatrixCalculationsCallback(matrix_calc_callback f) {
+void SmartMatrixHub75Refresh_NT<dummyvar>::setMatrixCalculationsCallback(matrix_calc_callback f) {
     setShiftCompleteCallback(f);
     matrixCalcCallback = f;
 }
 
 template <int dummyvar>
 
-void SmartMatrixRefreshHUB75_NT<dummyvar>::setBrightness(uint8_t newBrightness) {
+void SmartMatrixHub75Refresh_NT<dummyvar>::setBrightness(uint8_t newBrightness) {
 }
 
 template <int dummyvar>
-void SmartMatrixRefreshHUB75_NT<dummyvar>::setRefreshRate(uint16_t newRefreshRate) {
+void SmartMatrixHub75Refresh_NT<dummyvar>::setRefreshRate(uint16_t newRefreshRate) {
     if(newRefreshRate > MIN_REFRESH_RATE)
         minRefreshRate = newRefreshRate;
     else
@@ -94,12 +94,12 @@ void SmartMatrixRefreshHUB75_NT<dummyvar>::setRefreshRate(uint16_t newRefreshRat
 }
 
 template <int dummyvar>
-uint16_t SmartMatrixRefreshHUB75_NT<dummyvar>::getRefreshRate(void) {
+uint16_t SmartMatrixHub75Refresh_NT<dummyvar>::getRefreshRate(void) {
     return refreshRate;
 }
 
 template <int dummyvar>
-void SmartMatrixRefreshHUB75_NT<dummyvar>::begin(uint32_t dmaRamToKeepFreeBytes) {
+void SmartMatrixHub75Refresh_NT<dummyvar>::begin(uint32_t dmaRamToKeepFreeBytes) {
     cbInit(&dmaBuffer, ESP32_NUM_FRAME_BUFFERS);
 
     printf("Starting SmartMatrix DMA Mallocs\r\n");
@@ -459,12 +459,12 @@ void SmartMatrixRefreshHUB75_NT<dummyvar>::begin(uint32_t dmaRamToKeepFreeBytes)
 }
 
 template <int dummyvar>
-void SmartMatrixRefreshHUB75_NT<dummyvar>::markRefreshComplete(void) {
+void SmartMatrixHub75Refresh_NT<dummyvar>::markRefreshComplete(void) {
     if(!cbIsEmpty(&dmaBuffer))
         cbRead(&dmaBuffer);
 }
 
 template <int dummyvar>
-uint8_t SmartMatrixRefreshHUB75_NT<dummyvar>::getLsbMsbTransitionBit(void) {
+uint8_t SmartMatrixHub75Refresh_NT<dummyvar>::getLsbMsbTransitionBit(void) {
     return lsbMsbTransitionBit;
 }

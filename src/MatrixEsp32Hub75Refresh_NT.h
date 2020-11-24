@@ -37,12 +37,12 @@
 
 // use a dummy template, as a way to allow class to be defined in header and not separate .cpp file (to help manage #include matrixhardware* files)
 template <int dummyvar>
-class SmartMatrixRefreshHUB75_NT {
+class SmartMatrixHub75Refresh_NT {
 public:
     typedef void (*matrix_calc_callback)(void);
 
     // init
-    SmartMatrixRefreshHUB75_NT(uint16_t width, uint16_t height, uint8_t depth, uint8_t type, uint32_t options) :
+    SmartMatrixHub75Refresh_NT(uint16_t width, uint16_t height, uint8_t depth, uint8_t type, uint32_t options) :
         matrixWidth(width), matrixHeight(height), optionFlags(options), panelType(type), refreshDepth(depth) {
             // load parameter defaults
             refreshRate = 120;

@@ -51,26 +51,26 @@ template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char pan
 void frameShiftCompleteISR(void);    
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
-CircularBuffer_SM SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer;
+CircularBuffer_SM SmartMatrixHub75Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
-uint16_t SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refreshRate = 120;
+uint16_t SmartMatrixHub75Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refreshRate = 120;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
-uint16_t SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::minRefreshRate = 120;
+uint16_t SmartMatrixHub75Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::minRefreshRate = 120;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
-uint8_t SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::lsbMsbTransitionBit = 0;
+uint8_t SmartMatrixHub75Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::lsbMsbTransitionBit = 0;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
-typename SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::frameStruct * SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateFrames[ESP32_NUM_FRAME_BUFFERS];
+typename SmartMatrixHub75Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::frameStruct * SmartMatrixHub75Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixUpdateFrames[ESP32_NUM_FRAME_BUFFERS];
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
-SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::SmartMatrixRefreshHUB75(void) {
+SmartMatrixHub75Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::SmartMatrixHub75Refresh(void) {
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
-bool SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::isFrameBufferFree(void) {
+bool SmartMatrixHub75Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::isFrameBufferFree(void) {
     if(cbIsFull(&dmaBuffer))
         return false;
     else
@@ -78,37 +78,37 @@ bool SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType,
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
-typename SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::frameStruct * SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getNextFrameBufferPtr(void) {
+typename SmartMatrixHub75Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::frameStruct * SmartMatrixHub75Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getNextFrameBufferPtr(void) {
     return matrixUpdateFrames[cbGetNextWrite(&dmaBuffer)];
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
-void SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::writeFrameBuffer(uint8_t currentFrame) {
-    //SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::frameStruct * currentFramePtr = SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getNextFrameBufferPtr();
+void SmartMatrixHub75Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::writeFrameBuffer(uint8_t currentFrame) {
+    //SmartMatrixHub75Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::frameStruct * currentFramePtr = SmartMatrixHub75Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getNextFrameBufferPtr();
     i2s_parallel_flip_to_buffer(&I2S1, cbGetNextWrite(&dmaBuffer));
     cbWrite(&dmaBuffer);
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
-void SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::recoverFromDmaUnderrun(void) {
+void SmartMatrixHub75Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::recoverFromDmaUnderrun(void) {
 
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
-typename SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrix_calc_callback SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalcCallback;
+typename SmartMatrixHub75Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrix_calc_callback SmartMatrixHub75Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::matrixCalcCallback;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
-void SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setMatrixCalculationsCallback(matrix_calc_callback f) {
+void SmartMatrixHub75Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setMatrixCalculationsCallback(matrix_calc_callback f) {
     setShiftCompleteCallback(f);
     matrixCalcCallback = f;
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
-void SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setBrightness(uint8_t newBrightness) {
+void SmartMatrixHub75Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setBrightness(uint8_t newBrightness) {
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
-void SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRefreshRate(uint16_t newRefreshRate) {
+void SmartMatrixHub75Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setRefreshRate(uint16_t newRefreshRate) {
     if(newRefreshRate > MIN_REFRESH_RATE)
         minRefreshRate = newRefreshRate;
     else
@@ -116,12 +116,12 @@ void SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType,
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
-uint16_t SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getRefreshRate(void) {
+uint16_t SmartMatrixHub75Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getRefreshRate(void) {
     return refreshRate;
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
-void SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin(uint32_t dmaRamToKeepFreeBytes) {
+void SmartMatrixHub75Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::begin(uint32_t dmaRamToKeepFreeBytes) {
     cbInit(&dmaBuffer, ESP32_NUM_FRAME_BUFFERS);
 
     printf("Starting SmartMatrix DMA Mallocs\r\n");
@@ -467,12 +467,12 @@ void SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType,
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
-void SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::markRefreshComplete(void) {
-    if(!cbIsEmpty(&SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer))
-        cbRead(&SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer);
+void SmartMatrixHub75Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::markRefreshComplete(void) {
+    if(!cbIsEmpty(&SmartMatrixHub75Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer))
+        cbRead(&SmartMatrixHub75Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBuffer);
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
-uint8_t SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getLsbMsbTransitionBit(void) {
+uint8_t SmartMatrixHub75Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getLsbMsbTransitionBit(void) {
     return lsbMsbTransitionBit;
 }

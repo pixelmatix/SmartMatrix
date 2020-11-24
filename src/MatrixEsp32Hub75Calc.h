@@ -28,14 +28,14 @@ extern SemaphoreHandle_t calcTaskSemaphore;
 extern void matrixCalculationsSignal(void);
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
-class SmartMatrix3 {
+class SmartMatrixHub75Calc {
 public:
-    typedef typename SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::frameStruct frameStruct;
-    typedef typename SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowDataStruct rowDataStruct;
-    typedef typename SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowBitStruct rowBitStruct;
+    typedef typename SmartMatrixHub75Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::frameStruct frameStruct;
+    typedef typename SmartMatrixHub75Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowDataStruct rowDataStruct;
+    typedef typename SmartMatrixHub75Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowBitStruct rowBitStruct;
 
     // init
-    SmartMatrix3(void);
+    SmartMatrixHub75Calc(void);
     void begin(uint32_t dmaRamToKeepFreeBytes = 0);
     void addLayer(SM_Layer * newlayer);
 

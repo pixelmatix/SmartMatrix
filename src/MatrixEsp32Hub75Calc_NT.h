@@ -29,10 +29,10 @@ extern void matrixCalculationsSignal(void);
 
 // use a dummy template, as a way to allow class to be defined in header and not separate .cpp file (to help manage #include matrixhardware* files)
 template <int dummyvar>
-class SmartMatrix3_NT {
+class SmartMatrixHub75Calc_NT {
 public:
     // init
-    SmartMatrix3_NT(SmartMatrixRefreshHUB75_NT<0>* matrixRefresh, uint16_t width, uint16_t height, uint8_t depth, uint8_t type, uint32_t options) :
+    SmartMatrixHub75Calc_NT(SmartMatrixHub75Refresh_NT<0>* matrixRefresh, uint16_t width, uint16_t height, uint8_t depth, uint8_t type, uint32_t options) :
         _matrixRefresh(matrixRefresh), matrixWidth(width), matrixHeight(height), optionFlags(options), panelType(type), refreshDepth(depth), pixels_per_latch(PIXELS_PER_LATCH),
         matrix_panel_height(MATRIX_PANEL_HEIGHT), matrix_stack_height(MATRIX_STACK_HEIGHT), color_depth_bits(COLOR_DEPTH_BITS), matrix_scan_mod(MATRIX_SCAN_MOD),
         cols_per_panel(COLS_PER_PANEL), physical_rows_per_refresh_row(PHYSICAL_ROWS_PER_REFRESH_ROW), row_pair_offset(ROW_PAIR_OFFSET) {
@@ -119,7 +119,7 @@ private:
     int multiRowRefresh_PixelOffsetFromPanelsAlreadyMapped;
     int multiRowRefresh_NumPanelsAlreadyMapped;
 
-    SmartMatrixRefreshHUB75_NT<0> * _matrixRefresh;
+    SmartMatrixHub75Refresh_NT<0> * _matrixRefresh;
     const uint32_t optionFlags;
     const uint8_t panelType;
     const uint16_t matrixWidth;

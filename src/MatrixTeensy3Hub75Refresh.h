@@ -25,7 +25,7 @@
 #define SmartMatrixHUB75Refresh_h
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
-class SmartMatrixRefreshHUB75 {
+class SmartMatrixHub75Refresh {
 public:
     struct timerpair {
         uint16_t timer_oe;
@@ -62,7 +62,7 @@ public:
     typedef void (*matrix_calc_callback)(bool initial);
 
     // init
-    SmartMatrixRefreshHUB75(uint8_t bufferrows, rowDataStruct * rowDataBuffer);
+    SmartMatrixHub75Refresh(uint8_t bufferrows, rowDataStruct * rowDataBuffer);
     static void begin(void);
 
     // refresh API

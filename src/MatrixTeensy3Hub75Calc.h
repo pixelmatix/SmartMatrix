@@ -25,12 +25,12 @@
 #define SmartMatrixHUB75Calc_h
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
-class SmartMatrix3 {
+class SmartMatrixHub75Calc {
 public:
-    typedef typename SmartMatrixRefreshHUB75<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowDataStruct rowDataStruct;
+    typedef typename SmartMatrixHub75Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::rowDataStruct rowDataStruct;
 
     // init
-    SmartMatrix3(uint8_t bufferrows, rowDataStruct * rowDataBuffer);
+    SmartMatrixHub75Calc(uint8_t bufferrows, rowDataStruct * rowDataBuffer);
     void begin(void);
     void addLayer(SM_Layer * newlayer);
 

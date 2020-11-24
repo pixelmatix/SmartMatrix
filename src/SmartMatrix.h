@@ -88,9 +88,9 @@
     // TODO: use same definition for Teensy 3.x and 4.x HUB75 SMARTMATRIX_ALLOCATE_BUFFERS() if possible 
     #if !defined(__IMXRT1062__) // Teensy 3.x
         #define SMARTMATRIX_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
-            static DMAMEM SmartMatrixRefreshHUB75<pwm_depth, width, height, panel_type, option_flags>::rowDataStruct rowsDataBuffer[buffer_rows]; \
-            SmartMatrixRefreshHUB75<pwm_depth, width, height, panel_type, option_flags> matrix_name##Refresh(buffer_rows, rowsDataBuffer); \
-            SmartMatrix3<pwm_depth, width, height, panel_type, option_flags> matrix_name(buffer_rows, rowsDataBuffer)
+            static DMAMEM SmartMatrixHub75Refresh<pwm_depth, width, height, panel_type, option_flags>::rowDataStruct rowsDataBuffer[buffer_rows]; \
+            SmartMatrixHub75Refresh<pwm_depth, width, height, panel_type, option_flags> matrix_name##Refresh(buffer_rows, rowsDataBuffer); \
+            SmartMatrixHub75Calc<pwm_depth, width, height, panel_type, option_flags> matrix_name(buffer_rows, rowsDataBuffer)
         #define SMARTMATRIX_APA_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
             static DMAMEM SmartMatrixAPA102Refresh<pwm_depth, width, height, panel_type, option_flags>::frameDataStruct frameDataBuffer[buffer_rows]; \
             SmartMatrixAPA102Refresh<pwm_depth, width, height, panel_type, option_flags> matrix_name##Refresh(buffer_rows, frameDataBuffer); \
@@ -99,7 +99,7 @@
         #define SMARTMATRIX_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
             static volatile DMAMEM SmartMatrixRefreshT4<pwm_depth, width, height, panel_type, option_flags>::rowDataStruct rowsDataBuffer[buffer_rows]; \
             SmartMatrixRefreshT4<pwm_depth, width, height, panel_type, option_flags> matrix_name##Refresh(buffer_rows, rowsDataBuffer); \
-            SmartMatrix3<pwm_depth, width, height, panel_type, option_flags> matrix_name(buffer_rows, rowsDataBuffer)
+            SmartMatrixHub75Calc<pwm_depth, width, height, panel_type, option_flags> matrix_name(buffer_rows, rowsDataBuffer)
         #define SMARTMATRIX_APA_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
             FlexIOSPI SPIFLEX(FLEXIO_PIN_APA102_DAT, FLEXIO_PIN_APA102_DAT, FLEXIO_PIN_APA102_CLK); /* overlapping MOSI pin on MISO as we don't need MISO */ \
             static DMAMEM SmartMatrixAPA102Refresh<pwm_depth, width, height, panel_type, option_flags>::frameDataStruct frameDataBuffer[buffer_rows]; \
@@ -142,12 +142,12 @@
 
 #if defined(ESP32)
     #define SMARTMATRIX_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
-        SmartMatrixRefreshHUB75<pwm_depth, width, height, panel_type, option_flags> matrix_name##Refresh; \
-        SmartMatrix3<pwm_depth, width, height, panel_type, option_flags> matrix_name
+        SmartMatrixHub75Refresh<pwm_depth, width, height, panel_type, option_flags> matrix_name##Refresh; \
+        SmartMatrixHub75Calc<pwm_depth, width, height, panel_type, option_flags> matrix_name
 
     #define SMARTMATRIX_ALLOCATE_BUFFERS_NT(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
-        static SmartMatrixRefreshHUB75_NT<0> matrix_name##Refresh(width, height, pwm_depth, panel_type, option_flags); \
-        static SmartMatrix3_NT<0> matrix_name(&matrix_name##Refresh, width, height, pwm_depth, panel_type, option_flags)
+        static SmartMatrixHub75Refresh_NT<0> matrix_name##Refresh(width, height, pwm_depth, panel_type, option_flags); \
+        static SmartMatrixHub75Calc_NT<0> matrix_name(&matrix_name##Refresh, width, height, pwm_depth, panel_type, option_flags)
 
     #define SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(layer_name, width, height, storage_depth, background_options) \
         typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \

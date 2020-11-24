@@ -248,7 +248,7 @@ void apaRowShiftCompleteISR(void) {
 
     // TODO: if underrun
         // set flag so other ISR can enable DMA again when data is ready
-        //SmartMatrix3<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBufferUnderrun = true;
+        //SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::dmaBufferUnderrun = true;
     // else, start SPI
     SPI.endTransaction();
 

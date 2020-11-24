@@ -29,7 +29,7 @@
 #define ESP32_NUM_FRAME_BUFFERS   2
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
-class SmartMatrixRefreshHUB75 {
+class SmartMatrixHub75Refresh {
 public:
     struct rowBitStruct {
         MATRIX_DATA_STORAGE_TYPE data[PIXELS_PER_LATCH + CLKS_DURING_LATCH];
@@ -46,7 +46,7 @@ public:
     typedef void (*matrix_calc_callback)(void);
 
     // init
-    SmartMatrixRefreshHUB75();
+    SmartMatrixHub75Refresh();
     static void begin(uint32_t dmaRamToKeepFreeBytes = 0);
 
     // refresh API
