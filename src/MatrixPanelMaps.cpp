@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "MatrixCommonHUB75.h"
+#include "MatrixCommonHub75.h"
 #include "MatrixPanelMaps.h"
 
 // use this for all linear panels (e.g. panels that draw a single left-to-right line for each RGB channel)

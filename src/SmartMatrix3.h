@@ -41,7 +41,7 @@
 #include "Layer_GFX_Mono.h"
 #endif
 
-#include "MatrixCommonHUB75.h"
+#include "MatrixCommonHub75.h"
 
 #include "MatrixCommonApa102.h"
 #include "MatrixCommonApa102Refresh.h"
@@ -54,8 +54,8 @@
 #include "MatrixPanelMaps.h"
 
 #if defined(__arm__) && defined(CORE_TEENSY) && !defined(__IMXRT1062__)  // Teensy 3.x
-    #include "MatrixTeensy3HUB75Refresh.h"
-    #include "MatrixTeensy3HUB75Calc.h"
+    #include "MatrixTeensy3Hub75Refresh.h"
+    #include "MatrixTeensy3Hub75Calc.h"
 #endif
 
 #if defined(__IMXRT1062__) // Teensy 4.0/4.1
@@ -64,10 +64,10 @@
 #endif
 
 #if defined(ESP32)
-    #include "MatrixESP32HUB75Refresh.h"
-    #include "MatrixESP32HUB75Calc.h"
-    #include "MatrixESP32HUB75Refresh_NT.h"
-    #include "MatrixESP32HUB75Calc_NT.h"
+    #include "MatrixEsp32Hub75Refresh.h"
+    #include "MatrixEsp32Hub75Calc.h"
+    #include "MatrixEsp32Hub75Refresh_NT.h"
+    #include "MatrixEsp32Hub75Calc_NT.h"
 #endif
 
 #include "MatrixCommonApa102Refresh.h"
@@ -171,9 +171,9 @@
 
 // platform-specific
 #if defined(__arm__) && defined(CORE_TEENSY) && !defined(__IMXRT1062__)  // Teensy 3.x
-    #include "MatrixTeensy3HUB75Refresh_Impl.h"
+    #include "MatrixTeensy3Hub75Refresh_Impl.h"
     #include "MatrixTeensy3Apa102Refresh_Impl.h"
-    #include "MatrixTeensy3HUB75Calc_Impl.h"
+    #include "MatrixTeensy3Hub75Calc_Impl.h"
     #include "MatrixCommonApa102Calc_Impl.h"
 #endif
 
@@ -185,10 +185,10 @@
 #endif
 
 #if defined(ESP32)
-    #include "MatrixESP32HUB75Refresh_Impl.h"
-    #include "MatrixESP32HUB75Calc_Impl.h"
-    #include "MatrixESP32HUB75Refresh_NT_Impl.h"
-    #include "MatrixESP32HUB75Calc_NT_Impl.h"
+    #include "MatrixEsp32Hub75Refresh_Impl.h"
+    #include "MatrixEsp32Hub75Calc_Impl.h"
+    #include "MatrixEsp32Hub75Refresh_NT_Impl.h"
+    #include "MatrixEsp32Hub75Calc_NT_Impl.h"
 #endif
 
 #endif

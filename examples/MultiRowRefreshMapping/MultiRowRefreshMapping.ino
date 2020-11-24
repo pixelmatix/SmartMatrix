@@ -50,7 +50,7 @@
  *
  * How to add a map and new panel config to SmartMatrix Library
  * - Follow the format in PanelMaps.cpp, and add your map with a unique name
- * - Open SmartMatrixCommonHUB75.h, add a new definition at the top for your panel.  Give it the format
+ * - Open SmartMatrixCommonHub75.h, add a new definition at the top for your panel.  Give it the format
  * - SM_PANELTYPE_NUMROW_NUMCOL_MODNSCAN filling in NUMROW, NUMCOL, MODNSCAN 
  * - Add entries for your new panelType to the CONVERT_PANELTYPE_TO_... Definitions
  *   - CONVERT_PANELTYPE_TO_MATRIXPANELHEIGHT - height of your panel

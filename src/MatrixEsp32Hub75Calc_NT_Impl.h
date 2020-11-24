@@ -22,7 +22,7 @@
  */
 
 #include "SmartMatrix3.h"
-#include "ESP32MemDisplay.h"
+#include "Esp32MemDisplay.h"
 
 #define INLINE __attribute__( ( always_inline ) ) inline
 
