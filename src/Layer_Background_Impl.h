@@ -482,16 +482,16 @@ void SMLayerBackground<RGB, optionFlags>::fillCircle(int16_t x0, int16_t y0, uin
 // from https://web.archive.org/web/20120225095359/http://homepage.smc.edu/kennedy_john/belipse.pdf
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackground<RGB, optionFlags>::drawEllipse(int16_t x0, int16_t y0, uint16_t radiusX, uint16_t radiusY, const RGB& color) {
-    int16_t twoASquare = 2 * radiusX * radiusX;
-    int16_t twoBSquare = 2 * radiusY * radiusY;
+    int32_t twoASquare = 2 * radiusX * radiusX;
+    int32_t twoBSquare = 2 * radiusY * radiusY;
     
-    int16_t x = radiusX;
-    int16_t y = 0;
-    int16_t changeX = radiusY * radiusY * (1 - (2 * radiusX));
-    int16_t changeY = radiusX * radiusX;
-    int16_t ellipseError = 0;
-    int16_t stoppingX = twoBSquare * radiusX;
-    int16_t stoppingY = 0;
+    int32_t x = radiusX;
+    int32_t y = 0;
+    int32_t changeX = radiusY * radiusY * (1 - (2 * radiusX));
+    int32_t changeY = radiusX * radiusX;
+    int32_t ellipseError = 0;
+    int32_t stoppingX = twoBSquare * radiusX;
+    int32_t stoppingY = 0;
     
     while (stoppingX >= stoppingY) {    // first set of points, y' > -1
         drawPixel(x0 + x, y0 + y, color);
@@ -696,7 +696,7 @@ void SMLayerBackground<RGB, optionFlags>::fillFlatSideTriangleInt(int16_t x1, in
     int16_t t1x, t2x, t1y, t2y;
     bool changed1 = false;
     bool changed2 = false;
-    int8_t signx1, signx2, signy1, signy2;
+    int16_t signx1, signx2, signy1, signy2;
     int16_t dx1, dy1, dx2, dy2;
     int i;
     int16_t e1, e2;
