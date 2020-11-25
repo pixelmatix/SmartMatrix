@@ -2,7 +2,9 @@
 
 SmartMatrix Library is designed to refresh HUB75 LED matrix panels and APA102-compatible addressable LEDs with high quality graphics, using simple Arduino sketches.
 
-![128x64 HUB75 Panel Driven with SmartLED Shield for Teensy 4](examples.gif)
+<p align="center">![](extras/photos/examples.gif)</p>
+
+<p align="center">*128x64 HUB75 Panel Driven with SmartLED Shield for Teensy 4*</p>
 
 SmartMatrix Library 4 has support for Teensy 4.1, Teensy 4.0, Teensy 3.6, Teensy 3.5, Teensy 3.2/3.1, Teensy 3.0, as well as experimental support for ESP32.
 
@@ -11,6 +13,11 @@ The code to refresh HUB75 panels takes advantage of platform-specific peripheral
 ## Hardware
 
 SmartMatrix Library runs best on the Teensy 4.0 and 4.1 using the SmartLED Shield for Teensy 4, available from [Crowd Supply](https://www.crowdsupply.com/pixelmatix/smartled-shield-for-teensy-4) and other distributors.  If you want to use the less powerful but more mature Teensy 3, you can use the SmartLED Shield for Teensy 3, available from [Adafruit](https://www.adafruit.com/product/1902), [SparkFun](http://sparkfun.com/products/15046), [Digi-Key](https://www.digikey.com/product-detail/en/sparkfun-electronics/DEV-15046/1568-1954-ND/9739875), and other distributors around the globe.  The shield doesn't require any soldering to get started, besides putting pins on your Teensy board.
+
+<p align="center">![](extras/photos/slsv4.jpg)</p>
+
+<p align="center">*SmartLED Shield for Teensy 3 - Photo Courtesy Adafruit*</p>
+
 
 There's an [adapter PCB design](https://community.pixelmatix.com/t/teensy-4-0-released/498/32) to upgrade SmartLED Shield for Teensy 3 to work with the Teensy 4.
 
