@@ -2,11 +2,11 @@
 
 SmartMatrix Library is designed to refresh HUB75 LED matrix panels and APA102-compatible addressable LEDs with high quality graphics, using simple Arduino sketches.
 
-<p align="center">
+<p align="center" markdown="1">
 ![](extras/photos/examples.gif)
 </p>
 
-<p align="center">
+<p align="center" markdown="1">
 *128x64 HUB75 Panel Driven with SmartLED Shield for Teensy 4*
 </p>
 
