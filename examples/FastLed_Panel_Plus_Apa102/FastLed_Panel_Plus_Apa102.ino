@@ -7,6 +7,7 @@
  *
  * This version of the example shows how to draw to an APA102 strip connected to the SmartLED Shield
  * for Teensy 3 (V4) or SmartLED Shield for Teensy 4 (V5) in parallel with the matrix panel.
+ *
  * The ESP32 platorm is not supported
  *
  * Note that the APA102 matrix is mapped inside the controller with normal rectangular coordiantes,
