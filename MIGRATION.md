@@ -1,3 +1,14 @@
+# Migrating from SmartMatrix 3.x to SmartMatrix 4.0
+There are some minor changes needed to migrate a SmartMatrix 3.x sketch to SmartMatrix 4.0:
+
+- Change `#include <SmartMatrix3.h>` to `#include <SmartMatrix.h>` or if you need to for some reason change to `#include <SmartMatrix4.h>`
+
+The way you select your hardware type has changed:
+
+- If you're using a bare Teensy 3 (no latch circuit), or SmartMatrix Shield V1-V3, now you need to add `#include <MatrixHardware_Teensy3_ShieldV1toV3.h>` before `#include <SmartMatrix.h>`
+- If you're using a SmartLED Shield for Teensy 3 (V4), or you added an external latch circuit, you need to add `#include <MatrixHardware_Teensy3_ShieldV4.h>` before `#include <SmartMatrix.h>`
+- If you see `#include <SmartLEDShieldV4.h>` at the top of your sketch, remove that and replace with `#include <MatrixHardware_Teensy3_ShieldV4.h>`
+
 # Migrating from SmartMatrix 2.x to SmartMatrix 3.0
 SmartMatrix 3.0 has separated out the single SmartMatrix class into a core class for refreshing the display, and separate layer classes for storing data.  The library is not backwards compatible with sketches created for SmartMatrix 2.x, but by following this document it should be relatively easy to update your sketches to get access to the new features.  You can have SmartMatrix3 installed in parallel with an existing SmartMatrix_32x32 or SmartMatrix_16x32 library without conflicts.
 
