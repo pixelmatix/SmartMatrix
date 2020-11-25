@@ -49,7 +49,13 @@ The ESP32 platform is supported with SmartMatrix Library 4.0, but not all featur
 
 ## HUB75 Panels
 
+HUB75 RGB panels are typically used for LED billboards (e.g. Times Square), making them cost-effective and readily available. They’re much cheaper per-pixel than addressable LEDs, and available in a wide range of pixel pitch (as of now, 2 mm spacing up to 10 mm spacing per LED). They do require an external controller to continually send data to the panels to refresh them line by line, and that’s where the SmartLED Shield and SmartMatrix library come in. Adafruit, Sparkfun, and other distributors carry panels that are known to be compatible with SmartLED Shield and the SmartMatrix library, but most panels on AliExpress and other sources are compatible as well.
 
+The pixel pitch and "RGB" are good search terms on Aliexpress, e.g. "P6 RGB" for a 6 mm pitch RGB HUB75 panel.
+
+![](extras/photos/hub75panels.jpg)
+
+HUB75 Panels Ranging from P2 to P10 pitch
 
 ## Getting Started
 
