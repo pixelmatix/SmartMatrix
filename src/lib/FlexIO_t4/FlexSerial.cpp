@@ -1,3 +1,4 @@
+#if defined(__IMXRT1062__) // Teensy 4.0/4.1
 #include "FlexSerial.h"
 #define BAUDRATE 115200
 #define FLEXIO1_CLOCK (480000000L/16) // Again assuming default clocks?
@@ -415,3 +416,4 @@ bool FlexSerial::call_back (FlexIOHandler *pflex) {
 
 	return false;  // right now always return false... 
 }
+#endif
