@@ -1,4 +1,11 @@
 /*
+ * SpectrumAnalyzer Analog Example
+ *
+ * This version uses an ADC input to receive an Audio signal
+ * Tested with Teensy 3
+ * Not compatible (as of publishing with the Teensy 4)
+ * Not compatible with ESP32
+ * 
  * Based on SpectrumAnalyzerBasic by Paul Stoffregen included in the Teensy Audio Library
  * Modified by Jason Coon for the SmartMatrix Library
  * Requires Teensyduino 1.20 or higher and the Teensy Audio Library
