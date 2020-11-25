@@ -1,6 +1,6 @@
 # SmartMatrix Library for Teensy 3, Teensy 4, and ESP32
 
-The **teensy4** branch of the SmartMatrix Library is currently the most up-to-date version of the library, and will eventually be released as SmartMatrix Library 4.0. It is built on the **teensylc** branch and has support for Teensy 4.1, Teensy 4.0, Teensy 3.6, Teensy 3.5, Teensy 3.2/3.1, Teensy 3.0, as well as experimental support for ESP32.
+SmartMatrix Library 4 has support for Teensy 4.1, Teensy 4.0, Teensy 3.6, Teensy 3.5, Teensy 3.2/3.1, Teensy 3.0, as well as experimental support for ESP32.
 
 Compared to SmartMatrix Library 3.x, this branch has extensive refactoring of the Calculation and Refresh classes that allowed the library to be extended to more platforms, and to support HUB75 panels with non-standard mapping.
 
@@ -10,6 +10,8 @@ Note: in the few years this branch has been in development, the `SMARTMATRIX_OPT
 
 The biggest feature in this new branch is Teensy 4 support, with the new SmartLED Shield for Teensy 4, [currently being launched on Crowd Supply](https://www.crowdsupply.com/pixelmatix/smartled-shield-for-teensy-4)
 
+Todo: add link to more distributors as they start selling SmartLED Shield for Teensy 4
+
 In the meantime you can use the prototype SmartLED Shield for Teensy 4 design in the extras/hardware folder, or the T4toT3Adapter design ([details here](https://community.pixelmatix.com/t/teensy-4-0-released/498/32?u=louis)) which can be plugged into a SmartLED Shield for Teensy 3.
 
 The V0 SmartLED Shield for Teensy 4 is close to the final version, the only significant change that is planned is the default settings of the APA102 jumpers, to use FlexIO pins 4/5 by default.  (The T4toT3Adapter already uses pins 4/5 by default)
@@ -18,18 +20,19 @@ Teensy 4 support was contributed by [Eric Eason](https://github.com/easone)
 
 Teensy 4 APA102 support depends on FlexIO_t4 by KurtE, which is included as a submodule in `src/lib/`.  The original FlexIO_t4 library is [on GitHub](https://github.com/KurtE/FlexIO_t4)
 
-See Teensy 4 focused Todo list here: https://github.com/pixelmatix/SmartMatrix/issues/124
-
 ## ESP32
 
 For details on the ESP32 port, see the [Wiki](https://github.com/pixelmatix/SmartMatrix/wiki/ESP32-Wiring)
 
 ## Changes from SmartMatrix Library 3.x
 
-- Sketches written for SmartMatrix Library 3.x should work with this branch with few changes as of now.
-- A `MatrixHardware*.h` file must be included to tell the library which hardware you're using.  The file doesn't have to be inside the library, it can be inside your sketch folder if you want to use custom hardware.
+- Sketches written for SmartMatrix Library 3.x should work with this branch with few changes.
+- See MIGRATION.md for details on how to update your SmartMatrix Library 3.x sketches for SmartMatrix Library 4.x
+- Todo: add more changes
 
 Todo: Keep this readme very high level, and move the detailed documentation to the [SmartMatrix Wiki](https://github.com/pixelmatix/SmartMatrix/wiki).
+
+Todo: rework the old README content below
 
 ## Overview (old, based on SmartMatrix Library 3.x)
 

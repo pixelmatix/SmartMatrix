@@ -8,6 +8,7 @@ The way you select your hardware type has changed:
 - If you're using a bare Teensy 3 (no latch circuit), or SmartMatrix Shield V1-V3, now you need to add `#include <MatrixHardware_Teensy3_ShieldV1toV3.h>` before `#include <SmartMatrix.h>`
 - If you're using a SmartLED Shield for Teensy 3 (V4), or you added an external latch circuit, you need to add `#include <MatrixHardware_Teensy3_ShieldV4.h>` before `#include <SmartMatrix.h>`
 - If you see `#include <SmartLEDShieldV4.h>` at the top of your sketch, remove that and replace with `#include <MatrixHardware_Teensy3_ShieldV4.h>`
+- If you had to modify SmartMatrix Library to customize pinout or other hardware changes, you may be able to make those changes with a custom MatrixHardware header file inside your sketch now.  Copy the MatrixHardware header file closest to your custom hardware from the library /src/ folder, give it a custom name inside your sketch folder and include it before `#include <SmartMatrix.h>`
 
 SmartMatrix Library 3.x and 4.x can coexist in the Arduino Libraries Folder:
 
