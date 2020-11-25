@@ -44,13 +44,13 @@
 #endif
 
 #define LATCH_TIMER_PULSE_WIDTH_TICKS   NS_TO_TICKS(LATCH_TIMER_PULSE_WIDTH_NS)
-#define TICKS_PER_ROW   (TIMER_FREQUENCY/refreshRate/MATRIX_SCAN_MOD)
-#define IDEAL_MSB_BLOCK_TICKS     (TICKS_PER_ROW/2)
-#define MIN_BLOCK_PERIOD_NS (LATCH_TO_CLK_DELAY_NS + ((PANEL_32_PIXELDATA_TRANSFER_MAXIMUM_NS*PIXELS_PER_LATCH)/32))
-#define MIN_BLOCK_PERIOD_TICKS NS_TO_TICKS(MIN_BLOCK_PERIOD_NS)
+#define TICKS_PER_ROW                   (TIMER_FREQUENCY/refreshRate/MATRIX_SCAN_MOD)
+#define IDEAL_MSB_BLOCK_TICKS           (TICKS_PER_ROW/2) * (1<<LATCHES_PER_ROW) / ((1<<LATCHES_PER_ROW) - 1)
+#define MIN_BLOCK_PERIOD_NS             (LATCH_TO_CLK_DELAY_NS + ((PANEL_32_PIXELDATA_TRANSFER_MAXIMUM_NS*PIXELS_PER_LATCH)/32))
+#define MIN_BLOCK_PERIOD_TICKS          NS_TO_TICKS(MIN_BLOCK_PERIOD_NS)
 
 // slower refresh rates require larger timer values - get the min refresh rate from the largest MSB value that will fit in the timer (round up)
-#define MIN_REFRESH_RATE    (((TIMER_FREQUENCY/65535)/MATRIX_SCAN_MOD/2) + 1)
+#define MIN_REFRESH_RATE                (((TIMER_FREQUENCY)/65535*(1<<LATCHES_PER_ROW)/((1<<LATCHES_PER_ROW) - 1)/(MATRIX_SCAN_MOD)/2) + 1) // cannot refresh slower than this due to PWM register overflow
 
 #define TIMER_REGISTERS_TO_UPDATE   2
 
