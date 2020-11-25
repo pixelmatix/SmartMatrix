@@ -2,9 +2,13 @@
 
 SmartMatrix Library is designed to refresh HUB75 LED matrix panels and APA102-compatible addressable LEDs with high quality graphics, using simple Arduino sketches.
 
-<p align="center">![](extras/photos/examples.gif)</p>
+<p align="center">
+![](extras/photos/examples.gif)
+</p>
 
-<p align="center">*128x64 HUB75 Panel Driven with SmartLED Shield for Teensy 4*</p>
+<p align="center">
+*128x64 HUB75 Panel Driven with SmartLED Shield for Teensy 4*
+</p>
 
 SmartMatrix Library 4 has support for Teensy 4.1, Teensy 4.0, Teensy 3.6, Teensy 3.5, Teensy 3.2/3.1, Teensy 3.0, as well as experimental support for ESP32.
 
