@@ -92,7 +92,6 @@
 
 #define USE_SMARTMATRIX         1
 #define ENABLE_SCROLLING        1
-#define START_WITH_RANDOM_GIF   1
 
 // range 0-255
 const int defaultBrightness = 255;
@@ -175,11 +174,6 @@ void setup() {
     // NOTE: new callback function required after we moved to using the external AnimatedGIF library to decode GIFs
     decoder.setFileSizeCallback(fileSizeCallback);
 
-#if (START_WITH_RANDOM_GIF == 1)
-    // Seed the random number generator
-    randomSeed(analogRead(14));
-#endif
-
     Serial.begin(115200);
     Serial.println("Starting AnimatedGIFs Sketch");
 
@@ -252,11 +246,7 @@ void loop() {
 
     unsigned long now = millis();
 
-#if (START_WITH_RANDOM_GIF == 1)
-    static int index = random(num_files);
-#else
     static int index = 0;
-#endif   
 
 #if 1
     // default behavior is to play the gif for DISPLAY_TIME_SECONDS or for NUMBER_FULL_CYCLES, whichever comes first
