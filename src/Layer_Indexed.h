@@ -1,7 +1,7 @@
 /*
  * SmartMatrix Library - Indexed Layer Class
  *
- * Copyright (c) 2015 Louis Beaudoin (Pixelmatix)
+ * Copyright (c) 2020 Louis Beaudoin (Pixelmatix)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -36,10 +36,11 @@ template <typename RGB, unsigned int optionFlags>
 class SMLayerIndexed : public SM_Layer {
     public:
         SMLayerIndexed(uint8_t * bitmap, uint16_t width, uint16_t height);
+        SMLayerIndexed(uint16_t width, uint16_t height);
+        void begin(void);
         void frameRefreshCallback();
-        void fillRefreshRow(uint16_t hardwareY, rgb48 refreshRow[]);
-        void fillRefreshRow(uint16_t hardwareY, rgb24 refreshRow[]);
-
+        void fillRefreshRow(uint16_t hardwareY, rgb48 refreshRow[], int brightnessShifts = 0);
+        void fillRefreshRow(uint16_t hardwareY, rgb24 refreshRow[], int brightnessShifts = 0);
 
         void enableColorCorrection(bool enabled);
 
@@ -65,7 +66,6 @@ class SMLayerIndexed : public SM_Layer {
         // double buffered to prevent flicker while drawing
         uint8_t * indexedBitmap;
 
-        void handleBufferCopy(void);
 
         RGB color;
         unsigned char currentframe = 0;
@@ -88,7 +88,11 @@ class SMLayerIndexed : public SM_Layer {
         int scrollMin, scrollMax;
         int scrollPosition;
 
-        volatile bool copyPending = false;
+        // keeping track of drawing buffers
+        volatile unsigned char currentDrawBuffer;
+        volatile unsigned char currentRefreshBuffer;
+        volatile bool swapPending;
+        void handleBufferSwap(void);
 
         bitmap_font *layerFont = (bitmap_font *) &apple3x5;
 };
@@ -96,4 +100,3 @@ class SMLayerIndexed : public SM_Layer {
 #include "Layer_Indexed_Impl.h"
 
 #endif
-

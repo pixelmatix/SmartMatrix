@@ -1,7 +1,7 @@
 /*
  * SmartMatrix Library - Methods for accessing bitmap fonts
  *
- * Copyright (c) 2015 Louis Beaudoin (Pixelmatix)
+ * Copyright (c) 2020 Louis Beaudoin (Pixelmatix)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -57,6 +57,7 @@ typedef enum fontChoices {
 bool getBitmapFontPixelAtXY(unsigned char letter, unsigned char x, unsigned char y, const bitmap_font *font);
 const bitmap_font *fontLookup(fontChoices font);
 uint16_t getBitmapFontRowAtXY(unsigned char letter, unsigned char y, const bitmap_font *font);
+bool getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap);
 
 /// @{ defines to have human readable font files
 #define ________ 0x00

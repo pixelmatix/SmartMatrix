@@ -1,7 +1,1 @@
-#ifndef SMARTMATRIX_V4_H
-#define SMARTMATRIX_V4_H
-
-#define V4HEADER 1
-#include "SmartMatrix3.h"
-
-#endif
+#pragma GCC error "SmartLEDShieldV4.h is deprecated, use #include <MatrixHardware_Teensy3_ShieldV4.h> at the top of your sketch instead"

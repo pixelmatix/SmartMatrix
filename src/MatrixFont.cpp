@@ -1,7 +1,7 @@
 /*
  * SmartMatrix Library - Methods for accessing bitmap fonts
  *
- * Copyright (c) 2015 Louis Beaudoin (Pixelmatix)
+ * Copyright (c) 2020 Louis Beaudoin (Pixelmatix)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "SmartMatrix3.h"
+#include "MatrixFontCommon.h"
 
 // depends on letters in font->Index table being arranged in ascending order
 // save location of last lookup to speed up repeated lookups of the same letter
@@ -78,6 +78,13 @@ uint16_t getBitmapFontRowAtXY(unsigned char letter, unsigned char y, const bitma
         return 0x0000;
 
     return(font->Bitmap[(location * font->Height) + y]);
+}
+
+bool getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap) {
+    int cell = (y * ((width / 8) + 1)) + (x / 8);
+
+    uint8_t mask = 0x80 >> (x % 8);
+    return (mask & bitmap[cell]);
 }
 
 // order needs to match fontChoices enum

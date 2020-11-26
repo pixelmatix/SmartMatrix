@@ -1,3 +1,20 @@
+# Migrating from SmartMatrix 3.x to SmartMatrix 4.0
+There are some minor changes needed to migrate a SmartMatrix 3.x sketch to SmartMatrix 4.0:
+
+- Change `#include <SmartMatrix3.h>` to `#include <SmartMatrix.h>` or alternately change to `#include <SmartMatrix4.h>`
+
+The way you select your hardware type has changed:
+
+- If you're using a bare Teensy 3 (no latch circuit), or SmartMatrix Shield V1-V3, now you need to add `#include <MatrixHardware_Teensy3_ShieldV1toV3.h>` before `#include <SmartMatrix.h>`
+- If you're using a SmartLED Shield for Teensy 3 (V4), or you added an external latch circuit, you need to add `#include <MatrixHardware_Teensy3_ShieldV4.h>` before `#include <SmartMatrix.h>`
+- If you see `#include <SmartLEDShieldV4.h>` at the top of your sketch, remove that and replace with `#include <MatrixHardware_Teensy3_ShieldV4.h>`
+- If you had to modify SmartMatrix Library to customize pinout or other hardware changes, you may be able to make those changes with a custom MatrixHardware header file inside your sketch now.  Copy the MatrixHardware header file closest to your custom hardware from the library /src/ folder, give it a custom name inside your sketch folder and include it before `#include <SmartMatrix.h>`
+
+SmartMatrix Library 3.x and 4.x can coexist in the Arduino Libraries Folder:
+
+- Add the two libraries in unique folders, e.g. "SmartMatrix3" and "SmartMatrix4" (you'll need to download from GitHub and not use Arduino Library Manager for at least one of the libraries)
+- Use `#include <SmartMatrix3.h>` to include SmartMatrix 3.x in your sketch, and `#include <SmartMatrix.h>` or or `#include <SmartMatrix4.h>` to include SmartMatrix 4.x in your sketch
+
 # Migrating from SmartMatrix 2.x to SmartMatrix 3.0
 SmartMatrix 3.0 has separated out the single SmartMatrix class into a core class for refreshing the display, and separate layer classes for storing data.  The library is not backwards compatible with sketches created for SmartMatrix 2.x, but by following this document it should be relatively easy to update your sketches to get access to the new features.  You can have SmartMatrix3 installed in parallel with an existing SmartMatrix_32x32 or SmartMatrix_16x32 library without conflicts.
 
@@ -39,12 +56,12 @@ Replace with:
 
 ```
 #define COLOR_DEPTH 24                  // known working: 24, 48 - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
-const uint8_t kMatrixWidth = 32;        // known working: 32, 64, 96, 128
-const uint8_t kMatrixHeight = 32;       // known working: 16, 32, 48, 64
+const uint16_t kMatrixWidth = 32;        // known working: 32, 64, 96, 128
+const uint16_t kMatrixHeight = 32;       // known working: 16, 32, 48, 64
 const uint8_t kRefreshDepth = 36;       // known working: 24, 36, 48
 const uint8_t kDmaBufferRows = 4;       // known working: 2-4, use 2 to save memory, more to keep from dropping frames and automatically lowering refresh rate
 const uint8_t kPanelType = SMARTMATRIX_HUB75_32ROW_MOD16SCAN;   // use SMARTMATRIX_HUB75_16ROW_MOD8SCAN for common 16x32 panels
-const uint8_t kMatrixOptions = (SMARTMATRIX_OPTIONS_NONE);      // see http://docs.pixelmatix.com/SmartMatrix for options
+const uint32_t kMatrixOptions = (SMARTMATRIX_OPTIONS_NONE);      // see http://docs.pixelmatix.com/SmartMatrix for options
 const uint8_t kBackgroundLayerOptions = (SM_BACKGROUND_OPTIONS_NONE);
 const uint8_t kScrollingLayerOptions = (SM_SCROLLING_OPTIONS_NONE);
 const uint8_t kIndexedLayerOptions = (SM_INDEXED_OPTIONS_NONE);
@@ -325,12 +342,12 @@ FastLED_ControllerMigration.ino:18:23: error: 'MATRIX_WIDTH' was not declared in
 Add the Allocation code to your sketch, following FastLED_Functions as an example of where it goes:
 ```
 #define COLOR_DEPTH 24                  // This sketch and FastLED uses type `rgb24` directly, COLOR_DEPTH must be 24
-const uint8_t kMatrixWidth = 32;        // known working: 32, 64, 96, 128
-const uint8_t kMatrixHeight = 32;       // known working: 16, 32, 48, 64
+const uint16_t kMatrixWidth = 32;        // known working: 32, 64, 96, 128
+const uint16_t kMatrixHeight = 32;       // known working: 16, 32, 48, 64
 const uint8_t kRefreshDepth = 36;       // known working: 24, 36, 48
 const uint8_t kDmaBufferRows = 4;       // known working: 2-4, use 2 to save memory, more to keep from dropping frames and automatically lowering refresh rate
 const uint8_t kPanelType = SMARTMATRIX_HUB75_32ROW_MOD16SCAN;   // use SMARTMATRIX_HUB75_16ROW_MOD8SCAN for common 16x32 panels
-const uint8_t kMatrixOptions = (SMARTMATRIX_OPTIONS_NONE);      // see http://docs.pixelmatix.com/SmartMatrix for options
+const uint32_t kMatrixOptions = (SMARTMATRIX_OPTIONS_NONE);      // see http://docs.pixelmatix.com/SmartMatrix for options
 const uint8_t kBackgroundLayerOptions = (SM_BACKGROUND_OPTIONS_NONE);
 const uint8_t kScrollingLayerOptions = (SM_SCROLLING_OPTIONS_NONE);
 
@@ -338,8 +355,6 @@ SMARTMATRIX_ALLOCATE_BUFFERS(matrix, kMatrixWidth, kMatrixHeight, kRefreshDepth,
 SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kBackgroundLayerOptions);
 SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
 ```
-
-
 
 If your sketch has a `#define` for `kMatrixWidth` and `kMatrixHeight`, remove those definitions as they are now a constant in the allocation section.
 

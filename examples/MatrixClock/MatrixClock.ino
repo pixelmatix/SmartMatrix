@@ -7,7 +7,14 @@
  * https://www.pjrc.com/teensy/td_libs_DS1307RTC.html
  *
  * Requires a DS1307, DS1337 or DS3231 RTC chip connected to
- * Teensy pins 16 (SCL) and 17 (SDA)
+ * Teensy pins 19 (SCL) and 18 (SDA)
+ * 
+ * Use 3.3V power for RTC module and I2S Pullup Resistors as some Teensy modules aren't 5V tolerant
+ *
+ * If using an old (V1-V3) SmartMatrix Shield or bare Teensy 3 with address pins connected to your matrix
+ * you'll need to connect Teensy pins 16 (SCL) and 17 (SDA), and uncomment the alternate pin code below
+ *
+ * Not tested, and most likely doesn't work on ESP32
  * 
  * This SmartMatrix example uses just the indexed color layer
  */
@@ -15,28 +22,35 @@
 #include <Wire.h>
 #include <Time.h>
 #include <DS1307RTC.h>
-#include <SmartLEDShieldV4.h>  // comment out this line for if you're not using SmartLED Shield V4 hardware (this line needs to be before #include <SmartMatrix3.h>)
-#include <SmartMatrix3.h>
 
-#define COLOR_DEPTH 24                  // known working: 24, 48 - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
-const uint8_t kMatrixWidth = 32;        // known working: 32, 64, 96, 128
-const uint8_t kMatrixHeight = 32;       // known working: 16, 32, 48, 64
-const uint8_t kRefreshDepth = 36;       // known working: 24, 36, 48
-const uint8_t kDmaBufferRows = 4;       // known working: 2-4, use 2 to save memory, more to keep from dropping frames and automatically lowering refresh rate
-const uint8_t kPanelType = SMARTMATRIX_HUB75_32ROW_MOD16SCAN; // use SMARTMATRIX_HUB75_16ROW_MOD8SCAN for common 16x32 panels, or use SMARTMATRIX_HUB75_64ROW_MOD32SCAN for common 64x64 panels
-const uint8_t kMatrixOptions = (SMARTMATRIX_OPTIONS_NONE);      // see http://docs.pixelmatix.com/SmartMatrix for options
+// uncomment one line to select your MatrixHardware configuration - configuration header needs to be included before <SmartMatrix.h>
+//#include <MatrixHardware_Teensy3_ShieldV4.h>        // SmartLED Shield for Teensy 3 (V4)
+//#include <MatrixHardware_Teensy4_ShieldV5.h>        // SmartLED Shield for Teensy 4 (V5)
+//#include <MatrixHardware_Teensy3_ShieldV1toV3.h>    // SmartMatrix Shield for Teensy 3 V1-V3
+//#include <MatrixHardware_Teensy4_ShieldV4Adapter.h> // Teensy 4 Adapter attached to SmartLED Shield for Teensy 3 (V4)
+//#include <MatrixHardware_ESP32_V0.h>                // This file contains multiple ESP32 hardware configurations, edit the file to define GPIOPINOUT (or add #define GPIOPINOUT with a hardcoded number before this #include)
+//#include "MatrixHardware_Custom.h"                  // Copy an existing MatrixHardware file to your Sketch directory, rename, customize, and you can include it like this
+#include <SmartMatrix.h>
+
+#define COLOR_DEPTH 24                  // Choose the color depth used for storing pixels in the layers: 24 or 48 (24 is good for most sketches - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24)
+const uint16_t kMatrixWidth = 32;       // Set to the width of your display, must be a multiple of 8
+const uint16_t kMatrixHeight = 32;      // Set to the height of your display
+const uint8_t kRefreshDepth = 36;       // Tradeoff of color quality vs refresh rate, max brightness, and RAM usage.  36 is typically good, drop down to 24 if you need to.  On Teensy, multiples of 3, up to 48: 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48.  On ESP32: 24, 36, 48
+const uint8_t kDmaBufferRows = 4;       // known working: 2-4, use 2 to save RAM, more to keep from dropping frames and automatically lowering refresh rate.  (This isn't used on ESP32, leave as default)
+const uint8_t kPanelType = SM_PANELTYPE_HUB75_32ROW_MOD16SCAN;   // Choose the configuration that matches your panels.  See more details in MatrixCommonHub75.h and the docs: https://github.com/pixelmatix/SmartMatrix/wiki
+const uint32_t kMatrixOptions = (SM_HUB75_OPTIONS_NONE);        // see docs for options: https://github.com/pixelmatix/SmartMatrix/wiki
 const uint8_t kIndexedLayerOptions = (SM_INDEXED_OPTIONS_NONE);
 
 SMARTMATRIX_ALLOCATE_BUFFERS(matrix, kMatrixWidth, kMatrixHeight, kRefreshDepth, kDmaBufferRows, kPanelType, kMatrixOptions);
 SMARTMATRIX_ALLOCATE_INDEXED_LAYER(indexedLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kIndexedLayerOptions);
 
-const int defaultBrightness = (100*255)/100;    // full (100%) brightness
-//const int defaultBrightness = (15*255)/100;    // dim: 15% brightness
+const int defaultBrightness = (100*255)/100;      // full (100%) brightness
+//const int defaultBrightness = (15*255)/100;     // dim: 15% brightness
 
 const SM_RGB clockColor = {0xff, 0xff, 0xff};
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   delay(200);
   Serial.println("DS1307RTC Read Test");
   Serial.println("-------------------");
@@ -45,12 +59,18 @@ void setup() {
   matrix.addLayer(&indexedLayer); 
   matrix.begin();
 
-  /* I2C Changes Needed for SmartMatrix Shield */
+  /* I2C Changes Needed for old SmartMatrix Shield (V1-V3) or bare Teensy 3 with address pins connected to matrix */
   // switch pins to use 16/17 for I2C instead of 18/19, after calling matrix.begin()//
+#if 0
   pinMode(18, INPUT);
   pinMode(19, INPUT);
   CORE_PIN16_CONFIG = (PORT_PCR_MUX(2) | PORT_PCR_PE | PORT_PCR_PS);
   CORE_PIN17_CONFIG = (PORT_PCR_MUX(2) | PORT_PCR_PE | PORT_PCR_PS);
+
+  // These code might work instead, but haven't been tested
+  //Wire.setSDA(17);
+  //Wire.setSCL(16);
+#endif
 
   // display a simple message - will stay on the screen if calls to the RTC library fail later
   indexedLayer.fillScreen(0);

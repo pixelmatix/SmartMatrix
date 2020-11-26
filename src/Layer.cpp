@@ -1,7 +1,7 @@
 /*
  * SmartMatrix Library - Generic Layer Class
  *
- * Copyright (c) 2015 Louis Beaudoin (Pixelmatix)
+ * Copyright (c) 2020 Louis Beaudoin (Pixelmatix)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -24,9 +24,9 @@
 #include "Layer.h"
 
 void SM_Layer::setRotation(rotationDegrees newrotation) {
-    rotation = newrotation;
+    layerRotation = newrotation;
 
-    if (rotation == rotation0 || rotation == rotation180) {
+    if (layerRotation == rotation0 || layerRotation == rotation180) {
         localWidth = matrixWidth;
         localHeight = matrixHeight;
     } else {
@@ -37,4 +37,12 @@ void SM_Layer::setRotation(rotationDegrees newrotation) {
 
 void SM_Layer::setRefreshRate(uint8_t newRefreshRate) {
     refreshRate = newRefreshRate;
+}
+
+int SM_Layer::getRequestedBrightnessShifts() {
+    return 0;
+}
+
+bool SM_Layer::isLayerChanged() {
+    return true;
 }

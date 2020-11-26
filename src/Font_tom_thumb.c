@@ -5,8 +5,16 @@
 
 #include "MatrixFontCommon.h"
 
+#if defined(__IMXRT1062__) // For Teensy 4.0/4.1, use PROGMEM to keep font bitmaps in flash
+  #define PROGMEM __attribute__((section(".progmem"))) // from <avr/pgmspace.h>
+#else
+  #if !defined(PROGMEM)
+    #define PROGMEM
+  #endif
+#endif
+
 	/// character bitmap for each encoding
-static const unsigned char __tomthumb_bitmap__[] = {
+static const PROGMEM unsigned char __tomthumb_bitmap__[] = {
 //  32 $20 'space'
 //	width 4, bbx 3, bby 4, bbw 1, bbh 1
 	________,
@@ -1634,7 +1642,7 @@ static const unsigned char __tomthumb_bitmap__[] = {
 };
 
 	/// character encoding for each index entry
-static const unsigned short __tomthumb_index__[] = {
+static const PROGMEM unsigned short __tomthumb_index__[] = {
 	32,
 	33,
 	34,
@@ -1848,4 +1856,3 @@ const struct bitmap_font tomthumb = {
 	.Index = __tomthumb_index__,
 	.Bitmap = __tomthumb_bitmap__,
 };
-

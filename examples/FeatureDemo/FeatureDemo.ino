@@ -1,33 +1,65 @@
 /*
-    SmartMatrix Features Demo - Louis Beaudoin (Pixelmatix)
-    This example code is released into the public domain
+  SmartMatrix Features Demo - Louis Beaudoin (Pixelmatix)
+  This example code is released into the public domain
+
+  (New in SmartMatrix Library 4.0) To update a SmartMatrix Library sketch to use Adafruit_GFX compatible layers:
+
+  - Make sure you have the Adafruit_GFX Library installed in Arduino (you can use Arduino Library Manager)
+  - add `#define SUPPORT_ADAFRUIT_GFX_LIBRARY` at top of sketch (this is needed for any sketch to tell SmartMatrix Library that Adafruit_GFX is present, not just this sketch)
+    - Add this *before* #include <SmartMatrix.h>
+  - change the name of the ALLOCATE layer macros, adding "GFX_" before "LAYER":
+    - change SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER() to SMARTMATRIX_ALLOCATE_BACKGROUND_GFX_LAYER()
+    - change SMARTMATRIX_ALLOCATE_SCROLLING_LAYER() to SMARTMATRIX_ALLOCATE_SCROLLING_GFX_LAYER()
+    - change SMARTMATRIX_ALLOCATE_INDEXED_LAYER() to SMARTMATRIX_ALLOCATE_INDEXED_GFX_LAYER()
 */
 
-#include <SmartLEDShieldV4.h>  // comment out this line for if you're not using SmartLED Shield V4 hardware (this line needs to be before #include <SmartMatrix3.h>)
-#include <SmartMatrix3.h>
+//#define SUPPORT_ADAFRUIT_GFX_LIBRARY
+
+// uncomment one line to select your MatrixHardware configuration - configuration header needs to be included before <SmartMatrix.h>
+//#include <MatrixHardware_Teensy3_ShieldV4.h>        // SmartLED Shield for Teensy 3 (V4)
+//#include <MatrixHardware_Teensy4_ShieldV5.h>        // SmartLED Shield for Teensy 4 (V5)
+//#include <MatrixHardware_Teensy3_ShieldV1toV3.h>    // SmartMatrix Shield for Teensy 3 V1-V3
+//#include <MatrixHardware_Teensy4_ShieldV4Adapter.h> // Teensy 4 Adapter attached to SmartLED Shield for Teensy 3 (V4)
+//#include <MatrixHardware_ESP32_V0.h>                // This file contains multiple ESP32 hardware configurations, edit the file to define GPIOPINOUT (or add #define GPIOPINOUT with a hardcoded number before this #include)
+//#include "MatrixHardware_Custom.h"                  // Copy an existing MatrixHardware file to your Sketch directory, rename, customize, and you can include it like this
+#include <SmartMatrix.h>
+
+#define COLOR_DEPTH 24                  // Choose the color depth used for storing pixels in the layers: 24 or 48 (24 is good for most sketches - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24)
+const uint16_t kMatrixWidth = 32;       // Set to the width of your display, must be a multiple of 8
+const uint16_t kMatrixHeight = 32;      // Set to the height of your display
+const uint8_t kRefreshDepth = 36;       // Tradeoff of color quality vs refresh rate, max brightness, and RAM usage.  36 is typically good, drop down to 24 if you need to.  On Teensy, multiples of 3, up to 48: 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48.  On ESP32: 24, 36, 48
+const uint8_t kDmaBufferRows = 4;       // known working: 2-4, use 2 to save RAM, more to keep from dropping frames and automatically lowering refresh rate.  (This isn't used on ESP32, leave as default)
+const uint8_t kPanelType = SM_PANELTYPE_HUB75_32ROW_MOD16SCAN;   // Choose the configuration that matches your panels.  See more details in MatrixCommonHub75.h and the docs: https://github.com/pixelmatix/SmartMatrix/wiki
+const uint32_t kMatrixOptions = (SM_HUB75_OPTIONS_NONE);        // see docs for options: https://github.com/pixelmatix/SmartMatrix/wiki
+
+SMARTMATRIX_ALLOCATE_BUFFERS(matrix, kMatrixWidth, kMatrixHeight, kRefreshDepth, kDmaBufferRows, kPanelType, kMatrixOptions);
+
+#ifdef SUPPORT_ADAFRUIT_GFX_LIBRARY
+  const uint8_t kBackgroundLayerOptions = (SM_BACKGROUND_GFX_OPTIONS_NONE);
+  const uint8_t kScrollingLayerOptions = (SM_GFX_MONO_OPTIONS_NONE);
+  const uint8_t kIndexedLayerOptions = (SM_GFX_MONO_OPTIONS_NONE);
+  SMARTMATRIX_ALLOCATE_BACKGROUND_GFX_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kBackgroundLayerOptions);
+  SMARTMATRIX_ALLOCATE_SCROLLING_GFX_LAYER(scrollingLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
+  SMARTMATRIX_ALLOCATE_INDEXED_GFX_LAYER(indexedLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kIndexedLayerOptions);
+#else
+  const uint8_t kBackgroundLayerOptions = (SM_BACKGROUND_OPTIONS_NONE);
+  const uint8_t kScrollingLayerOptions = (SM_SCROLLING_OPTIONS_NONE);
+  const uint8_t kIndexedLayerOptions = (SM_INDEXED_OPTIONS_NONE);
+  SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kBackgroundLayerOptions);
+  SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
+  SMARTMATRIX_ALLOCATE_INDEXED_LAYER(indexedLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kIndexedLayerOptions);
+#endif
+
 #include "colorwheel.c"
 #include "gimpbitmap.h"
 
-#define COLOR_DEPTH 24                  // known working: 24, 48 - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24
-const uint8_t kMatrixWidth = 32;        // known working: 32, 64, 96, 128
-const uint8_t kMatrixHeight = 32;       // known working: 16, 32, 48, 64
-const uint8_t kRefreshDepth = 36;       // known working: 24, 36, 48
-const uint8_t kDmaBufferRows = 4;       // known working: 2-4, use 2 to save memory, more to keep from dropping frames and automatically lowering refresh rate
-const uint8_t kPanelType = SMARTMATRIX_HUB75_32ROW_MOD16SCAN; // use SMARTMATRIX_HUB75_16ROW_MOD8SCAN for common 16x32 panels, or use SMARTMATRIX_HUB75_64ROW_MOD32SCAN for common 64x64 panels
-const uint8_t kMatrixOptions = (SMARTMATRIX_OPTIONS_NONE);      // see http://docs.pixelmatix.com/SmartMatrix for options
-const uint8_t kBackgroundLayerOptions = (SM_BACKGROUND_OPTIONS_NONE);
-const uint8_t kScrollingLayerOptions = (SM_SCROLLING_OPTIONS_NONE);
-const uint8_t kIndexedLayerOptions = (SM_INDEXED_OPTIONS_NONE);
-
-SMARTMATRIX_ALLOCATE_BUFFERS(matrix, kMatrixWidth, kMatrixHeight, kRefreshDepth, kDmaBufferRows, kPanelType, kMatrixOptions);
-SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kBackgroundLayerOptions);
-SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
-SMARTMATRIX_ALLOCATE_INDEXED_LAYER(indexedLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kIndexedLayerOptions);
-
-const int defaultBrightness = (100*255)/100;    // full (100%) brightness
-//const int defaultBrightness = (15*255)/100;    // dim: 15% brightness
+const int defaultBrightness = (100*255)/100;        // full (100%) brightness
+//const int defaultBrightness = (15*255)/100;       // dim: 15% brightness
 const int defaultScrollOffset = 6;
 const rgb24 defaultBackgroundColor = {0x40, 0, 0};
+
+// Teensy 3.0 has the LED on pin 13
+const int ledPin = 13;
 
 void drawBitmap(int16_t x, int16_t y, const gimp32x32bitmap* bitmap) {
   for(unsigned int i=0; i < bitmap->height; i++) {
@@ -43,7 +75,10 @@ void drawBitmap(int16_t x, int16_t y, const gimp32x32bitmap* bitmap) {
 
 // the setup() method runs once, when the sketch starts
 void setup() {
-  Serial.begin(38400);
+  // initialize the digital pin as an output.
+  pinMode(ledPin, OUTPUT);
+
+  Serial.begin(115200);
 
   matrix.addLayer(&backgroundLayer); 
   matrix.addLayer(&scrollingLayer); 
@@ -544,6 +579,7 @@ void loop() {
         scrollingLayer.setMode(wrapForward);
         scrollingLayer.setSpeed(40);
         scrollingLayer.setFont(font6x10);
+
         scrollingLayer.start("Draw Outline, Filled, or Filled with Outline", 1);
 
         uint transitionTime = 8500;
@@ -719,7 +755,7 @@ void loop() {
         scrollingLayer.setFont(font6x10);
         scrollingLayer.start("Built In Fonts", 1);
 
-        const uint transitionTime = 5500;
+        const uint transitionTime = 7500;
         const int delayBetweenCharacters = 1000;
         const int leftEdgeOffset = 1;
 
@@ -750,6 +786,18 @@ void loop() {
         backgroundLayer.setFont(font8x13);
         backgroundLayer.fillScreen({0, 0x80, 0x80});
         backgroundLayer.drawString(leftEdgeOffset, matrix.getScreenHeight() / 2, {0xff, 0, 0}, "8x13");
+        delay(delayBetweenCharacters);
+        backgroundLayer.swapBuffers();
+
+        backgroundLayer.setFont(gohufont11);
+        backgroundLayer.fillScreen({0, 0x80, 0x80});
+        backgroundLayer.drawString(leftEdgeOffset, matrix.getScreenHeight() / 2, {0xff, 0, 0}, "GohuFont8x11");
+        delay(delayBetweenCharacters);
+        backgroundLayer.swapBuffers();
+
+        backgroundLayer.setFont(gohufont11b);
+        backgroundLayer.fillScreen({0, 0x80, 0x80});
+        backgroundLayer.drawString(leftEdgeOffset, matrix.getScreenHeight() / 2, {0xff, 0, 0}, "GohuFont8x11b");
         delay(delayBetweenCharacters);
         backgroundLayer.swapBuffers();
 
@@ -1070,6 +1118,8 @@ void loop() {
             if (fraction > 1.0)
                 fraction = 2.0 - fraction;
             int brightness = fraction * 255.0;
+            // scaling linearly doesn't look good, apply gamma correction to the brightness so the dimming looks smoother
+            brightness = lightPowerMap8bit[brightness];
             matrix.setBrightness(brightness);
 
             char value[] = "000";
@@ -1112,6 +1162,8 @@ void loop() {
             if (fraction > 1.0)
                 fraction = 2.0 - fraction;
             int brightness = fraction * 255.0;
+            // scaling linearly doesn't look good, apply gamma correction to the brightness so the dimming looks smoother
+            brightness = lightPowerMap8bit[brightness];
             matrix.setBrightness(brightness);
 
             char value[] = "000";
@@ -1210,8 +1262,22 @@ void loop() {
             if (fraction > 1.0)
                 fraction = fraction - 1.0;
             int brightness = fraction * 255.0;
+            // scaling linearly doesn't look good, apply gamma correction to the brightness so the dimming looks smoother
+            brightness = lightPowerMap8bit[brightness];
             backgroundLayer.setBrightness(brightness);
+
+            char value[] = "000";
+            value[0] = '0' + brightness / 100;
+            value[1] = '0' + (brightness % 100) / 10;
+            value[2] = '0' + brightness % 10;
+
+            indexedLayer.drawString(12, matrix.getScreenHeight()-1 -5, 1, value);
+            indexedLayer.swapBuffers();
+            indexedLayer.fillScreen(0);
+
         }
+
+        indexedLayer.swapBuffers();
     }
 #endif
 #if (DEMO_INDEXED_LAYER == 1)
@@ -1365,6 +1431,10 @@ void loop() {
         scrollingLayer.setFont(font6x10);
         scrollingLayer.setOffsetFromTop(0);
         scrollingLayer.start("Change Refresh Rate", 1);
+
+#if defined(ESP32)
+        scrollingLayer.start("Changing Refresh Rate is Currently Broken in ESP32", 1);
+#endif
 
         backgroundLayer.fillScreen({0,0,0});
         drawBitmap(0,0,&colorwheel);
