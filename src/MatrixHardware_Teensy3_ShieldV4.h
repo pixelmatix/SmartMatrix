@@ -26,7 +26,7 @@
 #ifndef MATRIX_HARDWARE_H
 #define MATRIX_HARDWARE_H
 
-#pragma message "MatrixHardware: SmartLED Shield for Teensy 3 V4"
+#pragma message "MatrixHardware: SmartLED Shield for Teensy 3 (V4)"
 
 #define DMA_UPDATES_PER_CLOCK           2
 #define ADDX_UPDATE_ON_DATA_PINS

@@ -41,7 +41,7 @@
 #ifndef MATRIX_HARDWARE_H
 #define MATRIX_HARDWARE_H
 
-#pragma message "MatrixHardware: Teensy 4 Wired to SmartLED Shield for Teensy 3 V4"
+#pragma message "MatrixHardware: Teensy 4 Wired to SmartLED Shield for Teensy 3 (V4)"
 
 /* an advanced user may need to tweak these values */
 
