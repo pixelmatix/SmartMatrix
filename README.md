@@ -38,6 +38,7 @@ The ESP32 platform is supported with SmartMatrix Library 4.0, but not all featur
 
 - Sketches written for SmartMatrix Library 3.x should work with SmartMatrix Library 4.0 with a few changes.
 - See MIGRATION.md for details on how to update your SmartMatrix Library 3.x sketches for SmartMatrix Library 4.x
+- A lot of files were subtly renamed, just changing the case.  If you're trying to use git to check out a commit and get an error like `The following untracked working tree files would be overwritten by checkout`, you may need to use git from the  command line and add the `-f` parameter to force checkout (throwaway local modifications), as your git client might think it's overwriting the case-changed files and losing data.
 
 ### New Features in SmartMatrix Library 4.0
 
