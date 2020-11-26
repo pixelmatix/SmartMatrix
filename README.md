@@ -2,7 +2,7 @@
 
 SmartMatrix Library is designed to refresh HUB75 LED matrix panels and APA102-compatible addressable LEDs with high quality graphics, using simple Arduino sketches.
 
-![](extras/photos/examples.gif)
+![](http://www.pixelmatix.com/SmartMatrix/photos/examples.gif)
 
 *128x64 HUB75 Panel Driven with SmartLED Shield for Teensy 4*
 
@@ -14,7 +14,7 @@ The code to refresh HUB75 panels takes advantage of platform-specific peripheral
 
 SmartMatrix Library runs best on the Teensy 4.0 and 4.1 using the SmartLED Shield for Teensy 4, available from [Crowd Supply](https://www.crowdsupply.com/pixelmatix/smartled-shield-for-teensy-4) and other distributors.  If you want to use the less powerful but more mature Teensy 3, you can use the SmartLED Shield for Teensy 3, available from [Adafruit](https://www.adafruit.com/product/1902), [SparkFun](http://sparkfun.com/products/15046), [Digi-Key](https://www.digikey.com/product-detail/en/sparkfun-electronics/DEV-15046/1568-1954-ND/9739875), and other distributors around the globe.  The shield doesn't require any soldering to get started, besides putting pins on your Teensy board.
 
-![](extras/photos/slsv4.jpg)
+![](http://www.pixelmatix.com/SmartMatrix/photos/slsv4.jpg)
 
 *SmartLED Shield for Teensy 3 - Photo Courtesy Adafruit*
 
@@ -54,7 +54,7 @@ HUB75 RGB panels are typically used for LED billboards (e.g. Times Square), maki
 
 The pixel pitch and "RGB" are good search terms on Aliexpress, e.g. "P6 RGB" for a 6 mm pitch RGB HUB75 panel.
 
-![](extras/photos/hub75panels.jpg)
+![](http://www.pixelmatix.com/SmartMatrix/photos/hub75panels.jpg)
 
 HUB75 Panels Ranging from P2 to P10 pitch
 
