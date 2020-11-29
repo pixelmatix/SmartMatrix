@@ -18,7 +18,7 @@ SmartMatrix Library 3.x and 4.x can coexist in the Arduino Libraries Folder:
 # Migrating from SmartMatrix 2.x to SmartMatrix 3.0
 SmartMatrix 3.0 has separated out the single SmartMatrix class into a core class for refreshing the display, and separate layer classes for storing data.  The library is not backwards compatible with sketches created for SmartMatrix 2.x, but by following this document it should be relatively easy to update your sketches to get access to the new features.  You can have SmartMatrix3 installed in parallel with an existing SmartMatrix_32x32 or SmartMatrix_16x32 library without conflicts.
 
-(If you're Updating a sketch using FastLED's SMART_MATRIX controller, see the ["Update FastLED Sketch"](#update-fastled-sketch) section later in the document)
+(If you're Updating a sketch using FastLED's SMART_MATRIX controller, see the ["Porting FastLED Sketch to SmartMatrix"](#porting-fastled-sketch-to-smartmatrix) section later in the document)
 
 
 ## Updating Normal SmartMatrix Sketch
@@ -443,7 +443,7 @@ Now `buffer` can be used like the `leds` array.  For example:
 
 replace with:
 ```
-      buffer[XY(i,j)] = CHSV(noise[j][i],255,noise[i][j]);
+      buffer[XY(i,j)] = CRGB(CHSV(noise[j][i],255,noise[i][j]));
 ```
 
 Keep in mind that you need to get an updated pointer from `backBuffer()` after every call to `swapBuffers()`.  If you call `swapBuffers()` more than once per pass through `loop()`, make sure to update the `buffer` pointer by calling `backBuffer()` after each swap, not just at the top of `loop()`.
