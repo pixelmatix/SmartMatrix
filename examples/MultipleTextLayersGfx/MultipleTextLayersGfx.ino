@@ -20,6 +20,7 @@
 //#include <MatrixHardware_Teensy3_ShieldV1toV3.h>    // SmartMatrix Shield for Teensy 3 V1-V3
 //#include <MatrixHardware_Teensy4_ShieldV4Adapter.h> // Teensy 4 Adapter attached to SmartLED Shield for Teensy 3 (V4)
 //#include <MatrixHardware_ESP32_V0.h>                // This file contains multiple ESP32 hardware configurations, edit the file to define GPIOPINOUT (or add #define GPIOPINOUT with a hardcoded number before this #include)
+#include <MatrixHardware_ESP32_HUB75AdapterLite_V0.h>                // This file contains multiple ESP32 hardware configurations, edit the file to define GPIOPINOUT (or add #define GPIOPINOUT with a hardcoded number before this #include)
 //#include "MatrixHardware_Custom.h"                  // Copy an existing MatrixHardware file to your Sketch directory, rename, customize, and you can include it like this
 #include <SmartMatrix.h>
 
@@ -50,16 +51,33 @@ SMARTMATRIX_ALLOCATE_BUFFERS(matrix, kMatrixWidth, kMatrixHeight, kRefreshDepth,
   SMARTMATRIX_ALLOCATE_BACKGROUND_GFX_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kBackgroundLayerOptions);
 #endif
 
-SMARTMATRIX_ALLOCATE_GFX_MONO_LAYER(scrollingLayer00, kMatrixWidth, kMatrixHeight, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
-SMARTMATRIX_ALLOCATE_GFX_MONO_LAYER(scrollingLayer01, kMatrixWidth, kMatrixHeight, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
-SMARTMATRIX_ALLOCATE_GFX_MONO_LAYER(scrollingLayer02, kMatrixWidth, kMatrixHeight, kMatrixWidth, kMatrixHeight*2, COLOR_DEPTH, kScrollingLayerOptions);
-SMARTMATRIX_ALLOCATE_GFX_MONO_LAYER(scrollingLayer03, kMatrixWidth, kMatrixHeight, kMatrixWidth, kMatrixHeight*2, COLOR_DEPTH, kScrollingLayerOptions);
-SMARTMATRIX_ALLOCATE_GFX_MONO_LAYER(scrollingLayer04, kMatrixWidth, kMatrixHeight, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
-SMARTMATRIX_ALLOCATE_GFX_MONO_LAYER(scrollingLayer05, kMatrixWidth, kMatrixHeight, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
-SMARTMATRIX_ALLOCATE_GFX_MONO_LAYER(scrollingLayer06, kMatrixWidth, kMatrixHeight, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
-SMARTMATRIX_ALLOCATE_GFX_MONO_LAYER(scrollingLayer07, kMatrixWidth, kMatrixHeight, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
-SMARTMATRIX_ALLOCATE_GFX_MONO_LAYER(scrollingLayer08, kMatrixWidth, kMatrixHeight, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
-SMARTMATRIX_ALLOCATE_GFX_MONO_LAYER(scrollingLayer09, kMatrixWidth, kMatrixHeight, kMatrixWidth, kMatrixHeight*2, COLOR_DEPTH, kScrollingLayerOptions);
+// Using the backwards compatible ALLOCATION macro is fine for smaller fonts
+SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer07, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
+SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer08, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
+SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer09, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
+
+// For larger fonts, you need to allocate enough memory to hold the entire scrolling text bitmap (the bounds of all the characters in the string) in memory
+//   and this may be larger than kMatrixWidth*kMatrixHeight.  Use the SMARTMATRIX_ALLOCATE_GFX_MONO_LAYER macro, which allows for setting the character bitmap
+//   to different size than the matrix bounds.  We allocate several times the default amount of memory here:
+SMARTMATRIX_ALLOCATE_GFX_MONO_LAYER(scrollingLayer00, kMatrixWidth, kMatrixHeight, kMatrixWidth*3, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
+
+// Basing the bitmap allocation on the matrix size doesn't make much sense, as the size of the scrolling text is mostly independent of matrix size
+//   Here we allocate an amount of memory that is known to work as a 6kb wide bitmap, with height of 1.  The layer will resize the bitmap to fit the text
+SMARTMATRIX_ALLOCATE_GFX_MONO_LAYER(scrollingLayer01, kMatrixWidth, kMatrixHeight, 6*1024, 1, COLOR_DEPTH, kScrollingLayerOptions);
+
+// The required sizes for some of the layers are printed out to serial, so these layers can be sized exactly to the needed bitmap dimensions
+SMARTMATRIX_ALLOCATE_GFX_MONO_LAYER(scrollingLayer02, kMatrixWidth, kMatrixHeight, 168, 48, COLOR_DEPTH, kScrollingLayerOptions);
+SMARTMATRIX_ALLOCATE_GFX_MONO_LAYER(scrollingLayer03, kMatrixWidth, kMatrixHeight, 224, 40, COLOR_DEPTH, kScrollingLayerOptions);
+
+// The same thing but in total pixels not width/height:
+SMARTMATRIX_ALLOCATE_GFX_MONO_LAYER(scrollingLayer04, kMatrixWidth, kMatrixHeight, 8832, 1, COLOR_DEPTH, kScrollingLayerOptions);
+
+// For small strings/fonts, there's actually a memory savings compared to the previous method of sizing the layer bitmap to the matrix size:
+SMARTMATRIX_ALLOCATE_GFX_MONO_LAYER(scrollingLayer05, kMatrixWidth, kMatrixHeight, 256, 1, COLOR_DEPTH, kScrollingLayerOptions);
+
+// This layer is sized too small, and you'll only see part of the text on the screen, also look for "Layer 06 text doesn't fit" printed to Serial
+SMARTMATRIX_ALLOCATE_GFX_MONO_LAYER(scrollingLayer06, kMatrixWidth, kMatrixHeight, 128, 1, COLOR_DEPTH, kScrollingLayerOptions);
+
 
 const int randomSpeedMax = 120;
 const int randomSpeedMin = 20;
@@ -67,13 +85,16 @@ const int randomSpeedMin = 20;
 // select random offset, from range of what's visible on screen (0 - matrixHeight-layerHeight)
 void chooseRandomVisibleOffset(SMLayerGFXMono<rgb24, rgb1, 0> *layer) {
   // first get the total number of pixels on the screen in the text's vertical direction
-  uint16_t maxHeight = (layer->getLayerRotation() % 2) ? kMatrixWidth : kMatrixHeight;
+  int16_t maxHeight = (layer->getLayerRotation() % 2) ? kMatrixWidth : kMatrixHeight;
 
   // subtract the height of the text
   maxHeight -= layer->getLocalHeight();
 
   // get random number within range 0..maxHeight
-  maxHeight = random(maxHeight);
+  if(maxHeight > 0)
+    maxHeight = random(maxHeight);
+  else
+    maxHeight = 0;
 
   // set offset that keeps the text visible
   layer->setOffsetFromTop(maxHeight);
@@ -97,6 +118,21 @@ rgb24 chooseRandomBrightColor() {
       break;
   }
   return color;
+}
+
+void printDimensionsOfString(const char text[], const GFXfont *font) {
+  // we use scrollingLayer00 for this as it's a temporary test, and we'll set the actual font and text layer
+  uint16_t w, h;
+  scrollingLayer00.setFont(font);
+  scrollingLayer00.getDimensionsOfPrintedString(text, &w, &h);
+  Serial.print(w);
+  Serial.print("x");
+  Serial.print(h);
+  Serial.print(" (");
+  Serial.print(w*h);
+  Serial.print(" pixels, ");
+  Serial.print(w*h/8);
+  Serial.println(" bytes)");
 }
 
 #ifdef INCLUDE_FASTLED_BACKGROUND
@@ -143,6 +179,8 @@ void fillnoise8() {
 #endif
 
 void setup() {
+  Serial.begin(115200);
+
   delay(2000);
 
   randomSeed(analogRead(0));
@@ -166,6 +204,21 @@ void setup() {
   matrix.addLayer(&scrollingLayer09); 
 
   matrix.begin();
+
+  Serial.print("Bitmap size to hold `Layer 00` in font FreeMono12pt7b: ");
+  printDimensionsOfString("Layer 00", &FreeMono12pt7b);
+  Serial.print("Bitmap size to hold `Layer 01` in font FreeMonoBold18pt7b: ");
+  printDimensionsOfString("Layer 01", &FreeMonoBold18pt7b);
+  Serial.print("Bitmap size to hold `Layer 02` in font FreeSerif24pt7b: ");
+  printDimensionsOfString("Layer 02", &FreeSerif24pt7b);
+  Serial.print("Bitmap size to hold `Layer 03` in font FreeMonoBoldOblique24pt7b: ");
+  printDimensionsOfString("Layer 03", &FreeMonoBoldOblique24pt7b);
+  Serial.print("Bitmap size to hold `Layer 04` in font FreeSansOblique24pt7b: ");
+  printDimensionsOfString("Layer 04", &FreeSansOblique24pt7b);
+  Serial.print("Bitmap size to hold `Layer 05` in font Picopixel: ");
+  printDimensionsOfString("Layer 05", &Picopixel);
+  Serial.print("Bitmap size to hold `Layer 06` in font FreeSerifItalic9pt7b: ");
+  printDimensionsOfString("Layer 06", &FreeSerifItalic9pt7b);
 
   scrollingLayer00.setMode((ScrollMode)random(3));
   scrollingLayer01.setMode((ScrollMode)random(3));
@@ -200,16 +253,16 @@ void setup() {
   scrollingLayer08.setSpeed(random(randomSpeedMax-randomSpeedMin) + randomSpeedMin);
   scrollingLayer09.setSpeed(random(randomSpeedMax-randomSpeedMin) + randomSpeedMin);
 
-  scrollingLayer00.setFont(&TomThumb);
-  scrollingLayer01.setFont(&FreeMono12pt7b);
-  scrollingLayer02.setFont(&FreeMonoBold18pt7b);
+  scrollingLayer00.setFont(&FreeMono12pt7b);
+  scrollingLayer01.setFont(&FreeMonoBold18pt7b);
+  scrollingLayer02.setFont(&FreeSerif24pt7b);
   scrollingLayer03.setFont(&FreeMonoBoldOblique24pt7b);
-  scrollingLayer04.setFont(&FreeSerif24pt7b);
-  scrollingLayer05.setFont(&Org_01);
-  scrollingLayer06.setFont(&Picopixel);
-  scrollingLayer07.setFont(&Tiny3x3a2pt7b);
-  scrollingLayer08.setFont(&FreeSerifItalic9pt7b);
-  scrollingLayer09.setFont(&FreeSansOblique24pt7b);
+  scrollingLayer04.setFont(&FreeSansOblique24pt7b);
+  scrollingLayer05.setFont(&Picopixel);
+  scrollingLayer06.setFont(&FreeSerifItalic9pt7b);
+  scrollingLayer07.setFont(&TomThumb);
+  scrollingLayer08.setFont(&Tiny3x3a2pt7b);
+  scrollingLayer09.setFont(&Org_01);
 
   scrollingLayer00.setRotation(random(4));
   scrollingLayer01.setRotation(random(4));
@@ -222,16 +275,26 @@ void setup() {
   scrollingLayer08.setRotation(random(4));
   scrollingLayer09.setRotation(random(4));
 
-  scrollingLayer00.start("Layer 00", -1);
-  scrollingLayer01.start("Layer 01", -1);
-  scrollingLayer02.start("Layer 02", -1);
-  scrollingLayer03.start("Layer 03", -1);
-  scrollingLayer04.start("Layer 04", -1);
-  scrollingLayer05.start("Layer 05", -1);
-  scrollingLayer06.start("Layer 06", -1);
-  scrollingLayer07.start("Layer 07", -1);
-  scrollingLayer08.start("Layer 08", -1);
-  scrollingLayer09.start("Layer 09", -1);
+  if(scrollingLayer00.start("Layer 00", -1) < 0)
+    Serial.println("Layer 00 text doesn't fit");
+  if(scrollingLayer01.start("Layer 01", -1) < 0)
+    Serial.println("Layer 01 text doesn't fit");
+  if(scrollingLayer02.start("Layer 02", -1) < 0)
+    Serial.println("Layer 02 text doesn't fit");
+  if(scrollingLayer03.start("Layer 03", -1) < 0)
+    Serial.println("Layer 03 text doesn't fit");
+  if(scrollingLayer04.start("Layer 04", -1) < 0)
+    Serial.println("Layer 04 text doesn't fit");
+  if(scrollingLayer05.start("Layer 05", -1) < 0)
+    Serial.println("Layer 05 text doesn't fit");
+  if(scrollingLayer06.start("Layer 06", -1) < 0)
+    Serial.println("Layer 06 text doesn't fit");
+  if(scrollingLayer07.start("Layer 07", -1) < 0)
+    Serial.println("Layer 07 text doesn't fit");
+  if(scrollingLayer08.start("Layer 08", -1) < 0)
+    Serial.println("Layer 08 text doesn't fit");
+  if(scrollingLayer09.start("Layer 09", -1) < 0)
+    Serial.println("Layer 09 text doesn't fit");
 
   chooseRandomVisibleOffset(&scrollingLayer00);
   chooseRandomVisibleOffset(&scrollingLayer01);
