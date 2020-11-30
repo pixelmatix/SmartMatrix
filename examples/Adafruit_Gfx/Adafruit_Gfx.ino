@@ -16,7 +16,7 @@
   MIT license, all text above must be included in any redistribution
  ****************************************************/
 
-#define SUPPORT_ADAFRUIT_GFX_LIBRARY
+#define USE_ADAFRUIT_GFX_LAYERS
 
 // uncomment one line to select your MatrixHardware configuration - configuration header needs to be included before <SmartMatrix.h>
 //#include <MatrixHardware_Teensy3_ShieldV4.h>        // SmartLED Shield for Teensy 3 (V4)
@@ -39,11 +39,15 @@ SMARTMATRIX_ALLOCATE_BUFFERS(matrix, kMatrixWidth, kMatrixHeight, kRefreshDepth,
 
 // There are two Adafruit_GFX compatible layers, a Mono layer and an RGB layer, and this example sketch works with either (choose one):
 #if 1
-  const uint8_t kBackgroundLayerOptions = (SM_BACKGROUND_GFX_OPTIONS_NONE);
-  SMARTMATRIX_ALLOCATE_BACKGROUND_GFX_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kBackgroundLayerOptions);
+  const uint8_t kBackgroundLayerOptions = (SM_BACKGROUND_OPTIONS_NONE);
+  SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kBackgroundLayerOptions);
 #else
-  const uint8_t kGFXMonoLayerOptions = (SM_GFX_MONO_OPTIONS_NONE);
-  SMARTMATRIX_ALLOCATE_GFX_MONO_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kGFXMonoLayerOptions);
+  const uint8_t kMonoLayerOptions = (SM_GFX_MONO_OPTIONS_NONE);
+  SMARTMATRIX_ALLOCATE_GFX_MONO_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kMonoLayerOptions);
+  
+  // these backwards compatible ALLOCATE macros also work:
+  //SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kMonoLayerOptions);
+  //SMARTMATRIX_ALLOCATE_INDEXED_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kMonoLayerOptions);
 #endif
 
 // Assign human-readable names to some common 16-bit color values:

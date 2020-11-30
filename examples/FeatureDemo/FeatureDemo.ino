@@ -5,15 +5,12 @@
   (New in SmartMatrix Library 4.0) To update a SmartMatrix Library sketch to use Adafruit_GFX compatible layers:
 
   - Make sure you have the Adafruit_GFX Library installed in Arduino (you can use Arduino Library Manager)
-  - add `#define SUPPORT_ADAFRUIT_GFX_LIBRARY` at top of sketch (this is needed for any sketch to tell SmartMatrix Library that Adafruit_GFX is present, not just this sketch)
+  - add `#define USE_ADAFRUIT_GFX_LAYERS` at top of sketch (this is needed for any sketch to tell SmartMatrix Library that Adafruit_GFX is present, not just this sketch)
     - Add this *before* #include <SmartMatrix.h>
-  - change the name of the ALLOCATE layer macros, adding "GFX_" before "LAYER":
-    - change SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER() to SMARTMATRIX_ALLOCATE_BACKGROUND_GFX_LAYER()
-    - change SMARTMATRIX_ALLOCATE_SCROLLING_LAYER() to SMARTMATRIX_ALLOCATE_SCROLLING_GFX_LAYER()
-    - change SMARTMATRIX_ALLOCATE_INDEXED_LAYER() to SMARTMATRIX_ALLOCATE_INDEXED_GFX_LAYER()
+    - Check the documentation Wiki for more details on why you may or may not want to use these layers
 */
 
-//#define SUPPORT_ADAFRUIT_GFX_LIBRARY
+//#define USE_ADAFRUIT_GFX_LAYERS
 
 // uncomment one line to select your MatrixHardware configuration - configuration header needs to be included before <SmartMatrix.h>
 //#include <MatrixHardware_Teensy3_ShieldV4.h>        // SmartLED Shield for Teensy 3 (V4)
@@ -31,24 +28,22 @@ const uint8_t kRefreshDepth = 36;       // Tradeoff of color quality vs refresh 
 const uint8_t kDmaBufferRows = 4;       // known working: 2-4, use 2 to save RAM, more to keep from dropping frames and automatically lowering refresh rate.  (This isn't used on ESP32, leave as default)
 const uint8_t kPanelType = SM_PANELTYPE_HUB75_32ROW_MOD16SCAN;   // Choose the configuration that matches your panels.  See more details in MatrixCommonHub75.h and the docs: https://github.com/pixelmatix/SmartMatrix/wiki
 const uint32_t kMatrixOptions = (SM_HUB75_OPTIONS_NONE);        // see docs for options: https://github.com/pixelmatix/SmartMatrix/wiki
+const uint8_t kBackgroundLayerOptions = (SM_BACKGROUND_OPTIONS_NONE);
+const uint8_t kScrollingLayerOptions = (SM_SCROLLING_OPTIONS_NONE);
+const uint8_t kIndexedLayerOptions = (SM_INDEXED_OPTIONS_NONE);
 
 SMARTMATRIX_ALLOCATE_BUFFERS(matrix, kMatrixWidth, kMatrixHeight, kRefreshDepth, kDmaBufferRows, kPanelType, kMatrixOptions);
 
-#ifdef SUPPORT_ADAFRUIT_GFX_LIBRARY
-  const uint8_t kBackgroundLayerOptions = (SM_BACKGROUND_GFX_OPTIONS_NONE);
-  const uint8_t kScrollingLayerOptions = (SM_GFX_MONO_OPTIONS_NONE);
-  const uint8_t kIndexedLayerOptions = (SM_GFX_MONO_OPTIONS_NONE);
-  SMARTMATRIX_ALLOCATE_BACKGROUND_GFX_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kBackgroundLayerOptions);
-  SMARTMATRIX_ALLOCATE_SCROLLING_GFX_LAYER(scrollingLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
-  SMARTMATRIX_ALLOCATE_INDEXED_GFX_LAYER(indexedLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kIndexedLayerOptions);
+SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kBackgroundLayerOptions);
+
+#ifdef USE_ADAFRUIT_GFX_LAYERS
+  // there's not enough allocated memory to hold the long strings used by this sketch by default, this increases the memory, but it may not be large enough
+  SMARTMATRIX_ALLOCATE_GFX_MONO_LAYER(scrollingLayer, kMatrixWidth, kMatrixHeight, 6*1024, 1, COLOR_DEPTH, kScrollingLayerOptions);
 #else
-  const uint8_t kBackgroundLayerOptions = (SM_BACKGROUND_OPTIONS_NONE);
-  const uint8_t kScrollingLayerOptions = (SM_SCROLLING_OPTIONS_NONE);
-  const uint8_t kIndexedLayerOptions = (SM_INDEXED_OPTIONS_NONE);
-  SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(backgroundLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kBackgroundLayerOptions);
   SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
-  SMARTMATRIX_ALLOCATE_INDEXED_LAYER(indexedLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kIndexedLayerOptions);
 #endif
+
+SMARTMATRIX_ALLOCATE_INDEXED_LAYER(indexedLayer, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kIndexedLayerOptions);
 
 #include "colorwheel.c"
 #include "gimpbitmap.h"

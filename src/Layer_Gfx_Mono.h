@@ -31,11 +31,6 @@
 // Adafruit_GFX includes
 #include "MatrixGfxFontCommon.h"
 
-#define SMARTMATRIX_ALLOCATE_GFX_MONO_LAYER(layer_name, width, height, layerwidth, layerheight, storage_depth, adafruitgfxlayer_options) \
-    typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
-    static uint8_t layer_name##Bitmap[2 * ROUND_UP_TO_MULTIPLE_OF_8(layerwidth) * (ROUND_UP_TO_MULTIPLE_OF_8(layerheight) / 8)];                                              \
-    static SMLayerGFXMono<RGB_TYPE(storage_depth), rgb1, adafruitgfxlayer_options> layer_name(layer_name##Bitmap, width, height, ROUND_UP_TO_MULTIPLE_OF_8(layerwidth), ROUND_UP_TO_MULTIPLE_OF_8(layerheight))  
-
 #define SM_GFX_MONO_OPTIONS_NONE     0
 
 template <typename RGB_API, typename RGB_STORAGE, unsigned int optionFlags>

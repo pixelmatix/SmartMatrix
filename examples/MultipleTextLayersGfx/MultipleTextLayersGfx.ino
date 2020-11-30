@@ -10,7 +10,7 @@
     128x64 @ 240Hz Refresh even with the pattern updating at 60 FPS!
 */
 
-#define SUPPORT_ADAFRUIT_GFX_LIBRARY
+#define USE_ADAFRUIT_GFX_LAYERS
 
 //#define INCLUDE_FASTLED_BACKGROUND
 
@@ -41,7 +41,7 @@ const uint8_t kRefreshDepth = 36;       // Tradeoff of color quality vs refresh 
 const uint8_t kDmaBufferRows = 4;       // known working: 2-4, use 2 to save RAM, more to keep from dropping frames and automatically lowering refresh rate.  (This isn't used on ESP32, leave as default)
 const uint8_t kPanelType = SM_PANELTYPE_HUB75_32ROW_MOD16SCAN;   // Choose the configuration that matches your panels.  See more details in MatrixCommonHub75.h and the docs: https://github.com/pixelmatix/SmartMatrix/wiki
 const uint32_t kMatrixOptions = (SM_HUB75_OPTIONS_NONE);        // see docs for options: https://github.com/pixelmatix/SmartMatrix/wiki
-const uint8_t kScrollingLayerOptions = (SM_GFX_MONO_OPTIONS_NONE);
+const uint8_t kScrollingLayerOptions = (SM_SCROLLING_OPTIONS_NONE);
 
 SMARTMATRIX_ALLOCATE_BUFFERS(matrix, kMatrixWidth, kMatrixHeight, kRefreshDepth, kDmaBufferRows, kPanelType, kMatrixOptions);
 

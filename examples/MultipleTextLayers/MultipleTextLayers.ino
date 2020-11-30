@@ -5,18 +5,15 @@
   (New in SmartMatrix Library 4.0) To update a SmartMatrix Library sketch to use Adafruit_GFX compatible layers:
 
   - Make sure you have the Adafruit_GFX Library installed in Arduino (you can use Arduino Library Manager)
-  - add `#define SUPPORT_ADAFRUIT_GFX_LIBRARY` at top of sketch (this is needed for any sketch to tell SmartMatrix Library that Adafruit_GFX is present, not just this sketch)
+  - add `#define USE_ADAFRUIT_GFX_LAYERS` at top of sketch (this is needed for any sketch to tell SmartMatrix Library that Adafruit_GFX is present, not just this sketch)
     - Add this *before* #include <SmartMatrix.h>
-  - change the name of the ALLOCATE layer macros, adding "GFX_" before "LAYER":
-    - change SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER() to SMARTMATRIX_ALLOCATE_BACKGROUND_GFX_LAYER()
-    - change SMARTMATRIX_ALLOCATE_SCROLLING_LAYER() to SMARTMATRIX_ALLOCATE_SCROLLING_GFX_LAYER()
-    - change SMARTMATRIX_ALLOCATE_INDEXED_LAYER() to SMARTMATRIX_ALLOCATE_INDEXED_GFX_LAYER()
+    - Check the documentation Wiki for more details on why you may or may not want to use these layers
 
   With the "GFX" layers you're no longer limited to the fonts built into the SmartMatrix Library.  You can use any of the
     fonts included in Adafruit_GFX, or add custom fonts
 */
 
-//#define SUPPORT_ADAFRUIT_GFX_LIBRARY
+//#define USE_ADAFRUIT_GFX_LAYERS
 
 // uncomment one line to select your MatrixHardware configuration - configuration header needs to be included before <SmartMatrix.h>
 //#include <MatrixHardware_Teensy3_ShieldV4.h>        // SmartLED Shield for Teensy 3 (V4)
@@ -37,21 +34,12 @@ const uint32_t kMatrixOptions = (SM_HUB75_OPTIONS_NONE);        // see docs for 
 
 SMARTMATRIX_ALLOCATE_BUFFERS(matrix, kMatrixWidth, kMatrixHeight, kRefreshDepth, kDmaBufferRows, kPanelType, kMatrixOptions);
 
-#ifdef SUPPORT_ADAFRUIT_GFX_LIBRARY
-  const uint8_t kScrollingLayerOptions = (SM_GFX_MONO_OPTIONS_NONE);
-  SMARTMATRIX_ALLOCATE_SCROLLING_GFX_LAYER(scrollingLayer1, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
-  SMARTMATRIX_ALLOCATE_SCROLLING_GFX_LAYER(scrollingLayer2, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
-  SMARTMATRIX_ALLOCATE_SCROLLING_GFX_LAYER(scrollingLayer3, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
-  SMARTMATRIX_ALLOCATE_SCROLLING_GFX_LAYER(scrollingLayer4, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
-  SMARTMATRIX_ALLOCATE_SCROLLING_GFX_LAYER(scrollingLayer5, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
-#else
-  const uint8_t kScrollingLayerOptions = (SM_SCROLLING_OPTIONS_NONE);
-  SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer1, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
-  SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer2, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
-  SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer3, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
-  SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer4, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
-  SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer5, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
-#endif
+const uint8_t kScrollingLayerOptions = (SM_SCROLLING_OPTIONS_NONE);
+SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer1, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
+SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer2, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
+SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer3, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
+SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer4, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
+SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer5, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
 
 void setup() {
   matrix.addLayer(&scrollingLayer1); 

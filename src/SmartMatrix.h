@@ -55,9 +55,13 @@
 #include "Layer_Background.h"
 
 // For backwards compatiblity, this needs to be defined at the top of the sketch, so that "Adafruit_GFX.h" is only included if desired
-#ifdef SUPPORT_ADAFRUIT_GFX_LIBRARY
+#ifdef USE_ADAFRUIT_GFX_LAYERS
 #include "Layer_BackgroundGfx.h"
 #include "Layer_Gfx_Mono.h"
+#endif
+
+#if (defined(SUPPORT_ADAFRUIT_GFX_LIBRARY) || defined(SMARTMATRIX_ALLOCATE_BACKGROUND_GFX_LAYER) || defined(SMARTMATRIX_ALLOCATE_SCROLLING_GFX_LAYER) || defined(SMARTMATRIX_ALLOCATE_INDEXED_GFX_LAYER))
+#pragma GCC error "API change: don't use `SUPPORT_ADAFRUIT_GFX_LIBRARY` or the `ALLOCATE*GFX*` macros, use  `USE_ADAFRUIT_GFX_LAYERS` and the normal ALLOCATE macros instead"
 #endif
 
 #include "MatrixCommonHub75.h"
@@ -121,6 +125,34 @@
             SmartMatrixApaCalc<pwm_depth, width, height, panel_type, option_flags> matrix_name(buffer_rows, frameDataBuffer)
     #endif
 
+#ifdef USE_ADAFRUIT_GFX_LAYERS
+        #define SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(layer_name, width, height, storage_depth, background_options) \
+            typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
+            static BACKGROUND_MEMSECTION RGB_TYPE(storage_depth) layer_name##Bitmap[2*width*height];                                        \
+            static color_chan_t layer_name##colorCorrectionLUT[sizeof(SM_RGB) <= 3 ? 256 : 4096];                          \
+            static SMLayerBackgroundGFX<RGB_TYPE(storage_depth), background_options> layer_name(layer_name##Bitmap, width, height, layer_name##colorCorrectionLUT)  
+
+        #define SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(layer_name, width, height, storage_depth, adafruitgfxlayer_options) \
+            typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
+            static uint8_t layer_name##Bitmap[2 * ROUND_UP_TO_MULTIPLE_OF_8(width) * (ROUND_UP_TO_MULTIPLE_OF_8(height) / 8)];                                              \
+            static SMLayerGFXMono<RGB_TYPE(storage_depth), rgb1, adafruitgfxlayer_options> layer_name(layer_name##Bitmap, width, height, ROUND_UP_TO_MULTIPLE_OF_8(width), ROUND_UP_TO_MULTIPLE_OF_8(height))  
+
+        #define SMARTMATRIX_ALLOCATE_INDEXED_LAYER(layer_name, width, height, storage_depth, adafruitgfxlayer_options) \
+            typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
+            static uint8_t layer_name##Bitmap[2 * width * (ROUND_UP_TO_MULTIPLE_OF_8(height) / 8)];                                              \
+            static SMLayerGFXMono<RGB_TYPE(storage_depth), rgb1, adafruitgfxlayer_options> layer_name(layer_name##Bitmap, width, height, ROUND_UP_TO_MULTIPLE_OF_8(width), ROUND_UP_TO_MULTIPLE_OF_8(height))  
+
+        #define SMARTMATRIX_ALLOCATE_GFX_MONO_LAYER(layer_name, width, height, layerwidth, layerheight, storage_depth, adafruitgfxlayer_options) \
+            typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
+            static uint8_t layer_name##Bitmap[2 * ROUND_UP_TO_MULTIPLE_OF_8(layerwidth) * (ROUND_UP_TO_MULTIPLE_OF_8(layerheight) / 8)];                                              \
+            static SMLayerGFXMono<RGB_TYPE(storage_depth), rgb1, adafruitgfxlayer_options> layer_name(layer_name##Bitmap, width, height, ROUND_UP_TO_MULTIPLE_OF_8(layerwidth), ROUND_UP_TO_MULTIPLE_OF_8(layerheight))  
+#else
+        #define SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(layer_name, width, height, storage_depth, background_options) \
+            typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
+            static BACKGROUND_MEMSECTION RGB_TYPE(storage_depth) layer_name##Bitmap[2*width*height];                                        \
+            static color_chan_t layer_name##colorCorrectionLUT[sizeof(SM_RGB) <= 3 ? 256 : 4096];                          \
+            static SMLayerBackground<RGB_TYPE(storage_depth), background_options> layer_name(layer_name##Bitmap, width, height, layer_name##colorCorrectionLUT)  
+
         #define SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(layer_name, width, height, storage_depth, scrolling_options) \
             typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
             static uint8_t layer_name##Bitmap[width * (height / 8)];                                              \
@@ -130,28 +162,7 @@
             typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
             static uint8_t layer_name##Bitmap[2 * width * (height / 8)];                                              \
             static SMLayerIndexed<RGB_TYPE(storage_depth), indexed_options> layer_name(layer_name##Bitmap, width, height)  
-
-        #define SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(layer_name, width, height, storage_depth, background_options) \
-            typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
-            static BACKGROUND_MEMSECTION RGB_TYPE(storage_depth) layer_name##Bitmap[2*width*height];                                        \
-            static color_chan_t layer_name##colorCorrectionLUT[sizeof(SM_RGB) <= 3 ? 256 : 4096];                          \
-            static SMLayerBackground<RGB_TYPE(storage_depth), background_options> layer_name(layer_name##Bitmap, width, height, layer_name##colorCorrectionLUT)  
-
-        #define SMARTMATRIX_ALLOCATE_BACKGROUND_GFX_LAYER(layer_name, width, height, storage_depth, background_options) \
-            typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
-            static BACKGROUND_MEMSECTION RGB_TYPE(storage_depth) layer_name##Bitmap[2*width*height];                                        \
-            static color_chan_t layer_name##colorCorrectionLUT[sizeof(SM_RGB) <= 3 ? 256 : 4096];                          \
-            static SMLayerBackgroundGFX<RGB_TYPE(storage_depth), background_options> layer_name(layer_name##Bitmap, width, height, layer_name##colorCorrectionLUT)  
-
-        #define SMARTMATRIX_ALLOCATE_SCROLLING_GFX_LAYER(layer_name, width, height, storage_depth, adafruitgfxlayer_options) \
-            typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
-            static uint8_t layer_name##Bitmap[2 * ROUND_UP_TO_MULTIPLE_OF_8(width) * (ROUND_UP_TO_MULTIPLE_OF_8(height) / 8)];                                              \
-            static SMLayerGFXMono<RGB_TYPE(storage_depth), rgb1, adafruitgfxlayer_options> layer_name(layer_name##Bitmap, width, height, ROUND_UP_TO_MULTIPLE_OF_8(width), ROUND_UP_TO_MULTIPLE_OF_8(height))  
-
-        #define SMARTMATRIX_ALLOCATE_INDEXED_GFX_LAYER(layer_name, width, height, storage_depth, adafruitgfxlayer_options) \
-            typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
-            static uint8_t layer_name##Bitmap[2 * width * (ROUND_UP_TO_MULTIPLE_OF_8(height) / 8)];                                              \
-            static SMLayerGFXMono<RGB_TYPE(storage_depth), rgb1, adafruitgfxlayer_options> layer_name(layer_name##Bitmap, width, height, ROUND_UP_TO_MULTIPLE_OF_8(width), ROUND_UP_TO_MULTIPLE_OF_8(height))  
+#endif
 #endif
 
 #if defined(ESP32)
@@ -163,13 +174,27 @@
         static SmartMatrixHub75Refresh_NT<0> matrix_name##Refresh(width, height, pwm_depth, panel_type, option_flags); \
         static SmartMatrixHub75Calc_NT<0> matrix_name(&matrix_name##Refresh, width, height, pwm_depth, panel_type, option_flags)
 
+#ifdef USE_ADAFRUIT_GFX_LAYERS
+    #define SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(layer_name, width, height, storage_depth, background_options) \
+        typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
+        static SMLayerBackgroundGFX<RGB_TYPE(storage_depth), background_options> layer_name(width, height)  
+
+    #define SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(layer_name, width, height, storage_depth, adafruitgfxlayer_options) \
+        typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
+        static SMLayerGFXMono<RGB_TYPE(storage_depth), rgb1, adafruitgfxlayer_options> layer_name(width, height, ROUND_UP_TO_MULTIPLE_OF_8(width), ROUND_UP_TO_MULTIPLE_OF_8(height))  
+
+    #define SMARTMATRIX_ALLOCATE_INDEXED_LAYER(layer_name, width, height, storage_depth, adafruitgfxlayer_options) \
+        typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
+        static SMLayerGFXMono<RGB_TYPE(storage_depth), rgb1, adafruitgfxlayer_options> layer_name(width, height, ROUND_UP_TO_MULTIPLE_OF_8(width), ROUND_UP_TO_MULTIPLE_OF_8(height))  
+
+    #define SMARTMATRIX_ALLOCATE_GFX_MONO_LAYER(layer_name, width, height, layerwidth, layerheight, storage_depth, adafruitgfxlayer_options) \
+        typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
+        static uint8_t layer_name##Bitmap[2 * ROUND_UP_TO_MULTIPLE_OF_8(layerwidth) * (ROUND_UP_TO_MULTIPLE_OF_8(layerheight) / 8)];                                              \
+        static SMLayerGFXMono<RGB_TYPE(storage_depth), rgb1, adafruitgfxlayer_options> layer_name(width, height, ROUND_UP_TO_MULTIPLE_OF_8(layerwidth), ROUND_UP_TO_MULTIPLE_OF_8(layerheight))  
+#else
     #define SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(layer_name, width, height, storage_depth, background_options) \
         typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
         static SMLayerBackground<RGB_TYPE(storage_depth), background_options> layer_name(width, height)  
-
-    #define SMARTMATRIX_ALLOCATE_BACKGROUND_GFX_LAYER(layer_name, width, height, storage_depth, background_options) \
-        typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
-        static SMLayerBackgroundGFX<RGB_TYPE(storage_depth), background_options> layer_name(width, height)  
 
     #define SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(layer_name, width, height, storage_depth, scrolling_options) \
         typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
@@ -178,14 +203,7 @@
     #define SMARTMATRIX_ALLOCATE_INDEXED_LAYER(layer_name, width, height, storage_depth, indexed_options) \
         typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
         static SMLayerIndexed<RGB_TYPE(storage_depth), indexed_options> layer_name(width, height)  
-
-    #define SMARTMATRIX_ALLOCATE_SCROLLING_GFX_LAYER(layer_name, width, height, storage_depth, adafruitgfxlayer_options) \
-        typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
-        static SMLayerGFXMono<RGB_TYPE(storage_depth), rgb1, adafruitgfxlayer_options> layer_name(width, height, ROUND_UP_TO_MULTIPLE_OF_8(width), ROUND_UP_TO_MULTIPLE_OF_8(height))  
-
-    #define SMARTMATRIX_ALLOCATE_INDEXED_GFX_LAYER(layer_name, width, height, storage_depth, adafruitgfxlayer_options) \
-        typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
-        static SMLayerGFXMono<RGB_TYPE(storage_depth), rgb1, adafruitgfxlayer_options> layer_name(width, height, ROUND_UP_TO_MULTIPLE_OF_8(width), ROUND_UP_TO_MULTIPLE_OF_8(height))  
+#endif
 #endif
 
 // platform-specific
