@@ -10,6 +10,8 @@ SmartMatrix Library 4 has support for Teensy 4.1, Teensy 4.0, Teensy 3.6, Teensy
 
 The code to refresh HUB75 panels takes advantage of platform-specific peripherals like DMA, I2S, FlexIO, and once started runs in the background using interrupts.  It takes a lot of work to port SmartMatrix Library to a new platform.  We're working on an open source solution that will allow a lot more platforms to drive HUB75 panels, [sign up for updates here](https://github.com/pixelmatix/SmartMatrix/issues/131) if you're interested.
 
+The documentation in this README contains the basic information you may need to run your first SmartMatrix Library sketch, but there is more detailed documentation in the [SmartMatrix Wiki](https://github.com/pixelmatix/SmartMatrix/wiki).
+
 ## Hardware
 
 SmartMatrix Library runs best on the Teensy 4.0 and 4.1 using the SmartLED Shield for Teensy 4, available from [Crowd Supply](https://www.crowdsupply.com/pixelmatix/smartled-shield-for-teensy-4) and other distributors.  If you want to use the less powerful but more mature Teensy 3, you can use the SmartLED Shield for Teensy 3, available from [Adafruit](https://www.adafruit.com/product/1902), [SparkFun](http://sparkfun.com/products/15046), [Digi-Key](https://www.digikey.com/product-detail/en/sparkfun-electronics/DEV-15046/1568-1954-ND/9739875), and other distributors around the globe.  The shield doesn't require any soldering to get started, besides putting pins on your Teensy board.
