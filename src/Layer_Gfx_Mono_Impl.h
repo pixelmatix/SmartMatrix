@@ -295,13 +295,15 @@ int SMLayerGFXMono<RGB_API, RGB_STORAGE, optionFlags>::resizeLayer(uint16_t widt
     width = ROUND_UP_TO_MULTIPLE_OF_8(width);
     height = ROUND_UP_TO_MULTIPLE_OF_8(height);
 
+#if 0
     Serial.print(width);
     Serial.print(",");
     Serial.print(height);
     Serial.print(",");
     Serial.print(bufferSize);
     Serial.println();
-
+#endif
+    
     // if dimensions are larger than the available memory, resize to prevent buffer overflow
     if((width * height / 8) > (bufferSize/2)) {
         // if rotation is 90 or 270, then to lower the height of the text we need to lower the width
