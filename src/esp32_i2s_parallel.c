@@ -64,6 +64,8 @@ static void IRAM_ATTR i2s_isr(void* arg) {
 
 #define DMA_MAX (4096-4)
 
+// comment out unused functions, unmodified from Sprite_TM
+#if 0
 //Calculate the amount of dma descs needed for a buffer desc
 static int calc_needed_dma_descs_for(i2s_parallel_buffer_desc_t *desc) {
     int ret=0;
@@ -102,6 +104,7 @@ static void fill_dma_desc(volatile lldesc_t *dmadesc, i2s_parallel_buffer_desc_t
 
     printf("fill_dma_desc: filled %d descriptors\n", n);
 }
+#endif
 
 // size must be less than DMA_MAX - need to handle breaking long transfer into two descriptors before call
 void link_dma_desc(volatile lldesc_t *dmadesc, volatile lldesc_t *prevdmadesc, void *memory, size_t size) {
