@@ -543,6 +543,22 @@ int SMLayerGFXMono<RGB_API, RGB_STORAGE, optionFlags>::resizeLayerToText(const c
 }
 
 template <typename RGB_API, typename RGB_STORAGE, unsigned int optionFlags>
+void SMLayerGFXMono<RGB_API, RGB_STORAGE, optionFlags>::getDimensionsOfPrintedString(const char text[], uint16_t *w, uint16_t *h) {
+    int16_t x1, y1;
+    uint16_t width, height;
+
+    // get the bounds of the text
+    wrap = false;
+    getTextBounds(text, 0, 0, &x1, &y1, &width, &height);
+
+    // round up to multiple of 8 for width, to match Layer's requirements
+    width = ROUND_UP_TO_MULTIPLE_OF_8(width);
+    height = ROUND_UP_TO_MULTIPLE_OF_8(height);
+    *w = width;
+    *h = height;
+}
+
+template <typename RGB_API, typename RGB_STORAGE, unsigned int optionFlags>
 void SMLayerGFXMono<RGB_API, RGB_STORAGE, optionFlags>::clearRefreshAndDrawingBuffers() {
     memset(indexedBitmap, 0x00, RGB1_BUFFER_SIZE*2);
 }

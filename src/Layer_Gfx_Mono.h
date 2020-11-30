@@ -82,6 +82,9 @@ class SMLayerGFXMono : public SM_Layer, public Adafruit_GFX {
         void setOffsetFromTop(int offset);
         void setStartOffsetFromLeft(int offset);
 
+        /* Scrolling Text Helper Function - unique to GFX Layers */
+        void getDimensionsOfPrintedString(const char text[], uint16_t *w, uint16_t *h);
+
         /* RGB Specific Raw Buffer Access */
 
         /* Shared */
