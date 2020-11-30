@@ -52,7 +52,7 @@ SMLayerGFXMono<RGB_API, RGB_STORAGE, optionFlags>::SMLayerGFXMono(uint16_t width
 #else
     this->assert(indexedBitmap != NULL);
 #endif
-    memset(indexedBitmap, 0x00, 2 * width * (height / 8));
+    memset(indexedBitmap, 0x00, 2 * RGB1_BUFFER_SIZE);
     this->indexedColor[1] = rgb48(0xffff, 0xffff, 0xffff);
     this->indexedColor[0] = rgb48(0, 0, 0);
 }
@@ -314,7 +314,6 @@ int SMLayerGFXMono<RGB_API, RGB_STORAGE, optionFlags>::resizeLayer(uint16_t widt
         }
         resizeWasTooBig = true;
     }
-
 
     this->layerWidth = width;
     this->layerHeight = height;
