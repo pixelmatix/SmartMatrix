@@ -349,8 +349,12 @@ unsigned long testFilledRoundRects() {
 }
 
 void setup() {
+  Serial.begin(115200);
   matrix.addLayer(&backgroundLayer); 
   matrix.begin();
+
+  // wait for Serial to be ready
+  delay(1000);
 
   matrix.setBrightness(128);
 

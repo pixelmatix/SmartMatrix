@@ -61,14 +61,15 @@ uint16_t scale = 31;
 uint8_t noise[kMatrixWidth][kMatrixHeight];
 
 void setup() {
-  // uncomment the following lines if you want to see FPS count information
-  // Serial.println("resetting!");
+  // Enable printing FPS count information
   Serial.begin(115200);
-  delay(3000);
 
   matrix.addLayer(&backgroundLayer); 
   matrix.addLayer(&scrollingLayer); 
   matrix.begin();
+
+  // Wait for Serial to be ready
+  delay(1000);
 
   backgroundLayer.setBrightness(128);
 
@@ -128,5 +129,5 @@ void loop() {
 
   // buffer is filled completely each time, use swapBuffers without buffer copy to save CPU cycles
   backgroundLayer.swapBuffers(false);
-  //matrix.countFPS();      // print the loop() frames per second to Serial
+  matrix.countFPS();      // print the loop() frames per second to Serial
 }

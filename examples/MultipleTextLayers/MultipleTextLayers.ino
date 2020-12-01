@@ -42,6 +42,8 @@ SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer4, kMatrixWidth, kMatrixHeigh
 SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(scrollingLayer5, kMatrixWidth, kMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
 
 void setup() {
+  Serial.begin(115200);
+
   matrix.addLayer(&scrollingLayer1); 
   matrix.addLayer(&scrollingLayer2); 
   matrix.addLayer(&scrollingLayer3); 

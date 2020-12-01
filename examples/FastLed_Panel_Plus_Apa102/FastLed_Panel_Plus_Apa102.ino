@@ -121,11 +121,8 @@ void dimAll(byte value)
 
 
 void setup() {
-  // uncomment the following lines if you want to see FPS count information
-  // Serial.begin(115200);
-  // Serial.println("resetting!");
-  delay(3000);
-
+  // Enable printing FPS count information
+  Serial.begin(115200);
 
 #if (ENABLE_HUB75_REFRESH == 1)
   matrix.addLayer(&backgroundLayer); 
@@ -136,6 +133,9 @@ void setup() {
   // lower the brightness
   matrix.setBrightness(128);
 #endif
+
+  // Wait for Serial to be ready
+  delay(1000);
 
 #if (ENABLE_APA102_REFRESH == 1)
   // enable the APA102 buffers to drive out the SPI signals
@@ -245,7 +245,7 @@ void loop() {
 
   ihue+=1;
 
-  //matrix.countFPS();      // print the loop() frames per second to Serial
+  matrix.countFPS();      // print the loop() frames per second to Serial
 }
 #else
 void loop() {
