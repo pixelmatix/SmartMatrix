@@ -328,9 +328,11 @@
     #define CLK_PIN GPIO_NUM_2
 
 #elif (GPIOPINOUT == ESP32_FORUM_PINOUT_WITH_LATCH)
-    #pragma message "MatrixHardware: ESP32 forum wiring with latch"
+    #pragma message "MatrixHardware: ESP32 forum wiring with external 74AHCT373 latch circuit - note untested since 2018, may be broken"
 
-    // ADDX is output on RGB pins and stored in external latch (need multiple of 32-bits for full data struct, so pad 2 CLKs to 4 here)
+    // Note: this is untested since 2018, may be broken
+
+    // ADDX is output on RGB pins and stored in external 74AHCT373 latch (need multiple of 32-bits for full data struct, so pad 2 CLKs to 4 here)
     #define MATRIX_I2S_MODE I2S_PARALLEL_BITS_8
     #define MATRIX_DATA_STORAGE_TYPE uint8_t
     #define CLKS_DURING_LATCH   4
