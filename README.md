@@ -1,3 +1,7 @@
+# THIS BRANCH IS NOW MERGED INTO THE MAIN BRANCH
+
+**CHECKOUT THE MAIN BRANCH OR INSTALL USING ARDUINO LIBRARY MANAGER FOR THE LATEST VERSION**
+
 # SmartMatrix Library for Teensy 3, Teensy 4, and ESP32
 
 SmartMatrix Library is designed to refresh HUB75 LED matrix panels and APA102-compatible addressable LEDs with high quality graphics, using simple Arduino sketches.
