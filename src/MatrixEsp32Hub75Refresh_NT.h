@@ -73,10 +73,10 @@ private:
 
     CircularBuffer_SM dmaBuffer;
 
-    const uint32_t optionFlags;
-    const uint8_t panelType;
     const uint16_t matrixWidth;
     const uint16_t matrixHeight;
+    const uint32_t optionFlags;
+    const uint8_t panelType;
     const uint8_t refreshDepth;
 };
 

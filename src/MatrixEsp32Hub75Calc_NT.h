@@ -120,13 +120,14 @@ private:
     int multiRowRefresh_NumPanelsAlreadyMapped;
 
     SmartMatrixHub75Refresh_NT<0> * _matrixRefresh;
-    const uint32_t optionFlags;
-    const uint8_t panelType;
     const uint16_t matrixWidth;
     const uint16_t matrixHeight;
+    const uint32_t optionFlags;
+    const uint8_t panelType;
     const uint8_t refreshDepth;
 
     // these are usually calculated by all caps macros, but it's better to precalculate (at least some of) these values for efficiency for this class that doesn't know its parameters at compile time
+    const uint16_t pixels_per_latch;
     const uint16_t matrix_panel_height;
     const uint16_t matrix_stack_height;
     const uint8_t color_depth_bits;
@@ -134,7 +135,6 @@ private:
     const uint16_t cols_per_panel;
     const uint16_t physical_rows_per_refresh_row;
     const uint8_t row_pair_offset;
-    const uint16_t pixels_per_latch;
 };
 
 #endif
