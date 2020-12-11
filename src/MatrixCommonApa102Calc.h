@@ -26,6 +26,8 @@
 
 #include "MatrixCommonApa102.h"
 
+typedef uint16_t (*get_index_from_xy_callback)(int16_t x, int16_t y);
+
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 class SmartMatrixApaCalc {
 public:
@@ -52,6 +54,9 @@ public:
     // debug
     int countFPS(void);
 
+    // mapping callback testing
+    void setGetPixelFromXYCallback(get_index_from_xy_callback f);
+
     // functions called by ISR
     static void matrixCalculations(bool initial);
     static void dmaBufferUnderrunCallback(void);
@@ -73,6 +78,7 @@ private:
     static bool dmaBufferUnderrunSinceLastCheck;
     static bool refreshRateLowered;
     static bool refreshRateChanged;
+    static get_index_from_xy_callback getIndexFromXYCallback;
 };
 
 #endif

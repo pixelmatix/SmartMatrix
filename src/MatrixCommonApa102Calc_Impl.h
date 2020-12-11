@@ -48,6 +48,9 @@ template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char pan
 bool SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refreshRateChanged = true;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
+get_index_from_xy_callback SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getIndexFromXYCallback;
+
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::SmartMatrixApaCalc(uint8_t bufferrows, frameDataStruct * frameDataBuffer) {
 }
 
@@ -199,6 +202,11 @@ void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, opti
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
+void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setGetPixelFromXYCallback(get_index_from_xy_callback f) {
+    getIndexFromXYCallback = f;
+}
+
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 uint8_t SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getRefreshRate(void) {
     return refreshRate;
 }
@@ -271,6 +279,13 @@ INLINE void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelTyp
         else
             i=j;
 
+        uint16_t pixelIndex;
+
+        if(getIndexFromXYCallback)
+            pixelIndex = getIndexFromXYCallback(i, currentRow);
+        else
+            pixelIndex = currentRow * matrixWidth + i;
+
         uint16_t tempPixel1, tempPixel2, tempPixel3;
 
         switch(optionFlags & SM_APA102_OPTIONS_COLOR_ORDER_MASK) {
@@ -318,10 +333,12 @@ INLINE void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelTyp
 
             uint16_t value  = (maxrgb * 31 * globalbrightness) / 0x10000 / 31;
 
-            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 0] = 0xE0 | (value+1);
-            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 1] = ((tempPixel1 * globalbrightness) / (value + 1)) >> 8;
-            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 2] = ((tempPixel2 * globalbrightness) / (value + 1)) >> 8;
-            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 3] = ((tempPixel3 * globalbrightness) / (value + 1)) >> 8;
+            // global brightness
+            currentRowDataPtr->data[(1 + pixelIndex) * 4 + 0] = 0xE0 | (value+1);
+
+            currentRowDataPtr->data[(1 + pixelIndex) * 4 + 1] = ((tempPixel1 * globalbrightness) / (value + 1)) >> 8;
+            currentRowDataPtr->data[(1 + pixelIndex) * 4 + 2] = ((tempPixel2 * globalbrightness) / (value + 1)) >> 8;
+            currentRowDataPtr->data[(1 + pixelIndex) * 4 + 3] = ((tempPixel3 * globalbrightness) / (value + 1)) >> 8;
         }
 
         // "SIMPLE" mode attempts to get 13-bit color per channel by first applying the setBrightness() value to the GBC bits, then dividing by two to attempt to get more bits for dimmer colors, this is not as good as "DEFAULT" mode, but is more efficient
@@ -344,11 +361,11 @@ INLINE void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelTyp
             localshift = 8 - localshift;
 
             // global brightness
-            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 0] = 0xE0 | globalbrightness;
+            currentRowDataPtr->data[(1 + pixelIndex) * 4 + 0] = 0xE0 | globalbrightness;
 
-            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 1] = tempPixel1 >> localshift;
-            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 2] = tempPixel2 >> localshift;
-            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 3] = tempPixel3 >> localshift;
+            currentRowDataPtr->data[(1 + pixelIndex) * 4 + 1] = tempPixel1 >> localshift;
+            currentRowDataPtr->data[(1 + pixelIndex) * 4 + 2] = tempPixel2 >> localshift;
+            currentRowDataPtr->data[(1 + pixelIndex) * 4 + 3] = tempPixel3 >> localshift;
         }
 
         // "BRIGHTONLY" applies the setBrightness() value to the GBC bits, so the same GBC is used across all LEDs
@@ -359,25 +376,26 @@ INLINE void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelTyp
                 globalbrightness = 0x1f;
 
             // global brightness
-            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 0] = 0xE0 | globalbrightness;
+            currentRowDataPtr->data[(1 + pixelIndex) * 4 + 0] = 0xE0 | globalbrightness;
 
-            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 1] = tempPixel1 >> 8;
-            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 2] = tempPixel2 >> 8;
-            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 3] = tempPixel3 >> 8;
+            currentRowDataPtr->data[(1 + pixelIndex) * 4 + 1] = tempPixel1 >> 8;
+            currentRowDataPtr->data[(1 + pixelIndex) * 4 + 2] = tempPixel2 >> 8;
+            currentRowDataPtr->data[(1 + pixelIndex) * 4 + 3] = tempPixel3 >> 8;
         }
 
         // "NONE" mode doesn't use GBC at all, the LED output is 24-bit color
         if((optionFlags & SM_APA102_OPTIONS_GBC_MODE_MASK) == SM_APA102_OPTIONS_GBC_MODE_NONE) {
-            // global brightness
-            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 0] = 0xFF;
 
             tempPixel3 = (tempPixel3 * (dimmingMaximum - dimmingFactor)) / dimmingMaximum;
             tempPixel2 = (tempPixel2 * (dimmingMaximum - dimmingFactor)) / dimmingMaximum;
             tempPixel1 = (tempPixel1 * (dimmingMaximum - dimmingFactor)) / dimmingMaximum;
 
-            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 1] = tempPixel1 >> 8;
-            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 2] = tempPixel2 >> 8;
-            currentRowDataPtr->data[4 + ((currentRow * matrixWidth + i) * 4) + 3] = tempPixel3 >> 8;
+            // global brightness
+            currentRowDataPtr->data[(1 + pixelIndex) * 4 + 0] = 0xFF;
+
+            currentRowDataPtr->data[(1 + pixelIndex) * 4 + 1] = tempPixel1 >> 8;
+            currentRowDataPtr->data[(1 + pixelIndex) * 4 + 2] = tempPixel2 >> 8;
+            currentRowDataPtr->data[(1 + pixelIndex) * 4 + 3] = tempPixel3 >> 8;
         }
     }
 }

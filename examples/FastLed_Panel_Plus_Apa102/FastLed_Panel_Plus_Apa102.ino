@@ -30,6 +30,7 @@
 
 #define ENABLE_HUB75_REFRESH    1
 #define ENABLE_APA102_REFRESH   1
+#define ENABLE_APA102_REMAPPING 0
 
 #define COLOR_DEPTH 24                  // Choose the color depth used for storing pixels in the layers: 24 or 48 (24 is good for most sketches - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24)
 
@@ -59,6 +60,7 @@ const uint8_t kApaBackgroundLayerOptions = (SM_BACKGROUND_OPTIONS_NONE);
 
 SMARTMATRIX_APA_ALLOCATE_BUFFERS(apamatrix, kApaMatrixWidth, kApaMatrixHeight, kApaRefreshDepth, kApaDmaBufferRows, kApaPanelType, kApaMatrixOptions);
 SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(apaBackgroundLayer, kApaMatrixWidth, kApaMatrixHeight, COLOR_DEPTH, kApaBackgroundLayerOptions);
+SMARTMATRIX_ALLOCATE_SCROLLING_LAYER(apaScrollingLayer, kApaMatrixWidth, kApaMatrixHeight, COLOR_DEPTH, kScrollingLayerOptions);
 #endif
 
 // The 32bit version of our coordinates
@@ -119,6 +121,12 @@ void dimAll(byte value)
   }
 }
 
+#if (ENABLE_APA102_REMAPPING == 1)
+uint16_t getPixelFromXYCallback(int16_t x, int16_t y) {
+  // Testing: this reverses the order of the LEDs, you should see upside down scrolling text on a serpentine matrix
+  return (kApaMatrixWidth*kApaMatrixHeight) - 1 - (y*kApaMatrixWidth + x);
+}
+#endif
 
 void setup() {
   // Enable printing FPS count information
@@ -145,12 +153,17 @@ void setup() {
   }
 
   apamatrix.addLayer(&apaBackgroundLayer);
+  apamatrix.addLayer(&apaScrollingLayer);
 
   // The default SPI clock speed is 5MHz.  If you want to use a different clock speed, call this function _before_ begin()
   //apamatrix.setSpiClockSpeed(15000000); // 16MHz is about as fast as the Teensy 3 can support reliably
   //apamatrix.setSpiClockSpeed(40000000); // The Teensy 4 can go much faster, too fast for APA102 LEDs
   //apamatrix.setSpiClockSpeed(20000000); // 20MHz is a reasonable speed for a short chain (e.g. 256 LEDs)
   //apamatrix.setSpiClockSpeed(5000000); // A long chain of APA102 LEDs can't support a high clock rate, hence the default of 5MHz
+
+#if (ENABLE_APA102_REMAPPING == 1)
+  apamatrix.setGetPixelFromXYCallback(getPixelFromXYCallback);
+#endif
 
   apamatrix.begin();
 
@@ -171,6 +184,14 @@ void setup() {
   scrollingLayer.setFont(font6x10);
   scrollingLayer.start("SmartMatrix & FastLED", -1);
   scrollingLayer.setOffsetFromTop((kMatrixHeight/2) - 5);
+#endif
+#if (ENABLE_APA102_REFRESH == 1)
+  apaScrollingLayer.setMode(wrapForward);
+  apaScrollingLayer.setColor({0xff, 0xff, 0xff});
+  apaScrollingLayer.setSpeed(15);
+  apaScrollingLayer.setFont(font6x10);
+  apaScrollingLayer.start("SmartMatrix & FastLED", -1);
+  apaScrollingLayer.setOffsetFromTop((kApaMatrixHeight/2) - 5);
 #endif
 }
 
