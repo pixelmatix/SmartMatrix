@@ -127,7 +127,6 @@ void setup() {
 #if (ENABLE_HUB75_REFRESH == 1)
   matrix.addLayer(&backgroundLayer); 
   matrix.addLayer(&scrollingLayer); 
-  //matrix.setBrightness(0);
   matrix.begin();
 
   // lower the brightness
@@ -156,8 +155,7 @@ void setup() {
   apamatrix.begin();
 
   // lower the brightness
-  //apamatrix.setBrightness(128);
-  apamatrix.setBrightness(32);
+  apamatrix.setBrightness(128);
 #endif
 
   // Initialize our coordinates to some random values
