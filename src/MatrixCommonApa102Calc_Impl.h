@@ -294,6 +294,10 @@ INLINE void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelTyp
         else
             pixelIndex = currentRow * matrixWidth + i;
 
+        // if pixel is out of bounds, we can't do anything with it
+        if(pixelIndex >= matrixWidth*matrixHeight)
+            continue;
+
         uint16_t tempPixel1, tempPixel2, tempPixel3;
 
         switch(optionFlags & SM_APA102_OPTIONS_COLOR_ORDER_MASK) {
