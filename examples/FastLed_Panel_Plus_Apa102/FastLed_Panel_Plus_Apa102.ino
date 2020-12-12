@@ -209,7 +209,6 @@ void fillnoise8() {
   z += speed;
 }
 
-#if 1
 void loop() {
   static uint8_t ihue=0;
 
@@ -268,30 +267,3 @@ void loop() {
 
   matrix.countFPS();      // print the loop() frames per second to Serial
 }
-#else
-void loop() {
-  EVERY_N_MILLISECONDS(1000/30) {
-
-    while(apaBackgroundLayer.isSwapPending());
-    buffer = apaBackgroundLayer.backBuffer();
-
-    dimAll(250);
-
-    static uint8_t theta = 0;
-    static uint8_t hue = 0;
-    
-    for (uint8_t x = 0; x < kApaMatrixWidth; x++) {
-      uint8_t y = quadwave8(x * 2 + theta) / scale;
-      if(y < kApaMatrixHeight) {
-        buffer[XY(x, y)] = CRGB(CHSV(x + hue, 255, 255));
-        buffer[XY(x, y)].red = 0;
-      }
-    }
-
-    theta++;
-    hue++;
-
-    apaBackgroundLayer.swapBuffers(true);
-  }
-}
-#endif
