@@ -43,6 +43,7 @@ public:
     void setBrightness(uint8_t newBrightness);
     void setRefreshRate(uint8_t newRefreshRate);
     void setSpiClockSpeed(uint32_t newClockSpeed);
+    void setSerpentineLayout(bool enabled);
 
     // get info
     uint16_t getScreenWidth(void) const;
@@ -78,6 +79,7 @@ private:
     static bool dmaBufferUnderrunSinceLastCheck;
     static bool refreshRateLowered;
     static bool refreshRateChanged;
+    static bool serpentineLayoutEnabled;
     static get_index_from_xy_callback getIndexFromXYCallback;
 };
 

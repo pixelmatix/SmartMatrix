@@ -48,6 +48,9 @@ template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char pan
 bool SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::refreshRateChanged = true;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
+bool SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::serpentineLayoutEnabled = true;
+
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 get_index_from_xy_callback SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getIndexFromXYCallback;
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
@@ -202,6 +205,11 @@ void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, opti
 }
 
 template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
+void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setSerpentineLayout(bool enabled) {
+    serpentineLayoutEnabled = enabled;
+}
+
+template <int refreshDepth, int matrixWidth, int matrixHeight, unsigned char panelType, uint32_t optionFlags>
 void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::setGetPixelFromXYCallback(get_index_from_xy_callback f) {
     getIndexFromXYCallback = f;
 }
@@ -274,7 +282,7 @@ INLINE void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelTyp
 
     for (j = 0; j < matrixWidth; j++) {
         // we send data out in serpentine layout only
-        if(currentRow % 2)
+        if(serpentineLayoutEnabled && currentRow % 2)
             i=(matrixWidth-j-1);
         else
             i=j;
