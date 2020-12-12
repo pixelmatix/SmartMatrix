@@ -265,5 +265,9 @@ void loop() {
 
   ihue+=1;
 
+#if (ENABLE_HUB75_REFRESH == 1)
   matrix.countFPS();      // print the loop() frames per second to Serial
+#elif (ENABLE_APA102_REFRESH == 1)
+  apamatrix.countFPS();      // print the loop() frames per second to Serial
+#endif
 }
