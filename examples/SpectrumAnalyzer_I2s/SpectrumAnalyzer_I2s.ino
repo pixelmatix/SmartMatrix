@@ -23,6 +23,7 @@
  * FastLED v3.1 or higher: https://github.com/FastLED/FastLED/releases
  *
  * Audio Shield Connections to Teensy 4
+ * 3V3
  * GND
  * AGND (next to 3.3V pin)
  * MCLK pin 23
