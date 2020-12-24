@@ -109,6 +109,8 @@ You can chain several panels together to create a wider or taller display than o
 * Panel Direction - By default the first panel is on the top row.  To stack panels the other way, use `SM_HUB75_OPTIONS_BOTTOM_TO_TOP_STACKING`.  
 * To set multiple options, use the bitwise-OR operator e.g. for C-shape Bottom-to-top stacking: `const uint8_t kMatrixOptions = (SM_HUB75_OPTIONS_C_SHAPE_STACKING | SM_HUB75_OPTIONS_BOTTOM_TO_TOP_STACKING);`
 
+Note: the stacking direction was reversed in the `teensylc` and `teensy4` branches prior to the release of SmartMatrix Library 4.0.  The stacking direction is still reversed for the ESP32 Platform as of SmartMatrix Library 4.0.3, and will be fixed at some point in the future.
+
 Click the Upload button, and the sketch should compile and upload to your Teensy, and start running right away.
 
 You can use the FeatureDemo sketch (or other example sketches) as a way to get started with your own project.  Inside `loop()`, find a demo section that is similar to what you want to do with your project, delete the other sections, and save it as as new sketch.
