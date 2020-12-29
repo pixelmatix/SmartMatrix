@@ -1,8 +1,6 @@
 /*
  * This example can be used to determine the mapping of pixels onto a panel that refreshes multiple rows in parallel.
  * e.g. each RGB channel on a HUB75 P10 32x16 /2 panel fills pixels across four rows at once, and in a non-linear order
- *
- * Note: this functionality is not yet implemented for Teensy 4.x.
  * 
  * The example code moves a single pixel across the width of the display across one row at a time.  To help reverse-
  * engineer the mapping of a panel, we can "unwrap" the panel so a /2 panel looks like a 4-row high panel
