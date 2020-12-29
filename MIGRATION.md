@@ -307,7 +307,7 @@ indexedLayer.drawMonoBitmap
 
 Make sure the calls to matrix.addLayers() before matrix.begin() are added
 
-If you're still getting errors after following the instructions above, please post your sketch and the full error report you get from Arduino in the [SmartMatrix Community](http://community.pixelmatix.com).  Make sure you have "Show verbose output during: compilation" checked in Arduino preferences to get the full error report.
+If you're still getting errors after following the instructions above, please post your sketch and the full error report you get from Arduino in the [SmartMatrix Community](https://community.pixelmatix.com).  Make sure you have "Show verbose output during: compilation" checked in Arduino preferences to get the full error report.
 
 ## Easy Porting of FastLED and Adafruit::GFX code to SmartMatrix
 See the topic below to do a true port to SmartMatrix. If however you can afford double buffering and memory for an extra framebuffer, have a look at https://github.com/marcmerlin/SmartMatrix_GFX which supports GFX and FastLED code on top of SmartMatrix by offering their APIs (which means no code rewrites).  
@@ -318,7 +318,7 @@ https://github.com/marcmerlin/FastLED_NeoMatrix_SmartMatrix_LEDMatrix_GFX_Demos/
 ## Porting FastLED Sketch to SmartMatrix
 If you'd like to properly port code from FastLED to SmartMatrix instead of using the SmartMatrix::GFX compat layer, read on:
 
-FastLED's `SMART_MATRIX` controller was based on SmartMatrix 2.x, and is incompatible with SmartMatrix 3.0.  You can get similar features by using FastLED's helper functions but drawing to the SmartMatrix background layer directly instead of through FastLED.  [Let us know](http://community.pixelmatix.com) if you want to see support for the FastLED `SMART_MATRIX` controller in the future.
+FastLED's `SMART_MATRIX` controller was based on SmartMatrix 2.x, and is incompatible with SmartMatrix 3.0.  You can get similar features by using FastLED's helper functions but drawing to the SmartMatrix background layer directly instead of through FastLED.  [Let us know](https://community.pixelmatix.com) if you want to see support for the FastLED `SMART_MATRIX` controller in the future.
 
 ### `#Include`
 Start by updating the #include to `<SmartMatrix3.h>`
@@ -497,4 +497,4 @@ becomes:
 ```
 
 ### FastLED Troubleshooting
-This document may not cover all the FastLED sketch modifications that need to be made to migrate to SmartMatrix3.  If you're still getting errors after following the instructions above, please post your sketch and the full error report you get from Arduino in the [SmartMatrix Community](http://community.pixelmatix.com).  Make sure you have "Show verbose output during: compilation" checked in Arduino preferences to get the full error report.
+This document may not cover all the FastLED sketch modifications that need to be made to migrate to SmartMatrix3.  If you're still getting errors after following the instructions above, please post your sketch and the full error report you get from Arduino in the [SmartMatrix Community](https://community.pixelmatix.com).  Make sure you have "Show verbose output during: compilation" checked in Arduino preferences to get the full error report.
