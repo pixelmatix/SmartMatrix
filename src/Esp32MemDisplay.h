@@ -24,12 +24,6 @@
 #ifndef _ESP32MEMDISPLAY_H_
 #define _ESP32MEMDISPLAY_H_
 
-#ifdef BOARD_HAS_PSRAM
-#define ESPmalloc ps_malloc
-#else
-#define ESPmalloc malloc
-#endif
-
 static void show_esp32_heap_mem(const char *str=NULL) {
     if (str) {
     	printf("%s: %6d bytes total, %6d bytes largest free block\n", str, heap_caps_get_free_size(MALLOC_CAP_INTERNAL), heap_caps_get_largest_free_block(MALLOC_CAP_INTERNAL));
