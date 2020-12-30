@@ -43,11 +43,15 @@ SMLayerBackground<RGB, optionFlags>::SMLayerBackground(uint16_t width, uint16_t 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackground<RGB, optionFlags>::begin(void) {
 #if defined(ESP32)
-#ifdef BOARD_HAS_PSRAM
-#define ESPmalloc ps_malloc
-#else
-#define ESPmalloc malloc
-#endif
+    // PSRAM works for the background layers on ESP32, but having interrupt
+    // code use PSRAM can cause hard deadlocks with WIFI + Reading/Writing flash
+    // (FatFS) -- merlin
+    #if defined(BOARD_HAS_PSRAM) && defined(SMARTMATRIX_USE_PSRAM)
+    #pragma message "SmartMatrix using PSRAM on ESP32"
+    #define ESPmalloc ps_malloc
+    #else
+    #define ESPmalloc malloc
+    #endif
     if(!backgroundBuffers[0] && !backgroundBuffers[1]) {
         //printf("largest free block %d: \r\n", heap_caps_get_largest_free_block(MALLOC_CAP_DMA));
         backgroundBuffers[0] = (RGB *)ESPmalloc(sizeof(RGB) * this->matrixWidth * this->matrixHeight);
