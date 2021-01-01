@@ -496,5 +496,17 @@ becomes:
         buffer[XY(i, j)] = (CRGB)CRGB::Black;
 ```
 
+For the `nblend()` function or another function using `CRGB&`, you may get an error like this:
+
+```
+no matching function for call to 'nblend(rgb24&, CRGB&, int)'
+```
+
+Add `(CRGB&)` to the argument e.g.
+
+```
+nblend((CRGB&)buffer[pixelnumber], newcolor, 64);
+```
+
 ### FastLED Troubleshooting
 This document may not cover all the FastLED sketch modifications that need to be made to migrate to SmartMatrix3.  If you're still getting errors after following the instructions above, please post your sketch and the full error report you get from Arduino in the [SmartMatrix Community](https://community.pixelmatix.com).  Make sure you have "Show verbose output during: compilation" checked in Arduino preferences to get the full error report.
