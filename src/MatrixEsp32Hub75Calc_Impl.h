@@ -988,21 +988,22 @@ INLINE void SmartMatrixHub75Calc<refreshDepth, matrixWidth, matrixHeight, panelT
                     if (tempRow1[i+k].blue & mask)
                         v|=BIT_B2;
 
-                    if(optionFlags & SMARTMATRIX_OPTIONS_HUB12_MODE) {
-                        // HUB12 format inverts the data (assume we're only using R1 for now), and OE signals
-
-                        if(v & BIT_OE) {
-                            v = v & ~(BIT_OE);
-                        } else {
-                            v |= BIT_OE;
-                        }
-
+                    // HUB12 format inverts the data (assume we're only using R1 for now), and OE signals
+                    if((optionFlags & SMARTMATRIX_OPTIONS_HUB12_MODE) || (optionFlags & SM_HUB75_OPTIONS_INVERT_DATA)) {
                         if(v & BIT_R1) {
                             v = v & ~(BIT_R1);
                         } else {
                             v |= BIT_R1;
                         }
-                    }               
+                    }
+
+                    if((optionFlags & SMARTMATRIX_OPTIONS_HUB12_MODE) || (optionFlags & SM_HUB75_OPTIONS_INVERT_OE)) {
+                        if(v & BIT_OE) {
+                            v = v & ~(BIT_OE);
+                        } else {
+                            v |= BIT_OE;
+                        }
+                    }
 
                     if((optionFlags & SMARTMATRIX_OPTIONS_C_SHAPE_STACKING) && !((i/matrixWidth)%2)) {
                         //currentRowDataPtr->rowbits[j].data[(((i+matrixWidth-1)-k)*DMA_UPDATES_PER_CLOCK)] = o0.word;
@@ -1056,8 +1057,16 @@ INLINE void SmartMatrixHub75Calc<refreshDepth, matrixWidth, matrixHeight, panelT
                     // reserve B2 for OE SWITCH
                 }
 
-                if(optionFlags & SMARTMATRIX_OPTIONS_HUB12_MODE) {
-                    // HUB12 inverts data (irrelevant here) and OE signals
+                // HUB12 format inverts the data (assume we're only using R1 for now), and OE signals
+                if((optionFlags & SMARTMATRIX_OPTIONS_HUB12_MODE) || (optionFlags & SM_HUB75_OPTIONS_INVERT_DATA)) {
+                    if(v & BIT_R1) {
+                        v = v & ~(BIT_R1);
+                    } else {
+                        v |= BIT_R1;
+                    }
+                }
+
+                if((optionFlags & SMARTMATRIX_OPTIONS_HUB12_MODE) || (optionFlags & SM_HUB75_OPTIONS_INVERT_OE)) {
                     if(v & BIT_OE) {
                         v = v & ~(BIT_OE);
                     } else {
