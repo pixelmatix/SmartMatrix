@@ -593,6 +593,9 @@ FLASHMEM void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, pane
     submodule = latchPin.module & 0x03;
     uint16_t bitmask = 1 << submodule;
 
+    // if HUB12 panel is connected, use this flag to invert the OE output
+    bool invertOE = false;
+
     // stop timer until after setup is complete
     flexpwm->MCTRL &= ~FLEXPWM_MCTRL_RUN(bitmask);
 
@@ -602,14 +605,17 @@ FLASHMEM void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, pane
 
     // check if OE and Latch pins are switched in hardware
     volatile uint16_t * timerRegisterPeriod, * timerRegisterLatch, * timerRegisterOE;
+    uint16_t polarityBitOE;
     if ((OEPin.channel == 1) & (latchPin.channel == 2)) {
         timerRegisterPeriod = & (flexpwm->SM[submodule].VAL1);
         timerRegisterOE = & (flexpwm->SM[submodule].VAL3);
         timerRegisterLatch = & (flexpwm->SM[submodule].VAL5);
+        polarityBitOE = invertOE ? FLEXPWM_SMOCTRL_POLA : 0;
     } else {
         timerRegisterPeriod = & (flexpwm->SM[submodule].VAL1);
         timerRegisterOE = & (flexpwm->SM[submodule].VAL5);
         timerRegisterLatch = & (flexpwm->SM[submodule].VAL3);
+        polarityBitOE = invertOE ? FLEXPWM_SMOCTRL_POLB : 0;
     }
 
     // Starting PWM period and duty cycle
@@ -623,6 +629,7 @@ FLASHMEM void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, pane
     *timerRegisterPeriod = period;
     *timerRegisterOE = dutyCycleOE;
     *timerRegisterLatch = dutyCycleLatch;
+    flexpwm->SM[submodule].OCTRL = polarityBitOE;
     flexpwm->OUTEN |= FLEXPWM_OUTEN_PWMA_EN(bitmask);
     flexpwm->OUTEN |= FLEXPWM_OUTEN_PWMB_EN(bitmask);
     flexpwm->MCTRL |= FLEXPWM_MCTRL_LDOK(bitmask);
