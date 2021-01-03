@@ -116,6 +116,8 @@
 #define SM_HUB75_OPTIONS_ESP32_CALC_TASK_CORE_1     (1 << 5)
 #define SM_HUB75_OPTIONS_FM6126A_RESET_AT_START     (1 << 6)
 #define SM_HUB75_OPTIONS_T4_CLK_PIN_ALT             (1 << 7)
+#define SM_HUB75_OPTIONS_INVERT_DATA                (1 << 8)
+#define SM_HUB75_OPTIONS_INVERT_OE                  (1 << 9)
 
 // old naming convention kept for compatibility
 #define SMARTMATRIX_OPTIONS_NONE                    SM_HUB75_OPTIONS_NONE                   
