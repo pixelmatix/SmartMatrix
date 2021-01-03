@@ -596,6 +596,10 @@ FLASHMEM void SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, pane
     // if HUB12 panel is connected, use this flag to invert the OE output
     bool invertOE = false;
 
+    if(optionFlags & SMARTMATRIX_OPTIONS_HUB12_MODE) {
+        invertOE = true;
+    }
+
     // stop timer until after setup is complete
     flexpwm->MCTRL &= ~FLEXPWM_MCTRL_RUN(bitmask);
 

@@ -503,13 +503,16 @@ FASTRUN INLINE void SmartMatrixHub75Calc<refreshDepth, matrixWidth, matrixHeight
                 g1 = tempRow1[ind].green;
                 b1 = tempRow1[ind].blue;
 
+                if(optionFlags & SMARTMATRIX_OPTIONS_HUB12_MODE) {
+                    r0 = ~r0;
+                }
+
                 // loop through each bitplane in the current pixel's RGB values and format the bits to match the FlexIO pin configuration
                 uint32_t rgbdata;
                 uint8_t shift = (16 - COLOR_DEPTH_BITS);
                 uint16_t mask = 1 << shift;
 
                 for (int bitindex = 0; bitindex < COLOR_DEPTH_BITS; bitindex++) {
-
                     rgbdata  = (r0 & mask) << (SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getFlexPinConfig().r0);
                     rgbdata |= (g0 & mask) << (SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getFlexPinConfig().g0);
                     rgbdata |= (b0 & mask) << (SmartMatrixRefreshT4<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::getFlexPinConfig().b0);
