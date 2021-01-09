@@ -3,9 +3,9 @@
  *
  * This version uses I2S Digital Input for Audio with the Teensy 4, either from the Teensy Audio Shield for Teensy 4
  *   with an added electret mic or the Line-in inputs (not tested).  Or you can use a standalone I2S
- *   microphone like the INMP441, this was used for testing: https://www.aliexpress.com/item/32962426410.html
+ *   microphone like the INMP441 with the Teensy 3 or Teensy 4, this was used for testing: https://www.aliexpress.com/item/32962426410.html
  * 
- * Not tested with Teensy 3
+ * Not fully tested with Teensy 3, only I2S Microphone tested
  * Not compatible with ESP32
 
  * Based on SpectrumAnalyzer by Paul Stoffregen included in the Teensy Audio Library
@@ -40,8 +40,16 @@
  * GND - GND
  * VDD - 3V3
  * SCK - 21 (BCLK)
- * SD 8 (DOUT)
- * WS 20 (LRCLK)
+ * SD  - 8 (DOUT)
+ * WS  - 20 (LRCLK)
+ * L/R set to ground (left) or 3V3 (right) to choose which channel the I2S microphone drives
+ * 
+ * I2S Microphone connections to Teensy 3
+ * GND - GND
+ * VDD - 3V3
+ * SCK - 9 (BCLK)
+ * SD  - 13 (DOUT)
+ * WS  - 23 (LRCLK)
  * L/R set to ground (left) or 3V3 (right) to choose which channel the I2S microphone drives
  * 
  * If you want to use Line In instead of the electret mic input with the audio shield, adjust the `myInput` setting below
@@ -64,6 +72,7 @@
 //#include <MatrixHardware_Teensy4_ShieldV4Adapter.h> // Teensy 4 Adapter attached to SmartLED Shield for Teensy 3 (V4)
 //#include <MatrixHardware_ESP32_V0.h>                // This file contains multiple ESP32 hardware configurations, edit the file to define GPIOPINOUT (or add #define GPIOPINOUT with a hardcoded number before this #include)
 //#include "MatrixHardware_Custom.h"                  // Copy an existing MatrixHardware file to your Sketch directory, rename, customize, and you can include it like this
+#include <SmartMatrix.h>
 #include <FastLED.h>
 
 #define COLOR_DEPTH 24                  // Choose the color depth used for storing pixels in the layers: 24 or 48 (24 is good for most sketches - If the sketch uses type `rgb24` directly, COLOR_DEPTH must be 24)
