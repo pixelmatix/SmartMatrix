@@ -58,7 +58,8 @@ uint16_t speed = 20; // a nice starting speed, mixes well with a scale of 100
 uint16_t scale = 31;
 
 // This is the array that we keep our computed noise values in
-uint8_t noise[kMatrixWidth][kMatrixHeight];
+const uint16_t kMatrixLongestSide = (kMatrixWidth > kMatrixHeight) ? kMatrixWidth : kMatrixHeight;
+uint8_t noise[kMatrixLongestSide][kMatrixLongestSide];
 
 void setup() {
   // Enable printing FPS count information
@@ -89,9 +90,9 @@ void setup() {
 
 // Fill the x/y array of 8-bit noise values using the inoise8 function.
 void fillnoise8() {
-  for(int i = 0; i < kMatrixWidth; i++) {
+  for(int i = 0; i < kMatrixLongestSide; i++) {
     int ioffset = scale * i;
-    for(int j = 0; j < kMatrixHeight; j++) {
+    for(int j = 0; j < kMatrixLongestSide; j++) {
       int joffset = scale * j;
       noise[i][j] = inoise8(x + ioffset,y + joffset,z);
     }
