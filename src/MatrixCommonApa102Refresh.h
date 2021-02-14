@@ -35,7 +35,7 @@ public:
     typedef void (*matrix_calc_callback)(bool initial);
 
     // init
-    SmartMatrixAPA102Refresh(uint8_t bufferrows, frameDataStruct * frameDataBuffer);
+    SmartMatrixAPA102Refresh(uint8_t bufferrows = 0, frameDataStruct * frameDataBuffer = NULL);
     static void begin(void);
 
     static void setBrightness(uint8_t newBrightness);

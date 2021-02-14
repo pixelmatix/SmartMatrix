@@ -32,7 +32,7 @@ public:
     typedef typename SmartMatrixAPA102Refresh<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::frameDataStruct frameDataStruct;
 
     // init
-    SmartMatrixApaCalc(uint8_t bufferrows, frameDataStruct * rowDataBuffer);
+    SmartMatrixApaCalc(uint8_t bufferrows = 0, frameDataStruct * rowDataBuffer = NULL);
     void begin(void);
     void addLayer(SM_Layer * newlayer);
 

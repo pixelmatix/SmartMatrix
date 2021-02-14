@@ -105,7 +105,7 @@ void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, opti
 
         do {
 #ifdef DEBUG_PINS_ENABLED
-            digitalWriteFast(DEBUG_PIN_3, HIGH); // oscilloscope trigger
+//            digitalWriteFast(DEBUG_PIN_3, HIGH); // oscilloscope trigger
 #endif
             // do once-per-frame updates
             if (!currentRow) {
@@ -135,7 +135,7 @@ void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, opti
             SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::loadMatrixBuffers(currentRowDataPtr, currentRow);
 
 #ifdef DEBUG_PINS_ENABLED
-    digitalWriteFast(DEBUG_PIN_3, LOW);
+//    digitalWriteFast(DEBUG_PIN_3, LOW);
 #endif
 
             // enqueue row

@@ -174,6 +174,10 @@
         static SmartMatrixHub75Refresh_NT<0> matrix_name##Refresh(width, height, pwm_depth, panel_type, option_flags); \
         static SmartMatrixHub75Calc_NT<0> matrix_name(&matrix_name##Refresh, width, height, pwm_depth, panel_type, option_flags)
 
+    #define SMARTMATRIX_APA_ALLOCATE_BUFFERS(matrix_name, width, height, pwm_depth, buffer_rows, panel_type, option_flags) \
+        SmartMatrixAPA102Refresh<pwm_depth, width, height, panel_type, option_flags> matrix_name##Refresh; \
+        SmartMatrixApaCalc<pwm_depth, width, height, panel_type, option_flags> matrix_name
+
 #ifdef USE_ADAFRUIT_GFX_LAYERS
     #define SMARTMATRIX_ALLOCATE_BACKGROUND_LAYER(layer_name, width, height, storage_depth, background_options) \
         typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
@@ -226,6 +230,8 @@
     #include "MatrixEsp32Hub75Calc_Impl.h"
     #include "MatrixEsp32Hub75Refresh_NT_Impl.h"
     #include "MatrixEsp32Hub75Calc_NT_Impl.h"
+    #include "MatrixEsp32Apa102Refresh_Impl.h"
+    #include "MatrixCommonApa102Calc_Impl.h"
 #endif
 
 #endif
