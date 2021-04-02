@@ -26,6 +26,8 @@ You can wire up a [bare Teensy 3.x to a HUB75 panel](http://docs.pixelmatix.com/
 
 The shields are Open Source Hardware, with design files posted in the `/extras/hardware/` directories.
 
+Documentation for the SmartLED Shield Hardware is available here: [SmartMatrix Docs](http://docs.pixelmatix.com/SmartMatrix/shieldref.html)
+
 ## Teensy 4
 
 Teensy 4 support was contributed by [Eric Eason](https://github.com/easone)
