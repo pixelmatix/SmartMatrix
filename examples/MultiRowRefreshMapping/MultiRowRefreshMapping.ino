@@ -53,7 +53,6 @@
  *   - CONVERT_PANELTYPE_TO_MATRIXROWPAIROFFSET - HUB75 panels fill two rows in parallel, what's the spacing?  (normally half of panel height)
  *   - CONVERT_PANELTYPE_TO_MATRIXSCANMOD - This is just the MOD_N_SCAN value for your panel
  *   - CONVERT_PANELTYPE_TO_MATRIXPANELWIDTH - What's the width of your panel? (This doesn't have to be exact for non-multi-row-scan panels, 32 is used by default)
- *   - CONVERT_PANELTYPE_TO_MATRIXPHYSICALROWSPERREFRESHROW - how many physical rows get lit up with one address?  (how many rows are in the diagram you made above?)
  * - Open PanelMaps.cpp
  *   - Add your map with a unique name
  *   - Add new case for your new panelType to getMultiRowRefreshPanelMap(), returning your new panelMap
