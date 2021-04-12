@@ -85,21 +85,21 @@ uint16_t speed = 1; // almost looks like a painting, moves very slowly
 uint16_t scale = 31;
 
 #if (ENABLE_APA102_REFRESH == 1)
-#define MAX_DIMENSION_APA ((kApaMatrixWidth>kApaMatrixHeight) ? kApaMatrixWidth : kApaMatrixHeight)
+const uint16_t kApaMatrixLongestSide = (kApaMatrixWidth>kApaMatrixHeight) ? kApaMatrixWidth : kApaMatrixHeight;
 #else
-#define MAX_DIMENSION_APA 0
+const uint16_t kApaMatrixLongestSide = 0;
 #endif
 
 #if (ENABLE_HUB75_REFRESH == 1)
-#define MAX_DIMENSION_PANEL ((kMatrixWidth>kMatrixHeight) ? kMatrixWidth : kMatrixHeight)
+const uint16_t kMatrixLongestSide = (kMatrixWidth > kMatrixHeight) ? kMatrixWidth : kMatrixHeight;
 #else
-#define MAX_DIMENSION_PANEL 0
+const uint16_t kMatrixLongestSide = 0;
 #endif
 
-#define MAX_DIMENSION_OVERALL ((MAX_DIMENSION_APA>MAX_DIMENSION_PANEL) ? MAX_DIMENSION_APA : MAX_DIMENSION_PANEL)
+const uint16_t kLongestSideOverall = (kApaMatrixLongestSide > kMatrixLongestSide) ? kApaMatrixLongestSide : kMatrixLongestSide;
 
 // This is the array that we keep our computed noise values in
-uint8_t noise[MAX_DIMENSION_OVERALL][MAX_DIMENSION_OVERALL];
+uint8_t noise[kLongestSideOverall][kLongestSideOverall];
 
 uint16_t XY(uint8_t x, uint8_t y) {
   return kApaMatrixWidth * y + x;
@@ -176,9 +176,9 @@ void setup() {
 
 // Fill the x/y array of 8-bit noise values using the inoise8 function.
 void fillnoise8() {
-  for(int i = 0; i < MAX_DIMENSION_OVERALL; i++) {
+  for(int i = 0; i < kLongestSideOverall; i++) {
     int ioffset = scale * i;
-    for(int j = 0; j < MAX_DIMENSION_OVERALL; j++) {
+    for(int j = 0; j < kLongestSideOverall; j++) {
       int joffset = scale * j;
       noise[i][j] = inoise8(x + ioffset,y + joffset,z);
     }
