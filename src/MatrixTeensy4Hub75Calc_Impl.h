@@ -535,6 +535,11 @@ FASTRUN INLINE void SmartMatrixHub75Calc<refreshDepth, matrixWidth, matrixHeight
         }
         // record the address in the first rowAddress field in the rowBitStruct (other rowAddress fields are unused)
         currentRowDataPtr->rowbits[0].rowAddress = currentRow;
+
+        // Applied patch from https://community.pixelmatix.com/t/mapping-assistance-32x16-p10/889/23 not fully integrated (ESP32 only)
+        if(panelType == SM_PANELTYPE_HUB75_16ROW_32COL_MOD4SCAN_V4)
+            currentRowDataPtr->rowbits[0].rowAddress = ~(0x01 << currentRow);
+
         if(MULTI_ROW_REFRESH_REQUIRED) { 
             c += numPixelsPerTempRow; // keep track of cumulative number of pixels filled in refresh buffer before this temp buffer
 
