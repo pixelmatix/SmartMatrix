@@ -625,11 +625,25 @@ INLINE void SmartMatrixHub75Calc<refreshDepth, matrixWidth, matrixHeight, panelT
                     if(j == 0)
                         gpioRowAddress = currentRow-1;
 
-                    if (gpioRowAddress & 0x01) v|=BIT_A;
-                    if (gpioRowAddress & 0x02) v|=BIT_B;
-                    if (gpioRowAddress & 0x04) v|=BIT_C;
-                    if (gpioRowAddress & 0x08) v|=BIT_D;
-                    if (gpioRowAddress & 0x10) v|=BIT_E;
+                    if (panelType != SMARTMATRIX_HUB75_16ROW_32COL_MOD4SCAN_V4) {
+                        if (gpioRowAddress & 0x01) v|=BIT_A;
+                        if (gpioRowAddress & 0x02) v|=BIT_B;
+                        if (gpioRowAddress & 0x04) v|=BIT_C;
+                        if (gpioRowAddress & 0x08) v|=BIT_D;
+                        if (gpioRowAddress & 0x10) v|=BIT_E;                        
+                    } else {
+                        if (gpioRowAddress ==-1){
+                            v|= ( (BIT_A) | ( BIT_B) | ( BIT_C) | ( BIT_D) | ( BIT_E) );
+                        }
+                        else {
+                            switch (gpioRowAddress % 4){
+                                case 0 : v|= ( (!BIT_A) | ( BIT_B) | ( BIT_C) | ( BIT_D)); break;   
+                                case 1 : v|= ( ( BIT_A) | (!BIT_B) | ( BIT_C) | ( BIT_D)); break;
+                                case 2 : v|= ( ( BIT_A) | ( BIT_B) | (!BIT_C) | ( BIT_D)); break;
+                                case 3 : v|= ( ( BIT_A) | ( BIT_B) | ( BIT_C) | (!BIT_D)); break;
+                            }
+                        }
+                    }
 
                     // need to disable OE after latch to hide row transition
                     if((refreshBufferPosition) == 0) v|=BIT_OE;
@@ -928,11 +942,27 @@ INLINE void SmartMatrixHub75Calc<refreshDepth, matrixWidth, matrixHeight, panelT
                     if(j == 0)
                         gpioRowAddress = currentRow-1;
 
-                    if (gpioRowAddress & 0x01) v|=BIT_A;
-                    if (gpioRowAddress & 0x02) v|=BIT_B;
-                    if (gpioRowAddress & 0x04) v|=BIT_C;
-                    if (gpioRowAddress & 0x08) v|=BIT_D;
-                    if (gpioRowAddress & 0x10) v|=BIT_E;
+
+                    // Applied patch from https://community.pixelmatix.com/t/mapping-assistance-32x16-p10/889/23 not fully integrated (ESP32 only)
+                    if (panelType != SMARTMATRIX_HUB75_16ROW_32COL_MOD4SCAN_V4) {
+                        if (gpioRowAddress & 0x01) v|=BIT_A;
+                        if (gpioRowAddress & 0x02) v|=BIT_B;
+                        if (gpioRowAddress & 0x04) v|=BIT_C;
+                        if (gpioRowAddress & 0x08) v|=BIT_D;
+                        if (gpioRowAddress & 0x10) v|=BIT_E;                        
+                    } else {
+                        if (gpioRowAddress ==-1){
+                            v|= ( (BIT_A) | ( BIT_B) | ( BIT_C) | ( BIT_D) | ( BIT_E) );
+                        }
+                        else {
+                            switch (gpioRowAddress % 4){
+                                case 0 : v|= ( (!BIT_A) | ( BIT_B) | ( BIT_C) | ( BIT_D)); break;   
+                                case 1 : v|= ( ( BIT_A) | (!BIT_B) | ( BIT_C) | ( BIT_D)); break;
+                                case 2 : v|= ( ( BIT_A) | ( BIT_B) | (!BIT_C) | ( BIT_D)); break;
+                                case 3 : v|= ( ( BIT_A) | ( BIT_B) | ( BIT_C) | (!BIT_D)); break;
+                            }
+                        }
+                    }
 
                     // need to disable OE after latch to hide row transition
                     if((refreshBufferPosition) == 0) v|=BIT_OE;

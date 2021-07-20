@@ -126,6 +126,20 @@ const PanelMappingEntry panelMap64x64Mod16[] =
 {0,0,0}
 };
 
+// Applied patch from https://community.pixelmatix.com/t/mapping-assistance-32x16-p10/889/23 not fully integrated (ESP32 only)
+const PanelMappingEntry panelMap32x16Mod4V4[] =
+{
+    {0, 7, -8},
+    {0, 23, -8},
+    {0, 39, -8},
+    {0, 55, -8},
+    {4, 8,   8},
+    {4, 24,  8},
+    {4, 40,  8},
+    {4, 56,  8}, 
+    {0, 0, 0}   // last entry is all zeros
+};
+
 const PanelMappingEntry * getMultiRowRefreshPanelMap(unsigned char panelType) {
     switch(panelType) {
         case SMARTMATRIX_HUB75_64ROW_64COL_MOD16SCAN:
@@ -142,6 +156,8 @@ const PanelMappingEntry * getMultiRowRefreshPanelMap(unsigned char panelType) {
             return panelMap32x16Mod4V2;
         case SMARTMATRIX_HUB75_16ROW_32COL_MOD4SCAN_V3:
             return panelMap32x16Mod4V3;
+        case SMARTMATRIX_HUB75_16ROW_32COL_MOD4SCAN_V4:
+            return panelMap32x16Mod4V4;
         default:
             return defaultPanelMap;            
     }
