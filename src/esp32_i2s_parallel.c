@@ -26,8 +26,10 @@
 
 #include "soc/i2s_struct.h"
 #include "soc/i2s_reg.h"
+#include "driver/gpio.h"
 #include "driver/periph_ctrl.h"
 #include "soc/io_mux_reg.h"
+#include "soc/gpio_periph.h"
 #include "rom/lldesc.h"
 #include "esp_heap_caps.h"
 #include "esp32_i2s_parallel.h"
