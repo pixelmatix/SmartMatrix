@@ -484,6 +484,21 @@ void SMLayerGFXMono<RGB_API, RGB_STORAGE, optionFlags>::updateScrollingText(void
         }
         break;
 
+    case peekForward:
+        SHIFT_SCROLL_POSITION_LEFT();
+        if (IS_SCROLL_POSITION_FULLY_LEFT()) {
+            scrollmode = peekReverse;
+            if (scrollcounter > 0) scrollcounter--;
+        }
+        break;
+
+    case peekReverse:
+        SHIFT_SCROLL_POSITION_RIGHT();
+        if (IS_SCROLL_POSITION_FULLY_RIGHT()) {
+            scrollmode = peekForward;
+            if (scrollcounter > 0) scrollcounter--;
+        }
+        break;
     default:
     case stopped:
         SET_SCROLL_POSITION_TO_OFFSET_FROM_LEFT(fontLeftOffset);
@@ -637,11 +652,21 @@ void SMLayerGFXMono<RGB_API, RGB_STORAGE, optionFlags>::setMinMax(void) {
             // TODO: handle special case - put content in fixed location if wider than window
 
             break;
+        case peekForward:
+        case peekReverse:
+            scrollMin = ((this->layerRotation % 2) ? this->matrixHeight : this->matrixWidth) - textWidth;
+            scrollMin = (scrollMin > 0) ? 0 : scrollMin;
+            scrollMax = 0;
 
+            SET_SCROLL_POSITION_TO_RIGHT();
+            if (scrollmode == peekReverse)
+                SET_SCROLL_POSITION_TO_LEFT();
+
+            break;
         case stopped:
         case off:
             SET_SCROLL_POSITION_TO_OFFSET_FROM_LEFT(fontLeftOffset);
-        break;
+            break;
     }
 }
 
@@ -659,7 +684,7 @@ void SMLayerGFXMono<RGB_API, RGB_STORAGE, optionFlags>::stop(void) {
     // scrollcounter is next to zero
     scrollcounter = 1;
     // position text at the end of the cycle
-    if(scrollmode == bounceReverse)
+    if(scrollmode == bounceReverse || scrollmode == peekReverse)
         SET_SCROLL_POSITION_TO_RIGHT();
     else
         SET_SCROLL_POSITION_TO_LEFT();
