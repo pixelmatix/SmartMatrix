@@ -536,16 +536,23 @@ INLINE void SmartMatrixHub75Calc<refreshDepth, matrixWidth, matrixHeight, panelT
             }
         }
 
+        unsigned int addressbits;
+
+        if(PANEL_USES_ALT_ADDRESSING_MODE(panelType))
+            addressbits = ~(0x01 << currentRow);
+        else
+            addressbits = currentRow;
+
         for (int bitindex = 0; bitindex < COLOR_DEPTH_BITS; bitindex++)
-            currentRowDataPtr->rowbits[bitindex].rowAddress = currentRow;
+            currentRowDataPtr->rowbits[bitindex].rowAddress = addressbits;
 
 #ifdef ADDX_UPDATE_ON_DATA_PINS
         o0.word = 0x00000000;
-        o0.hub75_addx0 = (currentRow & 0x01) ? 1 : 0;
-        o0.hub75_addx1 = (currentRow & 0x02) ? 1 : 0;
-        o0.hub75_addx2 = (currentRow & 0x04) ? 1 : 0;
-        o0.hub75_addx3 = (currentRow & 0x08) ? 1 : 0;
-        o0.hub75_addx4 = (currentRow & 0x10) ? 1 : 0;
+        o0.hub75_addx0 = (addressbits & 0x01) ? 1 : 0;
+        o0.hub75_addx1 = (addressbits & 0x02) ? 1 : 0;
+        o0.hub75_addx2 = (addressbits & 0x04) ? 1 : 0;
+        o0.hub75_addx3 = (addressbits & 0x08) ? 1 : 0;
+        o0.hub75_addx4 = (addressbits & 0x10) ? 1 : 0;
 
         for(int bitindex=0; bitindex<COLOR_DEPTH_BITS; bitindex++) {
             currentRowDataPtr->rowbits[bitindex].rowAddress = o0.word;
