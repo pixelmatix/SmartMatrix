@@ -623,27 +623,16 @@ INLINE void SmartMatrixHub75Calc<refreshDepth, matrixWidth, matrixHeight, panelT
                     int gpioRowAddress = currentRow;
                     // normally output current rows ADDX, special case for LSB, output previous row's ADDX (as previous row is being displayed for one latch cycle)
                     if(j == 0)
-                        gpioRowAddress = currentRow-1;
+                        gpioRowAddress = (currentRow-1 + MATRIX_SCAN_MOD) % MATRIX_SCAN_MOD;
 
-                    if (panelType != SMARTMATRIX_HUB75_16ROW_32COL_MOD4SCAN_V4) {
-                        if (gpioRowAddress & 0x01) v|=BIT_A;
-                        if (gpioRowAddress & 0x02) v|=BIT_B;
-                        if (gpioRowAddress & 0x04) v|=BIT_C;
-                        if (gpioRowAddress & 0x08) v|=BIT_D;
-                        if (gpioRowAddress & 0x10) v|=BIT_E;                        
-                    } else {
-                        if (gpioRowAddress ==-1){
-                            v|= ( (BIT_A) | ( BIT_B) | ( BIT_C) | ( BIT_D) | ( BIT_E) );
-                        }
-                        else {
-                            switch (gpioRowAddress % 4){
-                                case 0 : v|= ( (!BIT_A) | ( BIT_B) | ( BIT_C) | ( BIT_D)); break;   
-                                case 1 : v|= ( ( BIT_A) | (!BIT_B) | ( BIT_C) | ( BIT_D)); break;
-                                case 2 : v|= ( ( BIT_A) | ( BIT_B) | (!BIT_C) | ( BIT_D)); break;
-                                case 3 : v|= ( ( BIT_A) | ( BIT_B) | ( BIT_C) | (!BIT_D)); break;
-                            }
-                        }
-                    }
+                    if(PANEL_USES_ALT_ADDRESSING_MODE(panelType))
+                        gpioRowAddress = ~(0x01 << gpioRowAddress);
+
+                    if (gpioRowAddress & 0x01) v|=BIT_A;
+                    if (gpioRowAddress & 0x02) v|=BIT_B;
+                    if (gpioRowAddress & 0x04) v|=BIT_C;
+                    if (gpioRowAddress & 0x08) v|=BIT_D;
+                    if (gpioRowAddress & 0x10) v|=BIT_E;                        
 
                     // need to disable OE after latch to hide row transition
                     if((refreshBufferPosition) == 0) v|=BIT_OE;
@@ -770,11 +759,16 @@ INLINE void SmartMatrixHub75Calc<refreshDepth, matrixWidth, matrixHeight, panelT
 
                 // set ADDX values to high while latch is high, keep them high while latch drops to clock it in to ADDX latch
                 if(k >= PIXELS_PER_LATCH) {               
-                    if (currentRow & 0x01) v|=BIT_R1;
-                    if (currentRow & 0x02) v|=BIT_G1;
-                    if (currentRow & 0x04) v|=BIT_B1;
-                    if (currentRow & 0x08) v|=BIT_R2;
-                    if (currentRow & 0x10) v|=BIT_G2;
+                    int gpioRowAddress = currentRow;
+
+                    if(PANEL_USES_ALT_ADDRESSING_MODE(panelType))
+                        gpioRowAddress = ~(0x01 << gpioRowAddress);
+
+                    if (gpioRowAddress & 0x01) v|=BIT_R1;
+                    if (gpioRowAddress & 0x02) v|=BIT_G1;
+                    if (gpioRowAddress & 0x04) v|=BIT_B1;
+                    if (gpioRowAddress & 0x08) v|=BIT_R2;
+                    if (gpioRowAddress & 0x10) v|=BIT_G2;
                     // reserve B2 for OE SWITCH
 #ifdef OEPWM_TEST_ENABLE
                     //if(j == 0) {
@@ -940,29 +934,16 @@ INLINE void SmartMatrixHub75Calc<refreshDepth, matrixWidth, matrixHeight, panelT
                     int gpioRowAddress = currentRow;
                     // normally output current rows ADDX, special case for LSB, output previous row's ADDX (as previous row is being displayed for one latch cycle)
                     if(j == 0)
-                        gpioRowAddress = currentRow-1;
+                        gpioRowAddress = (currentRow-1 + MATRIX_SCAN_MOD) % MATRIX_SCAN_MOD;
 
+                    if(PANEL_USES_ALT_ADDRESSING_MODE(panelType))
+                        gpioRowAddress = ~(0x01 << gpioRowAddress);
 
-                    // Applied patch from https://community.pixelmatix.com/t/mapping-assistance-32x16-p10/889/23 not fully integrated (ESP32 only)
-                    if (panelType != SMARTMATRIX_HUB75_16ROW_32COL_MOD4SCAN_V4) {
-                        if (gpioRowAddress & 0x01) v|=BIT_A;
-                        if (gpioRowAddress & 0x02) v|=BIT_B;
-                        if (gpioRowAddress & 0x04) v|=BIT_C;
-                        if (gpioRowAddress & 0x08) v|=BIT_D;
-                        if (gpioRowAddress & 0x10) v|=BIT_E;                        
-                    } else {
-                        if (gpioRowAddress ==-1){
-                            v|= ( (BIT_A) | ( BIT_B) | ( BIT_C) | ( BIT_D) | ( BIT_E) );
-                        }
-                        else {
-                            switch (gpioRowAddress % 4){
-                                case 0 : v|= ( (!BIT_A) | ( BIT_B) | ( BIT_C) | ( BIT_D)); break;   
-                                case 1 : v|= ( ( BIT_A) | (!BIT_B) | ( BIT_C) | ( BIT_D)); break;
-                                case 2 : v|= ( ( BIT_A) | ( BIT_B) | (!BIT_C) | ( BIT_D)); break;
-                                case 3 : v|= ( ( BIT_A) | ( BIT_B) | ( BIT_C) | (!BIT_D)); break;
-                            }
-                        }
-                    }
+                    if (gpioRowAddress & 0x01) v|=BIT_A;
+                    if (gpioRowAddress & 0x02) v|=BIT_B;
+                    if (gpioRowAddress & 0x04) v|=BIT_C;
+                    if (gpioRowAddress & 0x08) v|=BIT_D;
+                    if (gpioRowAddress & 0x10) v|=BIT_E;                        
 
                     // need to disable OE after latch to hide row transition
                     if((refreshBufferPosition) == 0) v|=BIT_OE;
@@ -1069,12 +1050,16 @@ INLINE void SmartMatrixHub75Calc<refreshDepth, matrixWidth, matrixHeight, panelT
 
                 // set ADDX values to high while latch is high, keep them high while latch drops to clock it in to ADDX latch
                 if(k >= PIXELS_PER_LATCH) {               
-                    if (currentRow & 0x01) v|=BIT_R1;
-                    if (currentRow & 0x02) v|=BIT_G1;
-                    if (currentRow & 0x04) v|=BIT_B1;
-                    if (currentRow & 0x08) v|=BIT_R2;
-                    if (currentRow & 0x10) v|=BIT_G2;
-                    // reserve B2 for OE SWITCH
+                    int gpioRowAddress = currentRow;
+
+                    if(PANEL_USES_ALT_ADDRESSING_MODE(panelType))
+                        gpioRowAddress = ~(0x01 << gpioRowAddress);
+
+                    if (gpioRowAddress & 0x01) v|=BIT_R1;
+                    if (gpioRowAddress & 0x02) v|=BIT_G1;
+                    if (gpioRowAddress & 0x04) v|=BIT_B1;
+                    if (gpioRowAddress & 0x08) v|=BIT_R2;
+                    if (gpioRowAddress & 0x10) v|=BIT_G2;
                 }
 
                 if(optionFlags & SMARTMATRIX_OPTIONS_HUB12_MODE) {

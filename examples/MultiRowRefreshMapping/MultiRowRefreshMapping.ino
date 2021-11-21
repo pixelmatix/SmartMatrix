@@ -45,6 +45,13 @@
  *   {6, 56,   8},
  *   {0, 0, 0}   // last entry is all zeros
  *
+ * Panels Using Alt Addressing:
+ * If you see a column of pixels (2 or 4) lighting up, instead of a single pixel, your panel likely uses an alt addressing mode (where instead
+ * of the address being output binary encoded over the address lines, each address line corresponds to a row, and you ground a single
+ * address line to select a row).  This has only been seen on /2 and /4 panels.  Choose a panel type with alt addressing,
+ * e.g. SMARTMATRIX_HUB75_4ROW_MOD2SCAN_ALT_ADDX for reverse engineering, and you should see only one pixel light up instead of a column at a time.
+ * If your panel uses alt addressing, make sure you follow the step for PANEL_USES_ALT_ADDRESSING_MODE when you add a new map.
+ *
  * How to add a map and new panel config to SmartMatrix Library
  * - Open SmartMatrixCommonHub75.h, add a new definition at the top for your panel.  Give it the format
  * - SM_PANELTYPE_NUMROW_NUMCOL_MODNSCAN filling in NUMROW, NUMCOL, MODNSCAN 
@@ -53,6 +60,7 @@
  *   - CONVERT_PANELTYPE_TO_MATRIXROWPAIROFFSET - HUB75 panels fill two rows in parallel, what's the spacing?  (normally half of panel height)
  *   - CONVERT_PANELTYPE_TO_MATRIXSCANMOD - This is just the MOD_N_SCAN value for your panel
  *   - CONVERT_PANELTYPE_TO_MATRIXPANELWIDTH - What's the width of your panel? (This doesn't have to be exact for non-multi-row-scan panels, 32 is used by default)
+ *   - If your panel uses alt addressing (see above), add your panel to PANEL_USES_ALT_ADDRESSING_MODE, otherwise leave it alone
  * - Open PanelMaps.cpp
  *   - Add your map with a unique name
  *   - Add new case for your new panelType to getMultiRowRefreshPanelMap(), returning your new panelMap
@@ -91,11 +99,13 @@
 #if (SKETCH_MODE == MODE_MAP_REVERSE_ENGINEERING)
 const uint16_t kMatrixWidth = 128;        // must be multiple of 8
 const uint16_t kMatrixHeight = 4;
-const uint8_t kPanelType = SM_PANELTYPE_HUB75_4ROW_MOD2SCAN;    // Use this to reverse engineer mapping for a MOD2 panel
-//const uint8_t kPanelType = SM_PANELTYPE_HUB75_8ROW_MOD4SCAN;  // Use this to reverse engineer mapping for a MOD4 panel
-//const uint8_t kPanelType = SM_PANELTYPE_HUB75_16ROW_MOD8SCAN; // Use this to reverse engineer mapping for a MOD8 panel
-//const uint8_t kPanelType = SM_PANELTYPE_HUB75_32ROW_MOD16SCAN; // Use this to reverse engineer mapping for a MOD16 panel
-//const uint8_t kPanelType = SM_PANELTYPE_HUB75_64ROW_MOD32SCAN; // Use this to reverse engineer mapping for a MOD32 panel
+//const uint8_t kPanelType = SM_PANELTYPE_HUB75_4ROW_MOD2SCAN;          // Use this to reverse engineer mapping for a MOD2 panel
+//const uint8_t kPanelType = SM_PANELTYPE_HUB75_8ROW_MOD4SCAN;          // Use this to reverse engineer mapping for a MOD4 panel
+//const uint8_t kPanelType = SM_PANELTYPE_HUB75_16ROW_MOD8SCAN;         // Use this to reverse engineer mapping for a MOD8 panel
+//const uint8_t kPanelType = SM_PANELTYPE_HUB75_32ROW_MOD16SCAN;        // Use this to reverse engineer mapping for a MOD16 panel
+//const uint8_t kPanelType = SM_PANELTYPE_HUB75_64ROW_MOD32SCAN;        // Use this to reverse engineer mapping for a MOD32 panel
+//const uint8_t kPanelType = SM_PANELTYPE_HUB75_4ROW_MOD2SCAN_ALT_ADDX; // Use this to reverse engineer mapping for a MOD2 panel that uses alt addressing
+//const uint8_t kPanelType = SM_PANELTYPE_HUB75_8ROW_MOD4SCAN_ALT_ADDX; // Use this to reverse engineer mapping for a MOD4 panel that uses alt addressing
 #endif
 
 #if (SKETCH_MODE == MODE_MAP_TESTING)
