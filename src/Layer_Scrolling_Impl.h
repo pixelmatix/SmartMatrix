@@ -40,7 +40,7 @@ SMLayerScrolling<RGB, optionFlags>::SMLayerScrolling(uint16_t width, uint16_t he
 #ifdef ESP32
     assert(scrollingBitmap != NULL);
 #else
-    this->assert(scrollingBitmap != NULL);
+    //this->assert(scrollingBitmap != NULL);
 #endif
     memset(scrollingBitmap, 0x00, width * (height / 8));
     this->matrixWidth = width;
