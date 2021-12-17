@@ -104,7 +104,7 @@ class SMLayerGFXMono : public SM_Layer, public Adafruit_GFX {
         inline void fillScreen(int color) { fillScreen((rgb1)(color > 0)); };
         inline void drawPixel(int16_t x, int16_t y, int color) { drawPixel(x, y, (rgb1)(color > 0)); };
 
-    private:
+    protected:
         /* RGB specific */
         void handleBufferSwap(void);
 
