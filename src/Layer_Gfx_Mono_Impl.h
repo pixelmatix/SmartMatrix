@@ -50,7 +50,7 @@ SMLayerGFXMono<RGB_API, RGB_STORAGE, optionFlags>::SMLayerGFXMono(uint16_t width
 #ifdef ESP32
     assert(indexedBitmap != NULL);
 #else
-    this->assert(indexedBitmap != NULL);
+    //this->assert(indexedBitmap != NULL);
 #endif
     memset(indexedBitmap, 0x00, 2 * RGB1_BUFFER_SIZE);
     this->indexedColor[1] = rgb48(0xffff, 0xffff, 0xffff);
