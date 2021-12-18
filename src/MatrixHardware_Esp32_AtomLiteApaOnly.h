@@ -49,8 +49,9 @@
 #define BIT_E (1<<12)   
 
 
-
+#ifndef SM_INTERNAL
 #pragma message "MatrixHardware: Atom Lite Apa102-Only"
+#endif
 
 // ADDX is output directly using GPIO
 #define CLKS_DURING_LATCH   0 
