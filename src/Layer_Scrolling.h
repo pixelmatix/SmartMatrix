@@ -62,7 +62,7 @@ class SMLayerScrolling : public SM_Layer {
         void setStartOffsetFromLeft(int offset);
         void enableColorCorrection(bool enabled);
 
-    private:
+    protected:
         void redrawScrollingText(void);
         void setMinMax(void);
 

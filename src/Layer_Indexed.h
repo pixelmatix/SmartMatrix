@@ -55,7 +55,7 @@ class SMLayerIndexed : public SM_Layer {
         void drawString(int16_t x, int16_t y, uint8_t index, const char text []);
         void drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, uint8_t index, uint8_t *bitmap);
 
-    private:
+    protected:
         // todo: move somewhere else
         static bool getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap);
 
