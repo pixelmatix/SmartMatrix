@@ -46,7 +46,9 @@
 
 #define GPIOPINOUT SMARTLED_SHIELD_V0_PINOUT
 
+#ifndef SM_INTERNAL
 #pragma message "MatrixHardware: ESP32 SmartLED shield V0 pinout"
+#endif
 
 //Upper half RGB
 #define BIT_R1  (1<<0)   

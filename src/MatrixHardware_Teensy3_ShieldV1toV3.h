@@ -26,7 +26,9 @@
 #ifndef MATRIX_HARDWARE_H
 #define MATRIX_HARDWARE_H
 
+#ifndef SM_INTERNAL
 #pragma message "MatrixHardware: SmartMatrix Shield for Teensy 3 V1-V3"
+#endif
 
 #define COLOR_CHANNELS_PER_PIXEL        3
 #define PIXELS_UPDATED_PER_CLOCK        2

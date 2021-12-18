@@ -38,7 +38,9 @@
 
 #define GPIOPINOUT HUB75_ADAPTER_V0_THT_PINOUT
 
+#ifndef SM_INTERNAL
 #pragma message "MatrixHardware: HUB75 Adapter V0 THT pinout"
+#endif
 
 //Upper half RGB
 #define BIT_R1  (1<<0)   
