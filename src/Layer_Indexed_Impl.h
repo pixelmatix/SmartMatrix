@@ -42,7 +42,7 @@ SMLayerIndexed<RGB, optionFlags>::SMLayerIndexed(uint16_t width, uint16_t height
 #ifdef ESP32
     assert(indexedBitmap != NULL);
 #else
-    this->assert(indexedBitmap != NULL);
+    //this->assert(indexedBitmap != NULL);
 #endif
     memset(indexedBitmap, 0x00, 2 * width * (height / 8));
     this->matrixWidth = width;

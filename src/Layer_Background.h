@@ -84,7 +84,7 @@ class SMLayerBackground : public SM_Layer {
         void setBrightness(uint8_t brightness);
         void enableColorCorrection(bool enabled);
 
-    private:
+    protected:
         bool ccEnabled = true;
 
         RGB *currentDrawBufferPtr;
