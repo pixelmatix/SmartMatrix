@@ -162,6 +162,12 @@
             typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
             static uint8_t layer_name##Bitmap[2 * width * (height / 8)];                                              \
             static SMLayerIndexed<RGB_TYPE(storage_depth), indexed_options> layer_name(layer_name##Bitmap, width, height)  
+
+        #define SMARTMATRIX_ALLOCATE_INDEXED_LAYER_EXTENDED(layer_name, width, height, storage_depth, indexed_options, index_colour_depth) \
+            typedef RGB_TYPE(storage_depth) SM_RGB;                                                                 \
+            static uint8_t layer_name##Bitmap[2 * width * (height / (8/(index_colour_depth+1)))];                                              \
+            static SMLayerIndexed<RGB_TYPE(storage_depth), indexed_options> layer_name(layer_name##Bitmap, width, height,index_colour_depth)  
+
 #endif
 #endif
 

@@ -29,14 +29,22 @@
 
 #define SM_INDEXED_OPTIONS_NONE     0
 
+enum SMIndexedLayerColourDepth : uint8_t
+{
+    ONEBIT=0,
+    TWOBITS=1,
+    FOURBITS=3,
+    EIGHTBITS=7
+};
+
 // font
 #include "MatrixFontCommon.h"
 
 template <typename RGB, unsigned int optionFlags>
 class SMLayerIndexed : public SM_Layer {
     public:
-        SMLayerIndexed(uint8_t * bitmap, uint16_t width, uint16_t height);
-        SMLayerIndexed(uint16_t width, uint16_t height);
+        SMLayerIndexed(uint8_t * bitmap, uint16_t width, uint16_t height, SMIndexedLayerColourDepth colourDepthBits=ONEBIT);
+        SMLayerIndexed(uint16_t width, uint16_t height, SMIndexedLayerColourDepth colourDepthBits=ONEBIT);
         void begin(void);
         void frameRefreshCallback();
         void fillRefreshRow(uint16_t hardwareY, rgb48 refreshRow[], int brightnessShifts = 0);
@@ -51,10 +59,10 @@ class SMLayerIndexed : public SM_Layer {
         void drawPixel(int16_t x, int16_t y, uint8_t index);
         void setFont(fontChoices newFont);
         // todo: handle index (draw transparent)
-        void drawChar(int16_t x, int16_t y, uint8_t index, char character);
-        void drawString(int16_t x, int16_t y, uint8_t index, const char text []);
-        void drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, uint8_t index, uint8_t *bitmap);
-
+        void drawChar(int16_t x, int16_t y, uint8_t index, char character, uint8_t backgroundIndex=0);
+        void drawString(int16_t x, int16_t y, uint8_t index, const char text [], uint8_t backgroundIndex=0);
+        void drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, uint8_t index, uint8_t *bitmap, uint8_t backgroundIndex=0);
+        
     protected:
         // todo: move somewhere else
         static bool getBitmapPixelAtXY(uint8_t x, uint8_t y, uint8_t width, uint8_t height, const uint8_t *bitmap);
@@ -66,27 +74,9 @@ class SMLayerIndexed : public SM_Layer {
         // double buffered to prevent flicker while drawing
         uint8_t * indexedBitmap;
 
-
-        RGB color;
-        unsigned char currentframe = 0;
-        char text[textLayerMaxStringLength];
-
-        unsigned char textlen;
-        int scrollcounter = 0;
-        const bitmap_font *scrollFont = &apple5x7;
-
-        int fontTopOffset = 1;
-        int fontLeftOffset = 1;
-        bool majorScrollFontChange = false;
+        RGB *colourLookup;
 
         bool ccEnabled = sizeof(RGB) <= 3 ? true : false;
-        ScrollMode scrollmode = bounceForward;
-        unsigned char framesperscroll = 4;
-
-        // these variables describe the text bitmap: size, location on the screen, and bounds of where it moves
-        unsigned int textWidth;
-        int scrollMin, scrollMax;
-        int scrollPosition;
 
         // keeping track of drawing buffers
         volatile unsigned char currentDrawBuffer;
@@ -95,6 +85,8 @@ class SMLayerIndexed : public SM_Layer {
         void handleBufferSwap(void);
 
         bitmap_font *layerFont = (bitmap_font *) &apple3x5;
+    private:
+        const SMIndexedLayerColourDepth indexColourDepth;
 };
 
 #include "Layer_Indexed_Impl.h"

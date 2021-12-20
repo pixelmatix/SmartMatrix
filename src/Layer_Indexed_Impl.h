@@ -23,31 +23,34 @@
 
 #include <string.h>
 
-#define INDEXED_BUFFER_ROW_SIZE     (this->localWidth / 8)
+#define INDEXED_BUFFER_ROW_SIZE     (this->localWidth * (indexColourDepth+1) / 8 )
 #define INDEXED_BUFFER_SIZE         (INDEXED_BUFFER_ROW_SIZE * this->localHeight)
 
 template <typename RGB, unsigned int optionFlags>
-SMLayerIndexed<RGB, optionFlags>::SMLayerIndexed(uint8_t * bitmap, uint16_t width, uint16_t height) {
+SMLayerIndexed<RGB, optionFlags>::SMLayerIndexed(uint8_t * bitmap, uint16_t width, uint16_t height, SMIndexedLayerColourDepth colourDepthBits) : indexColourDepth(colourDepthBits) {
     // size of bitmap is 2 * INDEXED_BUFFER_SIZE
+    //indexColourDepth=colourDepthBits; 
     indexedBitmap = bitmap;
     this->matrixWidth = width;
     this->matrixHeight = height;
-    this->color = rgb48(0xffff, 0xffff, 0xffff);
+    colourLookup=new RGB[(2<<indexColourDepth)-1];
+    colourLookup[(2<<indexColourDepth)-1] = rgb48(0xffff, 0xffff, 0xffff);
 }
 
 template <typename RGB, unsigned int optionFlags>
-SMLayerIndexed<RGB, optionFlags>::SMLayerIndexed(uint16_t width, uint16_t height) {
+SMLayerIndexed<RGB, optionFlags>::SMLayerIndexed(uint16_t width, uint16_t height, SMIndexedLayerColourDepth colourDepthBits) : indexColourDepth(colourDepthBits) {
     // size of bitmap is 2 * INDEXED_BUFFER_SIZE
-    indexedBitmap = (uint8_t*)malloc(2 * width * (height / 8));
+    indexedBitmap = (uint8_t*)malloc(2 * width * (height / (8/(indexColourDepth+1))));
 #ifdef ESP32
     assert(indexedBitmap != NULL);
 #else
     //this->assert(indexedBitmap != NULL);
 #endif
-    memset(indexedBitmap, 0x00, 2 * width * (height / 8));
+    memset(indexedBitmap, 0x00, 2 * width * (height / (8/(indexColourDepth+1))));
     this->matrixWidth = width;
     this->matrixHeight = height;
-    this->color = rgb48(0xffff, 0xffff, 0xffff);
+    colourLookup=new RGB[(2<<indexColourDepth)-1];
+    colourLookup[(2<<indexColourDepth)-1] = rgb48(0xffff, 0xffff, 0xffff);
 }
 
 template <typename RGB, unsigned int optionFlags>
@@ -90,15 +93,46 @@ bool SMLayerIndexed<RGB, optionFlags>::getPixel(uint16_t hardwareX, uint16_t har
         return false;
     };
 
-    uint8_t bitmask = 0x80 >> (localScreenX % 8);
+    uint8_t bitmask=0;
+    uint8_t indxshift;//=(localScreenX % (8/(indexColourDepth+1)));
+    uint8_t xbytefind;
+    switch(indexColourDepth)
+    {
+        default:
+        case ONEBIT:
+            indxshift=localScreenX & 7;
+            bitmask=0x80 >> indxshift;
+            xbytefind=localScreenX >> 3;
+            indxshift=7-indxshift;
+            break;
+        case TWOBITS:
+            indxshift=localScreenX & 3;
+            bitmask=0xC0 >> (indxshift << 1);
+            xbytefind=localScreenX >> 2;
+            indxshift=6-indxshift;
+            break;
+        case FOURBITS:
+            indxshift=localScreenX & 1;
+            bitmask=0xF0 >> (indxshift << 2);
+            xbytefind=localScreenX >> 1;
+            indxshift=4-indxshift;
+            break;
+        case EIGHTBITS:
+            bitmask=0xFF;
+            indxshift=0;
+            xbytefind=localScreenX;
+    }
 
-    if (indexedBitmap[(currentRefreshBuffer * INDEXED_BUFFER_SIZE) + (localScreenY * INDEXED_BUFFER_ROW_SIZE) + (localScreenX/8)] & bitmask) {
-        xyPixel = color;
+    uint8_t indx=(indexedBitmap[(currentRefreshBuffer * INDEXED_BUFFER_SIZE) + (localScreenY * INDEXED_BUFFER_ROW_SIZE) + xbytefind] & bitmask);
+    if (indx) {
+        xyPixel = colourLookup[(indx>>indxshift)-1];
         return true;
     }
 
     return false;
 }
+
+
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerIndexed<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb48 refreshRow[], int brightnessShifts) {
@@ -148,7 +182,10 @@ void SMLayerIndexed<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb24 
 
 template<typename RGB, unsigned int optionFlags>
 void SMLayerIndexed<RGB, optionFlags>::setIndexedColor(uint8_t index, const RGB & newColor) {
-    color = newColor;
+    if(index>(2<<indexColourDepth)-1 || index==0)
+        return;
+
+    colourLookup[index-1] = newColor;
 }
 
 template<typename RGB, unsigned int optionFlags>
@@ -158,11 +195,27 @@ void SMLayerIndexed<RGB, optionFlags>::enableColorCorrection(bool enabled) {
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerIndexed<RGB, optionFlags>::fillScreen(uint8_t index) {
-    uint8_t fillValue;
+
+    uint8_t fillValue=0;
+
     if(index)
-        fillValue = 0xFF;
-    else
-        fillValue = 0x00;
+    {
+        switch(indexColourDepth)
+        {
+            case ONEBIT:
+                fillValue=0xFF;
+                break;
+            case TWOBITS:
+                fillValue=(index & 3) + ((index & 3)<<2) + ((index & 3)<<4) + ((index & 3)<<6);
+                break;
+            case FOURBITS:
+                fillValue=(index & 15) + ((index & 15)<<4);
+                break;
+            case EIGHTBITS:
+                fillValue=index;
+                break;
+        }
+    }
 
     memset(&indexedBitmap[currentDrawBuffer*INDEXED_BUFFER_SIZE], fillValue, INDEXED_BUFFER_SIZE);
 }
@@ -213,33 +266,52 @@ void SMLayerIndexed<RGB, optionFlags>::handleBufferSwap(void) {
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerIndexed<RGB, optionFlags>::drawPixel(int16_t x, int16_t y, uint8_t index) {
-    uint8_t tempBitmask;
 
     if(x < 0 || x >= this->localWidth || y < 0 || y >= this->localHeight)
         return;
 
-    if(index) {
-        tempBitmask = 0x80 >> (x%8);
-        indexedBitmap[currentDrawBuffer*INDEXED_BUFFER_SIZE + (y * INDEXED_BUFFER_ROW_SIZE) + (x/8)] |= tempBitmask;
-    } else {
-        tempBitmask = ~(0x80 >> (x%8));
-        indexedBitmap[currentDrawBuffer*INDEXED_BUFFER_SIZE + (y * INDEXED_BUFFER_ROW_SIZE) + (x/8)] &= tempBitmask;
+    uint8_t bitmask;
+    uint8_t indxshift;
+    uint32_t arrayIndex;
+
+    switch(indexColourDepth)
+    {
+        case ONEBIT:
+            arrayIndex=currentDrawBuffer*INDEXED_BUFFER_SIZE + (y * INDEXED_BUFFER_ROW_SIZE) + (x >> 3);
+            indxshift=(x & 7);
+            bitmask=0x80 >> indxshift;
+            indexedBitmap[arrayIndex]=(indexedBitmap[arrayIndex] & ~bitmask) | ((index & 1) << (7-indxshift));
+            break;
+        case TWOBITS:
+            arrayIndex=currentDrawBuffer*INDEXED_BUFFER_SIZE + (y * INDEXED_BUFFER_ROW_SIZE) + (x >> 2);
+            indxshift=(2*(x & 3));
+            bitmask=0xC0 >> indxshift;
+            indexedBitmap[arrayIndex]=(indexedBitmap[arrayIndex] & ~bitmask) | ((index & 3) << (6-indxshift));
+            break;
+        case FOURBITS:
+            arrayIndex=currentDrawBuffer*INDEXED_BUFFER_SIZE + (y * INDEXED_BUFFER_ROW_SIZE) + (x >> 1);
+            indxshift=(4*(x & 1));
+            bitmask=0xF0 >> indxshift;
+            indexedBitmap[arrayIndex]=(indexedBitmap[arrayIndex] & ~bitmask) | ((index & 15) << (4-indxshift));
+            break;
+        case EIGHTBITS:
+            arrayIndex=currentDrawBuffer*INDEXED_BUFFER_SIZE + (y * INDEXED_BUFFER_ROW_SIZE) + x;
+            indexedBitmap[arrayIndex]=index;
     }
 }
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerIndexed<RGB, optionFlags>::setFont(fontChoices newFont) {
     layerFont = (bitmap_font *)fontLookup(newFont);
-    majorScrollFontChange = true;
 }
 
 template <typename RGB, unsigned int optionFlags>
-void SMLayerIndexed<RGB, optionFlags>::drawChar(int16_t x, int16_t y, uint8_t index, char character) {
+void SMLayerIndexed<RGB, optionFlags>::drawChar(int16_t x, int16_t y, uint8_t index, char character, uint8_t backgroundIndex) {
     uint8_t tempBitmask;
     int k;
 
     // only draw if character is on the screen
-    if (x + scrollFont->Width < 0 || x >= this->localWidth) {
+    if (x + layerFont->Width < 0 || x >= this->localWidth) {
         return;
     }
 
@@ -249,36 +321,41 @@ void SMLayerIndexed<RGB, optionFlags>::drawChar(int16_t x, int16_t y, uint8_t in
         if (k >= this->localHeight) return;
 
         tempBitmask = getBitmapFontRowAtXY(character, k - y, layerFont);
-        if (x < 0) {
-            indexedBitmap[currentDrawBuffer*INDEXED_BUFFER_SIZE + (k * INDEXED_BUFFER_ROW_SIZE) + 0] |= tempBitmask << -x;
-        } else {
-            indexedBitmap[currentDrawBuffer*INDEXED_BUFFER_SIZE + (k * INDEXED_BUFFER_ROW_SIZE) + (x/8)] |= tempBitmask >> (x%8);
-            // do two writes if the shifted 8-bit wide bitmask is still on the screen
-            if(x + 8 < this->localWidth && x % 8)
-                indexedBitmap[currentDrawBuffer*INDEXED_BUFFER_SIZE + (k * INDEXED_BUFFER_ROW_SIZE) + (x/8) + 1] |= tempBitmask << (8-(x%8));
-        }
+        drawMonoBitmap(x,k,8,1,index,&tempBitmask,backgroundIndex);
+
+
+        // if (x < 0) {
+        //     indexedBitmap[currentDrawBuffer*INDEXED_BUFFER_SIZE + (k * INDEXED_BUFFER_ROW_SIZE) + 0] |= tempBitmask << -x;
+        // } else {
+        //     indexedBitmap[currentDrawBuffer*INDEXED_BUFFER_SIZE + (k * INDEXED_BUFFER_ROW_SIZE) + (x/8)] |= tempBitmask >> (x%8);
+        //     // do two writes if the shifted 8-bit wide bitmask is still on the screen
+        //     if(x + 8 < this->localWidth && x % 8)
+        //         indexedBitmap[currentDrawBuffer*INDEXED_BUFFER_SIZE + (k * INDEXED_BUFFER_ROW_SIZE) + (x/8) + 1] |= tempBitmask << (8-(x%8));
+        // }
     }
 }
 
 template <typename RGB, unsigned int optionFlags>
-void SMLayerIndexed<RGB, optionFlags>::drawString(int16_t x, int16_t y, uint8_t index, const char text []) {
+void SMLayerIndexed<RGB, optionFlags>::drawString(int16_t x, int16_t y, uint8_t index, const char text [],uint8_t backgroundIndex) {
     int offset = 0;
     char character;
 
     while ((character = text[offset++]) != '\0') {
-        drawChar(x, y, index, character);
+        drawChar(x, y, index, character,backgroundIndex);
         x += layerFont->Width;
     }
 }
 
 template <typename RGB, unsigned int optionFlags>
-void SMLayerIndexed<RGB, optionFlags>::drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, uint8_t index, uint8_t *bitmap) {
+void SMLayerIndexed<RGB, optionFlags>::drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, uint8_t index, uint8_t *bitmap,uint8_t backgroundIndex) {
     int xcnt, ycnt;
 
     for (ycnt = 0; ycnt < height; ycnt++) {
         for (xcnt = 0; xcnt < width; xcnt++) {
             if (getBitmapPixelAtXY(xcnt, ycnt, width, height, bitmap)) {
                 drawPixel(x + xcnt, y + ycnt, index);
+            } else {
+                drawPixel(x + xcnt, y + ycnt, backgroundIndex);
             }
         }
     }
