@@ -29,7 +29,7 @@
 
 #define SM_INDEXED_OPTIONS_NONE     0
 
-enum SMIndexedLayerColourDepth : uint8_t
+enum SMIndexedLayerColourDepth : uint32_t
 {
     ONEBIT=0,
     TWOBITS=1,

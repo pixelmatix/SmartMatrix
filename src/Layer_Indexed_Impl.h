@@ -68,7 +68,7 @@ void SMLayerIndexed<RGB, optionFlags>::frameRefreshCallback(void) {
 // returns true and copies color to xyPixel if pixel is opaque, returns false if not
 template<typename RGB, unsigned int optionFlags> template <typename RGB_OUT>
 bool SMLayerIndexed<RGB, optionFlags>::getPixel(uint16_t hardwareX, uint16_t hardwareY, RGB_OUT &xyPixel) {
-    uint16_t localScreenX, localScreenY;
+    uint32_t localScreenX, localScreenY;
 
     // convert hardware x/y to the pixel in the local screen
     switch( this->layerRotation ) {
@@ -93,9 +93,9 @@ bool SMLayerIndexed<RGB, optionFlags>::getPixel(uint16_t hardwareX, uint16_t har
         return false;
     };
 
-    uint8_t bitmask=0;
-    uint8_t indxshift;//=(localScreenX % (8/(indexColourDepth+1)));
-    uint8_t xbytefind;
+    uint32_t bitmask=0;
+    uint32_t indxshift;//=(localScreenX % (8/(indexColourDepth+1)));
+    uint32_t xbytefind;
     switch(indexColourDepth)
     {
         default:
@@ -123,7 +123,7 @@ bool SMLayerIndexed<RGB, optionFlags>::getPixel(uint16_t hardwareX, uint16_t har
             xbytefind=localScreenX;
     }
 
-    uint8_t indx=(indexedBitmap[(currentRefreshBuffer * INDEXED_BUFFER_SIZE) + (localScreenY * INDEXED_BUFFER_ROW_SIZE) + xbytefind] & bitmask);
+    uint32_t indx=(indexedBitmap[(currentRefreshBuffer * INDEXED_BUFFER_SIZE) + (localScreenY * INDEXED_BUFFER_ROW_SIZE) + xbytefind] & bitmask);
     if (indx) {
         xyPixel = colourLookup[(indx>>indxshift)-1];
         return true;
@@ -137,7 +137,7 @@ bool SMLayerIndexed<RGB, optionFlags>::getPixel(uint16_t hardwareX, uint16_t har
 template <typename RGB, unsigned int optionFlags>
 void SMLayerIndexed<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb48 refreshRow[], int brightnessShifts) {
     RGB currentPixel;
-    int i;
+    uint32_t i;
 
     if(this->ccEnabled) {
         for(i=0; i<this->matrixWidth; i++) {
@@ -160,7 +160,7 @@ void SMLayerIndexed<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb48 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerIndexed<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, rgb24 refreshRow[], int brightnessShifts) {
     RGB currentPixel;
-    int i;
+    uint32_t i;
 
     if(this->ccEnabled) {
         for(i=0; i<this->matrixWidth; i++) {
@@ -270,8 +270,8 @@ void SMLayerIndexed<RGB, optionFlags>::drawPixel(int16_t x, int16_t y, uint8_t i
     if(x < 0 || x >= this->localWidth || y < 0 || y >= this->localHeight)
         return;
 
-    uint8_t bitmask;
-    uint8_t indxshift;
+    uint32_t bitmask;
+    uint32_t indxshift;
     uint32_t arrayIndex;
 
     switch(indexColourDepth)
@@ -308,7 +308,7 @@ void SMLayerIndexed<RGB, optionFlags>::setFont(fontChoices newFont) {
 template <typename RGB, unsigned int optionFlags>
 void SMLayerIndexed<RGB, optionFlags>::drawChar(int16_t x, int16_t y, uint8_t index, char character, uint8_t backgroundIndex) {
     uint8_t tempBitmask;
-    int k;
+    int32_t k;
 
     // only draw if character is on the screen
     if (x + layerFont->Width < 0 || x >= this->localWidth) {
@@ -337,7 +337,7 @@ void SMLayerIndexed<RGB, optionFlags>::drawChar(int16_t x, int16_t y, uint8_t in
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerIndexed<RGB, optionFlags>::drawString(int16_t x, int16_t y, uint8_t index, const char text [],uint8_t backgroundIndex) {
-    int offset = 0;
+    uint32_t offset = 0;
     char character;
 
     while ((character = text[offset++]) != '\0') {
@@ -348,7 +348,7 @@ void SMLayerIndexed<RGB, optionFlags>::drawString(int16_t x, int16_t y, uint8_t 
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerIndexed<RGB, optionFlags>::drawMonoBitmap(int16_t x, int16_t y, uint8_t width, uint8_t height, uint8_t index, uint8_t *bitmap,uint8_t backgroundIndex) {
-    int xcnt, ycnt;
+    uint32_t xcnt, ycnt;
 
     for (ycnt = 0; ycnt < height; ycnt++) {
         for (xcnt = 0; xcnt < width; xcnt++) {
