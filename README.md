@@ -36,7 +36,7 @@ Teensy 4 APA102 support depends on FlexIO_t4 by KurtE, which is included as a su
 
 ## ESP32
 
-The ESP32 platform is supported with SmartMatrix Library 4.0, but not all features are up to par with the Teensy 3/4 ports.  For details on the ESP32 port, see the [Wiki](https://github.com/pixelmatix/SmartMatrix/wiki/ESP32-Wiring)
+The ESP32 platform is supported with SmartMatrix Library 4.0, but not all features are up to par with the Teensy 3/4 ports.  For details on the ESP32 port, see the [Wiki](https://github.com/pixelmatix/SmartMatrix/wiki/ESP32-Port)
 
 ## Changes from SmartMatrix Library 3.x
 
