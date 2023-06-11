@@ -247,7 +247,7 @@ INLINE void SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelTyp
     static rgb48 tempRow0[matrixWidth];
 
     // clear buffer to prevent garbage data showing through transparent layers
-    memset(tempRow0, 0x00, sizeof(tempRow0));
+    memset((void *)tempRow0, 0x00, sizeof(tempRow0));
 
     // get pixel data from layers
     SM_Layer * templayer = SmartMatrixApaCalc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;

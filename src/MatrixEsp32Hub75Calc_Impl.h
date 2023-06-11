@@ -514,8 +514,8 @@ INLINE void SmartMatrixHub75Calc<refreshDepth, matrixWidth, matrixHeight, panelT
     // go through this process for each physical row that is contained in the refresh row
     do {
         // clear buffer to prevent garbage data showing through transparent layers
-        memset(tempRow0, 0x00, sizeof(rgb48) * numPixelsPerTempRow);
-        memset(tempRow1, 0x00, sizeof(rgb48) * numPixelsPerTempRow);
+        memset((void *)tempRow0, 0x00, sizeof(rgb48) * numPixelsPerTempRow);
+        memset((void *)tempRow1, 0x00, sizeof(rgb48) * numPixelsPerTempRow);
 
 #if (REFRESH_PRINTFS >= 1)
         printf("multiRowRefreshRowOffset = %d\r\n", multiRowRefreshRowOffset);
@@ -841,8 +841,8 @@ INLINE void SmartMatrixHub75Calc<refreshDepth, matrixWidth, matrixHeight, panelT
     // go through this process for each physical row that is contained in the refresh row
     do {
         // clear buffer to prevent garbage data showing through transparent layers
-        memset(tempRow0, 0x00, sizeof(rgb24) * numPixelsPerTempRow);
-        memset(tempRow1, 0x00, sizeof(rgb24) * numPixelsPerTempRow);
+        memset((void *)tempRow0, 0x00, sizeof(rgb24) * numPixelsPerTempRow);
+        memset((void *)tempRow1, 0x00, sizeof(rgb24) * numPixelsPerTempRow);
 
         // get a row of physical pixel data (HUB75 paired) from the layers
         SM_Layer * templayer = SmartMatrixHub75Calc<refreshDepth, matrixWidth, matrixHeight, panelType, optionFlags>::baseLayer;

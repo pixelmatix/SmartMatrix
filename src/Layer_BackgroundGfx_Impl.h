@@ -64,8 +64,8 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::begin(void) {
         backgroundBuffers[1] = (RGB *)ESPmalloc(sizeof(RGB) * this->matrixWidth * this->matrixHeight);
         assert(backgroundBuffers[1] != NULL);
         //printf("largest free block %d: \r\n", heap_caps_get_largest_free_block(MALLOC_CAP_DMA));
-        memset(backgroundBuffers[0], 0x00, sizeof(RGB) * this->matrixWidth * this->matrixHeight);
-        memset(backgroundBuffers[1], 0x00, sizeof(RGB) * this->matrixWidth * this->matrixHeight);
+        memset((void *)backgroundBuffers[0], 0x00, sizeof(RGB) * this->matrixWidth * this->matrixHeight);
+        memset((void *)backgroundBuffers[1], 0x00, sizeof(RGB) * this->matrixWidth * this->matrixHeight);
         //printf("largest free block %d: \r\n", heap_caps_get_largest_free_block(MALLOC_CAP_DMA));
     }
     if(!backgroundColorCorrectionLUT) {
@@ -182,7 +182,7 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::fillRefreshRow(uint16_t hardwareY, 
 
 template <typename RGB, unsigned int optionFlags>
 void SMLayerBackgroundGFX<RGB, optionFlags>::copyRefreshToDrawing() {
-    memcpy(currentDrawBufferPtr, currentRefreshBufferPtr, sizeof(RGB) * (this->matrixWidth * this->matrixHeight));
+    memcpy((void *)currentDrawBufferPtr, (void *)currentRefreshBufferPtr, sizeof(RGB) * (this->matrixWidth * this->matrixHeight));
 }
 
 // waits until previous swap is complete
@@ -198,12 +198,12 @@ void SMLayerBackgroundGFX<RGB, optionFlags>::swapBuffers(bool copy) {
 #if 1
         // workaround for bizarre (optimization) bug - currentDrawBuffer and currentRefreshBuffer are volatile and are changed by an ISR while we're waiting for swapPending here.  They can't be used as parameters to memcpy directly though.  
         if(currentDrawBuffer)
-            memcpy(backgroundBuffers[1], backgroundBuffers[0], sizeof(RGB) * (this->matrixWidth * this->matrixHeight));
+            memcpy((void *)backgroundBuffers[1], (void *)backgroundBuffers[0], sizeof(RGB) * (this->matrixWidth * this->matrixHeight));
         else
-            memcpy(backgroundBuffers[0], backgroundBuffers[1], sizeof(RGB) * (this->matrixWidth * this->matrixHeight));
+            memcpy((void *)backgroundBuffers[0], (void *)backgroundBuffers[1], sizeof(RGB) * (this->matrixWidth * this->matrixHeight));
 #else
         // Similar code also drawing from volatile variables doesn't work if optimization is turned on: currentDrawBuffer will be equal to currentRefreshBuffer and cause a crash from memcpy copying a buffer to itself.  Why?
-        memcpy(backgroundBuffers[currentDrawBuffer], backgroundBuffers[currentRefreshBuffer], sizeof(RGB) * (this->matrixWidth * this->matrixHeight));
+        memcpy((void *)backgroundBuffers[currentDrawBuffer], (void *)backgroundBuffers[currentRefreshBuffer], sizeof(RGB) * (this->matrixWidth * this->matrixHeight));
 
         // this also doesn't work
         //copyRefreshToDrawing();  

@@ -381,8 +381,8 @@ FASTRUN INLINE void SmartMatrixHub75Calc<refreshDepth, matrixWidth, matrixHeight
     // go through this process for each physical row that is contained in the refresh row
     do {
         // clear buffer to prevent garbage data showing
-        memset(tempRow0, 0, sizeof(tempRow0));
-        memset(tempRow1, 0, sizeof(tempRow1));
+        memset((void *)tempRow0, 0, sizeof(tempRow0));
+        memset((void *)tempRow1, 0, sizeof(tempRow1));
 
         // Get pixel data from layers and store in tempRow0 and tempRow1
         // Scan through the entire chain of panels and extract rows from each one
