@@ -215,7 +215,17 @@ void SMLayerScrolling<RGB, optionFlags>::setMinMax(void) {
         // TODO: handle special case - put content in fixed location if wider than window
 
         break;
+    case peekForward:
+    case peekReverse:
+        scrollMin = this->localWidth - textWidth;
+        scrollMin = (scrollMin > 0) ? 0 : scrollMin;
+        scrollMax = 0;
 
+        scrollPosition = scrollMax;
+        if (scrollmode == peekReverse)
+            scrollPosition = scrollMin;
+
+        break;
     case stopped:
     case off:
         scrollMin = scrollMax = scrollPosition = 0;
@@ -294,6 +304,22 @@ void SMLayerScrolling<RGB, optionFlags>::updateScrollingText(void) {
         scrollPosition++;
         if (scrollPosition >= scrollMax) {
             scrollmode = bounceForward;
+            if (scrollcounter > 0) scrollcounter--;
+        }
+        break;
+
+    case peekForward:
+        scrollPosition--;
+        if (scrollPosition <= scrollMin) {
+            scrollmode = peekReverse;
+            if (scrollcounter > 0) scrollcounter--;
+        }
+        break;
+
+    case peekReverse:
+        scrollPosition++;
+        if (scrollPosition >= scrollMax) {
+            scrollmode = peekForward;
             if (scrollcounter > 0) scrollcounter--;
         }
         break;

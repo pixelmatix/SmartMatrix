@@ -1017,7 +1017,9 @@ typedef enum ScrollMode {
     bounceReverse = 2,
     stopped = 3,
     off = 4,
-    wrapForwardFromLeft = 5
+    wrapForwardFromLeft = 5,
+    peekForward = 6,
+    peekReverse = 7
 } ScrollMode;
 
 #ifndef SWAPint
