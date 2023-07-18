@@ -39,6 +39,7 @@
 #define ESP32_JC_RIBBON_PINOUT_WEMOS    8
 #define HUB75_ADAPTER_LITE_V0_PINOUT    9
 #define ESP32_RGB64x32MatrixPanel_I2S_DMA_DEFAULT    10
+#define ESP32_RGB64x64MatrixPanel_I2S_DMA_DEFAULT    11
 
 #ifndef GPIOPINOUT
 #define GPIOPINOUT ESP32_FORUM_PINOUT
@@ -491,6 +492,30 @@
 
     // this pin can be manually toggled when the latch pin is high to send CLK pulses to the panel (noramlly latch blocks clock)
     #define CLK_MANUAL_PIN GPIO_NUM_22
+
+#elif (GPIOPINOUT == ESP32_RGB64x64MatrixPanel_I2S_DMA_DEFAULT)
+    // from ESP32-HUB75-MatrixPanel-I2S-DMA.h
+    #pragma message "MatrixHardware: ESP32-HUB75-MatrixPanel-I2S-DMA.h Default pinout for 64x64 with E pin"
+
+    #define CLKS_DURING_LATCH   0
+    #define MATRIX_I2S_MODE I2S_PARALLEL_BITS_16
+    #define MATRIX_DATA_STORAGE_TYPE uint16_t
+
+    #define R1_PIN       GPIO_NUM_25
+    #define G1_PIN       GPIO_NUM_26
+    #define B1_PIN       GPIO_NUM_27
+    #define R2_PIN       GPIO_NUM_14
+    #define G2_PIN       GPIO_NUM_12
+    #define B2_PIN       GPIO_NUM_13
+
+    #define A_PIN        GPIO_NUM_23
+    #define B_PIN        GPIO_NUM_19
+    #define C_PIN        GPIO_NUM_5
+    #define D_PIN        GPIO_NUM_17
+    #define E_PIN        GPIO_NUM_32
+    #define LAT_PIN      GPIO_NUM_4
+    #define OE_PIN       GPIO_NUM_15
+    #define CLK_PIN      GPIO_NUM_16
 
 #endif
 
