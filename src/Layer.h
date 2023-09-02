@@ -45,6 +45,9 @@ class SM_Layer {
         virtual int getRequestedBrightnessShifts();
         virtual bool isLayerChanged();
 
+        virtual void enable(bool en) { layerEnabled=en; }
+        virtual bool isEnabled() { return layerEnabled; }
+
         SM_Layer * nextLayer;
 
     protected:
@@ -57,6 +60,8 @@ class SM_Layer {
         // the local dimensions of this layer with rotation applied, local x=0,y=0 in the upper left
         uint16_t localWidth, localHeight;
         uint8_t refreshRate;
+
+        bool layerEnabled=true;
         
     private:
 };

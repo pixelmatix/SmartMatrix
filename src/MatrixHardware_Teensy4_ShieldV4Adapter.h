@@ -44,7 +44,9 @@
 #ifndef MATRIX_HARDWARE_H
 #define MATRIX_HARDWARE_H
 
+#ifndef SM_INTERNAL
 #pragma message "MatrixHardware: Teensy 4 Adapter attached to SmartLED Shield for Teensy 3 (V4)"
+#endif
 
 /* an advanced user may need to tweak these values */
 
