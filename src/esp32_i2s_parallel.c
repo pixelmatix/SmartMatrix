@@ -35,7 +35,6 @@
 #ifndef GPIO_PIN_MUX_REG
 #include "soc/gpio_periph.h"
 #include "esp32-hal.h"
-#include "hal/gpio_types.h"
 #endif
 
 typedef struct {
