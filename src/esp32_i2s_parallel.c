@@ -32,6 +32,12 @@
 #include "esp_heap_caps.h"
 #include "esp32_i2s_parallel.h"
 
+#ifndef GPIO_PIN_MUX_REG
+#include "soc/gpio_periph.h"
+#include "esp32-hal.h"
+#include "hal/gpio_types.h"
+#endif
+
 typedef struct {
     volatile lldesc_t *dmadesc_a, *dmadesc_b;
     int desccount_a, desccount_b;
