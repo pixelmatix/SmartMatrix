@@ -445,11 +445,11 @@
     #define G2_PIN  GPIO_NUM_25
     #define B2_PIN  GPIO_NUM_0
 
-    #define A_PIN   -1
-    #define B_PIN   -1
-    #define C_PIN   -1
-    #define D_PIN   -1
-    #define E_PIN   -1
+    #define A_PIN   GPIO_NUM_NC
+    #define B_PIN   GPIO_NUM_NC
+    #define C_PIN   GPIO_NUM_NC
+    #define D_PIN   GPIO_NUM_NC
+    #define E_PIN   GPIO_NUM_NC
 
     #define LAT_PIN GPIO_NUM_27
     #define OE_PIN  GPIO_NUM_32
@@ -478,11 +478,11 @@
     #define G2_PIN  GPIO_NUM_25
     #define B2_PIN  GPIO_NUM_21
 
-    #define A_PIN   -1
-    #define B_PIN   -1
-    #define C_PIN   -1
-    #define D_PIN   -1
-    #define E_PIN   -1
+    #define A_PIN   GPIO_NUM_NC
+    #define B_PIN   GPIO_NUM_NC
+    #define C_PIN   GPIO_NUM_NC
+    #define D_PIN   GPIO_NUM_NC
+    #define E_PIN   GPIO_NUM_NC
 
     #define LAT_PIN GPIO_NUM_22
     #define OE_PIN  GPIO_NUM_19
@@ -511,11 +511,11 @@
     #define G2_PIN  GPIO_NUM_25
     #define B2_PIN  GPIO_NUM_21
 
-    #define A_PIN   -1
-    #define B_PIN   -1
-    #define C_PIN   -1
-    #define D_PIN   -1
-    #define E_PIN   -1
+    #define A_PIN   GPIO_NUM_NC
+    #define B_PIN   GPIO_NUM_NC
+    #define C_PIN   GPIO_NUM_NC
+    #define D_PIN   GPIO_NUM_NC
+    #define E_PIN   GPIO_NUM_NC
 
     #define LAT_PIN GPIO_NUM_22
     #define OE_PIN  GPIO_NUM_19
@@ -547,11 +547,11 @@
     #define G2_PIN  GPIO_NUM_25
     #define B2_PIN  GPIO_NUM_15
 
-    #define A_PIN   -1
-    #define B_PIN   -1
-    #define C_PIN   -1
-    #define D_PIN   -1
-    #define E_PIN   -1
+    #define A_PIN   GPIO_NUM_NC
+    #define B_PIN   GPIO_NUM_NC
+    #define C_PIN   GPIO_NUM_NC
+    #define D_PIN   GPIO_NUM_NC
+    #define E_PIN   GPIO_NUM_NC
 
     #define LAT_PIN GPIO_NUM_10
     #define OE_PIN  GPIO_NUM_9
