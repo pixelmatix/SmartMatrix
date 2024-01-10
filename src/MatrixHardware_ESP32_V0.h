@@ -314,7 +314,7 @@
     13	CLK	18	LED Drivers' Clock
     14	STB	26	LED Drivers' Latch
 
-    15	OE	25	LED Drivers' Output Enable
+    15	OE	22	LED Drivers' Output Enable
     16	GND	GND	Ground
     */
     #define R1_PIN  GPIO_NUM_23
@@ -330,7 +330,7 @@
     #define D_PIN   GPIO_NUM_21
     #define E_PIN   GPIO_NUM_12
     #define LAT_PIN GPIO_NUM_26
-    #define OE_PIN  GPIO_NUM_25
+    #define OE_PIN  GPIO_NUM_22
 
     #define CLK_PIN GPIO_NUM_18
 
