@@ -311,7 +311,7 @@
     11	C	19	Demux Input A2
     12	D	21	Demux Input E1, E3 (32x32 panels only)
 
-    13	CLK	22	LED Drivers' Clock
+    13	CLK	18	LED Drivers' Clock
     14	STB	26	LED Drivers' Latch
 
     15	OE	25	LED Drivers' Output Enable
@@ -332,7 +332,7 @@
     #define LAT_PIN GPIO_NUM_26
     #define OE_PIN  GPIO_NUM_25
 
-    #define CLK_PIN GPIO_NUM_22
+    #define CLK_PIN GPIO_NUM_18
 
 #elif (GPIOPINOUT == HUB75_ADAPTER_PINOUT)
 
