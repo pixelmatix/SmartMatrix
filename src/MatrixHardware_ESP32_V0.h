@@ -312,7 +312,7 @@
     12	D	21	Demux Input E1, E3 (32x32 panels only)
 
     13	CLK	18	LED Drivers' Clock
-    14	STB	26	LED Drivers' Latch
+    14	STB	2	LED Drivers' Latch
 
     15	OE	22	LED Drivers' Output Enable
     16	GND	GND	Ground
@@ -329,7 +329,7 @@
     #define C_PIN   GPIO_NUM_19
     #define D_PIN   GPIO_NUM_21
     #define E_PIN   GPIO_NUM_12
-    #define LAT_PIN GPIO_NUM_26
+    #define LAT_PIN GPIO_NUM_2
     #define OE_PIN  GPIO_NUM_22
 
     #define CLK_PIN GPIO_NUM_18
