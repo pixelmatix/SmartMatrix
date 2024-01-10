@@ -293,7 +293,7 @@
     13 14 STB/Latch
     15 16 Gnd
                         ESP32 pin / comment
-    1	R0	2	Red Data (columns 1-16)
+    1	R0	23	Red Data (columns 1-16)
     2	G0	15	Green Data (columns 1-16)
 
     3	B0	4	Blue Data (columns 1-16)
@@ -317,7 +317,7 @@
     15	OE	25	LED Drivers' Output Enable
     16	GND	GND	Ground
     */
-    #define R1_PIN  GPIO_NUM_2
+    #define R1_PIN  GPIO_NUM_23
     #define G1_PIN  GPIO_NUM_15
     #define B1_PIN  GPIO_NUM_4
     #define R2_PIN  GPIO_NUM_16
