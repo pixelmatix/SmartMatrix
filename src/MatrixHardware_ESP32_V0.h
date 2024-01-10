@@ -305,8 +305,8 @@
     7	B1	17/TX2	Blue Data (columns 17-32)
     8	E	12	Demux Input E for 64x64 panels
 
-    9	A	5	Demux Input A0
-    10	B	18	Demux Input A1
+    9	A	19	Demux Input A0
+    10	B	21	Demux Input A1
 
     11	C	19	Demux Input A2
     12	D	21	Demux Input E1, E3 (32x32 panels only)
@@ -324,8 +324,8 @@
     #define G2_PIN  GPIO_NUM_27
     #define B2_PIN  GPIO_NUM_17
 
-    #define A_PIN   GPIO_NUM_5
-    #define B_PIN   GPIO_NUM_18
+    #define A_PIN   GPIO_NUM_19
+    #define B_PIN   GPIO_NUM_21
     #define C_PIN   GPIO_NUM_19
     #define D_PIN   GPIO_NUM_21
     #define E_PIN   GPIO_NUM_12
