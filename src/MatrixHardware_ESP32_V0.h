@@ -268,7 +268,13 @@
 
 #elif (GPIOPINOUT == ELECTRODRAGON_PINOUT)
 
-    #pragma message "MatrixHardware: ESP32 forum wiring"
+
+    // https://www.electrodragon.com/product/mono-color-hub12-matrix-panel-drive-board-esp32/
+    // https://w2.electrodragon.com/Board-dat/IDD/IDD1023-dat/IDD1023-dat.md
+    // https://github.com/Edragon/Arduino-ESP32/tree/master/libraries/DMD32-main
+    // https://github.com/Edragon/Arduino-ESP32/blob/master/libraries/DMD32-main/connection.png
+
+    #pragma message "MatrixHardware: Electrodragon Mono Color HUB12 Matrix Panel Drive Board ESP32 wiring"
 
     // ADDX is output directly using GPIO
     #define CLKS_DURING_LATCH   0
