@@ -39,9 +39,10 @@
 #define ESP32_JC_RIBBON_PINOUT_WEMOS    8
 #define HUB75_ADAPTER_LITE_V0_PINOUT    9
 #define ESP32_RGB64x32MatrixPanel_I2S_DMA_DEFAULT    10
+#define ELECTRODRAGON_PINOUT    11
 
 #ifndef GPIOPINOUT
-#define GPIOPINOUT ESP32_FORUM_PINOUT
+#define GPIOPINOUT ELECTRODRAGON_PINOUT
 #endif
 //#define GPIOPINOUT ESP32_FORUM_PINOUT_WITH_LATCH // note this mode is untested as of 2018-05-17 - not being used anymore now that SmartMatrix Shield is available
 //#define GPIOPINOUT SMARTLED_SHIELD_V0_PINOUT
@@ -265,6 +266,63 @@
 
     #define CLK_PIN GPIO_NUM_22
 
+#elif (GPIOPINOUT == ELECTRODRAGON_PINOUT)
+
+
+    // https://www.electrodragon.com/product/mono-color-hub12-matrix-panel-drive-board-esp32/
+    // https://w2.electrodragon.com/Board-dat/IDD/IDD1023-dat/IDD1023-dat.md
+    // https://github.com/Edragon/Arduino-ESP32/tree/master/libraries/DMD32-main
+    // https://github.com/Edragon/Arduino-ESP32/blob/master/libraries/DMD32-main/connection.png
+
+    #pragma message "MatrixHardware: Electrodragon Mono Color HUB12 Matrix Panel Drive Board ESP32 wiring"
+
+    // ADDX is output directly using GPIO
+    #define CLKS_DURING_LATCH   0
+    #define MATRIX_I2S_MODE I2S_PARALLEL_BITS_16
+    #define MATRIX_DATA_STORAGE_TYPE uint16_t
+
+    /*
+    HUB 75
+    01 02 B0
+    03 04 Gnd
+    05 06 G1
+    07 08 E
+
+    09 10 B
+    11 12 D
+    13 14 STB/Latch
+    15 16 Gnd
+                        ESP32 pin / comment
+    1	R0	23	Red Data (columns 1-16)
+
+    4	GND	GND	Ground
+
+    9	A	19	Demux Input A0
+    10	B	21	Demux Input A1
+
+    13	CLK	18	LED Drivers' Clock
+    14	STB	2	LED Drivers' Latch
+
+    15	OE	22	LED Drivers' Output Enable
+    16	GND	GND	Ground
+    */
+    #define R1_PIN  GPIO_NUM_23
+    #define G1_PIN  GPIO_NUM_NC
+    #define B1_PIN  GPIO_NUM_NC
+    #define R2_PIN  GPIO_NUM_NC
+    #define G2_PIN  GPIO_NUM_NC
+    #define B2_PIN  GPIO_NUM_NC
+
+    #define A_PIN   GPIO_NUM_19
+    #define B_PIN   GPIO_NUM_21
+    #define C_PIN   GPIO_NUM_NC
+    #define D_PIN   GPIO_NUM_NC
+    #define E_PIN   GPIO_NUM_NC
+    #define LAT_PIN GPIO_NUM_2
+    #define OE_PIN  GPIO_NUM_22
+
+    #define CLK_PIN GPIO_NUM_18
+
 #elif (GPIOPINOUT == HUB75_ADAPTER_PINOUT)
 
     #pragma message "MatrixHardware: Hub75 Adapter Pinout"
@@ -376,11 +434,11 @@
     #define G2_PIN  GPIO_NUM_25
     #define B2_PIN  GPIO_NUM_0
 
-    #define A_PIN   -1
-    #define B_PIN   -1
-    #define C_PIN   -1
-    #define D_PIN   -1
-    #define E_PIN   -1
+    #define A_PIN   GPIO_NUM_NC
+    #define B_PIN   GPIO_NUM_NC
+    #define C_PIN   GPIO_NUM_NC
+    #define D_PIN   GPIO_NUM_NC
+    #define E_PIN   GPIO_NUM_NC
 
     #define LAT_PIN GPIO_NUM_27
     #define OE_PIN  GPIO_NUM_32
@@ -409,11 +467,11 @@
     #define G2_PIN  GPIO_NUM_25
     #define B2_PIN  GPIO_NUM_21
 
-    #define A_PIN   -1
-    #define B_PIN   -1
-    #define C_PIN   -1
-    #define D_PIN   -1
-    #define E_PIN   -1
+    #define A_PIN   GPIO_NUM_NC
+    #define B_PIN   GPIO_NUM_NC
+    #define C_PIN   GPIO_NUM_NC
+    #define D_PIN   GPIO_NUM_NC
+    #define E_PIN   GPIO_NUM_NC
 
     #define LAT_PIN GPIO_NUM_22
     #define OE_PIN  GPIO_NUM_19
@@ -442,11 +500,11 @@
     #define G2_PIN  GPIO_NUM_25
     #define B2_PIN  GPIO_NUM_21
 
-    #define A_PIN   -1
-    #define B_PIN   -1
-    #define C_PIN   -1
-    #define D_PIN   -1
-    #define E_PIN   -1
+    #define A_PIN   GPIO_NUM_NC
+    #define B_PIN   GPIO_NUM_NC
+    #define C_PIN   GPIO_NUM_NC
+    #define D_PIN   GPIO_NUM_NC
+    #define E_PIN   GPIO_NUM_NC
 
     #define LAT_PIN GPIO_NUM_22
     #define OE_PIN  GPIO_NUM_19
@@ -478,11 +536,11 @@
     #define G2_PIN  GPIO_NUM_25
     #define B2_PIN  GPIO_NUM_15
 
-    #define A_PIN   -1
-    #define B_PIN   -1
-    #define C_PIN   -1
-    #define D_PIN   -1
-    #define E_PIN   -1
+    #define A_PIN   GPIO_NUM_NC
+    #define B_PIN   GPIO_NUM_NC
+    #define C_PIN   GPIO_NUM_NC
+    #define D_PIN   GPIO_NUM_NC
+    #define E_PIN   GPIO_NUM_NC
 
     #define LAT_PIN GPIO_NUM_10
     #define OE_PIN  GPIO_NUM_9

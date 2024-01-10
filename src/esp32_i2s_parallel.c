@@ -26,11 +26,19 @@
 
 #include "soc/i2s_struct.h"
 #include "soc/i2s_reg.h"
+#include "soc/gpio_periph.h"
 #include "driver/periph_ctrl.h"
+#include "driver/gpio.h"
 #include "soc/io_mux_reg.h"
 #include "rom/lldesc.h"
 #include "esp_heap_caps.h"
 #include "esp32_i2s_parallel.h"
+
+#if CONFIG_IDF_TARGET_ESP32
+#include "esp32/rom/gpio.h"
+#else
+#error Target CONFIG_IDF_TARGET is not supported
+#endif
 
 typedef struct {
     volatile lldesc_t *dmadesc_a, *dmadesc_b;

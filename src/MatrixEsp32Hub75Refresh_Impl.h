@@ -132,11 +132,11 @@ void SmartMatrixHub75Refresh<refreshDepth, matrixWidth, matrixHeight, panelType,
     matrixUpdateFrames[1] = (frameStruct *)heap_caps_malloc(sizeof(frameStruct), MALLOC_CAP_DMA);
     assert(matrixUpdateFrames[1] != NULL);
 
-    printf("sizeof framestruct: %08X\r\n", (uint32_t)sizeof(frameStruct));
+    printf("sizeof framestruct: %08" PRIX32 "\r\n", (uint32_t)sizeof(frameStruct));
     show_esp32_dma_mem("DMA Memory Available before ptr1 alloc");
-    printf("matrixUpdateFrames[0] pointer: %08X\r\n", (uint32_t)matrixUpdateFrames[0]);
+    printf("matrixUpdateFrames[0] pointer: %08" PRIX32 "\r\n", (uint32_t)matrixUpdateFrames[0]);
     show_esp32_dma_mem("DMA Memory Available before ptr2 alloc");
-    printf("matrixUpdateFrames[1] pointer: %08X\r\n", (uint32_t)matrixUpdateFrames[1]);
+    printf("matrixUpdateFrames[1] pointer: %08" PRIX32 "\r\n", (uint32_t)matrixUpdateFrames[1]);
 
     printf("Frame Structs Allocated from Heap:\r\n");
     show_esp32_all_mem();
@@ -454,10 +454,10 @@ void SmartMatrixHub75Refresh<refreshDepth, matrixWidth, matrixHeight, panelType,
         .bits=MATRIX_I2S_MODE,
         .bufa=0,
         .bufb=0,
-        desccount,
-        desccount,
-        dmadesc_a,
-        dmadesc_b
+        .desccount_a=desccount,
+        .desccount_b=desccount,
+        .lldesc_a=dmadesc_a,
+		.lldesc_b=dmadesc_b
     };
 
     //Setup I2S

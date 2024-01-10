@@ -446,10 +446,10 @@ void SmartMatrixHub75Refresh_NT<dummyvar>::begin(uint32_t dmaRamToKeepFreeBytes)
         .bits=MATRIX_I2S_MODE,
         .bufa=0,
         .bufb=0,
-        desccount,
-        desccount,
-        dmadesc_a,
-        dmadesc_b
+		.desccount_a=desccount,
+		.desccount_b=desccount,
+		.lldesc_a=dmadesc_a,
+		.lldesc_b=dmadesc_b
     };
 
     //Setup I2S
